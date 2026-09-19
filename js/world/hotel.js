@@ -83,7 +83,8 @@
         settings.activities[floorId]=normalized;
         return;
       }
-      const task=rollHotelTask(floorId);
+      const tasks=hotelActivitiesForFloor(floorId);
+      const task=tasks.length?tasks[stableNumber(hotelWorkDayKey()+"|"+floorId)%tasks.length]:null;
       if(task){
         settings.activities[floorId]={
           taskId:task.id,status:"ready",startedAt:0,endAt:0,
