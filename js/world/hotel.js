@@ -15,6 +15,32 @@
     };
   }
 
+
+  const HOTEL_SPOTS = [
+    {id:"lucifer-sofa",floor:"penthouse",label:"LUCIFER · 소파",left:31,bottom:9,travel:12},
+    {id:"lucifer-fireplace",floor:"penthouse",label:"LUCIFER · 벽난로",left:39,bottom:8,travel:8},
+    {id:"alastor-fireplace",floor:"penthouse",label:"ALASTOR · 벽난로",left:67,bottom:8,travel:8},
+    {id:"alastor-chair",floor:"penthouse",label:"ALASTOR · 의자",left:82,bottom:8,travel:11},
+    {id:"suite-corridor-left",floor:"suites",label:"SUITES · 왼쪽 복도",left:24,bottom:8,travel:13},
+    {id:"suite-corridor-right",floor:"suites",label:"SUITES · 오른쪽 복도",left:76,bottom:8,travel:13},
+    {id:"lounge-sofa",floor:"lounge",label:"LOUNGE · 소파",left:27,bottom:9,travel:12},
+    {id:"lounge-fireplace",floor:"lounge",label:"LOUNGE · 벽난로",left:52,bottom:8,travel:9},
+    {id:"lounge-window",floor:"lounge",label:"LOUNGE · 창가",left:77,bottom:8,travel:10},
+    {id:"bar-stage",floor:"bar",label:"BAR · 무대",left:25,bottom:8,travel:16},
+    {id:"bar-counter",floor:"bar",label:"BAR · 카운터",left:73,bottom:8,travel:12},
+    {id:"lobby-front",floor:"lobby",label:"LOBBY · 프런트",left:22,bottom:8,travel:11},
+    {id:"lobby-piano",floor:"lobby",label:"LOBBY · 피아노",left:74,bottom:8,travel:10},
+    {id:"lobby-door",floor:"lobby",label:"LOBBY · 현관",left:61,bottom:8,travel:12}
+  ];
+
+  function hotelSpotById(id){
+    return HOTEL_SPOTS.find(spot=>spot.id===id)||null;
+  }
+
+  function hotelSpotsForFloor(floorId){
+    return HOTEL_SPOTS.filter(spot=>spot.floor===floorId);
+  }
+
   function characterWorldDefaults(){
     return {
       visible:true,
@@ -23,6 +49,8 @@
       movement:"wander",
       speed:1,
       scale:1,
+      useSpots:true,
+      preferredSpot:"auto",
       thoughts:true,
       thoughtFrequency:"normal"
     };
@@ -39,6 +67,8 @@
       movement:["still","calm","wander","active"].includes(s.movement)?s.movement:d.movement,
       speed:Math.max(.45,Math.min(1.8,Number(s.speed)||d.speed)),
       scale:Math.max(.6,Math.min(1.55,Number(s.scale)||d.scale)),
+      useSpots:s.useSpots!==false,
+      preferredSpot:s.preferredSpot==="auto"||hotelSpotById(s.preferredSpot)?s.preferredSpot:"auto",
       thoughts:s.thoughts!==false,
       thoughtFrequency:["rare","normal","often"].includes(s.thoughtFrequency)?s.thoughtFrequency:d.thoughtFrequency
     };
@@ -115,11 +145,26 @@
   function actorFloorIndex(character,settings){
     const cfg=characterWorldSettings(character,settings);
     const floors=hotelRegion().floors;
+    const preferred=cfg.useSpots?hotelSpotById(cfg.preferredSpot):null;
+    if(preferred){
+      const index=floors.findIndex(f=>f.id===preferred.floor);
+      if(index>=0)return index;
+    }
     if(cfg.floor!=="auto"){
       const index=floors.findIndex(f=>f.id===cfg.floor);
       if(index>=0)return index;
     }
     return stableNumber(character.id)%Math.max(1,floors.length);
+  }
+
+  function resolveActorSpot(character,floorId,settings){
+    const cfg=characterWorldSettings(character,settings);
+    if(!cfg.useSpots)return null;
+    const preferred=hotelSpotById(cfg.preferredSpot);
+    if(preferred&&preferred.floor===floorId)return preferred;
+    const available=hotelSpotsForFloor(floorId);
+    if(!available.length)return null;
+    return available[stableNumber(character.id+"-spot")%available.length];
   }
 
   function worldThoughtPool(characterId){
@@ -171,6 +216,8 @@
         '<span class="lucifer-wall-lamp one"></span><span class="lucifer-wall-lamp two"></span>'+
         '<span class="lucifer-rug"></span>'+
       '</section>'+
+      '<span class="private-room-door lucifer-private-door"><i></i><b>♛</b><em></em></span>'+
+      '<span class="private-room-door alastor-private-door"><i></i><b>◉</b><em></em></span>'+
       '<section class="character-room alastor-room">'+
         '<span class="room-nameplate">ALASTOR</span>'+
         '<span class="alastor-fireplace"><i></i><b>◉</b><em></em></span>'+
@@ -184,17 +231,23 @@
   function actorMarkup(character,index,floorIndex,settings){
     const key=stableNumber(character.id||character.name||index);
     const cfg=characterWorldSettings(character,settings);
-    const left=8+(key%72);
-    const duration=(11+(key%7)*1.25)/(settings.motionSpeed*cfg.speed);
+    const floor=hotelRegion().floors[floorIndex];
+    const spot=floor?resolveActorSpot(character,floor.id,settings):null;
+    const left=spot?spot.left:8+(key%72);
+    const bottom=spot?spot.bottom:8;
+    const travel=spot?spot.travel:18+(key%16);
+    const duration=(12+(key%7)*1.35)/(settings.motionSpeed*cfg.speed);
     const delay=-((key%90)/10);
     const initials=(character.name||"?").slice(0,2).toUpperCase();
     const image=cfg.image||character.image||"";
     const art=image
       ? '<img src="'+esc(image)+'" alt="" />'
       : '<span class="hotel-actor-fallback">'+esc(initials)+'</span>';
-    return '<div class="hotel-actor move-'+esc(cfg.movement)+' actor-'+(index%4)+'" title="'+esc(character.name)+'" '+
-      'style="--actor-left:'+left+'%;--actor-duration:'+duration+'s;--actor-delay:'+delay+'s;--actor-scale:'+cfg.scale+'" '+
-      'data-character-id="'+esc(character.id)+'">'+
+    const spotClass=spot?" has-hotel-spot":"";
+    const spotTitle=spot?" · "+spot.label:"";
+    return '<div class="hotel-actor move-'+esc(cfg.movement)+spotClass+' actor-'+(index%4)+'" title="'+esc(character.name+spotTitle)+'" '+
+      'style="--actor-left:'+left+'%;--actor-bottom:'+bottom+'px;--actor-travel:'+travel+'px;--actor-duration:'+duration+'s;--actor-delay:'+delay+'s;--actor-scale:'+cfg.scale+'" '+
+      'data-character-id="'+esc(character.id)+'" data-hotel-spot="'+esc(spot?.id||"")+'">'+
       art+'<small>'+esc(character.name)+'</small></div>';
   }
   function decorativeActorMarkup(index,settings){
@@ -304,7 +357,20 @@
           '<div class="hotel-street-foreground" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>'+
           '<div class="hotel-building">'+
             hotelCrown()+hotelFacadeDecor()+
-            '<div class="hotel-cutaway">'+floors+'</div>'+
+            '<div class="hotel-cutaway">'+
+              '<div class="hotel-lift-shaft" aria-hidden="true">'+
+                '<span class="lift-rail left"></span><span class="lift-rail right"></span><span class="lift-cable"></span>'+
+                '<div class="lift-car"><i></i><b>♥</b><em></em></div>'+
+              '</div>'+
+              '<div class="hotel-spiral-stair" aria-hidden="true">'+
+                '<div class="stair-flight sf1"><b></b><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>'+
+                '<div class="stair-flight sf2"><b></b><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>'+
+                '<div class="stair-flight sf3"><b></b><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>'+
+                '<div class="stair-flight sf4"><b></b><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>'+
+                '<div class="stair-flight sf5"><b></b><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>'+
+              '</div>'+
+              floors+
+            '</div>'+
           '</div>'+
           '<aside class="hotel-scene-note"><span>CUTAWAY VIEW</span><strong>층을 눌러 공간을 확인하세요.</strong><small>현재는 호텔만 구현되어 있으며 다른 지역은 같은 WORLD 구조에 추가됩니다.</small></aside>'+
         '</div>'+
@@ -379,6 +445,11 @@
     const thoughts=worldThoughtPool(character.id);
     const floorOptions=['<option value="auto" '+(cfg.floor==="auto"?"selected":"")+'>AUTO · 자동 배치</option>']
       .concat(hotelRegion().floors.map(f=>'<option value="'+esc(f.id)+'" '+(cfg.floor===f.id?"selected":"")+'>'+esc(f.number+" · "+f.name)+'</option>')).join("");
+    const spotOptions=['<option value="auto" '+(cfg.preferredSpot==="auto"?"selected":"")+'>AUTO · 층 안에서 자동 선택</option>']
+      .concat(hotelRegion().floors.map(f=>{
+        const options=hotelSpotsForFloor(f.id).map(spot=>'<option value="'+esc(spot.id)+'" '+(cfg.preferredSpot===spot.id?"selected":"")+'>'+esc(spot.label)+'</option>').join("");
+        return options?'<optgroup label="'+esc(f.number+" · "+f.name)+'">'+options+'</optgroup>':"";
+      })).join("");
     return '<details class="hotel-character-world-card" data-world-character-card="'+esc(character.id)+'">'+
       '<summary>'+
         '<div class="hotel-world-char-thumb">'+
@@ -408,6 +479,8 @@
           '</select></label>'+
           '<label class="field"><span>이동 속도 · 0.45 ~ 1.8</span><input type="number" min=".45" max="1.8" step=".05" data-world-field="speed" value="'+cfg.speed+'" /></label>'+
           '<label class="field"><span>캐릭터 크기 · 0.6 ~ 1.55</span><input type="number" min=".6" max="1.55" step=".05" data-world-field="scale" value="'+cfg.scale+'" /></label>'+
+          '<label class="checkline"><input type="checkbox" data-world-field="useSpots" '+(cfg.useSpots?"checked":"")+' /> 가구/장소에 가서 머무르기</label>'+
+          '<label class="field"><span>머무는 장소</span><select data-world-field="preferredSpot">'+spotOptions+'</select><small>장소를 직접 고르면 해당 층에 우선 배치됩니다.</small></label>'+
           '<label class="checkline"><input type="checkbox" data-world-field="thoughts" '+(cfg.thoughts?"checked":"")+' /> 기존 THOUGHT가 가끔 떠오름</label>'+
           '<label class="field"><span>THOUGHT 빈도</span><select data-world-field="thoughtFrequency">'+
             '<option value="rare" '+(cfg.thoughtFrequency==="rare"?"selected":"")+'>RARE · 드물게</option>'+
@@ -480,6 +553,8 @@
         movement:field("movement")?.value||"wander",
         speed:field("speed")?.value,
         scale:field("scale")?.value,
+        useSpots:field("useSpots")?.checked,
+        preferredSpot:field("preferredSpot")?.value||"auto",
         thoughts:field("thoughts")?.checked,
         thoughtFrequency:field("thoughtFrequency")?.value||"normal"
       });

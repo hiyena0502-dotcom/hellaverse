@@ -2250,3 +2250,291 @@
 .hotel-arrow-sign{top:57%}
 .hotel-center-rib i{display:none}
 .hotel-center-rib:before,.hotel-center-rib:after{width:5px}
+
+
+/* HOTEL CORE + SPOT SYSTEM */
+.hotel-cutaway:before,
+.hotel-cutaway:after{display:none!important}
+
+/* reserve a clean vertical core for elevator + stairs */
+.floor-penthouse .character-room{width:36.5%}
+.floor-penthouse .lucifer-room{left:1.5%}
+.floor-penthouse .alastor-room{right:1.5%}
+.floor-penthouse .hotel-elevator{z-index:13}
+.floor-suites .hotel-elevator,
+.floor-lounge .hotel-elevator,
+.floor-bar .hotel-elevator,
+.floor-lobby .hotel-elevator{z-index:13}
+
+/* continuous elevator shaft */
+.hotel-lift-shaft{
+  position:absolute;
+  z-index:6;
+  left:50%;
+  top:0;
+  bottom:0;
+  width:92px;
+  transform:translateX(-50%);
+  border-left:5px solid #17070d;
+  border-right:5px solid #17070d;
+  background:
+    linear-gradient(90deg,#471020 0 12%,#16070d 13% 25%,#2a0a15 26% 74%,#16070d 75% 87%,#471020 88%);
+  box-shadow:
+    inset 7px 0 0 rgba(236,190,151,.13),
+    inset -7px 0 0 rgba(236,190,151,.13);
+  pointer-events:none
+}
+.hotel-lift-shaft:before{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:0;
+  bottom:0;
+  width:2px;
+  transform:translateX(-50%);
+  background:#9a6849;
+  opacity:.5
+}
+.lift-rail{
+  position:absolute;
+  top:0;bottom:0;
+  width:4px;
+  background:#d3a06e;
+  box-shadow:0 0 0 2px #24100f
+}
+.lift-rail.left{left:16px}.lift-rail.right{right:16px}
+.lift-cable{
+  position:absolute;
+  left:50%;top:0;bottom:0;
+  width:2px;
+  transform:translateX(-50%);
+  background:#6f3e31
+}
+.lift-car{
+  position:absolute;
+  left:50%;
+  top:61%;
+  width:62px;
+  height:82px;
+  transform:translate(-50%,-50%);
+  border:4px solid #15070c;
+  outline:2px solid #d6a16c;
+  border-radius:6px 6px 3px 3px;
+  background:linear-gradient(90deg,#7d1733 0 47%,#1d0810 48% 52%,#7d1733 53%);
+  box-shadow:inset 0 0 0 3px #9f2148;
+  animation:hotelLiftTravel 24s ease-in-out infinite
+}
+.lift-car:before{
+  content:"";
+  position:absolute;
+  left:9px;right:9px;top:8px;
+  height:8px;
+  border:1px solid #e4b889;
+  background:repeating-linear-gradient(90deg,#e4b889 0 5px,transparent 6px 10px);
+  opacity:.7
+}
+.lift-car i{
+  position:absolute;
+  left:50%;top:45%;
+  width:1px;height:45%;
+  transform:translateX(-50%);
+  background:#1a070d
+}
+.lift-car b{
+  position:absolute;
+  left:50%;top:24px;
+  transform:translateX(-50%);
+  color:#ff6a9a;
+  font-size:.65rem
+}
+.lift-car em{
+  position:absolute;
+  left:50%;bottom:7px;
+  width:24px;height:5px;
+  transform:translateX(-50%);
+  border-radius:50%;
+  border:1px solid #d7a36d;
+  opacity:.6
+}
+@keyframes hotelLiftTravel{
+  0%,10%{top:88%}
+  24%,34%{top:68%}
+  47%,58%{top:47%}
+  70%,80%{top:27%}
+  93%,100%{top:9%}
+}
+
+/* per-floor elevator doors now read as doors into the same shaft */
+.hotel-elevator{
+  width:78px;
+  background:
+    linear-gradient(90deg,#78162f 0 47%,#15070d 48% 52%,#78162f 53%);
+  border:3px solid #17070d;
+  outline:1px solid #d5a16d;
+  box-shadow:inset 0 0 0 2px rgba(219,73,110,.3)
+}
+.hotel-elevator b,
+.hotel-elevator em{display:none}
+.hotel-elevator:after{
+  content:"";
+  position:absolute;
+  left:8px;right:8px;top:8px;bottom:8px;
+  border-top:1px solid rgba(232,187,148,.45);
+  border-bottom:1px solid rgba(232,187,148,.45);
+  background:linear-gradient(90deg,transparent 48%,rgba(18,6,10,.8) 49% 51%,transparent 52%)
+}
+
+/* one curved staircase threads through the floors beside the lift */
+.hotel-spiral-stair{
+  position:absolute;
+  z-index:11;
+  left:calc(50% + 52px);
+  top:0;
+  bottom:0;
+  width:94px;
+  pointer-events:none
+}
+.stair-flight{
+  position:absolute;
+  left:0;
+  width:92px;
+  height:94px;
+  transform-origin:center;
+  filter:drop-shadow(0 4px 2px rgba(0,0,0,.25))
+}
+.stair-flight.sf1{bottom:1%}
+.stair-flight.sf2{bottom:20.2%;transform:scaleX(-1)}
+.stair-flight.sf3{bottom:39.7%}
+.stair-flight.sf4{bottom:59.2%;transform:scaleX(-1)}
+.stair-flight.sf5{bottom:78.7%}
+.stair-flight b{
+  position:absolute;
+  left:8px;right:8px;top:4px;height:75px;
+  border-top:4px solid #ddb178;
+  border-right:4px solid #ddb178;
+  border-radius:0 78px 0 0;
+  transform:rotate(-8deg);
+  box-shadow:2px -2px 0 #1b080d
+}
+.stair-flight i{
+  position:absolute;
+  width:40px;
+  height:9px;
+  border:2px solid #18070d;
+  border-top-color:#e1b37a;
+  background:#74182e
+}
+.stair-flight i:nth-of-type(1){left:5px;bottom:8px;transform:rotate(-4deg)}
+.stair-flight i:nth-of-type(2){left:10px;bottom:18px;transform:rotate(-7deg)}
+.stair-flight i:nth-of-type(3){left:17px;bottom:29px;transform:rotate(-11deg)}
+.stair-flight i:nth-of-type(4){left:26px;bottom:40px;transform:rotate(-16deg)}
+.stair-flight i:nth-of-type(5){left:37px;bottom:52px;transform:rotate(-23deg)}
+.stair-flight i:nth-of-type(6){left:49px;bottom:63px;transform:rotate(-31deg)}
+.stair-flight i:nth-of-type(7){left:60px;bottom:73px;transform:rotate(-40deg)}
+
+/* penthouse room doors open toward the central core */
+.private-room-door{
+  position:absolute!important;
+  z-index:16!important;
+  bottom:9%!important;
+  width:7.5%!important;
+  height:63%!important;
+  border:4px solid #16070c!important;
+  outline:2px solid #d7a36d!important;
+  background:#5c1427!important;
+  box-shadow:inset 0 0 0 3px rgba(222,167,112,.17);
+  border-radius:28px 28px 4px 4px
+}
+.private-room-door:before{
+  content:"";
+  position:absolute;
+  left:12%;right:12%;top:9%;height:27%;
+  border:2px solid rgba(232,190,149,.52);
+  border-radius:50% 50% 5px 5px
+}
+.private-room-door:after{
+  content:"";
+  position:absolute;
+  left:18%;right:18%;bottom:10%;height:33%;
+  border:2px solid rgba(232,190,149,.35)
+}
+.private-room-door i{
+  position:absolute!important;
+  right:9%!important;
+  top:51%!important;
+  width:6px!important;height:6px!important;
+  border-radius:50%!important;
+  background:#efc28c!important
+}
+.private-room-door b{
+  position:absolute!important;
+  left:50%!important;top:42%!important;
+  transform:translate(-50%,-50%)!important;
+  color:#f2c48e!important;
+  font-size:.7rem!important
+}
+.private-room-door em{
+  position:absolute!important;
+  left:50%!important;top:-13px!important;
+  width:28px!important;height:13px!important;
+  transform:translateX(-50%)!important;
+  border:2px solid #16070c!important;
+  border-bottom:0!important;
+  border-radius:50% 50% 0 0!important;
+  background:#6e172c!important
+}
+.lucifer-private-door{left:38.1%!important;background:linear-gradient(180deg,#8f2940,#5c1427)!important}
+.lucifer-private-door b{color:#f5d6a7!important}
+.alastor-private-door{right:38.1%!important;background:linear-gradient(180deg,#51121e,#2b0911)!important}
+.alastor-private-door:before{border-color:rgba(170,102,72,.62)}
+.alastor-private-door b{color:#c98e67!important}
+
+/* furniture spots: actors walk away, return, then pause at the chosen place */
+.hotel-actor{
+  bottom:var(--actor-bottom,8px)
+}
+.hotel-actor.has-hotel-spot.move-still{animation:none!important}
+.hotel-actor.has-hotel-spot.move-calm{
+  animation-name:hotelSpotCalm;
+  animation-timing-function:ease-in-out
+}
+.hotel-actor.has-hotel-spot.move-wander{
+  animation-name:hotelSpotWander;
+  animation-timing-function:ease-in-out
+}
+.hotel-actor.has-hotel-spot.move-active{
+  animation-name:hotelSpotActive;
+  animation-timing-function:ease-in-out
+}
+@keyframes hotelSpotCalm{
+  0%,28%{transform:translateX(0) scale(var(--actor-scale,1))}
+  45%{transform:translateX(calc(var(--actor-travel) * -.45)) scale(var(--actor-scale,1))}
+  52%{transform:translateX(calc(var(--actor-travel) * -.45)) scaleX(-1) scale(var(--actor-scale,1))}
+  67%,100%{transform:translateX(0) scaleX(-1) scale(var(--actor-scale,1))}
+}
+@keyframes hotelSpotWander{
+  0%,24%{transform:translateX(0) scale(var(--actor-scale,1))}
+  39%{transform:translateX(calc(var(--actor-travel) * -1)) scale(var(--actor-scale,1))}
+  46%{transform:translateX(calc(var(--actor-travel) * -1)) scaleX(-1) scale(var(--actor-scale,1))}
+  60%,76%{transform:translateX(0) scaleX(-1) scale(var(--actor-scale,1))}
+  88%{transform:translateX(calc(var(--actor-travel) * .55)) scale(var(--actor-scale,1))}
+  100%{transform:translateX(0) scale(var(--actor-scale,1))}
+}
+@keyframes hotelSpotActive{
+  0%,18%{transform:translateX(0) scale(var(--actor-scale,1))}
+  31%{transform:translateX(calc(var(--actor-travel) * -1.35)) scale(var(--actor-scale,1))}
+  39%{transform:translateX(calc(var(--actor-travel) * -1.35)) scaleX(-1) scale(var(--actor-scale,1))}
+  52%{transform:translateX(calc(var(--actor-travel) * .8)) scaleX(-1) scale(var(--actor-scale,1))}
+  60%{transform:translateX(calc(var(--actor-travel) * .8)) scale(var(--actor-scale,1))}
+  73%,100%{transform:translateX(0) scale(var(--actor-scale,1))}
+}
+
+/* keep the central core clear in the room floor */
+.floor-penthouse .lucifer-bed{right:3%;width:30%}
+.floor-penthouse .lucifer-sofa{right:3%;width:29%}
+.floor-penthouse .alastor-chair{right:3%;width:22%}
+.floor-penthouse .alastor-fireplace{right:31%;width:29%}
+
+@media(max-width:980px){
+  .hotel-spiral-stair{left:calc(50% + 48px)}
+}
