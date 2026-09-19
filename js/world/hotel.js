@@ -147,23 +147,40 @@
     }
     if(id==="lounge"){
       return '<div class="hotel-props lounge-props" aria-hidden="true">'+
+        '<span class="hotel-lounge-fireplace"><i></i><b>◉</b></span>'+
         '<span class="hotel-sofa"></span><span class="hotel-sidechair"></span><span class="hotel-table"></span><span class="hotel-lamp"></span>'+
         '<span class="hotel-frame">♡</span><span class="hotel-rug"></span><span class="hotel-plant"></span>'+
       '</div>';
     }
     if(id==="suites"){
-      return '<div class="hotel-props suites-props" aria-hidden="true">'+
-        '<span class="hotel-roomdoor"></span><span class="hotel-roomdoor second"></span><span class="hotel-roomdoor third"></span>'+
-        '<span class="hotel-runner"></span><span class="hotel-sconce one">♥</span><span class="hotel-sconce two">♥</span>'+
-        '<span class="hotel-side-table"></span><span class="hotel-vase">◆</span>'+
+      return '<div class="hotel-props suites-props hotel-corridor-scene" aria-hidden="true">'+
+        '<span class="corridor-runner"></span>'+
+        '<span class="corridor-door d1"><i></i></span><span class="corridor-door d2"><i></i></span><span class="corridor-door d3"><i></i></span><span class="corridor-door d4"><i></i></span>'+
+        '<span class="corridor-sconce s1"></span><span class="corridor-sconce s2"></span><span class="corridor-sconce s3"></span><span class="corridor-sconce s4"></span>'+
+        '<span class="corridor-chandelier c1"><i></i><i></i><i></i></span><span class="corridor-chandelier c2"><i></i><i></i><i></i></span>'+
+        '<span class="corridor-end-window"><i></i><i></i></span>'+
       '</div>';
     }
-    return '<div class="hotel-props penthouse-props" aria-hidden="true">'+
-      '<span class="hotel-throne"></span><span class="hotel-window"></span><span class="hotel-desk"></span><span class="hotel-apple">◆</span>'+
-      '<span class="hotel-books"></span><span class="hotel-telescope"></span><span class="hotel-penthouse-lamp"></span>'+
+    return '<div class="hotel-props penthouse-props penthouse-room-pair" aria-hidden="true">'+
+      '<section class="character-room lucifer-room">'+
+        '<span class="room-nameplate">LUCIFER</span>'+
+        '<span class="lucifer-bookcase"><i></i><i></i><i></i><i></i><i></i></span>'+
+        '<span class="lucifer-fireplace"><i></i><b>◉</b><em></em></span>'+
+        '<span class="lucifer-sofa"><i></i></span><span class="lucifer-table"><b>◆</b></span>'+
+        '<span class="lucifer-bed"><i></i><i></i><b>♛</b></span>'+
+        '<span class="lucifer-wall-lamp one"></span><span class="lucifer-wall-lamp two"></span>'+
+        '<span class="lucifer-rug"></span>'+
+      '</section>'+
+      '<section class="character-room alastor-room">'+
+        '<span class="room-nameplate">ALASTOR</span>'+
+        '<span class="alastor-fireplace"><i></i><b>◉</b><em></em></span>'+
+        '<span class="alastor-chair"></span><span class="alastor-radio"><i></i><b>♪</b></span>'+
+        '<span class="alastor-eye-wall e1"><i></i></span><span class="alastor-eye-wall e2"><i></i></span>'+
+        '<span class="alastor-antler a1"></span><span class="alastor-antler a2"></span>'+
+        '<span class="alastor-side-table"><b>◆</b></span><span class="alastor-rug"></span>'+
+      '</section>'+
     '</div>';
   }
-
   function actorMarkup(character,index,floorIndex,settings){
     const key=stableNumber(character.id||character.name||index);
     const cfg=characterWorldSettings(character,settings);
@@ -236,6 +253,8 @@
         '<div class="hotel-wing-bulbs"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>'+
       '</div>'+
       '<div class="hotel-wing-shell wing-right" aria-hidden="true">'+
+        '<div class="hotel-ship-hull"><div class="hotel-ship-creamline"></div><div class="hotel-ship-oval-windows"><i></i><i></i><i></i><i></i></div><span></span></div>'+
+        '<div class="hotel-ship-bridge"><i></i><i></i><i></i><b>♥</b></div>'+
         '<div class="hotel-ship-deck deck-one"><i></i><i></i><i></i><i></i></div>'+
         '<div class="hotel-ship-deck deck-two"><i></i><i></i><i></i></div>'+
         '<div class="hotel-ship-portholes"><i></i><i></i><i></i><i></i><i></i></div>'+
@@ -250,6 +269,7 @@
       '<div class="hotel-corner-spire left" aria-hidden="true"><i></i><b>◆</b></div><div class="hotel-corner-spire right" aria-hidden="true"><i></i><b>◆</b></div>'+
       '<div class="hotel-arrow-sign left" aria-hidden="true"><i></i><b>➜</b></div><div class="hotel-arrow-sign right" aria-hidden="true"><i></i><b>➜</b></div>'+
       '<div class="hotel-center-rib" aria-hidden="true"><i></i><i></i><i></i><i></i><span>♥</span><span>♥</span><span>♥</span></div>'+
+      '<div class="hotel-facade-eye eye-left" aria-hidden="true"><i></i></div><div class="hotel-facade-eye eye-right" aria-hidden="true"><i></i></div>'+
       '<div class="hotel-vertical-sign" aria-hidden="true"><span>H</span><span>O</span><span>T</span><span>E</span><span>L</span></div>'+
       '<div class="hotel-entrance-crown" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><b>♥</b></div>'+
       '<div class="hotel-entrance-marquee" aria-hidden="true"><i></i><b>♥</b><i></i></div>'+

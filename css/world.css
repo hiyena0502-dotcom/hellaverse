@@ -1807,3 +1807,446 @@
   .hotel-wing-shell.wing-left{left:-16%}
   .hotel-wing-shell.wing-right{right:-17%}
 }
+
+
+/* INTERIOR REBUILD · readable rooms, no decorative line clutter */
+.hotel-ceiling-trim,
+.hotel-ceiling-medallions,
+.hotel-wall-filigree,
+.hotel-wall-panels,
+.hotel-arch-set,
+.hotel-column-set,
+.hotel-balcony-rail,
+.hotel-floor-bulbs,
+.hotel-room{display:none!important}
+.hotel-floor-interior{
+  background:
+    linear-gradient(180deg,rgba(255,239,218,.025),transparent 34%),
+    linear-gradient(180deg,#3a0d1b,#250811);
+  box-shadow:inset 0 6px 0 #8c1738,inset 0 -5px 0 #16070d
+}
+.hotel-floor-interior:before{
+  content:"";
+  position:absolute;
+  z-index:1;
+  left:1.5%;right:1.5%;top:12px;bottom:10px;
+  border-left:2px solid rgba(236,190,151,.24);
+  border-right:2px solid rgba(236,190,151,.24);
+  pointer-events:none
+}
+.hotel-floor-interior:after{
+  content:"";
+  position:absolute;
+  z-index:1;
+  left:2.5%;right:2.5%;top:18px;
+  height:3px;
+  background:linear-gradient(90deg,#e6bd94 0 42%,transparent 42% 58%,#e6bd94 58% 100%);
+  opacity:.46;
+  pointer-events:none
+}
+
+/* top floor = two named character rooms */
+.floor-penthouse .hotel-floor-interior{
+  background:linear-gradient(90deg,#4a1423 0 49.4%,#18070d 49.5% 50.5%,#2c0914 50.6% 100%)
+}
+.penthouse-room-pair{
+  position:absolute;
+  z-index:4;
+  inset:0;
+  pointer-events:none
+}
+.character-room{
+  position:absolute;
+  top:18px;
+  bottom:8px;
+  width:43%;
+  overflow:hidden
+}
+.character-room:before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border:2px solid rgba(239,199,158,.24);
+  pointer-events:none
+}
+.lucifer-room{left:1.5%;background:linear-gradient(180deg,#6f2030,#3a101c)}
+.alastor-room{right:1.5%;background:linear-gradient(180deg,#3b0c18,#21080f)}
+.room-nameplate{
+  top:5px;
+  left:9px;
+  padding:3px 6px;
+  border:1px solid rgba(236,193,149,.36);
+  background:#19070d;
+  color:#eec79f;
+  font-size:.43rem;
+  letter-spacing:.13em
+}
+
+/* Lucifer side: gold + cream art deco, book wall, bed, fireplace */
+.lucifer-bookcase{
+  left:3%;top:20%;width:25%;height:70%;
+  border:3px solid #27100f;
+  outline:1px solid #e7bc8d;
+  background:
+    repeating-linear-gradient(0deg,#4e1720 0 16px,#d2a26d 17px 19px,#2b0d15 20px 33px)
+}
+.lucifer-bookcase i{
+  position:relative!important;
+  display:inline-block!important;
+  width:5px;height:22px;
+  margin:7px 1px 0;
+  background:#e0b17d;
+  box-shadow:5px 0 0 #9f3042
+}
+.lucifer-fireplace{
+  left:31%;top:19%;width:28%;height:66%;
+  border:4px solid #1a090e;
+  outline:2px solid #e8c093;
+  background:linear-gradient(180deg,#f1c79b 0 16%,#8f2a38 17% 36%,#4a111d 37%)
+}
+.lucifer-fireplace:before{
+  content:"";
+  position:absolute;
+  left:8%;right:8%;top:-10px;height:18px;
+  background:linear-gradient(90deg,#e9bf93,#8d2637,#e9bf93);
+  border:3px solid #1a090e;
+  clip-path:polygon(0 100%,14% 22%,32% 58%,50% 0,68% 58%,86% 22%,100% 100%)
+}
+.lucifer-fireplace i{
+  left:19%;right:19%;bottom:7%;height:35%!important;
+  border:3px solid #1a090e;
+  border-radius:50% 50% 5px 5px;
+  background:radial-gradient(ellipse at 50% 100%,#120508 0 58%,#6f1d28 59%)
+}
+.lucifer-fireplace b{
+  left:50%;top:22%;transform:translateX(-50%);
+  color:#ffb0b7;font-size:1rem
+}
+.lucifer-fireplace em{
+  left:50%;top:25%;width:7px;height:18px;
+  transform:translateX(-50%);
+  border-radius:50%;
+  background:#18070d
+}
+.lucifer-sofa{
+  right:2%;bottom:9%;width:32%;height:31%;
+  border:3px solid #1a090e;
+  border-radius:38px 38px 8px 8px;
+  background:#8f2940;
+  box-shadow:inset 0 7px 0 #c75a62
+}
+.lucifer-sofa:before,.lucifer-sofa:after{
+  content:"";
+  position:absolute;
+  bottom:0;width:7px;height:18px;background:#d6a56e
+}
+.lucifer-sofa:before{left:9px}.lucifer-sofa:after{right:9px}
+.lucifer-sofa i{
+  left:50%;top:30%;width:38%;height:2px;
+  transform:translateX(-50%);
+  background:#e2b47d
+}
+.lucifer-table{
+  right:19%;bottom:5%;width:15%;height:10%;
+  border-top:4px solid #ddb076;
+  border-left:2px solid #71303a;
+  border-right:2px solid #71303a
+}
+.lucifer-table b{left:50%;top:-13px;transform:translateX(-50%);color:#f6b18b}
+.lucifer-bed{
+  right:2%;top:12%;width:35%;height:28%;
+  border:3px solid #1a090e;
+  border-radius:24px 24px 6px 6px;
+  background:linear-gradient(180deg,#f1d3ae 0 36%,#b43a50 37%);
+  opacity:.92
+}
+.lucifer-bed i{
+  bottom:2px;width:22%;height:20%!important;
+  border-radius:50%;
+  background:#f3d5b2
+}
+.lucifer-bed i:first-child{left:9%}.lucifer-bed i:nth-child(2){right:9%}
+.lucifer-bed b{left:50%;top:41%;transform:translateX(-50%);color:#f5bb89}
+.lucifer-wall-lamp{
+  top:12%;width:3px;height:39px!important;background:#e6b77b
+}
+.lucifer-wall-lamp:after{
+  content:"";position:absolute;left:-10px;top:-3px;width:23px;height:18px;
+  clip-path:polygon(30% 0,70% 0,100% 100%,0 100%);
+  background:#f3dec1
+}
+.lucifer-wall-lamp.one{left:29%}.lucifer-wall-lamp.two{right:1.5%}
+.lucifer-rug{
+  left:29%;right:2%;bottom:1%;height:10%;
+  border:1px solid #dda66f;
+  background:repeating-linear-gradient(90deg,#64182a 0 19px,#8f2940 20px 38px)
+}
+
+/* Alastor side: dark wood, old radio, eyes, fireplace, antler-like ornament */
+.alastor-fireplace{
+  right:30%;top:17%;width:31%;height:69%;
+  border:4px solid #120609;
+  outline:2px solid #9d674c;
+  background:linear-gradient(180deg,#6d1a23 0 17%,#3a0b13 18%)
+}
+.alastor-fireplace:before{
+  content:"";
+  position:absolute;left:5%;right:5%;top:-10px;height:18px;
+  background:#8d473e;border:3px solid #130609;
+  clip-path:polygon(0 100%,18% 19%,35% 55%,50% 0,65% 55%,82% 19%,100% 100%)
+}
+.alastor-fireplace i{
+  left:16%;right:16%;bottom:6%;height:40%!important;
+  border:3px solid #120609;
+  border-radius:50% 50% 4px 4px;
+  background:#080405
+}
+.alastor-fireplace b{
+  left:50%;top:24%;transform:translateX(-50%);
+  color:#e6b183;font-size:1rem
+}
+.alastor-fireplace em{
+  left:50%;top:27%;width:6px;height:17px;
+  transform:translateX(-50%);
+  border-radius:50%;background:#130609
+}
+.alastor-chair{
+  right:3%;bottom:5%;width:24%;height:49%;
+  border:3px solid #120609;
+  border-radius:32px 32px 8px 8px;
+  background:linear-gradient(180deg,#7e2027,#3a0d14);
+  box-shadow:inset 0 5px 0 #a84a42
+}
+.alastor-radio{
+  left:4%;bottom:8%;width:24%;height:30%;
+  border:3px solid #120609;
+  outline:1px solid #a66e4d;
+  border-radius:5px;
+  background:linear-gradient(180deg,#44201a,#1b0a0b)
+}
+.alastor-radio:before{
+  content:"";position:absolute;left:12%;right:12%;top:12%;height:34%;
+  border:1px solid #bd8560;
+  background:repeating-linear-gradient(90deg,#20100e 0 4px,#734331 5px 6px)
+}
+.alastor-radio i{
+  left:13%;bottom:10%;width:13px;height:13px!important;
+  border:2px solid #b77e57;border-radius:50%
+}
+.alastor-radio b{right:13%;bottom:7%;color:#c99568}
+.alastor-eye-wall{
+  width:34px;height:18px!important;
+  background:#d8a679;
+  border:3px solid #120609;
+  clip-path:polygon(0 50%,22% 10%,50% 0,78% 10%,100% 50%,78% 90%,50% 100%,22% 90%)
+}
+.alastor-eye-wall i{
+  left:50%;top:50%;width:10px;height:10px!important;
+  transform:translate(-50%,-50%);
+  border-radius:50%;background:#d64d56
+}
+.alastor-eye-wall i:after{
+  content:"";position:absolute;left:50%;top:1px;width:2px;height:8px;
+  transform:translateX(-50%);background:#130609
+}
+.alastor-eye-wall.e1{left:5%;top:19%}.alastor-eye-wall.e2{right:5%;top:17%}
+.alastor-antler{
+  top:11%;width:32px;height:38px!important;
+  border-top:3px solid #130609;
+  border-left:3px solid #130609;
+  transform:rotate(28deg)
+}
+.alastor-antler:before,.alastor-antler:after{
+  content:"";position:absolute;width:17px;height:3px;background:#130609;transform-origin:left center
+}
+.alastor-antler:before{left:2px;top:7px;transform:rotate(-45deg)}
+.alastor-antler:after{left:9px;top:17px;transform:rotate(38deg)}
+.alastor-antler.a1{left:17%}.alastor-antler.a2{right:17%;transform:scaleX(-1) rotate(28deg)}
+.alastor-side-table{
+  right:25%;bottom:5%;width:12%;height:15%;
+  border-top:4px solid #9b6246;
+  border-left:2px solid #4b211a;border-right:2px solid #4b211a
+}
+.alastor-side-table b{left:50%;top:-12px;transform:translateX(-50%);color:#b77d59}
+.alastor-rug{
+  left:3%;right:3%;bottom:1%;height:8%;
+  border:1px solid #824531;
+  background:repeating-linear-gradient(90deg,#2a0a10 0 15px,#56141e 16px 31px)
+}
+
+/* Suites: compressed perspective corridor using only identifiable doors/lights/runner */
+.floor-suites .hotel-floor-interior{
+  background:
+    linear-gradient(90deg,#35101a 0 10%,#541725 10% 31%,#2a0a12 31% 69%,#541725 69% 90%,#35101a 90%),
+    linear-gradient(#4a111f,#2c0912)
+}
+.hotel-corridor-scene{position:absolute;z-index:4;inset:0;pointer-events:none}
+.corridor-runner{
+  left:18%;right:18%;bottom:5%;height:15%;
+  background:linear-gradient(90deg,#5f1626,#801f32,#5f1626);
+  border-top:2px solid #b87959;
+  clip-path:polygon(18% 0,82% 0,100% 100%,0 100%)
+}
+.corridor-door{
+  bottom:8%;width:12%;height:63%;
+  border:3px solid #18080d;
+  outline:1px solid #d5a36f;
+  background:#521421
+}
+.corridor-door:before{
+  content:"";position:absolute;left:8%;right:8%;top:-19%;height:23%;
+  border:3px solid #18080d;border-bottom:0;border-radius:50% 50% 0 0;
+  background:linear-gradient(90deg,#bb4d59,#5c1928,#bb4d59)
+}
+.corridor-door i{
+  right:9%;top:48%;width:5px;height:5px!important;border-radius:50%;background:#d6a16c
+}
+.corridor-door.d1{left:7%}.corridor-door.d2{left:25%;transform:scale(.78);transform-origin:bottom}
+.corridor-door.d3{right:25%;transform:scale(.78);transform-origin:bottom}.corridor-door.d4{right:7%}
+.corridor-sconce{
+  top:15%;width:3px;height:35px!important;background:#d5a774
+}
+.corridor-sconce:after{
+  content:"";position:absolute;left:-8px;top:-3px;width:19px;height:21px;
+  clip-path:polygon(50% 0,100% 30%,70% 100%,30% 100%,0 30%);
+  background:#f2d6b2;filter:drop-shadow(0 0 5px rgba(255,207,144,.65))
+}
+.corridor-sconce.s1{left:20%}.corridor-sconce.s2{left:39%}.corridor-sconce.s3{right:39%}.corridor-sconce.s4{right:20%}
+.corridor-chandelier{
+  top:3%;width:38px;height:25px!important;border-bottom:3px solid #d7a26c;border-radius:50%
+}
+.corridor-chandelier:before{
+  content:"";position:absolute;left:50%;top:-12px;width:2px;height:13px;background:#9e6b4b
+}
+.corridor-chandelier i{
+  bottom:-7px;width:8px;height:8px!important;border-radius:50%;background:#f2d4ad
+}
+.corridor-chandelier i:nth-child(1){left:6px}.corridor-chandelier i:nth-child(2){left:15px}.corridor-chandelier i:nth-child(3){right:6px}
+.corridor-chandelier.c1{left:46%}.corridor-chandelier.c2{left:52%;transform:scale(.7)}
+.corridor-end-window{
+  left:47%;bottom:12%;width:7%;height:47%;
+  border:2px solid #18080d;outline:1px solid #b77d5c;
+  background:#1c0910
+}
+.corridor-end-window i{
+  bottom:0;width:45%;height:100%!important;
+  border:1px solid #b8785a;
+  border-radius:50% 50% 0 0;background:linear-gradient(#79434a,#2b1017)
+}
+.corridor-end-window i:first-child{left:0}.corridor-end-window i:nth-child(2){right:0}
+
+/* Lounge gets a real focal fireplace instead of abstract wall lines */
+.hotel-lounge-fireplace{
+  left:43%;top:18%;width:18%;height:67%;
+  border:4px solid #18070d;outline:1px solid #c98a62;
+  background:linear-gradient(#7d2330 0 20%,#3b0d17 21%)
+}
+.hotel-lounge-fireplace i{
+  left:17%;right:17%;bottom:8%;height:38%!important;
+  border:3px solid #18070d;border-radius:50% 50% 4px 4px;background:#0b0507
+}
+.hotel-lounge-fireplace b{
+  left:50%;top:27%;transform:translateX(-50%);
+  color:#e1ab7b
+}
+
+/* Ship: obvious cut hull / bow instead of stacked random decks */
+.hotel-wing-shell.wing-right{
+  width:36%;
+  height:76%;
+  right:-25%;
+  bottom:4%
+}
+.hotel-ship-hull{
+  position:absolute;
+  z-index:2;
+  right:0;bottom:0;
+  width:94%;height:73%;
+  border:6px solid #18070d;
+  outline:3px solid #f0c9a6;
+  background:
+    linear-gradient(180deg,#f4d3b2 0 17%,#d52e60 18% 38%,#7d1737 39% 100%);
+  clip-path:polygon(4% 11%,89% 2%,100% 18%,73% 100%,29% 100%,7% 67%);
+  filter:drop-shadow(-12px 16px 0 rgba(24,7,13,.46))
+}
+.hotel-ship-hull:after{
+  content:"";
+  position:absolute;
+  left:7%;right:4%;top:37%;
+  height:5px;background:#f0c49a;
+  box-shadow:0 7px 0 #18070d
+}
+.hotel-ship-creamline{
+  position:absolute!important;
+  left:4%;right:2%;top:8%;
+  height:24%!important;
+  border-bottom:4px solid #18070d;
+  background:#f5d6b6;
+  clip-path:polygon(0 22%,94% 0,100% 50%,94% 100%,2% 79%)
+}
+.hotel-ship-oval-windows{
+  position:absolute!important;
+  left:25%;right:4%;top:11%;
+  display:flex!important;
+  justify-content:space-around
+}
+.hotel-ship-oval-windows i{
+  position:static!important;
+  width:18px!important;height:8px!important;
+  border:2px solid #9f1941!important;border-radius:50%!important;
+  background:#ef4a84!important
+}
+.hotel-ship-hull>span{
+  position:absolute;right:8%;bottom:7%;width:30%;height:42%;
+  border-left:4px solid rgba(242,205,170,.42);
+  transform:skewX(-18deg)
+}
+.hotel-ship-bridge{
+  position:absolute;
+  z-index:5;
+  right:10%;top:5%;
+  width:58%;height:25%;
+  border:5px solid #18070d;
+  outline:2px solid #f0c8a1;
+  border-radius:22px 50px 10px 10px;
+  background:linear-gradient(180deg,#f3d2af 0 47%,#8b1a3b 48%)
+}
+.hotel-ship-bridge i{
+  top:8px;width:15%;height:35%!important;
+  border:2px solid #18070d;border-radius:50%;background:#d92d62
+}
+.hotel-ship-bridge i:nth-child(1){left:18%}.hotel-ship-bridge i:nth-child(2){left:42%}.hotel-ship-bridge i:nth-child(3){right:16%}
+.hotel-ship-bridge b{left:50%;bottom:5%;transform:translateX(-50%);color:#ff6f9f}
+.hotel-ship-deck{display:none}
+.hotel-ship-portholes{display:none}
+
+/* eye motifs: meaningful plaques, not free-floating lines */
+.hotel-facade-eye{
+  position:absolute;
+  z-index:12;
+  top:30%;
+  width:54px;height:30px;
+  background:#f0cfab;
+  border:4px solid #18070d;
+  clip-path:polygon(0 50%,20% 12%,50% 0,80% 12%,100% 50%,80% 88%,50% 100%,20% 88%);
+  pointer-events:none
+}
+.hotel-facade-eye.eye-left{left:9%}.hotel-facade-eye.eye-right{right:9%}
+.hotel-facade-eye i{
+  left:50%;top:50%;width:18px;height:18px;
+  transform:translate(-50%,-50%);
+  border-radius:50%;background:#e53875;box-shadow:0 0 0 2px #7b1534
+}
+.hotel-facade-eye i:after{
+  content:"";position:absolute;left:50%;top:2px;width:3px;height:14px;
+  transform:translateX(-50%);border-radius:50%;background:#16070d
+}
+
+/* remove now-redundant linear facade decorations */
+.hotel-side-decor{display:none!important}
+.hotel-roof-fin{display:none!important}
+.hotel-wing-music{display:none!important}
+.hotel-ship-neon{display:none!important}
+.hotel-arrow-sign{top:57%}
+.hotel-center-rib i{display:none}
+.hotel-center-rib:before,.hotel-center-rib:after{width:5px}
