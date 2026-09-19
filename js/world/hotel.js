@@ -263,7 +263,7 @@
     if(id==="lobby"){
       return '<div class="hotel-props lobby-props" aria-hidden="true">'+
         '<span class="hotel-chandelier">♥</span><span class="hotel-frontdesk"></span><span class="hotel-luggage"></span><span class="hotel-door"></span>'+
-        '<span class="hotel-staircase"></span><span class="hotel-piano"></span><span class="hotel-piano-seat"></span>'+
+        '<span class="hotel-piano"></span><span class="hotel-piano-seat"></span>'+
         '<span class="hotel-lobby-column one"></span><span class="hotel-lobby-column two"></span>'+
       '</div>';
     }
@@ -524,11 +524,7 @@
             '<button class="ghost-button" type="button" data-action="hotel-settings">HOTEL SETTINGS</button>'+
           '</div>'+
         '</header>'+
-        '<aside class="hotel-scene-note hotel-guide-strip">'+
-          '<span>CUTAWAY VIEW</span>'+
-          '<strong>층을 눌러 공간을 확인하고 캐릭터를 드래그해서 직접 배치하세요.</strong>'+
-          '<small>캐릭터는 다른 층으로도 끌어 옮길 수 있고 위치가 자동 저장됩니다.</small>'+
-        '</aside>'+
+
         '<div class="hotel-scene-shell">'+
           '<div class="hotel-sky" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span></div>'+
           '<div class="hotel-city-silhouette" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>'+
@@ -541,17 +537,15 @@
                 '<span class="lift-rail left"></span><span class="lift-rail right"></span><span class="lift-cable"></span>'+
                 '<div class="lift-car"><i></i><b>♥</b><em></em></div>'+
               '</div>'+
-              '<div class="hotel-spiral-stair" aria-hidden="true">'+
-                '<div class="stair-flight sf1"><b></b><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>'+
-                '<div class="stair-flight sf2"><b></b><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>'+
-                '<div class="stair-flight sf3"><b></b><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>'+
-                '<div class="stair-flight sf4"><b></b><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>'+
-                '<div class="stair-flight sf5"><b></b><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>'+
-              '</div>'+
               floors+
             '</div>'+
           '</div>'+
         '</div>'+
+        '<aside class="hotel-scene-note hotel-guide-strip hotel-guide-below">'+
+          '<span>CUTAWAY VIEW</span>'+
+          '<strong>층을 눌러 공간을 확인하고 캐릭터를 드래그해서 직접 배치하세요.</strong>'+
+          '<small>캐릭터는 다른 층으로도 끌어 옮길 수 있고 위치가 자동 저장됩니다.</small>'+
+        '</aside>'+
       '</section>';
     scheduleWorldThoughts();
     scheduleHotelActivityTicker();
