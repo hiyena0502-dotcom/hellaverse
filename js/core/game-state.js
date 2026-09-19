@@ -420,7 +420,11 @@ function restoreInterruptedDialogue(){
 }
 function resetEventEmotion(event){
   if(event?.emotionExitMode!=="reset")return;
-  const ch=getCharacter(event.characterId);if(ch)session.emotions[ch.id]={state:ch.emotionDefault,intensity:ch.emotionIntensity};
+  const ch=getCharacter(event.characterId);
+  if(ch){
+    session.emotions[ch.id]={state:ch.emotionDefault,intensity:ch.emotionIntensity};
+    saveState();
+  }
 }
 
 function makeEntry(type){
