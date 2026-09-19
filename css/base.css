@@ -485,3 +485,30 @@ input:focus,textarea:focus,select:focus,button:focus-visible{
   }
   .world-entry-copy small{display:none}
 }
+
+
+/* v11 · responsive navigation */
+@media(max-width:980px){
+  .game-hud{
+    flex-wrap:wrap;
+    gap:8px 14px;
+    padding:7px 0
+  }
+  .brand-mark{order:1}
+  .world-entry-button{order:2;margin-left:auto}
+  .hud-tools{order:3;margin-left:0}
+  .main-nav{
+    order:4;
+    width:100%;
+    overflow-x:auto;
+    gap:20px;
+    padding:0 0 4px;
+    scrollbar-width:thin
+  }
+  .main-nav .nav-button{flex:0 0 auto}
+}
+@media(max-width:620px){
+  .player-badge{display:none}
+  .hud-tools{gap:12px}
+  .brand-mark,.nav-button,.text-link{font-size:.65rem}
+}
