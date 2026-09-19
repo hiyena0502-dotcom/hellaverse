@@ -99,3 +99,17 @@ WRATH는 낮은 사막 마을과 목장 중심으로 재정렬했습니다.
 
 WRATH CHORES:
 STABLE CARE / HAY STACKING / FENCE REPAIR / WATER TROUGH / RANCH ROUND.
+
+
+## Lust district update
+
+LUST는 OZZIE'S 한 건물 중심 장면에서 야간 엔터테인먼트 거리로 확장했습니다.
+
+- 중앙 OZZIE'S 클럽: 왕관형 상부 장식, 발코니, 창, 하트 출입구
+- 좌측 VELVET 상가와 네온 아치
+- 우측 LOUNGE 외관과 좁은 골목
+- 입구 대기 로프, 안내 podium
+- 가로등, 보도 턱, 네온 반사가 있는 도로
+
+LUST NIGHT SHIFT:
+ENTRY SETUP / NEON CHECK / STAGE PREP / LOUNGE RESET / STREET CLEANUP.

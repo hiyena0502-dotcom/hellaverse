@@ -6,7 +6,7 @@
  * 이후 Heaven / Imp City / 각 Ring은 regions 배열에 같은 구조로 추가할 수 있습니다.
  */
 window.HV_WORLD_CONFIG = {
-  schemaVersion: 5,
+  schemaVersion: 6,
   defaultRegion: "hotel",
   regions: [
     {
@@ -68,7 +68,14 @@ window.HV_WORLD_CONFIG = {
       name:"LUST",
       subtitle:"LUST RING · OZZIE'S DISTRICT",
       status:"OPEN",
-      description:"짙은 남색 하늘과 청록·보라 네온이 번지는 오지스 주변의 야간 거리."
+      description:"OZZIE'S를 중심으로 라운지와 네온 상가, 대기 구역과 야간 거리가 이어지는 LUST 지구.",
+      activities:[
+        {id:"lust-entry-setup",building:"entry",title:"ENTRY SETUP",detail:"입구 로프와 대기 구역 정리",icon:"◇",duration:55,reward:56},
+        {id:"lust-neon-check",building:"neon",title:"NEON CHECK",detail:"거리 간판과 네온 전원 점검",icon:"✦",duration:70,reward:68},
+        {id:"lust-stage-prep",building:"stage",title:"STAGE PREP",detail:"클럽 무대와 조명 준비",icon:"♪",duration:90,reward:88},
+        {id:"lust-lounge-reset",building:"lounge",title:"LOUNGE RESET",detail:"라운지 좌석과 테이블 정리",icon:"♡",duration:75,reward:74},
+        {id:"lust-street-cleanup",building:"street",title:"STREET CLEANUP",detail:"영업 후 거리와 드롭오프 구역 정돈",icon:"✧",duration:65,reward:64}
+      ]
     },
     {
       id:"imp-office",

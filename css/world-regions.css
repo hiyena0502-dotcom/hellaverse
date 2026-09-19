@@ -2359,3 +2359,453 @@ button.scene-task-card:hover{
 .region-work-wrath .scene-task-progress b{
   background:linear-gradient(90deg,#b64d35,#eca35e)
 }
+
+
+/* LUST DISTRICT REWORK · club street + venue work */
+.scene-lust{
+  --lust-ground-line:17%;
+  background:
+    radial-gradient(circle at 50% 26%,rgba(216,73,212,.2),transparent 28%),
+    radial-gradient(circle at 17% 20%,rgba(49,220,226,.08),transparent 18%),
+    linear-gradient(180deg,#10134d 0%,#27206b 42%,#1b1446 72%,#100d2c 100%)
+}
+
+/* richer sky, less repetitive glow bars */
+.lust-stars i:nth-child(7){left:57%;top:7%}
+.lust-stars i:nth-child(8){right:27%;top:24%}
+.lust-haze{position:absolute;inset:0;z-index:1;pointer-events:none}
+.lust-haze i{
+  position:absolute;
+  height:12px;
+  border-radius:999px;
+  background:linear-gradient(90deg,transparent,rgba(93,224,230,.12),rgba(219,65,204,.13),transparent);
+  filter:blur(3px)
+}
+.lust-haze i:nth-child(1){left:4%;right:36%;top:31%}
+.lust-haze i:nth-child(2){left:42%;right:5%;top:18%}
+.lust-haze i:nth-child(3){left:18%;right:18%;top:42%;opacity:.55}
+
+.scene-lust .lust-skyline{
+  bottom:var(--lust-ground-line);
+  height:54%
+}
+.scene-lust .lust-skyline.back{opacity:.38}
+.scene-lust .lust-skyline.front{opacity:.62}
+.scene-lust .lust-skyline i:before{
+  height:2px;
+  box-shadow:0 24px 0 #b83abc;
+  opacity:.48
+}
+
+/* sidewalks and road establish one clear baseline */
+.lust-curb{
+  position:absolute;
+  z-index:18;
+  left:0;right:0;
+  bottom:var(--lust-ground-line);
+  height:22px;
+  border-top:4px solid #3be0e2;
+  background:linear-gradient(180deg,#241650,#161033);
+  box-shadow:0 -4px 15px rgba(57,222,226,.14)
+}
+.scene-lust .lust-street{
+  z-index:4;
+  left:0;right:0;
+  bottom:0;
+  height:var(--lust-ground-line);
+  background:
+    linear-gradient(90deg,transparent 49.8%,rgba(239,89,202,.2) 50%,transparent 50.2%),
+    linear-gradient(180deg,#151039,#090922)
+}
+.scene-lust .lust-street:before{
+  top:13px;
+  height:2px;
+  opacity:.7
+}
+.scene-lust .lust-street i{
+  top:23px;
+  height:45px;
+  border-radius:50%;
+  filter:blur(9px);
+  opacity:.18
+}
+.scene-lust .lust-street i:nth-child(1){left:8%;width:190px;background:#35dfe2}
+.scene-lust .lust-street i:nth-child(2){left:31%;width:170px;background:#d54dcc}
+.scene-lust .lust-street i:nth-child(3){right:28%;width:180px;background:#35dfe2}
+.scene-lust .lust-street i:nth-child(4){right:5%;width:150px;background:#d54dcc}
+
+/* OZZIE'S becomes the focal architecture and actually sits on sidewalk */
+.scene-lust .lust-club{
+  z-index:12;
+  left:50%;
+  bottom:calc(var(--lust-ground-line) + 22px);
+  width:450px;
+  height:318px;
+  transform:translateX(-50%);
+  border:7px solid #16103a;
+  border-bottom:0;
+  border-radius:46px 46px 0 0;
+  background:
+    linear-gradient(90deg,#45227a 0 15%,#2a185e 16% 84%,#45227a 85%);
+  box-shadow:
+    0 0 0 3px #a943b3,
+    0 0 30px rgba(61,225,225,.14)
+}
+.lust-crown{
+  position:absolute;
+  left:50%;
+  top:-82px;
+  width:190px;
+  height:70px;
+  transform:translateX(-50%)
+}
+.lust-crown:before{
+  content:"";
+  position:absolute;
+  left:50%;bottom:0;
+  width:150px;height:28px;
+  transform:translateX(-50%);
+  border:4px solid #2edade;
+  border-radius:50% 50% 8px 8px;
+  background:#6e2a8c;
+  box-shadow:0 0 12px rgba(46,218,222,.28)
+}
+.lust-crown i{
+  position:absolute;
+  bottom:18px;
+  width:28px;
+  background:#8e36a4;
+  border:4px solid #22134b;
+  clip-path:polygon(50% 0,100% 100%,0 100%)
+}
+.lust-crown i:nth-child(1){left:22px;height:38px}
+.lust-crown i:nth-child(2){left:81px;height:55px}
+.lust-crown i:nth-child(3){right:22px;height:38px}
+
+.scene-lust .lust-marquee{
+  top:-44px;
+  width:245px;
+  padding:9px 18px;
+  border-width:4px;
+  font-size:1.22rem
+}
+.scene-lust .lust-heart-door{
+  width:142px;
+  height:180px;
+  border-width:4px
+}
+.scene-lust .lust-heart-door:before,
+.scene-lust .lust-heart-door:after{
+  top:34px;
+  width:69px;
+  height:112px
+}
+.scene-lust .lust-heart-door:before{left:15px}
+.scene-lust .lust-heart-door:after{right:15px}
+
+.scene-lust .lust-window{
+  top:96px;
+  width:84px;
+  height:132px;
+  border-width:3px
+}
+.scene-lust .lust-window.w1{left:42px}
+.scene-lust .lust-window.w2{right:42px}
+.scene-lust .lust-window i{
+  position:absolute;
+  left:50%;top:14px;bottom:14px;
+  width:3px;
+  transform:translateX(-50%);
+  background:#ce4bbf;
+  box-shadow:-18px 18px 0 -1px #36dce0,18px 18px 0 -1px #36dce0
+}
+.lust-balcony{
+  position:absolute;
+  left:28px;right:28px;
+  top:60px;
+  height:24px;
+  border-bottom:4px solid #32dadd
+}
+.lust-balcony i{
+  display:inline-block;
+  width:4px;
+  height:18px;
+  margin-left:54px;
+  background:#32dadd
+}
+.scene-lust .lust-bulbs{top:31px;left:28px;right:28px}
+.scene-lust .lust-bulbs i{width:6px;height:6px}
+
+/* side buildings */
+.lust-side-building{
+  position:absolute;
+  z-index:10;
+  bottom:calc(var(--lust-ground-line) + 22px);
+  border:6px solid #151033;
+  border-bottom:0;
+  color:#f3c5ef;
+  box-shadow:0 0 0 2px rgba(57,216,222,.16)
+}
+.lust-side-building>b{
+  position:absolute;
+  left:50%;
+  transform:translateX(-50%);
+  white-space:nowrap;
+  font-size:.58rem;
+  letter-spacing:.12em
+}
+.lust-side-building .door{
+  position:absolute;
+  bottom:0;
+  border:4px solid #29164d;
+  border-bottom:0;
+  background:#19113d
+}
+.lust-side-building .window{
+  position:absolute;
+  border:3px solid #35dce0;
+  background:linear-gradient(180deg,#3a2c7a,#1d184e);
+  box-shadow:inset 0 0 12px rgba(207,61,194,.24)
+}
+
+.lust-boutique{
+  left:5%;
+  width:205px;
+  height:210px;
+  border-radius:28px 28px 0 0;
+  background:linear-gradient(180deg,#5a2678,#2c1954)
+}
+.lust-boutique>b{top:28px;color:#f08ed8}
+.lust-boutique .awning{
+  position:absolute;
+  left:14px;right:14px;
+  top:61px;
+  height:24px;
+  border:3px solid #1d1242;
+  background:repeating-linear-gradient(90deg,#d04ab7 0 18px,#35dce0 19px 36px)
+}
+.lust-boutique .door{left:50%;width:58px;height:80px;transform:translateX(-50%)}
+.lust-boutique .window{top:101px;width:45px;height:62px}
+.lust-boutique .window.w1{left:17px}
+.lust-boutique .window.w2{right:17px}
+
+.lust-lounge{
+  right:5%;
+  width:215px;
+  height:230px;
+  border-radius:66px 24px 0 0;
+  background:linear-gradient(180deg,#382a76,#5c287b)
+}
+.lust-lounge>b{top:44px;color:#8ff2f1}
+.lust-lounge .roof-sign{
+  position:absolute;
+  left:50%;
+  top:-31px;
+  width:72px;height:56px;
+  transform:translateX(-50%);
+  display:grid;
+  place-items:center;
+  border:4px solid #32dce0;
+  border-radius:50%;
+  background:#271552;
+  color:#f05fc8;
+  font-size:1.7rem;
+  box-shadow:0 0 17px rgba(51,220,224,.25)
+}
+.lust-lounge .door{right:18px;width:52px;height:88px}
+.lust-lounge .window{top:92px;width:38px;height:74px}
+.lust-lounge .window.w1{left:18px}
+.lust-lounge .window.w2{left:68px}
+.lust-lounge .window.w3{left:118px}
+
+/* queue / entry furniture on sidewalk */
+.lust-entry-zone{
+  position:absolute;
+  z-index:20;
+  left:50%;
+  bottom:var(--lust-ground-line);
+  width:390px;
+  height:82px;
+  transform:translateX(-50%);
+  pointer-events:none
+}
+.lust-rope{
+  position:absolute;
+  bottom:0;
+  width:7px;
+  height:54px;
+  border-radius:5px 5px 0 0;
+  background:#b23b9e
+}
+.lust-rope:before{
+  content:"";
+  position:absolute;
+  left:50%;top:-7px;
+  width:16px;height:16px;
+  transform:translateX(-50%);
+  border-radius:50%;
+  background:#41dfe1
+}
+.lust-rope.r1{left:15px}
+.lust-rope.r2{left:110px}
+.lust-rope.r3{right:14px}
+.lust-rope.r1:after,
+.lust-rope.r2:after{
+  content:"";
+  position:absolute;
+  left:4px;top:4px;
+  width:95px;height:24px;
+  border-top:4px solid #d346b9;
+  border-radius:50%
+}
+.lust-podium{
+  position:absolute;
+  right:78px;
+  bottom:0;
+  width:44px;height:50px;
+  border:4px solid #171039;
+  border-radius:5px 5px 0 0;
+  background:#51226f
+}
+.lust-podium i{
+  position:absolute;
+  left:50%;top:8px;
+  width:20px;height:14px;
+  transform:translateX(-50%);
+  border:2px solid #3bdde0;
+  background:#22164d
+}
+
+/* arch and alley give the district depth */
+.lust-neon-arch{
+  position:absolute;
+  z-index:9;
+  left:23%;
+  bottom:calc(var(--lust-ground-line) + 22px);
+  width:150px;
+  height:170px;
+  border-left:8px solid #26134c;
+  border-right:8px solid #26134c
+}
+.lust-neon-arch:before{
+  content:"";
+  position:absolute;
+  left:-8px;right:-8px;top:0;
+  height:85px;
+  border:8px solid #26134c;
+  border-bottom:0;
+  border-radius:75px 75px 0 0
+}
+.lust-neon-arch i{
+  position:absolute;
+  inset:17px 10px auto;
+  height:55px;
+  border:4px solid #35dce0;
+  border-bottom:0;
+  border-radius:70px 70px 0 0;
+  box-shadow:0 0 15px rgba(53,220,224,.22)
+}
+.lust-neon-arch b{
+  position:absolute;
+  left:50%;top:50px;
+  width:115px;
+  transform:translateX(-50%);
+  color:#ec67cc;
+  font-size:.46rem;
+  letter-spacing:.08em;
+  text-align:center
+}
+.lust-alley{
+  position:absolute;
+  z-index:8;
+  right:24%;
+  bottom:calc(var(--lust-ground-line) + 22px);
+  width:110px;
+  height:176px;
+  background:#0c0b2a;
+  border-left:5px solid #2c1b54;
+  border-right:5px solid #2c1b54
+}
+.lust-alley i{
+  position:absolute;
+  left:14px;right:14px;
+  top:18px;
+  height:3px;
+  background:#3cdae0;
+  box-shadow:0 31px 0 #ca42bb,0 62px 0 #3cdae0
+}
+.lust-alley b{
+  position:absolute;
+  left:50%;bottom:20px;
+  width:42px;height:68px;
+  transform:translateX(-50%);
+  background:#161035;
+  border:3px solid #4f2672
+}
+.lust-alley span{
+  position:absolute;
+  right:5px;top:34px;
+  width:27px;height:42px;
+  border:3px solid #cd4ac0;
+  transform:rotate(5deg)
+}
+
+/* lamps and standalone neon are aligned to sidewalk */
+.lust-lamps{position:absolute;inset:0;z-index:19;pointer-events:none}
+.lust-lamps i{
+  position:absolute;
+  bottom:var(--lust-ground-line);
+  width:4px;
+  height:88px;
+  background:#31205a
+}
+.lust-lamps i:before{
+  content:"";
+  position:absolute;
+  left:50%;top:-10px;
+  width:26px;height:13px;
+  transform:translateX(-50%);
+  border:3px solid #3edce0;
+  border-radius:50%;
+  box-shadow:0 0 10px rgba(62,220,224,.3)
+}
+.lust-lamps i:nth-child(1){left:3%}
+.lust-lamps i:nth-child(2){left:29%}
+.lust-lamps i:nth-child(3){right:29%}
+.lust-lamps i:nth-child(4){right:3%}
+
+.scene-lust .lust-neon-sign.sign-one{
+  left:2%;
+  bottom:calc(var(--lust-ground-line) + 122px);
+  width:68px;height:68px;
+  font-size:1.9rem
+}
+.scene-lust .lust-neon-sign.sign-two{
+  right:1.5%;
+  bottom:calc(var(--lust-ground-line) + 146px);
+  width:66px;height:66px;
+  font-size:1.8rem
+}
+
+/* characters default visually near pavement; saved drag position can still move them */
+.scene-lust .world-scene-actor{
+  filter:drop-shadow(0 5px 5px rgba(0,0,0,.42))
+}
+
+/* LUST work cards */
+.region-work-lust{
+  border-color:rgba(58,219,222,.24);
+  background:linear-gradient(180deg,rgba(55,29,91,.5),rgba(21,13,47,.58))
+}
+.region-work-lust .scene-work-head span,
+.region-work-lust .scene-task-icon{color:#52dfe1}
+.region-work-lust .scene-task-icon{border-color:rgba(217,74,197,.28)}
+.region-work-lust .scene-task-progress b{
+  background:linear-gradient(90deg,#48dfe0,#d94bc6)
+}
+
+@media(max-width:900px){
+  .lust-boutique{left:2%}
+  .lust-lounge{right:2%}
+  .scene-lust .lust-club{width:420px}
+}

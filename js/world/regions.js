@@ -152,6 +152,7 @@
     if(!Array.isArray(region.activities)||!region.activities.length)return "";
     const heading=region.id==="heaven"?["HEAVEN DUTIES","CITY ASSIGNMENTS"]:
       region.id==="wrath"?["WRATH CHORES","RANCH WORK"]:
+      region.id==="lust"?["LUST NIGHT SHIFT","VENUE WORK"]:
       ["REGION DUTIES","ASSIGNMENTS"];
     return '<section class="scene-work-dock region-work-'+esc(region.id)+'">'+
       '<div class="scene-work-head"><div><span>'+esc(heading[0])+'</span><strong>'+esc(heading[1])+'</strong></div><small>실패 없음 · 자동 진행</small></div>'+
@@ -375,17 +376,37 @@
 
   function lustMarkup(){
     return ''+
-      '<div class="lust-stars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>'+
+      '<div class="lust-stars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>'+
+      '<div class="lust-haze" aria-hidden="true"><i></i><i></i><i></i></div>'+
       '<div class="lust-skyline back" aria-hidden="true">'+Array.from({length:10},(_,i)=>'<i class="b'+(i+1)+'"></i>').join("")+'</div>'+
       '<div class="lust-skyline front" aria-hidden="true">'+Array.from({length:8},(_,i)=>'<i class="b'+(i+1)+'"><b></b></i>').join("")+'</div>'+
+      '<div class="lust-side-building lust-boutique" aria-hidden="true">'+
+        '<b>VELVET</b><span class="awning"></span><span class="door"></span>'+
+        '<i class="window w1"></i><i class="window w2"></i>'+
+      '</div>'+
+      '<div class="lust-side-building lust-lounge" aria-hidden="true">'+
+        '<b>LOUNGE</b><span class="roof-sign">♡</span><span class="door"></span>'+
+        '<i class="window w1"></i><i class="window w2"></i><i class="window w3"></i>'+
+      '</div>'+
       '<div class="lust-club" aria-hidden="true">'+
+        '<div class="lust-crown"><i></i><i></i><i></i></div>'+
         '<div class="lust-marquee">OZZIE&apos;S</div>'+
         '<div class="lust-heart-door"><i></i></div>'+
-        '<span class="lust-window w1"></span><span class="lust-window w2"></span><span class="lust-window w3"></span>'+
-        '<div class="lust-bulbs">'+Array.from({length:12},()=>'<i></i>').join("")+'</div>'+
+        '<span class="lust-window w1"><i></i></span><span class="lust-window w2"><i></i></span>'+
+        '<div class="lust-balcony"><i></i><i></i><i></i><i></i><i></i></div>'+
+        '<div class="lust-bulbs">'+Array.from({length:14},()=>'<i></i>').join("")+'</div>'+
       '</div>'+
-      '<div class="lust-neon-sign sign-one" aria-hidden="true">♡</div><div class="lust-neon-sign sign-two" aria-hidden="true">✦</div>'+
-      '<div class="lust-street" aria-hidden="true"><i></i><i></i><i></i></div>';
+      '<div class="lust-entry-zone" aria-hidden="true">'+
+        '<span class="lust-rope r1"></span><span class="lust-rope r2"></span><span class="lust-rope r3"></span>'+
+        '<span class="lust-podium"><i></i></span>'+
+      '</div>'+
+      '<div class="lust-neon-arch" aria-hidden="true"><i></i><b>NIGHT DISTRICT</b></div>'+
+      '<div class="lust-alley" aria-hidden="true"><i></i><b></b><span></span></div>'+
+      '<div class="lust-neon-sign sign-one" aria-hidden="true">♡</div>'+
+      '<div class="lust-neon-sign sign-two" aria-hidden="true">✦</div>'+
+      '<div class="lust-lamps" aria-hidden="true"><i></i><i></i><i></i><i></i></div>'+
+      '<div class="lust-curb" aria-hidden="true"></div>'+
+      '<div class="lust-street" aria-hidden="true"><i></i><i></i><i></i><i></i></div>';
   }
 
   function impOfficeMarkup(){
