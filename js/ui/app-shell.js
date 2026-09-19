@@ -38,6 +38,13 @@ function applyDataSnapshot(snapshot,label="백업"){
   if(!confirm(label+"을(를) 불러올까요? 현재 상태는 자동 안전 백업으로 보관됩니다."))return;
   captureSafetySnapshot("복원 전 자동 백업");
   state=normalizeState(snapshot.state);
+  if(snapshot.extraStorage&&typeof snapshot.extraStorage==="object"){
+    AUX_STORAGE_KEYS.forEach(key=>{
+      const value=snapshot.extraStorage[key];
+      if(value===null||value===undefined)localStorage.removeItem(key);
+      else localStorage.setItem(key,String(value));
+    });
+  }
   prefs={
     textSpeed:clamp(snapshot.prefs?.textSpeed,0,80,24),
     autoDelay:clamp(snapshot.prefs?.autoDelay,250,3000,900),
