@@ -116,6 +116,7 @@ function openEditor(){
   editorItemPage=0;
   editorThoughtPage=0;
   requestAnimationFrame(()=>{
+    if(editorOverlay.hidden)return;
     try{
       editorDraft=clone(state);
       editorLargeProject=editorProjectWeight(editorDraft)>=EDITOR_LARGE_PROJECT_THRESHOLD;
