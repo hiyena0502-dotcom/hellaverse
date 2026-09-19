@@ -2551,3 +2551,171 @@
   filter:blur(1px);
   opacity:.55
 }
+
+
+/* HOTEL WORK LOOP */
+.hotel-economy{
+  min-width:104px;
+  display:grid;
+  grid-template-columns:auto auto;
+  column-gap:7px;
+  align-items:end;
+  padding:5px 9px 5px 10px;
+  border-left:1px solid rgba(201,166,107,.28);
+  text-align:right
+}
+.hotel-economy small{
+  grid-column:1;
+  color:var(--muted);
+  font-size:.5rem;
+  letter-spacing:.14em
+}
+.hotel-economy strong{
+  grid-column:2;
+  grid-row:1/3;
+  align-self:center;
+  color:#edc98d;
+  font-family:Georgia,serif;
+  font-size:1.25rem;
+  font-weight:500
+}
+.hotel-economy span{
+  grid-column:1;
+  color:#c66a82;
+  font-size:.48rem;
+  letter-spacing:.08em
+}
+.hotel-job-card{
+  position:absolute;
+  z-index:22;
+  right:10px;
+  bottom:12px;
+  width:190px;
+  min-height:51px;
+  display:grid;
+  grid-template-columns:36px 1fr;
+  gap:7px;
+  align-items:center;
+  padding:7px 9px;
+  border:1px solid rgba(239,199,158,.28);
+  border-radius:7px;
+  background:rgba(20,7,12,.91);
+  color:#f2ddcf;
+  text-align:left;
+  box-shadow:0 8px 22px rgba(0,0,0,.26);
+  backdrop-filter:blur(5px)
+}
+button.hotel-job-card{cursor:pointer}
+button.hotel-job-card:hover{
+  border-color:rgba(255,92,145,.65);
+  transform:translateY(-1px);
+  box-shadow:0 10px 26px rgba(0,0,0,.3),0 0 16px rgba(255,64,126,.08)
+}
+.hotel-job-icon{
+  display:grid;
+  place-items:center;
+  width:31px;height:31px;
+  border:1px solid rgba(232,184,139,.4);
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(213,44,91,.22),rgba(68,14,29,.55));
+  color:#f3c597;
+  font-family:Georgia,serif;
+  font-size:.83rem
+}
+.hotel-job-copy{display:grid;min-width:0}
+.hotel-job-copy small{
+  color:#bd8e88;
+  font-size:.43rem;
+  letter-spacing:.11em
+}
+.hotel-job-copy strong{
+  overflow:hidden;
+  margin-top:1px;
+  color:#f1d8c8;
+  font-size:.62rem;
+  font-weight:650;
+  letter-spacing:.045em;
+  text-overflow:ellipsis;
+  white-space:nowrap
+}
+.hotel-job-copy em{
+  margin-top:2px;
+  overflow:hidden;
+  color:#c6a29b;
+  font-size:.48rem;
+  font-style:normal;
+  text-overflow:ellipsis;
+  white-space:nowrap
+}
+.hotel-job-card.is-ready:before{
+  content:"START";
+  position:absolute;
+  right:7px;top:-8px;
+  padding:2px 5px;
+  border:1px solid rgba(255,91,144,.35);
+  border-radius:999px;
+  background:#3a0d1b;
+  color:#ff7da8;
+  font-size:.4rem;
+  letter-spacing:.1em
+}
+.hotel-job-card.is-working{
+  cursor:default;
+  border-color:rgba(213,157,112,.35)
+}
+.hotel-job-card.is-working .hotel-job-icon{
+  animation:hotelJobPulse 2s ease-in-out infinite
+}
+.hotel-job-progress{
+  position:absolute;
+  left:8px;right:8px;bottom:3px;
+  height:2px;
+  overflow:hidden;
+  border-radius:999px;
+  background:rgba(255,255,255,.06)
+}
+.hotel-job-progress i{
+  display:block;
+  height:100%;
+  width:0;
+  background:linear-gradient(90deg,#a92150,#f2bd8c);
+  box-shadow:0 0 7px rgba(255,72,132,.4);
+  transition:width .6s linear
+}
+.hotel-job-card.is-complete{
+  border-color:rgba(237,193,126,.56);
+  background:
+    radial-gradient(circle at 14% 50%,rgba(238,176,113,.11),transparent 30%),
+    rgba(20,7,12,.93)
+}
+.hotel-job-card.is-complete .hotel-job-icon{
+  color:#f5d09b;
+  box-shadow:0 0 12px rgba(233,177,109,.12)
+}
+.hotel-job-card.is-complete .hotel-job-copy em{color:#efbd86}
+.hotel-actor.is-working-character{
+  cursor:default!important;
+  filter:drop-shadow(0 4px 5px rgba(0,0,0,.42)) drop-shadow(0 0 8px rgba(255,91,144,.14))
+}
+.hotel-actor.is-working-character:before{
+  content:"WORK";
+  position:absolute;
+  left:50%;
+  bottom:74px;
+  transform:translateX(-50%);
+  padding:2px 4px;
+  border:1px solid rgba(241,193,143,.3);
+  border-radius:999px;
+  background:rgba(25,7,13,.82);
+  color:#e9b982;
+  font-size:.4rem;
+  letter-spacing:.09em
+}
+@keyframes hotelJobPulse{
+  0%,100%{transform:scale(1);box-shadow:0 0 0 rgba(255,78,139,0)}
+  50%{transform:scale(1.06);box-shadow:0 0 13px rgba(255,78,139,.16)}
+}
+@media(max-width:880px){
+  .hotel-job-card{width:164px}
+  .hotel-economy{text-align:left}
+}

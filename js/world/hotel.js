@@ -5,6 +5,7 @@
   const WORLD_CONFIG = window.HV_WORLD_CONFIG || {regions:[]};
   let focusedHotelFloor = "lobby";
   let worldThoughtTimer = null;
+  let worldActivityTimer = null;
   let worldActorDrag = null;
 
   function hotelRegion(){
@@ -17,6 +18,109 @@
   }
 
 
+
+  function hotelActivities(){
+    return Array.isArray(hotelRegion().activities)?hotelRegion().activities:[];
+  }
+
+  function hotelActivityById(id){
+    return hotelActivities().find(task=>task.id===id)||null;
+  }
+
+  function hotelActivitiesForFloor(floorId){
+    return hotelActivities().filter(task=>task.floor===floorId);
+  }
+
+  function hotelWorkDayKey(){
+    const d=new Date();
+    return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+  }
+
+  function defaultWorkStats(){
+    return {dayKey:hotelWorkDayKey(),dayEarned:0,totalEarned:0,completed:0};
+  }
+
+  function normalizeWorkStats(raw){
+    const s=raw&&typeof raw==="object"?raw:{};
+    const today=hotelWorkDayKey();
+    return {
+      dayKey:today,
+      dayEarned:s.dayKey===today?Math.max(0,Number(s.dayEarned)||0):0,
+      totalEarned:Math.max(0,Number(s.totalEarned)||0),
+      completed:Math.max(0,Math.floor(Number(s.completed)||0))
+    };
+  }
+
+  function normalizeWorkSlot(raw,floorId){
+    if(!raw||typeof raw!=="object")return null;
+    const task=hotelActivityById(raw.taskId);
+    if(!task||task.floor!==floorId)return null;
+    const status=["ready","working","complete"].includes(raw.status)?raw.status:"ready";
+    return {
+      taskId:task.id,
+      status,
+      startedAt:Math.max(0,Number(raw.startedAt)||0),
+      endAt:Math.max(0,Number(raw.endAt)||0),
+      reward:Math.max(0,Math.round(Number(raw.reward)||task.reward||0)),
+      workerId:String(raw.workerId||""),
+      paidAt:Math.max(0,Number(raw.paidAt)||0)
+    };
+  }
+
+  function rollHotelTask(floorId,previousId=""){
+    const tasks=hotelActivitiesForFloor(floorId);
+    if(!tasks.length)return null;
+    const pool=tasks.length>1?tasks.filter(task=>task.id!==previousId):tasks;
+    return pool[Math.floor(Math.random()*pool.length)]||tasks[0];
+  }
+
+  function ensureHotelActivities(settings){
+    settings.activities ||= {};
+    const workFloors=[...new Set(hotelActivities().map(task=>task.floor))];
+    workFloors.forEach(floorId=>{
+      const normalized=normalizeWorkSlot(settings.activities[floorId],floorId);
+      if(normalized){
+        settings.activities[floorId]=normalized;
+        return;
+      }
+      const task=rollHotelTask(floorId);
+      if(task){
+        settings.activities[floorId]={
+          taskId:task.id,status:"ready",startedAt:0,endAt:0,
+          reward:Math.max(0,Math.round(task.reward||0)),workerId:"",paidAt:0
+        };
+      }
+    });
+    settings.workStats=normalizeWorkStats(settings.workStats);
+    return settings;
+  }
+
+  function activitySlotForFloor(settings,floorId){
+    return normalizeWorkSlot(settings.activities?.[floorId],floorId);
+  }
+
+  function actorBaseLeft(character,settings){
+    const cfg=characterWorldSettings(character,settings);
+    if(cfg.placement)return cfg.placement.left;
+    return 8+(stableNumber(character.id)%72);
+  }
+
+  function chooseActivityWorker(floorId,anchor,settings){
+    const floors=hotelRegion().floors;
+    const floorIndex=floors.findIndex(f=>f.id===floorId);
+    if(floorIndex<0)return "";
+    const candidates=currentHotelResidents(settings).filter(character=>actorFloorIndex(character,settings)===floorIndex);
+    if(!candidates.length)return "";
+    candidates.sort((a,b)=>Math.abs(actorBaseLeft(a,settings)-anchor)-Math.abs(actorBaseLeft(b,settings)-anchor));
+    return candidates[0]?.id||"";
+  }
+
+  function formatWorkTime(ms){
+    const seconds=Math.max(0,Math.ceil(ms/1000));
+    const min=Math.floor(seconds/60);
+    const sec=seconds%60;
+    return String(min).padStart(2,"0")+":"+String(sec).padStart(2,"0");
+  }
 
   function characterWorldDefaults(){
     return {
@@ -65,6 +169,10 @@
       autoResidents:true,
       maxActors:8,
       motionSpeed:1,
+      workRewardMultiplier:1,
+      workDurationMultiplier:1,
+      activities:{},
+      workStats:defaultWorkStats(),
       residentIds:[],
       floorNames:{},
       characterWorld:{}
@@ -88,6 +196,10 @@
       autoResidents:s.autoResidents!==false,
       maxActors:Math.max(1,Math.min(12,Number(s.maxActors)||d.maxActors)),
       motionSpeed:Math.max(.5,Math.min(1.8,Number(s.motionSpeed)||d.motionSpeed)),
+      workRewardMultiplier:Math.max(.25,Math.min(5,Number(s.workRewardMultiplier)||1)),
+      workDurationMultiplier:Math.max(.25,Math.min(3,Number(s.workDurationMultiplier)||1)),
+      activities:s.activities&&typeof s.activities==="object"?{...s.activities}:{},
+      workStats:normalizeWorkStats(s.workStats),
       residentIds:Array.isArray(s.residentIds)?[...new Set(s.residentIds.map(String))]:[],
       floorNames:s.floorNames&&typeof s.floorNames==="object"?{...s.floorNames}:{},
       characterWorld
@@ -99,9 +211,9 @@
   }
   function readHotelSettings(){
     try{
-      return normalizeHotelSettings(JSON.parse(localStorage.getItem(WORLD_STORAGE_KEY)||"{}"));
+      return ensureHotelActivities(normalizeHotelSettings(JSON.parse(localStorage.getItem(WORLD_STORAGE_KEY)||"{}")));
     }catch{
-      return hotelDefaults();
+      return ensureHotelActivities(hotelDefaults());
     }
   }
 
@@ -204,8 +316,11 @@
     const cfg=characterWorldSettings(character,settings);
     const floor=hotelRegion().floors[floorIndex];
     const placement=cfg.placement&&floor&&cfg.placement.floor===floor.id?cfg.placement:null;
-    const left=placement?placement.left:8+(key%72);
-    const travel=18+(key%16);
+    const activity=floor?activitySlotForFloor(settings,floor.id):null;
+    const task=activity?.status==="working"?hotelActivityById(activity.taskId):null;
+    const isWorker=Boolean(task&&activity.workerId===character.id);
+    const left=isWorker?Math.max(5,Math.min(90,Number(task.anchor)||50)):(placement?placement.left:8+(key%72));
+    const travel=isWorker?6:18+(key%16);
     const duration=(12+(key%7)*1.35)/(settings.motionSpeed*cfg.speed);
     const delay=-((key%90)/10);
     const initials=(character.name||"?").slice(0,2).toUpperCase();
@@ -213,8 +328,8 @@
     const art=image
       ? '<img src="'+esc(image)+'" alt="" draggable="false" />'
       : '<span class="hotel-actor-fallback">'+esc(initials)+'</span>';
-    return '<div class="hotel-actor move-'+esc(cfg.movement)+(placement?" is-manually-placed":"")+' actor-'+(index%4)+'" '+
-      'title="'+esc(character.name)+' · 드래그해서 옮기기" '+
+    return '<div class="hotel-actor move-'+esc(isWorker?"calm":cfg.movement)+(placement?" is-manually-placed":"")+(isWorker?" is-working-character":"")+' actor-'+(index%4)+'" '+
+      'title="'+esc(character.name+(isWorker?" · "+task.title:" · 드래그해서 옮기기"))+'" '+
       'style="--actor-left:'+left+'%;--actor-bottom:8px;--actor-travel:'+travel+'px;--actor-duration:'+duration+'s;--actor-delay:'+delay+'s;--actor-scale:'+cfg.scale+'" '+
       'data-character-id="'+esc(character.id)+'">'+
       art+'<small>'+esc(character.name)+'</small></div>';
@@ -222,6 +337,90 @@
   function decorativeActorMarkup(index,settings){
     const duration=(12+index*1.8)/settings.motionSpeed;
     return '<div class="hotel-actor hotel-guest guest-'+index+'" aria-hidden="true" style="--actor-left:'+(14+index*23)+'%;--actor-duration:'+duration+'s;--actor-delay:-'+(index*2.4)+'s"><span class="hotel-actor-fallback">◆</span></div>';
+  }
+
+  function hotelActivityMarkup(floorId,settings){
+    const slot=activitySlotForFloor(settings,floorId);
+    if(!slot)return "";
+    const task=hotelActivityById(slot.taskId);
+    if(!task)return "";
+    const currency=esc(state.gacha.currencyName||"SOUL");
+    if(slot.status==="working"){
+      const now=Date.now();
+      const total=Math.max(1,slot.endAt-slot.startedAt);
+      const elapsed=Math.max(0,Math.min(total,now-slot.startedAt));
+      const percent=Math.round(elapsed/total*100);
+      return '<div class="hotel-job-card is-working" data-hotel-job-card data-floor="'+esc(floorId)+'" data-start-at="'+slot.startedAt+'" data-end-at="'+slot.endAt+'">'+
+        '<span class="hotel-job-icon">'+esc(task.icon||"◆")+'</span>'+
+        '<div class="hotel-job-copy"><small>WORKING · '+currency+'</small><strong>'+esc(task.title)+'</strong><em data-hotel-job-time>'+formatWorkTime(slot.endAt-now)+'</em></div>'+
+        '<div class="hotel-job-progress"><i data-hotel-job-progress style="width:'+percent+'%"></i></div>'+
+      '</div>';
+    }
+    if(slot.status==="complete"){
+      return '<button class="hotel-job-card is-complete" type="button" data-action="hotel-job-next" data-floor="'+esc(floorId)+'">'+
+        '<span class="hotel-job-icon">✓</span>'+
+        '<div class="hotel-job-copy"><small>PAID · '+currency+'</small><strong>'+esc(task.title)+'</strong><em>+'+slot.reward+' · NEW JOB</em></div>'+
+      '</button>';
+    }
+    return '<button class="hotel-job-card is-ready" type="button" data-action="hotel-job-start" data-floor="'+esc(floorId)+'">'+
+      '<span class="hotel-job-icon">'+esc(task.icon||"◆")+'</span>'+
+      '<div class="hotel-job-copy"><small>READY · '+currency+' +'+Math.round((task.reward||0)*settings.workRewardMultiplier)+'</small><strong>'+esc(task.title)+'</strong><em>'+esc(task.detail||"업무")+' · '+formatWorkTime((task.duration||60)*1000*settings.workDurationMultiplier)+'</em></div>'+
+    '</button>';
+  }
+
+  function settleHotelActivities(settings){
+    const completed=[];
+    const now=Date.now();
+    Object.entries(settings.activities||{}).forEach(([floorId,raw])=>{
+      const slot=normalizeWorkSlot(raw,floorId);
+      if(!slot||slot.status!=="working"||!slot.endAt||slot.endAt>now)return;
+      slot.status="complete";
+      slot.paidAt=now;
+      settings.activities[floorId]=slot;
+      state.gacha.balance=Math.max(0,Number(state.gacha.balance)||0)+slot.reward;
+      settings.workStats=normalizeWorkStats(settings.workStats);
+      settings.workStats.dayEarned+=slot.reward;
+      settings.workStats.totalEarned+=slot.reward;
+      settings.workStats.completed+=1;
+      completed.push({floorId,reward:slot.reward,task:hotelActivityById(slot.taskId)});
+    });
+    if(completed.length){
+      saveHotelSettings(settings);
+      saveState();
+    }
+    return completed;
+  }
+
+  function updateHotelActivityClock(){
+    const now=Date.now();
+    $$("[data-hotel-job-card].is-working",pageRoot).forEach(card=>{
+      const start=Number(card.dataset.startAt)||now;
+      const end=Number(card.dataset.endAt)||now;
+      const total=Math.max(1,end-start);
+      const elapsed=Math.max(0,Math.min(total,now-start));
+      const time=$("[data-hotel-job-time]",card);
+      const bar=$("[data-hotel-job-progress]",card);
+      if(time)time.textContent=formatWorkTime(end-now);
+      if(bar)bar.style.width=Math.round(elapsed/total*100)+"%";
+    });
+  }
+
+  function scheduleHotelActivityTicker(){
+    clearTimeout(worldActivityTimer);
+    if(currentPage!=="world")return;
+    worldActivityTimer=setTimeout(()=>{
+      if(currentPage!=="world"||!pageRoot.querySelector(".world-hotel-page"))return;
+      const settings=readHotelSettings();
+      const completed=settleHotelActivities(settings);
+      if(completed.length){
+        const total=completed.reduce((sum,item)=>sum+item.reward,0);
+        renderWorld();
+        showToast("SHIFT COMPLETE · +"+total+" "+(state.gacha.currencyName||"SOUL"));
+        return;
+      }
+      updateHotelActivityClock();
+      scheduleHotelActivityTicker();
+    },750);
   }
 
   function renderHotelFloor(floor,index,residents,settings){
@@ -247,6 +446,7 @@
         '<div class="hotel-floor-bulbs"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>'+
         '<div class="hotel-elevator"><span></span><span></span><b></b><em></em></div>'+
         hotelPropMarkup(floor.id)+
+        hotelActivityMarkup(floor.id,settings)+
         '<div class="hotel-actors">'+actors+'</div>'+
       '</div>'+
     '</section>';
@@ -300,6 +500,7 @@
   window.renderWorld=function renderWorld(){
     const region=hotelRegion();
     const settings=readHotelSettings();
+    settleHotelActivities(settings);
     const residents=currentHotelResidents(settings);
     const classes=[
       "world-hotel-page",
@@ -316,8 +517,11 @@
       '<section class="'+classes+'" style="--hotel-ambient-duration:'+(7/settings.motionSpeed)+'s">'+
         '<header class="world-hotel-head">'+
           '<div><p class="page-kicker">WORLD · 01</p><h1>'+esc(region.name)+'</h1><p>'+esc(region.subtitle)+'</p></div>'+
-          '<div class="world-hotel-actions"><div class="hotel-status"><i></i><span>HOTEL OPEN</span><small>'+esc(residentsText)+'</small></div>'+
-          '<button class="ghost-button" type="button" data-action="hotel-settings">HOTEL SETTINGS</button></div>'+
+          '<div class="world-hotel-actions">'+
+            '<div class="hotel-economy"><small>'+esc(state.gacha.currencyName||"SOUL")+'</small><strong>'+state.gacha.balance+'</strong><span>TODAY +'+settings.workStats.dayEarned+'</span></div>'+
+            '<div class="hotel-status"><i></i><span>HOTEL OPEN</span><small>'+esc(residentsText)+'</small></div>'+
+            '<button class="ghost-button" type="button" data-action="hotel-settings">HOTEL SETTINGS</button>'+
+          '</div>'+
         '</header>'+
         '<div class="hotel-scene-shell">'+
           '<div class="hotel-sky" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span></div>'+
@@ -345,6 +549,7 @@
         '</div>'+
       '</section>';
     scheduleWorldThoughts();
+    scheduleHotelActivityTicker();
   };
 
   function showWorldThought(actor,thought,wasDiscovered){
@@ -478,6 +683,14 @@
             '<label class="field"><span>한 화면 최대 캐릭터</span><input type="number" name="maxActors" min="1" max="12" value="'+settings.maxActors+'" /></label>'+
             '<label class="field"><span>전체 움직임 속도 · 0.5 ~ 1.8</span><input type="number" name="motionSpeed" min=".5" max="1.8" step=".1" value="'+settings.motionSpeed+'" /></label>'+
           '</div>'+
+          '<section class="hotel-settings-block">'+
+            '<div class="hotel-settings-block-head"><div><span>HOTEL WORK</span><strong>업무 / 재화 밸런스</strong></div><small>캐릭터 능력치와 무관</small></div>'+
+            '<div class="hotel-setting-grid">'+
+              '<label class="field"><span>업무 보상 배율 · 0.25 ~ 5.0</span><input type="number" name="workRewardMultiplier" min=".25" max="5" step=".05" value="'+settings.workRewardMultiplier+'" /></label>'+
+              '<label class="field"><span>업무 시간 배율 · 0.25 ~ 3.0</span><input type="number" name="workDurationMultiplier" min=".25" max="3" step=".05" value="'+settings.workDurationMultiplier+'" /></label>'+
+            '</div>'+
+            '<p class="hotel-settings-help">업무는 실패하지 않습니다. 시작한 뒤 WORLD를 나가거나 창을 닫아도 종료 시각은 저장되며, 다음에 호텔에 돌아오면 완료 보상이 정산됩니다.</p>'+
+          '</section>'+
           '<section class="hotel-settings-block hotel-character-world-settings">'+
             '<div class="hotel-settings-block-head"><div><span>CHARACTER WORLD SETTINGS</span><strong>캐릭터별 호텔 표시</strong></div><small>기존 캐릭터 설정과 별도로 저장</small></div>'+
             '<p class="hotel-settings-help">캐릭터를 눌러 WORLD 전용 이미지, 기본 층, 움직임과 THOUGHT 연출을 설정하세요. 실제 위치는 호텔 화면에서 캐릭터를 직접 드래그해서 정합니다. 여기서 넣은 이미지는 HOME/대화 화면의 캐릭터 이미지를 바꾸지 않습니다.</p>'+
@@ -500,6 +713,10 @@
     next.autoResidents=form.elements.autoResidents.checked;
     next.maxActors=Number(form.elements.maxActors.value);
     next.motionSpeed=Number(form.elements.motionSpeed.value);
+    next.workRewardMultiplier=Number(form.elements.workRewardMultiplier.value);
+    next.workDurationMultiplier=Number(form.elements.workDurationMultiplier.value);
+    next.activities={...saved.activities};
+    next.workStats={...saved.workStats};
     next.residentIds=$$("[data-hotel-resident]:checked",form).map(x=>x.dataset.hotelResident);
     next.floorNames={};
     $$("[data-hotel-floor-name]",form).forEach(input=>{
@@ -524,6 +741,42 @@
       });
     });
     return normalizeHotelSettings(next);
+  }
+
+  function startHotelJob(floorId){
+    const settings=readHotelSettings();
+    const slot=activitySlotForFloor(settings,floorId);
+    const task=slot?hotelActivityById(slot.taskId):null;
+    if(!slot||!task||slot.status!=="ready")return;
+    const now=Date.now();
+    const duration=Math.max(5000,Math.round((task.duration||60)*1000*settings.workDurationMultiplier));
+    const reward=Math.max(1,Math.round((task.reward||0)*settings.workRewardMultiplier));
+    settings.activities[floorId]={
+      taskId:task.id,
+      status:"working",
+      startedAt:now,
+      endAt:now+duration,
+      reward,
+      workerId:chooseActivityWorker(floorId,Number(task.anchor)||50,settings),
+      paidAt:0
+    };
+    saveHotelSettings(settings);
+    renderWorld();
+    showToast(task.title+" · STARTED");
+  }
+
+  function nextHotelJob(floorId){
+    const settings=readHotelSettings();
+    const slot=activitySlotForFloor(settings,floorId);
+    if(!slot||slot.status!=="complete")return;
+    const task=rollHotelTask(floorId,slot.taskId);
+    if(!task)return;
+    settings.activities[floorId]={
+      taskId:task.id,status:"ready",startedAt:0,endAt:0,
+      reward:Math.max(0,Math.round(task.reward||0)),workerId:"",paidAt:0
+    };
+    saveHotelSettings(settings);
+    renderWorld();
   }
 
   function dragFloorAt(clientX,clientY){
@@ -636,7 +889,7 @@
   }
 
   pageRoot.addEventListener("pointerdown",event=>{
-    const actor=event.target.closest(".hotel-actor[data-character-id]:not(.hotel-guest)");
+    const actor=event.target.closest(".hotel-actor[data-character-id]:not(.hotel-guest):not(.is-working-character)");
     if(!actor)return;
     startWorldActorDrag(actor,event);
   });
@@ -649,6 +902,10 @@
       openHotelSettings();
     }else if(action==="hotel-floor-info"){
       openHotelFloorInfo(button.dataset.floor);
+    }else if(action==="hotel-job-start"){
+      startHotelJob(button.dataset.floor);
+    }else if(action==="hotel-job-next"){
+      nextHotelJob(button.dataset.floor);
     }
   });
 
