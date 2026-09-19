@@ -70,8 +70,16 @@ function editorRedo(){
 function storeEditorRestorePoint(){
   saveState();
   const snap=makeDataSnapshot("EDITOR 저장 전 복구 지점");
-  localStorage.setItem(EDITOR_SNAPSHOT_KEY,JSON.stringify(snap));
-  captureSafetySnapshot("EDITOR 저장 전 자동 백업");
+  try{
+    localStorage.setItem(EDITOR_SNAPSHOT_KEY,JSON.stringify(snap));
+  }catch(error){
+    console.warn("EDITOR RESTORE SNAPSHOT SKIPPED",error);
+  }
+  try{
+    captureSafetySnapshot("EDITOR 저장 전 자동 백업");
+  }catch(error){
+    console.warn("EDITOR AUTO SAFETY SKIPPED",error);
+  }
 }
 function restoreEditorSnapshot(){
   const raw=localStorage.getItem(EDITOR_SNAPSHOT_KEY);
@@ -143,16 +151,24 @@ function closeEditor(force=false){
 }
 function saveEditor(){
   if(!editorDraft)return;
-  storeEditorRestorePoint();
-  state=normalizeState(editorDraft);
-  saveState();
-  session=createSession();
-  playback=null;
-  autoMode=false;
-  clearAuto();
-  if(selectedCharacterId&&!getCharacter(selectedCharacterId))selectedCharacterId=enabledCharacters()[0]?.id||"";
-  closeEditor(true);renderPage();
-  showToast("EDITOR 저장 완료 · 이전 상태는 RESTORE로 복구할 수 있습니다.");
+  const previousState=state;
+  try{
+    storeEditorRestorePoint();
+    state=normalizeState(editorDraft);
+    saveState();
+    session=createSession();
+    playback=null;
+    autoMode=false;
+    clearAuto();
+    if(selectedCharacterId&&!getCharacter(selectedCharacterId))selectedCharacterId=enabledCharacters()[0]?.id||"";
+    closeEditor(true);renderPage();
+    showToast("EDITOR 저장 완료");
+  }catch(error){
+    console.error("EDITOR SAVE FAILED",error);
+    state=previousState;
+    try{session=createSession()}catch{}
+    alert("EDITOR 저장 중 브라우저 저장 공간 문제가 발생했습니다. 편집 화면은 그대로 유지합니다.");
+  }
 }
 function renderEditor(){
   updateEditorHistoryButtons();
