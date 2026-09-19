@@ -68,3 +68,18 @@ HOTEL 외에 다음 장면형 지역이 추가되었습니다.
 상단 WORLD 지역 탭으로 전환하며, HOTEL WORK는 호텔 화면에만 표시됩니다.
 장면형 지역에서도 캐릭터를 직접 드래그해 배치할 수 있고 위치는 `hellaverse-world-scene-placement-v1`에 지역별로 저장됩니다.
 배경은 참조 이미지를 직접 삽입하지 않고 HTML/CSS 도형으로 구성합니다.
+
+
+## Heaven inner district
+
+Heaven은 입구 문을 전면에 두는 장면에서, 문 뒤의 실제 도심을 보여주는 장면으로 변경되었습니다.
+
+- CELESTIAL PLAZA: 캐릭터가 배치되는 중앙 광장
+- WELCOME HALL: 도착 안내 / ARRIVAL DESK
+- CLOUD TRANSIT: 후광·구름 이동 노선 / HALO ROUTE
+- SERAPH COURT: 청원서 전달 / PETITION DELIVERY
+- CELESTIAL ARCHIVE: 기록 분류 / RECORD SORTING
+- SKY GARDEN: 구름 정원 관리 / SKY GARDEN CARE
+
+천국 업무는 `hellaverse-world-scene-work-v1`에 진행 상태와 종료 시간을 저장합니다.
+완료 시 HOTEL WORK와 동일한 가챠 재화 잔액에 보상이 자동 지급됩니다.

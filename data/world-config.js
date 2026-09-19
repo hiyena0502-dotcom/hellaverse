@@ -6,7 +6,7 @@
  * 이후 Heaven / Imp City / 각 Ring은 regions 배열에 같은 구조로 추가할 수 있습니다.
  */
 window.HV_WORLD_CONFIG = {
-  schemaVersion: 3,
+  schemaVersion: 4,
   defaultRegion: "hotel",
   regions: [
     {
@@ -36,9 +36,16 @@ window.HV_WORLD_CONFIG = {
       id:"heaven",
       type:"scene",
       name:"HEAVEN",
-      subtitle:"CELESTIAL CITY · GOLDEN GATE",
+      subtitle:"CELESTIAL CITY · INNER DISTRICT",
       status:"OPEN",
-      description:"복숭아빛 하늘과 구름, 금빛 문, 보라색 첨탑이 이어지는 천국 도심."
+      description:"Golden Gate를 지나 들어오는 중앙 광장과 행정·기록·교통·정원 구역.",
+      activities:[
+        {id:"heaven-arrival",building:"welcome",title:"ARRIVAL DESK",detail:"새로 도착한 영혼의 안내표 정리",icon:"✦",duration:55,reward:52},
+        {id:"heaven-route",building:"transit",title:"HALO ROUTE",detail:"구름 이동 플랫폼과 후광 노선 점검",icon:"◎",duration:70,reward:66},
+        {id:"heaven-records",building:"archive",title:"RECORD SORTING",detail:"천국 기록 보관소의 문서 분류",icon:"▤",duration:85,reward:82},
+        {id:"heaven-petition",building:"court",title:"PETITION DELIVERY",detail:"Seraph Court로 청원서 전달",icon:"◇",duration:95,reward:92},
+        {id:"heaven-garden",building:"garden",title:"SKY GARDEN CARE",detail:"구름 정원과 별꽃 관리",icon:"✧",duration:75,reward:72}
+      ]
     },
     {
       id:"wrath",

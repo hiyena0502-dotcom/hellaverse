@@ -395,3 +395,487 @@
   .world-scene-shell{min-width:760px}
   .world-scene-page{overflow-x:auto}
 }
+
+
+/* HEAVEN INNER CITY · buildings behind the gate */
+.scene-heaven{
+  background:
+    radial-gradient(circle at 50% 6%,rgba(255,255,226,.96),transparent 25%),
+    linear-gradient(180deg,#f695a0 0%,#ffb696 28%,#ffd7b8 52%,#b6a6fa 100%)
+}
+.heaven-distant-gate{
+  position:absolute;
+  z-index:2;
+  left:50%;
+  top:9%;
+  width:190px;
+  height:125px;
+  transform:translateX(-50%) scale(.78);
+  opacity:.52;
+  filter:blur(.2px)
+}
+.heaven-distant-gate:before{
+  content:"";
+  position:absolute;
+  left:50%;bottom:0;
+  width:122px;height:105px;
+  transform:translateX(-50%);
+  border:6px solid #bd862b;
+  border-bottom:0;
+  border-radius:64px 64px 0 0;
+  background:#fff0a8
+}
+.heaven-distant-gate i,
+.heaven-distant-gate b{
+  position:absolute;
+  bottom:0;
+  width:26px;height:94px;
+  border:5px solid #b67a25;
+  background:#ffe9a3
+}
+.heaven-distant-gate i{left:7px}.heaven-distant-gate b{right:7px}
+.heaven-distant-gate span{
+  position:absolute;
+  left:50%;top:-9px;
+  width:92px;height:24px;
+  transform:translateX(-50%);
+  border:4px solid #fff0a0;
+  border-radius:50%
+}
+.heaven-city-back{
+  position:absolute;
+  z-index:1;
+  left:2%;right:2%;
+  bottom:29%;
+  height:49%
+}
+.heaven-city-back i{
+  position:absolute;
+  bottom:0;
+  width:7%;
+  height:var(--h,52%);
+  background:linear-gradient(180deg,#7956cc,#a85acb 64%,#704fb6);
+  clip-path:polygon(50% 0,75% 18%,88% 100%,12% 100%,25% 18%);
+  opacity:.58
+}
+.heaven-city-back i:after{
+  content:"";
+  position:absolute;
+  left:47%;top:15%;bottom:8%;
+  width:4px;
+  background:#9fefff;
+  border-radius:99px
+}
+.heaven-city-back i b{
+  position:absolute;
+  left:50%;top:-16px;
+  width:44px;height:13px;
+  transform:translateX(-50%);
+  border:3px solid #fff0a2;
+  border-radius:50%
+}
+.heaven-city-back .h1{left:1%;--h:48%}.heaven-city-back .h2{left:10%;--h:66%}.heaven-city-back .h3{left:20%;--h:38%}.heaven-city-back .h4{left:29%;--h:60%}.heaven-city-back .h5{left:39%;--h:43%}
+.heaven-city-back .h6{right:39%;--h:47%}.heaven-city-back .h7{right:29%;--h:63%}.heaven-city-back .h8{right:19%;--h:39%}.heaven-city-back .h9{right:9%;--h:57%}.heaven-city-back .h10{right:1%;--h:45%}
+
+.heaven-plaza{
+  position:absolute;
+  z-index:5;
+  left:3%;right:3%;
+  bottom:0;
+  height:42%;
+  background:
+    linear-gradient(90deg,transparent 49.6%,rgba(218,166,70,.28) 49.7% 50.3%,transparent 50.4%),
+    linear-gradient(180deg,#fff0c3 0%,#f7d995 100%);
+  clip-path:polygon(8% 0,92% 0,100% 100%,0 100%)
+}
+.heaven-plaza:before{
+  content:"";
+  position:absolute;
+  left:4%;right:4%;top:13%;
+  height:2px;
+  background:#d8a846;
+  box-shadow:0 70px 0 rgba(216,168,70,.45),0 140px 0 rgba(216,168,70,.35)
+}
+.heaven-plaza i{
+  position:absolute;
+  top:0;bottom:0;
+  width:2px;
+  background:rgba(208,157,62,.28);
+  transform-origin:50% 0
+}
+.heaven-plaza i:nth-child(1){left:31%;transform:rotate(13deg)}
+.heaven-plaza i:nth-child(2){left:50%}
+.heaven-plaza i:nth-child(3){right:31%;transform:rotate(-13deg)}
+
+.heaven-building{
+  position:absolute;
+  z-index:12;
+  bottom:24%;
+  color:#774b8f;
+  filter:drop-shadow(0 10px 8px rgba(94,64,123,.16))
+}
+.heaven-building>b{
+  position:absolute;
+  left:50%;
+  transform:translateX(-50%);
+  white-space:nowrap;
+  color:#80558d;
+  font-size:.46rem;
+  letter-spacing:.11em;
+  text-shadow:0 1px 0 rgba(255,255,255,.8)
+}
+.heaven-building-halo{
+  position:absolute;
+  left:50%;
+  top:-25px;
+  width:74px;height:20px;
+  transform:translateX(-50%);
+  border:4px solid #fff2a0;
+  border-radius:50%;
+  box-shadow:0 0 8px rgba(255,239,150,.65)
+}
+
+/* welcome hall */
+.heaven-welcome{
+  left:7%;
+  width:210px;height:190px;
+  border:6px solid #7351b6;
+  border-bottom:0;
+  border-radius:74px 74px 0 0;
+  background:linear-gradient(90deg,#efb1d8 0 20%,#fff2ce 21% 79%,#efb1d8 80%)
+}
+.heaven-welcome:before{
+  content:"";
+  position:absolute;
+  left:18px;right:18px;top:27px;
+  height:5px;
+  background:#83e5f2;
+  box-shadow:0 28px 0 #83e5f2
+}
+.heaven-welcome>b{top:58px}
+.heaven-welcome .door{
+  position:absolute;
+  left:50%;bottom:0;
+  width:72px;height:102px;
+  transform:translateX(-50%);
+  border:5px solid #8a5bc2;
+  border-bottom:0;
+  border-radius:38px 38px 0 0;
+  background:#fff0bd
+}
+.heaven-welcome .door:after{
+  content:"✦";
+  position:absolute;
+  left:50%;top:18px;
+  transform:translateX(-50%);
+  color:#dc8cc8
+}
+.heaven-welcome .wing{
+  position:absolute;
+  top:92px;
+  width:56px;height:68px;
+  background:#fbdfed;
+  clip-path:polygon(0 48%,100% 0,72% 100%)
+}
+.heaven-welcome .wing.left{left:-28px}
+.heaven-welcome .wing.right{right:-28px;transform:scaleX(-1)}
+
+/* transit tower */
+.heaven-transit{
+  left:27%;
+  width:125px;height:235px;
+  border:6px solid #6651b3;
+  border-radius:62px 62px 12px 12px;
+  background:linear-gradient(180deg,#a2eff4 0 36%,#dd9bd9 37% 100%)
+}
+.heaven-transit:before{
+  content:"";
+  position:absolute;
+  left:50%;top:-35px;
+  width:8px;height:44px;
+  transform:translateX(-50%);
+  background:#6b4faf
+}
+.heaven-transit>b{top:73px}
+.heaven-transit>i{
+  position:absolute;
+  left:50%;top:109px;
+  width:8px;height:93px;
+  transform:translateX(-50%);
+  background:#fff2b8;
+  box-shadow:0 0 10px #fff2b8
+}
+.transit-ring{
+  position:absolute;
+  left:50%;
+  width:104px;height:28px;
+  transform:translateX(-50%);
+  border:4px solid #fff0a1;
+  border-radius:50%
+}
+.transit-ring.r1{top:22px}.transit-ring.r2{bottom:24px;width:84px}
+
+/* seraph court focal building */
+.heaven-court{
+  left:50%;
+  bottom:27%;
+  width:300px;height:285px;
+  transform:translateX(-50%);
+  border:7px solid #6548a6;
+  border-bottom:0;
+  border-radius:150px 150px 10px 10px;
+  background:
+    linear-gradient(90deg,#9b68cc 0 10%,#fff1c6 11% 24%,#c389dc 25% 75%,#fff1c6 76% 89%,#9b68cc 90%);
+  box-shadow:inset 0 0 0 4px rgba(255,240,184,.58)
+}
+.heaven-court:before,
+.heaven-court:after{
+  content:"";
+  position:absolute;
+  bottom:0;
+  width:74px;height:190px;
+  background:#7b56b6;
+  clip-path:polygon(50% 0,100% 100%,0 100%)
+}
+.heaven-court:before{left:-43px}.heaven-court:after{right:-43px}
+.heaven-court>b{
+  top:80px;
+  padding:3px 8px;
+  background:rgba(255,239,190,.7);
+  border-radius:999px
+}
+.heaven-court .court-eye{
+  position:absolute;
+  left:50%;top:112px;
+  width:92px;height:52px;
+  transform:translateX(-50%);
+  background:#fff4c3;
+  border:5px solid #b17c31;
+  clip-path:polygon(0 50%,20% 12%,50% 0,80% 12%,100% 50%,80% 88%,50% 100%,20% 88%)
+}
+.heaven-court .court-eye i{
+  position:absolute;
+  left:50%;top:50%;
+  width:24px;height:24px;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  background:#e3a83e
+}
+.heaven-court .court-eye i:after{
+  content:"";
+  position:absolute;
+  left:50%;top:3px;
+  width:3px;height:18px;
+  transform:translateX(-50%);
+  background:#8250a1
+}
+.heaven-court em{
+  position:absolute;
+  bottom:0;
+  width:52px;height:108px;
+  border:4px solid #7553ad;
+  border-bottom:0;
+  border-radius:30px 30px 0 0;
+  background:#fce7b4
+}
+.heaven-court em:nth-of-type(1){left:36px}.heaven-court em:nth-of-type(2){left:124px}.heaven-court em:nth-of-type(3){right:36px}
+
+/* archive */
+.heaven-archive{
+  right:24%;
+  width:175px;height:215px;
+  border:6px solid #704eb0;
+  border-bottom:0;
+  border-radius:28px 74px 0 0;
+  background:linear-gradient(90deg,#f2a7d0,#fff0c7 26% 74%,#d695db)
+}
+.heaven-archive:before{
+  content:"";
+  position:absolute;
+  left:23px;right:23px;top:28px;
+  height:52px;
+  background:repeating-linear-gradient(90deg,#78dfe9 0 5px,transparent 6px 16px);
+  border-top:3px solid #8660b9;
+  border-bottom:3px solid #8660b9
+}
+.heaven-archive>b{top:91px}
+.archive-door{
+  position:absolute;
+  left:50%;bottom:0;
+  width:72px;height:91px;
+  transform:translateX(-50%);
+  border:5px solid #7652ad;
+  border-bottom:0;
+  border-radius:36px 36px 0 0;
+  background:#fce8af
+}
+.heaven-archive>i{
+  position:absolute;
+  bottom:24px;
+  width:12px;height:55px;
+  border-radius:7px 7px 0 0;
+  background:#8bdfe8
+}
+.heaven-archive>i:nth-of-type(1){left:21px}.heaven-archive>i:nth-of-type(2){right:21px}.heaven-archive>i:nth-of-type(3){right:43px;height:38px}
+
+/* sky garden */
+.heaven-garden{
+  right:5%;
+  width:190px;height:165px
+}
+.heaven-garden>b{top:55px}
+.garden-dome{
+  position:absolute;
+  left:50%;bottom:0;
+  width:150px;height:115px;
+  transform:translateX(-50%);
+  border:6px solid #6650ad;
+  border-bottom:0;
+  border-radius:80px 80px 0 0;
+  background:linear-gradient(180deg,rgba(162,236,243,.83),rgba(220,159,219,.72))
+}
+.heaven-garden>i{
+  position:absolute;
+  z-index:2;
+  bottom:10px;
+  width:23px;height:43px;
+  border-radius:50% 50% 30% 30%;
+  background:#f3a7d8;
+  box-shadow:0 -15px 0 -7px #fff0a7
+}
+.heaven-garden>i:nth-of-type(1){left:33px}.heaven-garden>i:nth-of-type(2){left:70px;height:58px}.heaven-garden>i:nth-of-type(3){right:45px;height:50px}.heaven-garden>i:nth-of-type(4){right:18px;height:34px}
+
+.heaven-plaza-lamps i{
+  position:absolute;
+  z-index:18;
+  bottom:17%;
+  width:4px;height:92px;
+  background:#c28e39
+}
+.heaven-plaza-lamps i:after{
+  content:"";
+  position:absolute;
+  left:50%;top:-8px;
+  width:34px;height:13px;
+  transform:translateX(-50%);
+  border:3px solid #fff0a5;
+  border-radius:50%;
+  box-shadow:0 0 9px rgba(255,238,143,.6)
+}
+.heaven-plaza-lamps i:nth-child(1){left:12%}.heaven-plaza-lamps i:nth-child(2){left:29%}.heaven-plaza-lamps i:nth-child(3){left:41%}.heaven-plaza-lamps i:nth-child(4){right:41%}.heaven-plaza-lamps i:nth-child(5){right:29%}.heaven-plaza-lamps i:nth-child(6){right:12%}
+
+/* old gate-only focal elements are intentionally suppressed */
+.scene-heaven .heaven-main-spire,
+.scene-heaven .heaven-gate,
+.scene-heaven .heaven-bridge,
+.scene-heaven .heaven-skyline{display:none!important}
+
+/* SCENE WORK / HEAVEN DUTIES */
+.scene-work-dock{
+  width:min(1180px,100%);
+  margin:10px auto 0;
+  padding:10px 11px 11px;
+  border:1px solid rgba(240,204,150,.16);
+  border-radius:9px;
+  background:linear-gradient(180deg,rgba(33,20,38,.72),rgba(14,10,18,.55))
+}
+.scene-work-head{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  align-items:end;
+  margin-bottom:8px
+}
+.scene-work-head span{
+  display:block;
+  color:var(--scene-accent);
+  font-size:.52rem;
+  letter-spacing:.15em
+}
+.scene-work-head strong{
+  display:block;
+  margin-top:2px;
+  color:#dbc5d4;
+  font-size:.62rem;
+  font-weight:500
+}
+.scene-work-head small{color:#8d7b87;font-size:.5rem}
+.scene-work-grid{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:6px
+}
+.scene-task-card{
+  position:relative;
+  min-width:0;
+  min-height:58px;
+  display:grid;
+  grid-template-columns:31px minmax(0,1fr);
+  gap:7px;
+  align-items:center;
+  padding:7px 8px;
+  border:1px solid rgba(240,207,169,.12);
+  border-radius:6px;
+  background:rgba(12,8,14,.4);
+  color:#e7d9df;
+  text-align:left
+}
+button.scene-task-card{cursor:pointer}
+button.scene-task-card:hover{
+  border-color:rgba(240,213,160,.32);
+  background:rgba(255,238,193,.035)
+}
+.scene-task-icon{
+  display:grid;
+  place-items:center;
+  width:27px;height:27px;
+  border:1px solid rgba(255,235,173,.32);
+  border-radius:50%;
+  color:var(--scene-accent);
+  font-family:Georgia,serif
+}
+.scene-task-card>div{display:grid;min-width:0}
+.scene-task-card small{color:#968791;font-size:.36rem;letter-spacing:.07em}
+.scene-task-card strong{
+  overflow:hidden;
+  margin-top:1px;
+  font-size:.51rem;
+  letter-spacing:.035em;
+  text-overflow:ellipsis;
+  white-space:nowrap
+}
+.scene-task-card em{
+  overflow:hidden;
+  margin-top:2px;
+  color:#aa969f;
+  font-size:.4rem;
+  font-style:normal;
+  text-overflow:ellipsis;
+  white-space:nowrap
+}
+.scene-task-card.is-complete em{color:#dcb873}
+.scene-task-card.is-working{cursor:default}
+.scene-task-progress{
+  position:absolute;
+  left:7px;right:7px;bottom:3px;
+  height:2px;
+  background:rgba(255,255,255,.05)
+}
+.scene-task-progress b{
+  display:block;
+  height:100%;
+  background:linear-gradient(90deg,var(--scene-accent),#fff0a5);
+  transition:width .7s linear
+}
+.region-work-heaven{
+  background:linear-gradient(180deg,rgba(95,70,124,.34),rgba(30,22,42,.45));
+  border-color:rgba(255,229,158,.24)
+}
+.region-work-heaven .scene-task-icon{
+  color:#efc95f;
+  border-color:rgba(255,230,150,.38)
+}
+@media(max-width:1050px){
+  .scene-work-grid{display:flex;overflow-x:auto;scrollbar-width:thin}
+  .scene-task-card{flex:0 0 210px}
+}
