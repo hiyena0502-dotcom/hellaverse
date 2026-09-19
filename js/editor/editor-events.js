@@ -30,7 +30,7 @@ $("#editorUndoButton").addEventListener("click",editorUndo);
 $("#editorRedoButton").addEventListener("click",editorRedo);
 $("#editorRestoreButton").addEventListener("click",restoreEditorSnapshot);
 $("#editorCheckButton").addEventListener("click",renderValidationReport);
-$("#editorCancelButton").addEventListener("click",closeEditor);
+$("#editorCancelButton").addEventListener("click",()=>closeEditor());
 $("#editorSaveButton").addEventListener("click",saveEditor);
 $$(".editor-nav").forEach(b=>b.addEventListener("click",()=>{editorTab=b.dataset.editorTab;renderEditor()}));
 
