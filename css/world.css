@@ -2489,46 +2489,6 @@
 .alastor-private-door:before{border-color:rgba(170,102,72,.62)}
 .alastor-private-door b{color:#c98e67!important}
 
-/* furniture spots: actors walk away, return, then pause at the chosen place */
-.hotel-actor{
-  bottom:var(--actor-bottom,8px)
-}
-.hotel-actor.has-hotel-spot.move-still{animation:none!important}
-.hotel-actor.has-hotel-spot.move-calm{
-  animation-name:hotelSpotCalm;
-  animation-timing-function:ease-in-out
-}
-.hotel-actor.has-hotel-spot.move-wander{
-  animation-name:hotelSpotWander;
-  animation-timing-function:ease-in-out
-}
-.hotel-actor.has-hotel-spot.move-active{
-  animation-name:hotelSpotActive;
-  animation-timing-function:ease-in-out
-}
-@keyframes hotelSpotCalm{
-  0%,28%{transform:translateX(0) scale(var(--actor-scale,1))}
-  45%{transform:translateX(calc(var(--actor-travel) * -.45)) scale(var(--actor-scale,1))}
-  52%{transform:translateX(calc(var(--actor-travel) * -.45)) scaleX(-1) scale(var(--actor-scale,1))}
-  67%,100%{transform:translateX(0) scaleX(-1) scale(var(--actor-scale,1))}
-}
-@keyframes hotelSpotWander{
-  0%,24%{transform:translateX(0) scale(var(--actor-scale,1))}
-  39%{transform:translateX(calc(var(--actor-travel) * -1)) scale(var(--actor-scale,1))}
-  46%{transform:translateX(calc(var(--actor-travel) * -1)) scaleX(-1) scale(var(--actor-scale,1))}
-  60%,76%{transform:translateX(0) scaleX(-1) scale(var(--actor-scale,1))}
-  88%{transform:translateX(calc(var(--actor-travel) * .55)) scale(var(--actor-scale,1))}
-  100%{transform:translateX(0) scale(var(--actor-scale,1))}
-}
-@keyframes hotelSpotActive{
-  0%,18%{transform:translateX(0) scale(var(--actor-scale,1))}
-  31%{transform:translateX(calc(var(--actor-travel) * -1.35)) scale(var(--actor-scale,1))}
-  39%{transform:translateX(calc(var(--actor-travel) * -1.35)) scaleX(-1) scale(var(--actor-scale,1))}
-  52%{transform:translateX(calc(var(--actor-travel) * .8)) scaleX(-1) scale(var(--actor-scale,1))}
-  60%{transform:translateX(calc(var(--actor-travel) * .8)) scale(var(--actor-scale,1))}
-  73%,100%{transform:translateX(0) scale(var(--actor-scale,1))}
-}
-
 /* keep the central core clear in the room floor */
 .floor-penthouse .lucifer-bed{right:3%;width:30%}
 .floor-penthouse .lucifer-sofa{right:3%;width:29%}
@@ -2537,4 +2497,57 @@
 
 @media(max-width:980px){
   .hotel-spiral-stair{left:calc(50% + 48px)}
+}
+
+
+/* DIRECT CHARACTER PLACEMENT */
+.hotel-actors{pointer-events:none}
+.hotel-actor[data-character-id]:not(.hotel-guest){
+  pointer-events:auto;
+  cursor:grab;
+  touch-action:none;
+  user-select:none;
+  -webkit-user-drag:none
+}
+.hotel-actor[data-character-id]:not(.hotel-guest):active{cursor:grabbing}
+.hotel-actor[data-character-id] img{
+  pointer-events:none;
+  user-select:none;
+  -webkit-user-drag:none
+}
+.hotel-character-drag-active,
+.hotel-character-drag-active *{cursor:grabbing!important}
+.hotel-drag-ghost{
+  position:fixed!important;
+  z-index:99999!important;
+  margin:0!important;
+  pointer-events:none!important;
+  animation:none!important;
+  transform:none!important;
+  opacity:.92!important;
+  filter:drop-shadow(0 10px 12px rgba(0,0,0,.48)) drop-shadow(0 0 10px rgba(255,80,145,.22))!important
+}
+.hotel-drag-ghost small{opacity:1!important}
+.hotel-floor.is-drop-target{
+  background:
+    linear-gradient(90deg,rgba(255,108,158,.13),transparent 22% 78%,rgba(255,108,158,.13)),
+    linear-gradient(180deg,#c52a58 0 9px,#4d1023 9px 100%)!important;
+  box-shadow:inset 0 0 0 2px rgba(255,104,157,.38),inset 0 0 28px rgba(255,62,128,.09)
+}
+.hotel-floor.is-drop-target .hotel-floor-label{
+  border-color:#ff6f9f;
+  box-shadow:0 0 16px rgba(255,76,147,.2)
+}
+.hotel-actor.is-manually-placed:after{
+  content:"";
+  position:absolute;
+  left:50%;
+  bottom:-3px;
+  width:16px;
+  height:3px;
+  transform:translateX(-50%);
+  border-radius:50%;
+  background:rgba(255,102,153,.34);
+  filter:blur(1px);
+  opacity:.55
 }

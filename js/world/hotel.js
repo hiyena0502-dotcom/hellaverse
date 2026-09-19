@@ -5,6 +5,7 @@
   const WORLD_CONFIG = window.HV_WORLD_CONFIG || {regions:[]};
   let focusedHotelFloor = "lobby";
   let worldThoughtTimer = null;
+  let worldActorDrag = null;
 
   function hotelRegion(){
     return WORLD_CONFIG.regions.find(r=>r.id==="hotel") || {
@@ -16,30 +17,6 @@
   }
 
 
-  const HOTEL_SPOTS = [
-    {id:"lucifer-sofa",floor:"penthouse",label:"LUCIFER · 소파",left:31,bottom:9,travel:12},
-    {id:"lucifer-fireplace",floor:"penthouse",label:"LUCIFER · 벽난로",left:39,bottom:8,travel:8},
-    {id:"alastor-fireplace",floor:"penthouse",label:"ALASTOR · 벽난로",left:67,bottom:8,travel:8},
-    {id:"alastor-chair",floor:"penthouse",label:"ALASTOR · 의자",left:82,bottom:8,travel:11},
-    {id:"suite-corridor-left",floor:"suites",label:"SUITES · 왼쪽 복도",left:24,bottom:8,travel:13},
-    {id:"suite-corridor-right",floor:"suites",label:"SUITES · 오른쪽 복도",left:76,bottom:8,travel:13},
-    {id:"lounge-sofa",floor:"lounge",label:"LOUNGE · 소파",left:27,bottom:9,travel:12},
-    {id:"lounge-fireplace",floor:"lounge",label:"LOUNGE · 벽난로",left:52,bottom:8,travel:9},
-    {id:"lounge-window",floor:"lounge",label:"LOUNGE · 창가",left:77,bottom:8,travel:10},
-    {id:"bar-stage",floor:"bar",label:"BAR · 무대",left:25,bottom:8,travel:16},
-    {id:"bar-counter",floor:"bar",label:"BAR · 카운터",left:73,bottom:8,travel:12},
-    {id:"lobby-front",floor:"lobby",label:"LOBBY · 프런트",left:22,bottom:8,travel:11},
-    {id:"lobby-piano",floor:"lobby",label:"LOBBY · 피아노",left:74,bottom:8,travel:10},
-    {id:"lobby-door",floor:"lobby",label:"LOBBY · 현관",left:61,bottom:8,travel:12}
-  ];
-
-  function hotelSpotById(id){
-    return HOTEL_SPOTS.find(spot=>spot.id===id)||null;
-  }
-
-  function hotelSpotsForFloor(floorId){
-    return HOTEL_SPOTS.filter(spot=>spot.floor===floorId);
-  }
 
   function characterWorldDefaults(){
     return {
@@ -49,8 +26,7 @@
       movement:"wander",
       speed:1,
       scale:1,
-      useSpots:true,
-      preferredSpot:"auto",
+      placement:null,
       thoughts:true,
       thoughtFrequency:"normal"
     };
@@ -60,6 +36,13 @@
     const d=characterWorldDefaults();
     const s=raw&&typeof raw==="object"?raw:{};
     const floorIds=hotelRegion().floors.map(f=>f.id);
+    let placement=null;
+    if(s.placement&&typeof s.placement==="object"&&floorIds.includes(s.placement.floor)){
+      placement={
+        floor:s.placement.floor,
+        left:Math.max(2,Math.min(92,Number(s.placement.left)||2))
+      };
+    }
     return {
       visible:s.visible!==false,
       image:String(s.image||"").trim(),
@@ -67,8 +50,7 @@
       movement:["still","calm","wander","active"].includes(s.movement)?s.movement:d.movement,
       speed:Math.max(.45,Math.min(1.8,Number(s.speed)||d.speed)),
       scale:Math.max(.6,Math.min(1.55,Number(s.scale)||d.scale)),
-      useSpots:s.useSpots!==false,
-      preferredSpot:s.preferredSpot==="auto"||hotelSpotById(s.preferredSpot)?s.preferredSpot:"auto",
+      placement,
       thoughts:s.thoughts!==false,
       thoughtFrequency:["rare","normal","often"].includes(s.thoughtFrequency)?s.thoughtFrequency:d.thoughtFrequency
     };
@@ -145,9 +127,8 @@
   function actorFloorIndex(character,settings){
     const cfg=characterWorldSettings(character,settings);
     const floors=hotelRegion().floors;
-    const preferred=cfg.useSpots?hotelSpotById(cfg.preferredSpot):null;
-    if(preferred){
-      const index=floors.findIndex(f=>f.id===preferred.floor);
+    if(cfg.placement){
+      const index=floors.findIndex(f=>f.id===cfg.placement.floor);
       if(index>=0)return index;
     }
     if(cfg.floor!=="auto"){
@@ -155,16 +136,6 @@
       if(index>=0)return index;
     }
     return stableNumber(character.id)%Math.max(1,floors.length);
-  }
-
-  function resolveActorSpot(character,floorId,settings){
-    const cfg=characterWorldSettings(character,settings);
-    if(!cfg.useSpots)return null;
-    const preferred=hotelSpotById(cfg.preferredSpot);
-    if(preferred&&preferred.floor===floorId)return preferred;
-    const available=hotelSpotsForFloor(floorId);
-    if(!available.length)return null;
-    return available[stableNumber(character.id+"-spot")%available.length];
   }
 
   function worldThoughtPool(characterId){
@@ -232,22 +203,20 @@
     const key=stableNumber(character.id||character.name||index);
     const cfg=characterWorldSettings(character,settings);
     const floor=hotelRegion().floors[floorIndex];
-    const spot=floor?resolveActorSpot(character,floor.id,settings):null;
-    const left=spot?spot.left:8+(key%72);
-    const bottom=spot?spot.bottom:8;
-    const travel=spot?spot.travel:18+(key%16);
+    const placement=cfg.placement&&floor&&cfg.placement.floor===floor.id?cfg.placement:null;
+    const left=placement?placement.left:8+(key%72);
+    const travel=18+(key%16);
     const duration=(12+(key%7)*1.35)/(settings.motionSpeed*cfg.speed);
     const delay=-((key%90)/10);
     const initials=(character.name||"?").slice(0,2).toUpperCase();
     const image=cfg.image||character.image||"";
     const art=image
-      ? '<img src="'+esc(image)+'" alt="" />'
+      ? '<img src="'+esc(image)+'" alt="" draggable="false" />'
       : '<span class="hotel-actor-fallback">'+esc(initials)+'</span>';
-    const spotClass=spot?" has-hotel-spot":"";
-    const spotTitle=spot?" · "+spot.label:"";
-    return '<div class="hotel-actor move-'+esc(cfg.movement)+spotClass+' actor-'+(index%4)+'" title="'+esc(character.name+spotTitle)+'" '+
-      'style="--actor-left:'+left+'%;--actor-bottom:'+bottom+'px;--actor-travel:'+travel+'px;--actor-duration:'+duration+'s;--actor-delay:'+delay+'s;--actor-scale:'+cfg.scale+'" '+
-      'data-character-id="'+esc(character.id)+'" data-hotel-spot="'+esc(spot?.id||"")+'">'+
+    return '<div class="hotel-actor move-'+esc(cfg.movement)+(placement?" is-manually-placed":"")+' actor-'+(index%4)+'" '+
+      'title="'+esc(character.name)+' · 드래그해서 옮기기" '+
+      'style="--actor-left:'+left+'%;--actor-bottom:8px;--actor-travel:'+travel+'px;--actor-duration:'+duration+'s;--actor-delay:'+delay+'s;--actor-scale:'+cfg.scale+'" '+
+      'data-character-id="'+esc(character.id)+'">'+
       art+'<small>'+esc(character.name)+'</small></div>';
   }
   function decorativeActorMarkup(index,settings){
@@ -372,7 +341,7 @@
               floors+
             '</div>'+
           '</div>'+
-          '<aside class="hotel-scene-note"><span>CUTAWAY VIEW</span><strong>층을 눌러 공간을 확인하세요.</strong><small>현재는 호텔만 구현되어 있으며 다른 지역은 같은 WORLD 구조에 추가됩니다.</small></aside>'+
+          '<aside class="hotel-scene-note"><span>CUTAWAY VIEW</span><strong>층을 눌러 공간을 확인하고 캐릭터를 드래그해서 직접 배치하세요.</strong><small>캐릭터는 다른 층으로도 끌어 옮길 수 있고 위치가 자동 저장됩니다.</small></aside>'+
         '</div>'+
       '</section>';
     scheduleWorldThoughts();
@@ -445,11 +414,6 @@
     const thoughts=worldThoughtPool(character.id);
     const floorOptions=['<option value="auto" '+(cfg.floor==="auto"?"selected":"")+'>AUTO · 자동 배치</option>']
       .concat(hotelRegion().floors.map(f=>'<option value="'+esc(f.id)+'" '+(cfg.floor===f.id?"selected":"")+'>'+esc(f.number+" · "+f.name)+'</option>')).join("");
-    const spotOptions=['<option value="auto" '+(cfg.preferredSpot==="auto"?"selected":"")+'>AUTO · 층 안에서 자동 선택</option>']
-      .concat(hotelRegion().floors.map(f=>{
-        const options=hotelSpotsForFloor(f.id).map(spot=>'<option value="'+esc(spot.id)+'" '+(cfg.preferredSpot===spot.id?"selected":"")+'>'+esc(spot.label)+'</option>').join("");
-        return options?'<optgroup label="'+esc(f.number+" · "+f.name)+'">'+options+'</optgroup>':"";
-      })).join("");
     return '<details class="hotel-character-world-card" data-world-character-card="'+esc(character.id)+'">'+
       '<summary>'+
         '<div class="hotel-world-char-thumb">'+
@@ -470,7 +434,7 @@
           '<label class="checkline"><input type="checkbox" data-world-field="visible" '+(cfg.visible?"checked":"")+' /> 호텔에서 표시</label>'+
           '<label class="checkline"><input type="checkbox" data-hotel-resident="'+esc(character.id)+'" '+(settings.residentIds.includes(character.id)?"checked":"")+' /> AUTO OFF일 때 수동 목록에 포함</label>'+
           '<label class="field full"><span>WORLD 전용 이미지 URL</span><input type="url" data-world-field="image" data-world-image value="'+esc(cfg.image)+'" placeholder="https://.../character.png" /></label>'+
-          '<label class="field"><span>선호 층</span><select data-world-field="floor">'+floorOptions+'</select></label>'+
+          '<label class="field"><span>기본 층</span><select data-world-field="floor">'+floorOptions+'</select></label>'+
           '<label class="field"><span>움직임</span><select data-world-field="movement">'+
             '<option value="still" '+(cfg.movement==="still"?"selected":"")+'>STILL · 거의 움직이지 않음</option>'+
             '<option value="calm" '+(cfg.movement==="calm"?"selected":"")+'>CALM · 짧게 이동</option>'+
@@ -479,8 +443,6 @@
           '</select></label>'+
           '<label class="field"><span>이동 속도 · 0.45 ~ 1.8</span><input type="number" min=".45" max="1.8" step=".05" data-world-field="speed" value="'+cfg.speed+'" /></label>'+
           '<label class="field"><span>캐릭터 크기 · 0.6 ~ 1.55</span><input type="number" min=".6" max="1.55" step=".05" data-world-field="scale" value="'+cfg.scale+'" /></label>'+
-          '<label class="checkline"><input type="checkbox" data-world-field="useSpots" '+(cfg.useSpots?"checked":"")+' /> 가구/장소에 가서 머무르기</label>'+
-          '<label class="field"><span>머무는 장소</span><select data-world-field="preferredSpot">'+spotOptions+'</select><small>장소를 직접 고르면 해당 층에 우선 배치됩니다.</small></label>'+
           '<label class="checkline"><input type="checkbox" data-world-field="thoughts" '+(cfg.thoughts?"checked":"")+' /> 기존 THOUGHT가 가끔 떠오름</label>'+
           '<label class="field"><span>THOUGHT 빈도</span><select data-world-field="thoughtFrequency">'+
             '<option value="rare" '+(cfg.thoughtFrequency==="rare"?"selected":"")+'>RARE · 드물게</option>'+
@@ -518,7 +480,7 @@
           '</div>'+
           '<section class="hotel-settings-block hotel-character-world-settings">'+
             '<div class="hotel-settings-block-head"><div><span>CHARACTER WORLD SETTINGS</span><strong>캐릭터별 호텔 표시</strong></div><small>기존 캐릭터 설정과 별도로 저장</small></div>'+
-            '<p class="hotel-settings-help">캐릭터를 눌러 WORLD 전용 이미지, 위치, 움직임과 THOUGHT 연출을 설정하세요. 여기서 넣은 이미지는 HOME/대화 화면의 캐릭터 이미지를 바꾸지 않습니다.</p>'+
+            '<p class="hotel-settings-help">캐릭터를 눌러 WORLD 전용 이미지, 기본 층, 움직임과 THOUGHT 연출을 설정하세요. 실제 위치는 호텔 화면에서 캐릭터를 직접 드래그해서 정합니다. 여기서 넣은 이미지는 HOME/대화 화면의 캐릭터 이미지를 바꾸지 않습니다.</p>'+
             characterEditors+
           '</section>'+
           '<section class="hotel-settings-block"><div class="hotel-settings-block-head"><div><span>FLOORS</span><strong>층 이름</strong></div><small>표시명만 변경</small></div><div class="hotel-floor-name-grid">'+floorInputs+'</div></section>'+
@@ -529,6 +491,7 @@
   function collectHotelSettings(){
     const form=$("#hotelSettingsForm",modalRoot);
     if(!form)return readHotelSettings();
+    const saved=readHotelSettings();
     const next=hotelDefaults();
     next.animation=form.elements.animation.checked;
     next.neon=form.elements.neon.checked;
@@ -546,21 +509,138 @@
     $$("[data-world-character-card]",form).forEach(card=>{
       const id=card.dataset.worldCharacterCard;
       const field=name=>$('[data-world-field="'+name+'"]',card);
+      const previous=normalizeCharacterWorld(saved.characterWorld?.[id]);
+      const floor=field("floor")?.value||"auto";
       next.characterWorld[id]=normalizeCharacterWorld({
         visible:field("visible")?.checked,
         image:field("image")?.value||"",
-        floor:field("floor")?.value||"auto",
+        floor,
         movement:field("movement")?.value||"wander",
         speed:field("speed")?.value,
         scale:field("scale")?.value,
-        useSpots:field("useSpots")?.checked,
-        preferredSpot:field("preferredSpot")?.value||"auto",
+        placement:floor===previous.floor?previous.placement:null,
         thoughts:field("thoughts")?.checked,
         thoughtFrequency:field("thoughtFrequency")?.value||"normal"
       });
     });
     return normalizeHotelSettings(next);
   }
+
+  function dragFloorAt(clientX,clientY){
+    const floors=$$(".hotel-floor",pageRoot);
+    let nearest=null;
+    let nearestDistance=Infinity;
+    floors.forEach(floor=>{
+      const rect=floor.getBoundingClientRect();
+      const withinY=clientY>=rect.top&&clientY<=rect.bottom;
+      const withinX=clientX>=rect.left&&clientX<=rect.right;
+      if(withinX&&withinY){
+        nearest=floor;
+        nearestDistance=0;
+        return;
+      }
+      const centerY=rect.top+rect.height/2;
+      const distance=Math.abs(clientY-centerY);
+      if(distance<nearestDistance&&clientX>=rect.left-80&&clientX<=rect.right+80){
+        nearest=floor;
+        nearestDistance=distance;
+      }
+    });
+    return nearestDistance<90?nearest:null;
+  }
+
+  function clearDragFloorHighlight(){
+    $$(".hotel-floor.is-drop-target",pageRoot).forEach(floor=>floor.classList.remove("is-drop-target"));
+  }
+
+  function moveWorldActorDrag(event){
+    if(!worldActorDrag||event.pointerId!==worldActorDrag.pointerId)return;
+    event.preventDefault();
+    const {ghost,offsetX,offsetY}=worldActorDrag;
+    ghost.style.left=(event.clientX-offsetX)+"px";
+    ghost.style.top=(event.clientY-offsetY)+"px";
+    clearDragFloorHighlight();
+    const floor=dragFloorAt(event.clientX,event.clientY);
+    if(floor)floor.classList.add("is-drop-target");
+    worldActorDrag.targetFloor=floor;
+  }
+
+  function finishWorldActorDrag(event){
+    if(!worldActorDrag||event.pointerId!==worldActorDrag.pointerId)return;
+    event.preventDefault();
+    const drag=worldActorDrag;
+    worldActorDrag=null;
+    window.removeEventListener("pointermove",moveWorldActorDrag);
+    window.removeEventListener("pointerup",finishWorldActorDrag);
+    window.removeEventListener("pointercancel",finishWorldActorDrag);
+    document.body.classList.remove("hotel-character-drag-active");
+    clearDragFloorHighlight();
+    drag.ghost.remove();
+
+    const targetFloor=drag.targetFloor||dragFloorAt(event.clientX,event.clientY);
+    if(!targetFloor){
+      drag.source.style.visibility="";
+      return;
+    }
+    const interior=$(".hotel-floor-interior",targetFloor);
+    if(!interior){
+      drag.source.style.visibility="";
+      return;
+    }
+    const rect=interior.getBoundingClientRect();
+    const actorWidth=Math.min(60,drag.sourceRect.width||40);
+    const left=((event.clientX-rect.left-actorWidth/2)/Math.max(1,rect.width))*100;
+    const placement={
+      floor:targetFloor.dataset.floor,
+      left:Math.round(Math.max(2,Math.min(92,left))*10)/10
+    };
+    const settings=readHotelSettings();
+    const current=normalizeCharacterWorld(settings.characterWorld?.[drag.characterId]);
+    settings.characterWorld[drag.characterId]={...current,placement};
+    saveHotelSettings(settings);
+    const character=getCharacter(drag.characterId);
+    renderWorld();
+    showToast((character?.name||"CHARACTER")+" POSITION SAVED");
+  }
+
+  function startWorldActorDrag(actor,event){
+    if(worldActorDrag||currentPage!=="world")return;
+    const id=actor.dataset.characterId;
+    if(!id)return;
+    event.preventDefault();
+    event.stopPropagation();
+    const rect=actor.getBoundingClientRect();
+    const ghost=actor.cloneNode(true);
+    ghost.classList.add("hotel-drag-ghost","is-dragging");
+    ghost.style.width=rect.width+"px";
+    ghost.style.height=rect.height+"px";
+    ghost.style.left=rect.left+"px";
+    ghost.style.top=rect.top+"px";
+    ghost.style.setProperty("--actor-scale","1");
+    document.body.appendChild(ghost);
+    actor.style.visibility="hidden";
+    document.body.classList.add("hotel-character-drag-active");
+    worldActorDrag={
+      pointerId:event.pointerId,
+      characterId:id,
+      source:actor,
+      sourceRect:rect,
+      ghost,
+      offsetX:event.clientX-rect.left,
+      offsetY:event.clientY-rect.top,
+      targetFloor:actor.closest(".hotel-floor")
+    };
+    window.addEventListener("pointermove",moveWorldActorDrag,{passive:false});
+    window.addEventListener("pointerup",finishWorldActorDrag,{passive:false});
+    window.addEventListener("pointercancel",finishWorldActorDrag,{passive:false});
+  }
+
+  pageRoot.addEventListener("pointerdown",event=>{
+    const actor=event.target.closest(".hotel-actor[data-character-id]:not(.hotel-guest)");
+    if(!actor)return;
+    startWorldActorDrag(actor,event);
+  });
+
   pageRoot.addEventListener("click",event=>{
     const button=event.target.closest("[data-action]");
     if(!button)return;
