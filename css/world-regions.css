@@ -2809,3 +2809,424 @@ button.scene-task-card:hover{
   .lust-lounge{right:2%}
   .scene-lust .lust-club{width:420px}
 }
+
+
+/* I.M.P OFFICE REWORK · smaller scale, denser detail, grounded layout */
+.scene-imp-office{
+  --imp-floor-line:18%;
+  background:linear-gradient(180deg,#2c2023 0 72%,#171214 72%)
+}
+.scene-imp-office .imp-wall{display:none!important}
+
+/* wall + floor establish a single room baseline */
+.imp-back-wall{
+  position:absolute;
+  z-index:0;
+  left:0;right:0;top:0;
+  bottom:var(--imp-floor-line);
+  border-bottom:7px solid #201416;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.025),rgba(0,0,0,.05)),
+    repeating-linear-gradient(90deg,#3a292d 0 46px,#57353a 47px 92px)
+}
+.scene-imp-office .imp-floor{
+  z-index:1;
+  left:0;right:0;bottom:0;
+  height:var(--imp-floor-line);
+  border-top:5px solid #120d0e;
+  background:
+    linear-gradient(90deg,transparent 0 62px,rgba(255,255,255,.025) 63px 65px,transparent 66px 126px),
+    linear-gradient(180deg,#362225,#211619)
+}
+
+.scene-imp-office .imp-ceiling{
+  z-index:2;
+  height:11%;
+  background:repeating-linear-gradient(90deg,#31272a 0 95px,#21191b 96px 100px)
+}
+.scene-imp-office .imp-ceiling i{
+  top:8px;
+  width:122px;
+  height:13px;
+  opacity:.9
+}
+.scene-imp-office .imp-ceiling b{
+  position:absolute;
+  left:18%;
+  top:10px;
+  width:76px;
+  height:11px;
+  border-radius:50%;
+  background:#a98d78;
+  box-shadow:0 7px 17px rgba(235,204,170,.09)
+}
+
+/* central logo keeps the room readable without huge furniture */
+.imp-logo-plaque{
+  position:absolute;
+  z-index:4;
+  left:50%;
+  top:13%;
+  width:172px;
+  min-height:54px;
+  transform:translateX(-50%);
+  border:5px solid #1d1416;
+  background:#302124;
+  color:#c45a63;
+  text-align:center;
+  box-shadow:inset 0 0 0 2px #654044
+}
+.imp-logo-plaque b{
+  display:block;
+  margin-top:6px;
+  font-family:Georgia,serif;
+  font-size:.98rem;
+  letter-spacing:.13em
+}
+.imp-logo-plaque span{
+  display:block;
+  margin:1px 8px 6px;
+  color:#b99b90;
+  font-size:.34rem;
+  letter-spacing:.055em
+}
+
+/* whiteboard, portraits, board: smaller and more densely composed */
+.scene-imp-office .imp-whiteboard{
+  z-index:4;
+  left:5%;
+  top:18%;
+  width:176px;
+  height:116px;
+  border-width:5px
+}
+.scene-imp-office .imp-whiteboard b{
+  left:13px;top:12px;
+  font-size:.82rem
+}
+.scene-imp-office .imp-whiteboard span{
+  left:14px;top:39px;
+  font-size:.46rem
+}
+.scene-imp-office .imp-whiteboard i{
+  left:17px;right:17px;bottom:25px;
+  box-shadow:27px -14px 0 #8d5258,66px 5px 0 #8d5258
+}
+.scene-imp-office .imp-whiteboard em{
+  position:absolute;
+  right:16px;
+  top:14px;
+  width:29px;
+  height:22px;
+  background:#d3b895;
+  transform:rotate(7deg);
+  box-shadow:0 2px 2px rgba(0,0,0,.14)
+}
+
+.scene-imp-office .imp-portrait{
+  top:20%;
+  width:78px;
+  height:106px;
+  border-width:5px
+}
+.scene-imp-office .imp-portrait.p1{left:24%}
+.scene-imp-office .imp-portrait.p2{left:33%}
+.scene-imp-office .imp-portrait i{
+  width:35px;
+  height:59px
+}
+
+.scene-imp-office .imp-bulletin{
+  z-index:5;
+  right:18%;
+  top:18%;
+  width:154px;
+  height:110px;
+  border-width:5px
+}
+.scene-imp-office .imp-bulletin b{left:9px;top:5px}
+.scene-imp-office .imp-bulletin i{
+  width:38px;
+  height:25px
+}
+.scene-imp-office .imp-bulletin i:nth-of-type(1){left:14px;top:27px;--r:-7deg}
+.scene-imp-office .imp-bulletin i:nth-of-type(2){right:15px;top:23px;--r:6deg}
+.scene-imp-office .imp-bulletin i:nth-of-type(3){left:53px;bottom:15px;--r:3deg}
+.scene-imp-office .imp-bulletin i:nth-of-type(4){right:20px;bottom:17px;--r:-5deg}
+.scene-imp-office .imp-bulletin span{
+  position:absolute;
+  left:56px;
+  top:29px;
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:#b84751;
+  box-shadow:0 0 0 2px #241719
+}
+
+.scene-imp-office .imp-file-cabinet{
+  z-index:5;
+  right:33%;
+  bottom:var(--imp-floor-line);
+  width:68px;
+  height:138px;
+  border-width:5px
+}
+.scene-imp-office .imp-file-cabinet i{
+  height:30%;
+  margin:3px
+}
+.scene-imp-office .imp-file-cabinet i:after{
+  width:14px;
+  margin:6px auto
+}
+
+.scene-imp-office .imp-exit-door{
+  z-index:6;
+  right:5%;
+  bottom:var(--imp-floor-line);
+  width:92px;
+  height:194px;
+  border-width:6px
+}
+.scene-imp-office .imp-exit-door:before{
+  left:10px;right:10px;top:12px;bottom:12px
+}
+.scene-imp-office .imp-exit-door b{
+  top:-27px;
+  font-size:.57rem
+}
+.scene-imp-office .imp-exit-door i{
+  right:10px;
+  width:7px;height:7px
+}
+.scene-imp-office .imp-exit-door em{
+  position:absolute;
+  left:15px;right:15px;
+  top:25px;
+  height:34px;
+  border:3px solid #7b494c;
+  background:#321a1e
+}
+
+/* smaller main desk with recognizable clutter */
+.scene-imp-office .imp-desk{
+  z-index:10;
+  left:12%;
+  bottom:calc(var(--imp-floor-line) - 1%);
+  width:218px;
+  height:92px;
+  border-width:6px;
+  transform:skewX(-2deg)
+}
+.scene-imp-office .imp-desk b{
+  top:13px;
+  font-size:1rem
+}
+.imp-desk .monitor{
+  position:absolute!important;
+  right:16px!important;
+  top:-21px!important;
+  width:49px!important;
+  height:34px!important;
+  border:4px solid #1b1214!important;
+  background:#363237!important
+}
+.imp-desk .papers{
+  position:absolute!important;
+  left:18px!important;
+  top:-12px!important;
+  width:39px!important;
+  height:19px!important;
+  background:#d6c0ab!important;
+  transform:rotate(-5deg)!important
+}
+.imp-desk .phone{
+  position:absolute;
+  left:78px;
+  top:-7px;
+  width:34px;
+  height:18px;
+  border:3px solid #1c1214;
+  border-radius:12px 12px 5px 5px;
+  background:#8c4e53;
+  transform:rotate(4deg)
+}
+.imp-desk .lamp{
+  position:absolute;
+  left:124px;
+  top:-34px;
+  width:4px;
+  height:37px;
+  background:#241719
+}
+.imp-desk .lamp:after{
+  content:"";
+  position:absolute;
+  left:50%;top:-5px;
+  width:30px;height:16px;
+  transform:translateX(-50%);
+  background:#a15b57;
+  border:3px solid #241719;
+  clip-path:polygon(16% 100%,84% 100%,100% 0,0 0)
+}
+
+.scene-imp-office .imp-chair{
+  width:60px;
+  height:84px;
+  border-width:5px
+}
+.scene-imp-office .imp-chair.boss{
+  left:22%;
+  bottom:calc(var(--imp-floor-line) + 7%)
+}
+
+/* compact meeting corner replaces the huge perspective table */
+.imp-meeting-area{
+  position:absolute;
+  z-index:9;
+  left:49%;
+  bottom:calc(var(--imp-floor-line) + 1%);
+  width:250px;
+  height:126px
+}
+.scene-imp-office .imp-meeting-area .imp-meeting-table{
+  position:absolute;
+  left:50%;
+  bottom:3px;
+  width:158px;
+  height:62px;
+  transform:translateX(-50%);
+  border:5px solid #190f11;
+  border-radius:50%;
+  background:#4b292d;
+  box-shadow:inset 0 0 0 2px #7a3a42
+}
+.scene-imp-office .imp-meeting-area .imp-meeting-table:before{display:none}
+.scene-imp-office .imp-meeting-area .imp-meeting-table i{
+  left:50%;top:10px;
+  width:58px;height:13px;
+  transform:translateX(-50%);
+  background:#ceb49d
+}
+.scene-imp-office .imp-meeting-area .imp-meeting-table b{
+  left:50%;right:auto;
+  top:auto;bottom:-18px;
+  width:14px;height:20px;
+  transform:translateX(-50%);
+  background:#1d1214
+}
+.scene-imp-office .imp-meeting-area .imp-meeting-table em{
+  position:absolute;
+  right:24px;
+  top:11px;
+  width:24px;
+  height:15px;
+  background:#af595c;
+  transform:rotate(7deg)
+}
+.scene-imp-office .imp-meeting-area .imp-chair.c1{
+  left:5%;bottom:4px;transform:none
+}
+.scene-imp-office .imp-meeting-area .imp-chair.c2{
+  left:50%;bottom:59px;transform:translateX(-50%) scale(.88)
+}
+.scene-imp-office .imp-meeting-area .imp-chair.c3{
+  right:5%;left:auto;bottom:4px;transform:none
+}
+
+/* utility props fill empty corners without becoming oversized */
+.imp-side-shelf{
+  position:absolute;
+  z-index:5;
+  left:3%;
+  bottom:var(--imp-floor-line);
+  width:60px;
+  height:94px;
+  border:5px solid #1a1113;
+  background:#58383c
+}
+.imp-side-shelf i{
+  display:block;
+  height:25%;
+  margin:4px;
+  border:2px solid #392326;
+  background:#89645f
+}
+.imp-side-shelf b{
+  position:absolute;
+  left:7px;right:7px;
+  top:-12px;
+  height:14px;
+  background:#caad92;
+  transform:rotate(-4deg)
+}
+.imp-coat-rack{
+  position:absolute;
+  z-index:5;
+  right:15%;
+  bottom:var(--imp-floor-line);
+  width:6px;
+  height:96px;
+  background:#251618
+}
+.imp-coat-rack:before,
+.imp-coat-rack:after{
+  content:"";
+  position:absolute;
+  left:50%;
+  width:32px;height:5px;
+  transform:translateX(-50%);
+  background:#251618
+}
+.imp-coat-rack:before{top:13px}
+.imp-coat-rack:after{top:30px}
+.imp-coat-rack i{
+  position:absolute;
+  left:50%;top:-7px;
+  width:28px;height:17px;
+  transform:translateX(-50%);
+  background:#774346;
+  clip-path:polygon(50% 0,100% 100%,0 100%)
+}
+.imp-coat-rack b{
+  position:absolute;
+  left:-18px;
+  top:38px;
+  width:42px;
+  height:44px;
+  border-radius:20px 20px 5px 5px;
+  background:#592b33;
+  opacity:.9
+}
+.imp-trash{
+  position:absolute;
+  z-index:7;
+  right:27%;
+  bottom:var(--imp-floor-line);
+  width:35px;
+  height:39px;
+  border:4px solid #1d1516;
+  border-radius:3px 3px 10px 10px;
+  background:#5e5552
+}
+.imp-trash i{
+  position:absolute;
+  width:18px;
+  height:12px;
+  background:#ceb49a
+}
+.imp-trash i:nth-child(1){left:-8px;top:-8px;transform:rotate(-14deg)}
+.imp-trash i:nth-child(2){right:-9px;top:-4px;transform:rotate(11deg)}
+
+/* I.M.P office work dock */
+.region-work-imp-office{
+  border-color:rgba(196,72,89,.28);
+  background:linear-gradient(180deg,rgba(72,31,35,.5),rgba(25,14,16,.58))
+}
+.region-work-imp-office .scene-work-head span,
+.region-work-imp-office .scene-task-icon{color:#d46d78}
+.region-work-imp-office .scene-task-icon{border-color:rgba(209,107,119,.32)}
+.region-work-imp-office .scene-task-progress b{
+  background:linear-gradient(90deg,#913441,#d96e77)
+}

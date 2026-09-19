@@ -113,3 +113,18 @@ LUST는 OZZIE'S 한 건물 중심 장면에서 야간 엔터테인먼트 거리�
 
 LUST NIGHT SHIFT:
 ENTRY SETUP / NEON CHECK / STAGE PREP / LOUNGE RESET / STREET CLEANUP.
+
+
+## I.M.P office update
+
+I.M.P OFFICE는 기존보다 가구와 벽 장식 크기를 줄이고 한 화면에 더 촘촘하게 재배치했습니다.
+
+- 축소된 EXIT 문, 블리츠 책상, 회의 테이블과 의자
+- 중앙 I.M.P 명판
+- TO-DO 화이트보드, MISSION 게시판, 액자
+- 서류함, 작은 선반, 옷걸이, 휴지통
+- 책상 위 모니터 / 서류 / 전화 / 램프
+- 바닥선을 하나로 맞춰 주요 가구가 떠 보이지 않도록 정리
+
+I.M.P OFFICE SHIFT:
+MISSION BOARD / FILE SORTING / MEETING PREP / DESK RESET / OFFICE CLEANUP.

@@ -153,6 +153,7 @@
     const heading=region.id==="heaven"?["HEAVEN DUTIES","CITY ASSIGNMENTS"]:
       region.id==="wrath"?["WRATH CHORES","RANCH WORK"]:
       region.id==="lust"?["LUST NIGHT SHIFT","VENUE WORK"]:
+      region.id==="imp-office"?["I.M.P OFFICE SHIFT","OFFICE WORK"]:
       ["REGION DUTIES","ASSIGNMENTS"];
     return '<section class="scene-work-dock region-work-'+esc(region.id)+'">'+
       '<div class="scene-work-head"><div><span>'+esc(heading[0])+'</span><strong>'+esc(heading[1])+'</strong></div><small>실패 없음 · 자동 진행</small></div>'+
@@ -411,17 +412,26 @@
 
   function impOfficeMarkup(){
     return ''+
-      '<div class="imp-wall" aria-hidden="true"></div>'+
-      '<div class="imp-ceiling" aria-hidden="true"><i></i></div>'+
-      '<div class="imp-exit-door" aria-hidden="true"><b>EXIT</b><i></i></div>'+
-      '<div class="imp-bulletin" aria-hidden="true"><i></i><i></i><i></i><b>JOBS</b></div>'+
+      '<div class="imp-back-wall" aria-hidden="true"></div>'+
+      '<div class="imp-ceiling" aria-hidden="true"><i></i><b></b></div>'+
+      '<div class="imp-logo-plaque" aria-hidden="true"><b>I.M.P</b><span>IMMEDIATE MURDER PROFESSIONALS</span></div>'+
+      '<div class="imp-whiteboard" aria-hidden="true"><b>TO-DO</b><span>CLIENTS · JOBS · TARGETS</span><i></i><em></em></div>'+
+      '<div class="imp-portrait p1" aria-hidden="true"><i></i></div>'+
+      '<div class="imp-portrait p2" aria-hidden="true"><i></i></div>'+
+      '<div class="imp-bulletin" aria-hidden="true"><b>MISSIONS</b><i></i><i></i><i></i><i></i><span></span></div>'+
       '<div class="imp-file-cabinet" aria-hidden="true"><i></i><i></i><i></i></div>'+
-      '<div class="imp-whiteboard" aria-hidden="true"><b>I.M.P</b><span>MISSION</span><i></i></div>'+
-      '<div class="imp-portrait p1" aria-hidden="true"><i></i></div><div class="imp-portrait p2" aria-hidden="true"><i></i></div>'+
-      '<div class="imp-desk" aria-hidden="true"><b>I.M.P</b><span></span><i></i></div>'+
+      '<div class="imp-exit-door" aria-hidden="true"><b>EXIT</b><i></i><em></em></div>'+
+      '<div class="imp-side-shelf" aria-hidden="true"><i></i><i></i><i></i><b></b></div>'+
+      '<div class="imp-coat-rack" aria-hidden="true"><i></i><b></b></div>'+
+      '<div class="imp-desk" aria-hidden="true">'+
+        '<b>I.M.P</b><span class="monitor"></span><i class="papers"></i><em class="phone"></em><strong class="lamp"></strong>'+
+      '</div>'+
       '<div class="imp-chair boss" aria-hidden="true"></div>'+
-      '<div class="imp-meeting-table" aria-hidden="true"><i></i><b></b></div>'+
-      '<div class="imp-chair c1" aria-hidden="true"></div><div class="imp-chair c2" aria-hidden="true"></div><div class="imp-chair c3" aria-hidden="true"></div>'+
+      '<div class="imp-meeting-area" aria-hidden="true">'+
+        '<div class="imp-meeting-table"><i></i><b></b><em></em></div>'+
+        '<div class="imp-chair c1"></div><div class="imp-chair c2"></div><div class="imp-chair c3"></div>'+
+      '</div>'+
+      '<div class="imp-trash" aria-hidden="true"><i></i><i></i></div>'+
       '<div class="imp-floor" aria-hidden="true"></div>';
   }
 

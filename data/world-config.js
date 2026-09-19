@@ -6,7 +6,7 @@
  * 이후 Heaven / Imp City / 각 Ring은 regions 배열에 같은 구조로 추가할 수 있습니다.
  */
 window.HV_WORLD_CONFIG = {
-  schemaVersion: 6,
+  schemaVersion: 7,
   defaultRegion: "hotel",
   regions: [
     {
@@ -83,7 +83,14 @@ window.HV_WORLD_CONFIG = {
       name:"I.M.P OFFICE",
       subtitle:"IMP CITY · BLITZØ'S OFFICE",
       status:"OPEN",
-      description:"낡은 줄무늬 벽, 회의 테이블과 서류함이 뒤섞인 I.M.P 사무실."
+      description:"낡은 줄무늬 벽, 의뢰 게시판, 책상과 회의 구역이 빽빽하게 들어찬 I.M.P 사무실.",
+      activities:[
+        {id:"imp-board-update",building:"board",title:"MISSION BOARD",detail:"의뢰 게시판과 메모 정리",icon:"✎",duration:65,reward:62},
+        {id:"imp-file-sort",building:"files",title:"FILE SORTING",detail:"계약서와 서류함 분류",icon:"▤",duration:70,reward:68},
+        {id:"imp-meeting-prep",building:"meeting",title:"MEETING PREP",detail:"회의 테이블과 의자 정돈",icon:"◇",duration:80,reward:78},
+        {id:"imp-desk-reset",building:"desk",title:"DESK RESET",detail:"블리츠 책상과 소품 정리",icon:"★",duration:60,reward:58},
+        {id:"imp-office-cleanup",building:"office",title:"OFFICE CLEANUP",detail:"바닥과 공용 공간 정리",icon:"✦",duration:75,reward:72}
+      ]
     }
   ]
 };
