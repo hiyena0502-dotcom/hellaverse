@@ -6,7 +6,7 @@
  * 이후 Heaven / Imp City / 각 Ring은 regions 배열에 같은 구조로 추가할 수 있습니다.
  */
 window.HV_WORLD_CONFIG = {
-  schemaVersion: 2,
+  schemaVersion: 3,
   defaultRegion: "hotel",
   regions: [
     {
@@ -31,6 +31,38 @@ window.HV_WORLD_CONFIG = {
         { id: "bar", number: "02", name: "BAR & STAGE", description: "바와 작은 무대가 붙어 있는 활기찬 층." },
         { id: "lobby", number: "01", name: "LOBBY", description: "현관, 프런트 데스크와 메인 홀이 있는 호텔의 중심." }
       ]
+    },
+    {
+      id:"heaven",
+      type:"scene",
+      name:"HEAVEN",
+      subtitle:"CELESTIAL CITY · GOLDEN GATE",
+      status:"OPEN",
+      description:"복숭아빛 하늘과 구름, 금빛 문, 보라색 첨탑이 이어지는 천국 도심."
+    },
+    {
+      id:"wrath",
+      type:"scene",
+      name:"WRATH",
+      subtitle:"WRATH RING · RANCHLAND",
+      status:"OPEN",
+      description:"주황빛 하늘 아래 목장과 농장, 거친 울타리와 바위 지형이 이어지는 분노의 고리."
+    },
+    {
+      id:"lust",
+      type:"scene",
+      name:"LUST",
+      subtitle:"LUST RING · OZZIE'S DISTRICT",
+      status:"OPEN",
+      description:"짙은 남색 하늘과 청록·보라 네온이 번지는 오지스 주변의 야간 거리."
+    },
+    {
+      id:"imp-office",
+      type:"scene",
+      name:"I.M.P OFFICE",
+      subtitle:"IMP CITY · BLITZØ'S OFFICE",
+      status:"OPEN",
+      description:"낡은 줄무늬 벽, 회의 테이블과 서류함이 뒤섞인 I.M.P 사무실."
     }
   ]
 };
