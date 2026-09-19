@@ -4,6 +4,12 @@ const STATE_KEY = "hellaverse-studio-state-v2";
 const PREFS_KEY = "hellaverse-studio-prefs-v2";
 const DATA_BACKUP_KEY = "hellaverse-studio-backups-v2";
 const EDITOR_SNAPSHOT_KEY = "hellaverse-studio-editor-snapshot-v2";
+const AUX_STORAGE_KEYS = [
+  "hellaverse-world-settings-v1",
+  "hellaverse-world-region-v1",
+  "hellaverse-world-scene-placement-v1",
+  "hellaverse-world-scene-work-v1"
+];
 const RARITIES = ["COMMON","UNCOMMON","RARE","EPIC","LEGENDARY","MISTIC"];
 const ORIGINS = [
   ["sinner","죄인 · SINNER","hell"],
@@ -413,7 +419,14 @@ function readBackupStore(){
 function writeBackupStore(store){localStorage.setItem(DATA_BACKUP_KEY,JSON.stringify(store))}
 function makeDataSnapshot(label="BACKUP"){
   saveState();
-  return {version:2,label:String(label),at:Date.now(),state:clone(state),prefs:clone(prefs)};
+  return {
+    version:2,
+    label:String(label),
+    at:Date.now(),
+    state:clone(state),
+    prefs:clone(prefs),
+    extraStorage:Object.fromEntries(AUX_STORAGE_KEYS.map(key=>[key,localStorage.getItem(key)]))
+  };
 }
 function captureSafetySnapshot(label="자동 안전 백업"){
   const store=readBackupStore();
