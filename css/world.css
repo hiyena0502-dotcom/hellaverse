@@ -2742,3 +2742,222 @@ button.hotel-job-card:hover{
   box-shadow:none;
   pointer-events:none
 }
+
+
+/* HOTEL UX CLEANUP · screenshot pass */
+.hotel-work-dock{
+  width:min(1180px,100%);
+  margin:12px auto 0;
+  padding:10px 12px 12px;
+  border:1px solid rgba(248,222,194,.12);
+  border-radius:10px;
+  background:linear-gradient(180deg,rgba(39,11,20,.72),rgba(18,7,12,.58));
+  box-shadow:0 10px 28px rgba(0,0,0,.16)
+}
+.hotel-work-dock-title{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:8px
+}
+.hotel-work-dock-title span{
+  color:#e8bd83;
+  font-size:.58rem;
+  letter-spacing:.16em
+}
+.hotel-work-dock-title small{
+  color:#8f767d;
+  font-size:.54rem
+}
+.hotel-work-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:7px
+}
+.hotel-work-slot{
+  min-width:0;
+  display:grid;
+  grid-template-columns:38px minmax(0,1fr);
+  align-items:stretch;
+  border:1px solid rgba(238,193,150,.1);
+  border-radius:7px;
+  background:rgba(15,6,10,.46);
+  overflow:hidden
+}
+.hotel-work-slot-head{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:1px;
+  padding:5px 3px;
+  border-right:1px solid rgba(239,199,158,.12);
+  background:rgba(104,19,42,.2)
+}
+.hotel-work-slot-head span{
+  color:#ff6799;
+  font-family:Georgia,serif;
+  font-size:.88rem;
+  line-height:1
+}
+.hotel-work-slot-head strong{
+  max-width:32px;
+  overflow:hidden;
+  color:#a99191;
+  font-size:.38rem;
+  font-weight:500;
+  letter-spacing:.06em;
+  text-overflow:ellipsis;
+  white-space:nowrap
+}
+.hotel-work-dock .hotel-job-card{
+  position:relative;
+  z-index:1;
+  right:auto;
+  bottom:auto;
+  width:100%;
+  min-height:54px;
+  margin:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+  backdrop-filter:none
+}
+.hotel-work-dock button.hotel-job-card:hover{
+  transform:none;
+  background:rgba(255,83,139,.055);
+  box-shadow:none
+}
+.hotel-work-dock .hotel-job-card.is-ready:before{
+  right:5px;
+  top:4px;
+  border:0;
+  background:transparent;
+  color:#d95f84;
+  font-size:.36rem
+}
+.hotel-work-dock .hotel-job-icon{
+  width:27px;
+  height:27px;
+  font-size:.72rem
+}
+.hotel-work-dock .hotel-job-copy small{font-size:.38rem}
+.hotel-work-dock .hotel-job-copy strong{font-size:.56rem}
+.hotel-work-dock .hotel-job-copy em{font-size:.43rem}
+.hotel-work-dock .hotel-job-progress{left:7px;right:7px;bottom:3px}
+
+/* floors should read as rooms first, controls second */
+.hotel-floor-label{
+  left:9px;
+  top:12px;
+  width:88px;
+  grid-template-columns:27px minmax(0,1fr);
+  gap:0 5px;
+  align-items:center;
+  padding:6px 7px;
+  border-color:rgba(248,222,194,.24);
+  border-radius:3px;
+  background:rgba(21,7,12,.66);
+  backdrop-filter:blur(3px)
+}
+.hotel-floor-label span{
+  grid-row:auto;
+  font-size:1rem;
+  line-height:1
+}
+.hotel-floor-label strong{
+  overflow:hidden;
+  font-size:.52rem;
+  font-weight:600;
+  letter-spacing:.055em;
+  text-overflow:ellipsis;
+  white-space:nowrap
+}
+.hotel-floor-label small{display:none}
+.hotel-floor-interior{margin-left:104px}
+
+/* one elevator core only */
+.hotel-elevator{display:none!important}
+.hotel-lift-shaft{
+  width:68px;
+  border-left-width:3px;
+  border-right-width:3px;
+  background:
+    linear-gradient(90deg,#4a1020 0 10%,#17070d 11% 25%,#260912 26% 74%,#17070d 75% 89%,#4a1020 90%);
+  box-shadow:inset 4px 0 0 rgba(236,190,151,.1),inset -4px 0 0 rgba(236,190,151,.1)
+}
+.lift-rail{width:3px}
+.lift-rail.left{left:11px}
+.lift-rail.right{right:11px}
+.lift-car{
+  width:46px;
+  height:62px;
+  border-width:3px;
+  outline-width:1px
+}
+.lift-car b{top:18px;font-size:.54rem}
+.lift-car em{width:18px}
+
+/* reclaim penthouse center now that stairs are gone */
+.floor-penthouse .character-room{width:41%}
+.floor-penthouse .lucifer-room{left:1.5%}
+.floor-penthouse .alastor-room{right:1.5%}
+.lucifer-private-door{left:42.2%!important;width:6.2%!important}
+.alastor-private-door{right:42.2%!important;width:6.2%!important}
+
+/* central exterior trim should not overpower the rooms */
+.hotel-center-rib{
+  width:58px;
+  opacity:.78
+}
+.hotel-center-rib:before,.hotel-center-rib:after{width:3px}
+
+/* clipped arrows were reading like broken UI */
+.hotel-arrow-sign{display:none!important}
+
+/* side architecture remains visible but no longer dominates the cutaway */
+.hotel-wing-shell.wing-left{
+  left:-15%;
+  width:23%;
+  opacity:.82
+}
+.hotel-wing-shell.wing-right{
+  right:-20%;
+  width:29%;
+  height:63%;
+  bottom:8%;
+  opacity:.9
+}
+.hotel-ship-hull{width:88%;height:68%}
+.hotel-ship-bridge{right:8%;width:52%}
+
+/* soften active floor; keep focus useful without repainting the room */
+.hotel-floor.is-focused{
+  background:
+    linear-gradient(90deg,rgba(255,131,164,.055),transparent 24% 76%,rgba(255,131,164,.055)),
+    linear-gradient(180deg,#b92752 0 7px,#3f0d1f 7px 100%)
+}
+
+/* scene has less dead vertical space */
+.hotel-scene-shell{min-height:780px}
+.hotel-building{margin:130px auto 66px}
+
+@media(max-width:1100px){
+  .hotel-work-grid{
+    display:flex;
+    overflow-x:auto;
+    gap:7px;
+    padding-bottom:2px;
+    scrollbar-width:thin
+  }
+  .hotel-work-slot{flex:0 0 235px}
+}
+@media(max-width:760px){
+  .hotel-work-dock-title{
+    align-items:flex-start;
+    flex-direction:column;
+    gap:2px
+  }
+}

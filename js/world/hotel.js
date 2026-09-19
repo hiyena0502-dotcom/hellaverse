@@ -369,6 +369,20 @@
     '</button>';
   }
 
+  function hotelWorkDock(settings){
+    const workFloors=hotelRegion().floors.slice().reverse().filter(floor=>hotelActivitiesForFloor(floor.id).length);
+    const cards=workFloors.map(floor=>{
+      return '<div class="hotel-work-slot" data-work-floor="'+esc(floor.id)+'">'+
+        '<div class="hotel-work-slot-head"><span>'+esc(floor.number)+'</span><strong>'+esc(floorDisplayName(floor,settings))+'</strong></div>'+
+        hotelActivityMarkup(floor.id,settings)+
+      '</div>';
+    }).join("");
+    return '<section class="hotel-work-dock" aria-label="HOTEL WORK">'+
+      '<div class="hotel-work-dock-title"><span>HOTEL WORK</span><small>누르고 기다리면 자동으로 SOUL을 획득합니다.</small></div>'+
+      '<div class="hotel-work-grid">'+cards+'</div>'+
+    '</section>';
+  }
+
   function settleHotelActivities(settings){
     const completed=[];
     const now=Date.now();
@@ -433,7 +447,7 @@
     const active=focusedHotelFloor===floor.id?" is-focused":"";
     return '<section class="hotel-floor floor-'+esc(floor.id)+active+'" data-floor="'+esc(floor.id)+'">'+
       '<button class="hotel-floor-label" type="button" data-action="hotel-floor-info" data-floor="'+esc(floor.id)+'">'+
-        '<span>'+esc(floor.number)+'</span><strong>'+esc(floorDisplayName(floor,settings))+'</strong><small>VIEW</small>'+
+        '<span>'+esc(floor.number)+'</span><strong>'+esc(floorDisplayName(floor,settings))+'</strong>'+
       '</button>'+
       '<div class="hotel-floor-interior">'+
         '<div class="hotel-ceiling-trim"><i></i><i></i><i></i><i></i><i></i></div>'+
@@ -445,9 +459,7 @@
         '<div class="hotel-column-set"><i></i><i></i><i></i><i></i></div>'+
         '<div class="hotel-balcony-rail"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>'+
         '<div class="hotel-floor-bulbs"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>'+
-        '<div class="hotel-elevator"><span></span><span></span><b></b><em></em></div>'+
         hotelPropMarkup(floor.id)+
-        hotelActivityMarkup(floor.id,settings)+
         '<div class="hotel-actors">'+actors+'</div>'+
       '</div>'+
     '</section>';
@@ -490,7 +502,6 @@
       '<div class="hotel-outer-tower right" aria-hidden="true"><b>♥</b><i></i><i></i><i></i><span></span></div>'+
       '<div class="hotel-roof-fin left" aria-hidden="true"></div><div class="hotel-roof-fin right" aria-hidden="true"></div>'+
       '<div class="hotel-corner-spire left" aria-hidden="true"><i></i><b>◆</b></div><div class="hotel-corner-spire right" aria-hidden="true"><i></i><b>◆</b></div>'+
-      '<div class="hotel-arrow-sign left" aria-hidden="true"><i></i><b>➜</b></div><div class="hotel-arrow-sign right" aria-hidden="true"><i></i><b>➜</b></div>'+
       '<div class="hotel-center-rib" aria-hidden="true"><i></i><i></i><i></i><i></i><span>♥</span><span>♥</span><span>♥</span></div>'+
       '<div class="hotel-facade-eye eye-left" aria-hidden="true"><i></i></div><div class="hotel-facade-eye eye-right" aria-hidden="true"><i></i></div>'+
       '<div class="hotel-vertical-sign" aria-hidden="true"><span>H</span><span>O</span><span>T</span><span>E</span><span>L</span></div>'+
@@ -524,7 +535,7 @@
             '<button class="ghost-button" type="button" data-action="hotel-settings">HOTEL SETTINGS</button>'+
           '</div>'+
         '</header>'+
-
+        hotelWorkDock(settings)+
         '<div class="hotel-scene-shell">'+
           '<div class="hotel-sky" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span></div>'+
           '<div class="hotel-city-silhouette" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>'+
@@ -605,7 +616,7 @@
       floorDisplayName(floor,settings),
       '<div class="hotel-floor-modal"><p>'+esc(floor.description)+'</p>'+
       '<div><span>현재 표시 캐릭터</span><strong>'+(residents.length?residents.map(c=>esc(c.name)).join(" · "):"없음")+'</strong></div>'+
-      '<p class="muted">이 층의 실제 업무/재화 기능은 다음 단계에서 붙일 수 있도록 화면과 데이터 구조만 분리해 두었습니다.</p></div>'
+      '<p class="muted">업무가 있는 층은 화면 위 HOTEL WORK에서 시작할 수 있습니다. 캐릭터 배치는 호텔 화면에서 직접 드래그해 변경합니다.</p></div>'
     );
     renderWorld();
   }
