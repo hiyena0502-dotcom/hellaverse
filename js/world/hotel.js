@@ -524,6 +524,11 @@
             '<button class="ghost-button" type="button" data-action="hotel-settings">HOTEL SETTINGS</button>'+
           '</div>'+
         '</header>'+
+        '<aside class="hotel-scene-note hotel-guide-strip">'+
+          '<span>CUTAWAY VIEW</span>'+
+          '<strong>층을 눌러 공간을 확인하고 캐릭터를 드래그해서 직접 배치하세요.</strong>'+
+          '<small>캐릭터는 다른 층으로도 끌어 옮길 수 있고 위치가 자동 저장됩니다.</small>'+
+        '</aside>'+
         '<div class="hotel-scene-shell">'+
           '<div class="hotel-sky" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span></div>'+
           '<div class="hotel-city-silhouette" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>'+
@@ -546,7 +551,6 @@
               floors+
             '</div>'+
           '</div>'+
-          '<aside class="hotel-scene-note"><span>CUTAWAY VIEW</span><strong>층을 눌러 공간을 확인하고 캐릭터를 드래그해서 직접 배치하세요.</strong><small>캐릭터는 다른 층으로도 끌어 옮길 수 있고 위치가 자동 저장됩니다.</small></aside>'+
         '</div>'+
       '</section>';
     scheduleWorldThoughts();
