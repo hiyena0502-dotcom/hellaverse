@@ -335,15 +335,32 @@
 
   function wrathMarkup(){
     return ''+
-      '<div class="wrath-clouds" aria-hidden="true"><i></i><i></i><i></i><i></i></div>'+
-      '<div class="wrath-moon" aria-hidden="true"></div>'+
-      '<div class="wrath-mesas" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>'+
-      '<div class="wrath-volcano" aria-hidden="true"><i></i></div>'+
-      '<div class="wrath-ranch-gate" aria-hidden="true"><span></span><span></span><b>WRATH RANCH</b></div>'+
-      '<div class="wrath-barn" aria-hidden="true"><i></i><b></b></div>'+
-      '<div class="wrath-windmill" aria-hidden="true"><i></i><b></b></div>'+
-      '<div class="wrath-fence left" aria-hidden="true"></div><div class="wrath-fence right" aria-hidden="true"></div>'+
+      '<div class="wrath-haze" aria-hidden="true"><i></i><i></i><i></i></div>'+
+      '<div class="wrath-sun" aria-hidden="true"></div>'+
+      '<div class="wrath-far-dunes" aria-hidden="true"><i></i><i></i><i></i></div>'+
+      '<div class="wrath-mesas" aria-hidden="true"><i></i><i></i><i></i><i></i></div>'+
+      '<div class="wrath-low-town" aria-hidden="true">'+
+        '<span class="wrath-house h1"><i></i></span>'+
+        '<span class="wrath-house h2"><i></i></span>'+
+        '<span class="wrath-house h3"><i></i></span>'+
+        '<span class="wrath-house h4"><i></i></span>'+
+        '<span class="wrath-water-tower"><i></i></span>'+
+      '</div>'+
+      '<div class="wrath-ranch-strip" aria-hidden="true">'+
+        '<div class="wrath-ranch-house"><i></i><b></b><span></span></div>'+
+        '<div class="wrath-stable">'+
+          '<i class="stable-roof"></i>'+
+          '<b class="stable-door left"></b><b class="stable-door right"></b>'+
+          '<span class="stable-window w1"></span><span class="stable-window w2"></span>'+
+          '<span class="stable-loft"><i></i></span>'+
+        '</div>'+
+        '<div class="wrath-corral left"><i></i></div><div class="wrath-corral right"><i></i></div>'+
+        '<div class="wrath-hay h1"></div><div class="wrath-hay h2"></div><div class="wrath-hay h3"></div>'+
+        '<div class="wrath-trough"><i></i></div>'+
+      '</div>'+
       '<div class="wrath-cacti" aria-hidden="true"><i></i><i></i><i></i><i></i></div>'+
+      '<div class="wrath-rocks" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>'+
+      '<div class="wrath-fence left" aria-hidden="true"></div><div class="wrath-fence right" aria-hidden="true"></div>'+
       '<div class="wrath-ground" aria-hidden="true"></div>';
   }
 
