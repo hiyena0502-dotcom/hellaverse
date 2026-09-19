@@ -25,7 +25,7 @@ $("#changeProfileButton").addEventListener("click",renderStart);
 $("#brandButton").addEventListener("click",()=>setPage("home"));
 $("#dataButton").addEventListener("click",showDataManager);
 $("#editorButton").addEventListener("click",openEditor);
-$(".nav-button").forEach(b=>b.addEventListener("click",()=>setPage(b.dataset.page)));
+document.querySelectorAll(".nav-button").forEach(b=>b.addEventListener("click",()=>setPage(b.dataset.page)));
 $("#editorUndoButton").addEventListener("click",editorUndo);
 $("#editorRedoButton").addEventListener("click",editorRedo);
 $("#editorRestoreButton").addEventListener("click",restoreEditorSnapshot);
