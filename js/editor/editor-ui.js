@@ -93,7 +93,7 @@ function saveEditor(){
 }
 function renderEditor(){
   updateEditorHistoryButtons();
-  $(".editor-nav").forEach(b=>b.classList.toggle("active",b.dataset.editorTab===editorTab));
+  document.querySelectorAll(".editor-nav").forEach(b=>b.classList.toggle("active",b.dataset.editorTab===editorTab));
   if(editorTab==="dialogue")renderDialogueEditor();
   else if(editorTab==="ask")renderAskEditor();
   else if(editorTab==="item")renderItemEditor();
