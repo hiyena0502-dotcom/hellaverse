@@ -8,6 +8,104 @@ function openModal(title,body){
   modalRoot.innerHTML='<div class="modal-backdrop" data-close-modal><section class="modal-card" role="dialog"><button class="modal-close" type="button" data-close-modal>×</button><p class="label">HELLAVERSE</p><h2>'+esc(title)+'</h2>'+body+'</section></div>';
 }
 function closeModal(){modalRoot.innerHTML=""}
+function backupDate(snapshot){return snapshot?.at?new Date(snapshot.at).toLocaleString("ko-KR"):"EMPTY"}
+function showDataManager(){
+  const store=readBackupStore();
+  const slots=store.slots.map((snap,i)=>
+    '<article class="save-slot"><div><small>SLOT '+(i+1)+'</small><strong>'+(snap?esc(snap.label):"EMPTY")+'</strong><span>'+esc(backupDate(snap))+'</span></div>'+
+    '<div class="save-slot-actions"><button class="small-button" type="button" data-data-action="save-slot" data-slot="'+i+'">SAVE</button>'+
+    '<button class="small-button" type="button" data-data-action="load-slot" data-slot="'+i+'" '+(!snap?"disabled":"")+'>LOAD</button></div></article>'
+  ).join("");
+  openModal("DATA & SAVE",
+    '<div class="data-manager"><p class="muted">플레이와 편집 데이터는 이 브라우저에 자동 저장됩니다. 중요한 변경 전에는 슬롯이나 JSON 백업도 함께 사용하세요.</p>'+
+    '<div class="save-slot-list">'+slots+'</div>'+
+    '<section class="safety-snapshot"><div><small>AUTO SAFETY</small><strong>'+(store.safety?esc(store.safety.label):"아직 없음")+'</strong><span>'+esc(backupDate(store.safety))+'</span></div>'+
+    '<button class="small-button" type="button" data-data-action="restore-safety" '+(!store.safety?"disabled":"")+'>RESTORE</button></section>'+
+    '<div class="data-actions"><button class="ghost-button" type="button" data-data-action="export">EXPORT JSON</button>'+
+    '<label class="ghost-button file-button">IMPORT JSON<input id="dataImportFile" type="file" accept="application/json,.json"></label>'+
+    '<button class="danger-button" type="button" data-data-action="reset-progress">RESET PLAY PROGRESS</button></div></div>'
+  );
+}
+function saveBackupSlot(index){
+  const store=readBackupStore();
+  store.slots[index]=makeDataSnapshot("SLOT "+(index+1));
+  writeBackupStore(store);
+  showToast("세이브 슬롯 "+(index+1)+"에 저장했습니다.");
+  showDataManager();
+}
+function applyDataSnapshot(snapshot,label="백업"){
+  if(!snapshot?.state)return;
+  if(!confirm(label+"을(를) 불러올까요? 현재 상태는 자동 안전 백업으로 보관됩니다."))return;
+  captureSafetySnapshot("복원 전 자동 백업");
+  state=normalizeState(snapshot.state);
+  prefs={
+    textSpeed:clamp(snapshot.prefs?.textSpeed,0,80,24),
+    autoDelay:clamp(snapshot.prefs?.autoDelay,250,3000,900),
+    stageClick:snapshot.prefs?.stageClick!==false
+  };
+  session=createSession();
+  playback=null;
+  autoMode=false;
+  clearAuto();
+  pendingOrigin=state.profile.origin||"";
+  savePrefs();
+  saveState();
+  closeModal();
+  if(gameShell.hidden)renderStart();
+  else{updatePlayerBadge();renderPage()}
+  showToast(label+"을(를) 불러왔습니다.");
+}
+function loadBackupSlot(index){
+  const snap=readBackupStore().slots[index];
+  if(!snap){showToast("비어 있는 세이브 슬롯입니다.");return}
+  applyDataSnapshot(snap,"세이브 슬롯 "+(index+1));
+}
+function restoreSafetySnapshot(){
+  const snap=readBackupStore().safety;
+  if(!snap){showToast("복원할 자동 안전 백업이 없습니다.");return}
+  applyDataSnapshot(snap,"자동 안전 백업");
+}
+function exportData(){
+  const snap=makeDataSnapshot("JSON EXPORT");
+  const blob=new Blob([JSON.stringify(snap,null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;a.download="hellaverse-backup.json";
+  document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+}
+function importDataFile(file){
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=()=>{
+    try{
+      const raw=JSON.parse(String(reader.result||"{}"));
+      const snapshot=raw?.state?raw:{version:2,label:"IMPORTED",at:Date.now(),state:raw,prefs:{}};
+      applyDataSnapshot(snapshot,"가져온 JSON");
+    }catch{alert("백업 JSON 파일을 읽지 못했습니다.")}
+  };
+  reader.readAsText(file);
+}
+function resetPlayProgress(){
+  if(!confirm("대화 진행도, 호감도·감정·변수, ASK/선물 기록과 아이템 획득 진행도를 초기화할까요? 편집한 콘텐츠 자체는 유지됩니다."))return;
+  captureSafetySnapshot("진행도 초기화 전 자동 백업");
+  state.playState=normalizePlayState({});
+  state.inventoryCounts={};
+  state.newItemIds=[];
+  state.itemHistory=[];
+  state.discoveredGiftReactionKeys=[];
+  state.giftInteractionCounts={};
+  state.askedAskIds=[];
+  state.unlockedAskIds=[];
+  state.interactionHistory=[];
+  state.discoveredThoughtIds=[];
+  state.gacha.history=[];
+  session=createSession();
+  playback=null;
+  saveState();
+  closeModal();
+  renderPage();
+  showToast("플레이 진행도를 초기화했습니다.");
+}
 
 function renderStart(){
   playerNameInput.value=state.profile.name||"";
@@ -43,6 +141,7 @@ function setPage(page){
 function renderPage(){
   if(currentPage==="home")renderHome();
   else if(currentPage==="world")renderWorld();
+  else if(currentPage==="characters")renderCharacters();
   else if(currentPage==="gacha")renderGacha();
   else if(currentPage==="thought")renderThought();
   else if(currentPage==="collection")renderCollection();
@@ -78,11 +177,43 @@ function renderHome(){
       '</div>'+
     '</section>';
 }
+function renderCharacters(){
+  const chars=enabledCharacters();
+  const favorites=new Set(state.favoriteCharacterIds||[]);
+  const query=characterQuery.trim().toLowerCase();
+  const visible=chars.filter(ch=>{
+    if(characterFavoritesOnly&&!favorites.has(ch.id))return false;
+    if(characterRealmFilter!=="ALL"&&originRealm(ch.origin)!==characterRealmFilter)return false;
+    if(query&&![ch.name,ch.role,ch.quote,originLabel(ch.origin)].join(" ").toLowerCase().includes(query))return false;
+    return true;
+  });
+  pageRoot.innerHTML=
+    '<section class="characters-page"><div class="page-head"><div><p class="page-kicker">CHARACTERS</p><h1>CAST DIRECTORY</h1></div><p>이름 검색, 출신 필터와 즐겨찾기로 원하는 캐릭터의 ROOM에 바로 들어갑니다.</p></div>'+
+    '<div class="character-browser-toolbar">'+
+      '<input data-character-control="query" value="'+esc(characterQuery)+'" placeholder="캐릭터 검색">'+
+      '<select data-character-control="realm"><option value="ALL">모든 출신</option><option value="hell" '+(characterRealmFilter==="hell"?"selected":"")+'>HELL</option><option value="heaven" '+(characterRealmFilter==="heaven"?"selected":"")+'>HEAVEN</option></select>'+
+      '<button class="filter-chip '+(characterFavoritesOnly?"active":"")+'" type="button" data-action="character-favorites">★ FAVORITES</button>'+
+      '<span>'+visible.length+' / '+chars.length+'</span>'+
+    '</div>'+
+    (visible.length?'<div class="character-directory-grid">'+visible.map(ch=>{
+      const favorite=favorites.has(ch.id);
+      const art=ch.image?'<img src="'+esc(ch.image)+'" alt="'+esc(ch.name)+'">':'<span class="directory-silhouette">'+esc(ch.name.slice(0,2).toUpperCase())+'</span>';
+      return '<article class="character-directory-card '+(favorite?"favorite":"")+'">'+
+        '<button class="character-favorite" type="button" data-action="character-favorite" data-id="'+esc(ch.id)+'" aria-label="즐겨찾기">'+(favorite?"★":"☆")+'</button>'+
+        '<button class="character-open" type="button" data-action="character-open" data-id="'+esc(ch.id)+'"><span class="directory-art">'+art+'</span>'+
+        '<span class="directory-copy"><small>'+esc(originLabel(ch.origin))+'</small><strong>'+esc(ch.name)+'</strong><p>'+esc(ch.role||ch.quote||"")+'</p><b>ROOM →</b></span></button></article>';
+    }).join("")+'</div>':'<div class="empty-panel"><div><h2>조건에 맞는 캐릭터가 없습니다.</h2><p>검색어나 필터를 바꿔보세요.</p></div></div>')+
+    '</section>';
+}
 function renderGacha(){
   const availablePool=state.items.filter(i=>i.enabled&&i.gachaEnabled&&(i.acquisitionMode!=="unique"||!hasEverAcquired(i.id)));
   const hasRepeatable=availablePool.some(i=>i.acquisitionMode==="repeatable");
   const canTen=hasRepeatable||availablePool.length>=10;
-  const total=RARITIES.reduce((s,r)=>s+Number(state.gacha.rarityWeights[r]||0),0)||1;
+  const representedRarities=RARITIES.filter(r=>availablePool.some(i=>i.rarity===r));
+  const weightedRarities=representedRarities.filter(r=>Number(state.gacha.rarityWeights[r]||0)>0);
+  const activeRarities=weightedRarities.length?weightedRarities:representedRarities;
+  const useEqualRates=!weightedRarities.length&&representedRarities.length>0;
+  const total=useEqualRates?activeRarities.length:(activeRarities.reduce((s,r)=>s+Number(state.gacha.rarityWeights[r]||0),0)||1);
   const history=state.gacha.history.slice(-8).reverse();
   const drawDisabled=gachaAnimating||!state.gacha.enabled||!availablePool.length;
 
@@ -95,7 +226,8 @@ function renderGacha(){
       '<button class="gold-button" type="button" data-action="draw-gacha" data-count="10" '+(drawDisabled||!canTen?"disabled":"")+'>10 DRAW · '+state.gacha.tenCost+'</button></div>'+
       (!canTen&&availablePool.length?'<p class="gacha-pool-note">REPEATABLE이 없고 UNIQUE 풀이 10개 미만이라 10회 뽑기가 잠겨 있습니다.</p>':'')+
       '</div><div class="gacha-aura" aria-hidden="true"></div></div>'+
-      '<aside class="gacha-side"><div class="info-card"><h3>RATES</h3>'+RARITIES.map(r=>'<div class="rate-row"><span>'+r+'</span><b>'+((state.gacha.rarityWeights[r]/total)*100).toFixed(1)+'%</b></div>').join("")+'</div>'+
+      '<aside class="gacha-side"><div class="info-card"><h3>RATES</h3>'+RARITIES.map(r=>'<div class="rate-row '+(activeRarities.includes(r)?"":"inactive")+'"><span>'+r+'</span><b>'+(activeRarities.includes(r)?(((useEqualRates?1:Number(state.gacha.rarityWeights[r]||0))/total)*100).toFixed(1):"0.0")+'%</b></div>').join("")+
+      '<p class="gacha-rate-note">'+(useEqualRates?"설정 가중치가 모두 0이라 현재 존재하는 희귀도에 균등 분배합니다.":"현재 획득 가능한 희귀도만 기준으로 실제 확률을 재분배합니다.")+'</p></div>'+
       '<div class="info-card"><div class="info-card-head"><h3>RECENT</h3><button class="small-button history-clear" type="button" data-action="clear-gacha-history" '+(!history.length||gachaAnimating?"disabled":"")+'>CLEAR</button></div>'+
       (history.length?history.map(h=>'<div class="history-row"><span>'+esc(h.rarity)+'</span><b>'+esc(h.name)+'</b></div>').join(""):'<p class="muted">아직 기록이 없습니다.</p>')+'</div></aside>'+
     '</div></section>';
