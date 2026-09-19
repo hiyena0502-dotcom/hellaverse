@@ -1484,3 +1484,259 @@ button.scene-task-card:hover{
   height:70px;
   opacity:.75
 }
+
+
+/* HEAVEN CLOUDSCAPE · layered, varied and lush */
+.scene-heaven .heaven-cloud-wisps,
+.scene-heaven .heaven-back-clouds,
+.scene-heaven .heaven-mid-clouds,
+.scene-heaven .heaven-building-clouds,
+.scene-heaven .heaven-front-clouds{
+  position:absolute;
+  inset:0;
+  pointer-events:none
+}
+
+/* high, thin streaks */
+.heaven-cloud-wisps{z-index:1}
+.heaven-cloud-wisps i{
+  position:absolute;
+  display:block;
+  height:18px;
+  border-radius:999px;
+  background:rgba(255,242,246,.48);
+  filter:blur(.2px);
+  transform-origin:center
+}
+.heaven-cloud-wisps i:before,
+.heaven-cloud-wisps i:after{
+  content:"";
+  position:absolute;
+  border-radius:999px;
+  background:inherit
+}
+.heaven-cloud-wisps i:before{left:14%;top:-8px;width:34%;height:16px}
+.heaven-cloud-wisps i:after{right:10%;top:4px;width:43%;height:12px}
+.heaven-cloud-wisps i:nth-child(1){left:5%;top:13%;width:150px;transform:rotate(-7deg)}
+.heaven-cloud-wisps i:nth-child(2){left:28%;top:8%;width:105px;transform:rotate(5deg);opacity:.7}
+.heaven-cloud-wisps i:nth-child(3){right:34%;top:15%;width:185px;transform:rotate(-4deg);opacity:.76}
+.heaven-cloud-wisps i:nth-child(4){right:7%;top:10%;width:132px;transform:rotate(8deg)}
+.heaven-cloud-wisps i:nth-child(5){left:18%;top:27%;width:88px;opacity:.5}
+.heaven-cloud-wisps i:nth-child(6){right:19%;top:29%;width:112px;opacity:.52;transform:rotate(-7deg)}
+
+/* distant cloud banks; low contrast so skyline stays readable */
+.heaven-back-clouds{z-index:2}
+.heaven-back-clouds i{
+  position:absolute;
+  display:block;
+  border-radius:50% 54% 46% 50%;
+  background:linear-gradient(180deg,#fff1f3,#ddccff);
+  opacity:.62;
+  filter:saturate(.9)
+}
+.heaven-back-clouds i:before,
+.heaven-back-clouds i:after{
+  content:"";
+  position:absolute;
+  border-radius:50%;
+  background:inherit
+}
+.heaven-back-clouds i:nth-child(1){
+  left:-3%;top:27%;width:132px;height:54px
+}
+.heaven-back-clouds i:nth-child(1):before{left:26px;top:-29px;width:58px;height:58px}
+.heaven-back-clouds i:nth-child(1):after{right:-45px;top:8px;width:82px;height:44px}
+
+.heaven-back-clouds i:nth-child(2){
+  left:14%;top:35%;width:108px;height:44px;background:linear-gradient(180deg,#fff4ed,#c9c2fa)
+}
+.heaven-back-clouds i:nth-child(2):before{left:8px;top:-20px;width:46px;height:40px}
+.heaven-back-clouds i:nth-child(2):after{right:-35px;top:-8px;width:64px;height:48px}
+
+.heaven-back-clouds i:nth-child(3){
+  left:31%;top:23%;width:156px;height:57px
+}
+.heaven-back-clouds i:nth-child(3):before{left:35px;top:-38px;width:68px;height:68px}
+.heaven-back-clouds i:nth-child(3):after{right:-32px;top:12px;width:72px;height:43px}
+
+.heaven-back-clouds i:nth-child(4){
+  left:48%;top:33%;width:94px;height:38px;background:linear-gradient(180deg,#fff2f4,#c1c8fb);opacity:.5
+}
+.heaven-back-clouds i:nth-child(4):before{left:19px;top:-19px;width:39px;height:35px}
+.heaven-back-clouds i:nth-child(4):after{right:-25px;top:-5px;width:49px;height:36px}
+
+.heaven-back-clouds i:nth-child(5){
+  right:27%;top:22%;width:142px;height:50px;background:linear-gradient(180deg,#fff7ed,#d7c7ff)
+}
+.heaven-back-clouds i:nth-child(5):before{left:48px;top:-30px;width:54px;height:52px}
+.heaven-back-clouds i:nth-child(5):after{left:-37px;top:9px;width:72px;height:42px}
+
+.heaven-back-clouds i:nth-child(6){
+  right:12%;top:34%;width:118px;height:44px
+}
+.heaven-back-clouds i:nth-child(6):before{left:14px;top:-26px;width:52px;height:49px}
+.heaven-back-clouds i:nth-child(6):after{right:-38px;top:4px;width:66px;height:43px}
+
+.heaven-back-clouds i:nth-child(7){
+  right:-2%;top:24%;width:148px;height:58px;background:linear-gradient(180deg,#fff1eb,#c7bdf3)
+}
+.heaven-back-clouds i:nth-child(7):before{left:17px;top:-31px;width:60px;height:57px}
+.heaven-back-clouds i:nth-child(7):after{right:18px;top:-18px;width:54px;height:48px}
+
+.heaven-back-clouds i:nth-child(8){
+  left:61%;top:12%;width:76px;height:28px;opacity:.4
+}
+.heaven-back-clouds i:nth-child(8):before{left:18px;top:-16px;width:30px;height:29px}
+.heaven-back-clouds i:nth-child(8):after{right:-23px;top:2px;width:38px;height:25px}
+
+/* middle clouds around skyline/building bases */
+.heaven-mid-clouds{z-index:4}
+.heaven-mid-clouds i{
+  position:absolute;
+  display:block;
+  border-radius:48% 54% 42% 50%;
+  background:linear-gradient(180deg,#fff4f2 0%,#d9c8ff 100%);
+  box-shadow:inset 0 -10px 18px rgba(128,113,211,.08)
+}
+.heaven-mid-clouds i:before,
+.heaven-mid-clouds i:after{
+  content:"";
+  position:absolute;
+  border-radius:50%;
+  background:inherit
+}
+.heaven-mid-clouds i:nth-child(1){left:-4%;bottom:35%;width:190px;height:69px}
+.heaven-mid-clouds i:nth-child(1):before{left:35px;top:-40px;width:80px;height:74px}
+.heaven-mid-clouds i:nth-child(1):after{right:-54px;top:7px;width:105px;height:59px}
+
+.heaven-mid-clouds i:nth-child(2){left:16%;bottom:31%;width:118px;height:48px;background:linear-gradient(#fff0ef,#cabdf5)}
+.heaven-mid-clouds i:nth-child(2):before{left:28px;top:-29px;width:58px;height:54px}
+.heaven-mid-clouds i:nth-child(2):after{right:-38px;top:4px;width:67px;height:43px}
+
+.heaven-mid-clouds i:nth-child(3){left:35%;bottom:38%;width:134px;height:51px}
+.heaven-mid-clouds i:nth-child(3):before{left:12px;top:-24px;width:49px;height:45px}
+.heaven-mid-clouds i:nth-child(3):after{right:12px;top:-33px;width:67px;height:61px}
+
+.heaven-mid-clouds i:nth-child(4){left:48%;bottom:30%;width:92px;height:38px;opacity:.78}
+.heaven-mid-clouds i:nth-child(4):before{left:20px;top:-18px;width:39px;height:35px}
+.heaven-mid-clouds i:nth-child(4):after{right:-29px;top:0;width:48px;height:33px}
+
+.heaven-mid-clouds i:nth-child(5){right:28%;bottom:36%;width:156px;height:59px;background:linear-gradient(#fff7ec,#d4c4fb)}
+.heaven-mid-clouds i:nth-child(5):before{left:47px;top:-39px;width:73px;height:70px}
+.heaven-mid-clouds i:nth-child(5):after{left:-49px;top:9px;width:84px;height:49px}
+
+.heaven-mid-clouds i:nth-child(6){right:8%;bottom:29%;width:142px;height:55px}
+.heaven-mid-clouds i:nth-child(6):before{left:24px;top:-31px;width:61px;height:56px}
+.heaven-mid-clouds i:nth-child(6):after{right:-43px;top:7px;width:77px;height:46px}
+
+.heaven-mid-clouds i:nth-child(7){right:-5%;bottom:39%;width:116px;height:45px;background:linear-gradient(#fff1f6,#bebaf0)}
+.heaven-mid-clouds i:nth-child(7):before{left:18px;top:-27px;width:52px;height:49px}
+.heaven-mid-clouds i:nth-child(7):after{right:16px;top:-18px;width:43px;height:39px}
+
+/* small puffs between architecture; kept behind buildings */
+.heaven-building-clouds{z-index:10}
+.heaven-building-clouds i{
+  position:absolute;
+  display:block;
+  border-radius:999px;
+  background:linear-gradient(180deg,rgba(255,250,239,.96),rgba(225,208,255,.92));
+  opacity:.88
+}
+.heaven-building-clouds i:before,
+.heaven-building-clouds i:after{
+  content:"";
+  position:absolute;
+  border-radius:50%;
+  background:inherit
+}
+.heaven-building-clouds i:nth-child(1){left:2%;bottom:23%;width:100px;height:31px}
+.heaven-building-clouds i:nth-child(1):before{left:18px;top:-17px;width:37px;height:34px}
+.heaven-building-clouds i:nth-child(1):after{right:9px;top:-9px;width:31px;height:27px}
+
+.heaven-building-clouds i:nth-child(2){left:30%;bottom:23%;width:72px;height:25px;opacity:.72}
+.heaven-building-clouds i:nth-child(2):before{left:12px;top:-13px;width:28px;height:25px}
+.heaven-building-clouds i:nth-child(2):after{right:7px;top:-7px;width:23px;height:20px}
+
+.heaven-building-clouds i:nth-child(3){left:59%;bottom:24%;width:88px;height:29px}
+.heaven-building-clouds i:nth-child(3):before{left:26px;top:-18px;width:35px;height:32px}
+.heaven-building-clouds i:nth-child(3):after{left:-18px;top:3px;width:34px;height:23px}
+
+.heaven-building-clouds i:nth-child(4){right:18%;bottom:22%;width:76px;height:25px;opacity:.8}
+.heaven-building-clouds i:nth-child(4):before{left:14px;top:-15px;width:30px;height:28px}
+.heaven-building-clouds i:nth-child(4):after{right:-20px;top:2px;width:34px;height:22px}
+
+.heaven-building-clouds i:nth-child(5){right:-1%;bottom:25%;width:105px;height:34px}
+.heaven-building-clouds i:nth-child(5):before{left:23px;top:-20px;width:42px;height:38px}
+.heaven-building-clouds i:nth-child(5):after{right:11px;top:-13px;width:37px;height:32px}
+
+/* foreground banks: large, asymmetrical, lush but kept to bottom edge */
+.heaven-front-clouds{z-index:24}
+.heaven-front-clouds i{
+  position:absolute;
+  display:block;
+  bottom:-34px;
+  border-radius:50% 50% 44% 46%;
+  background:linear-gradient(180deg,#fff4f2 0%,#d9c5ff 58%,#b4a6ef 100%);
+  box-shadow:inset 0 -16px 24px rgba(105,86,184,.1)
+}
+.heaven-front-clouds i:before,
+.heaven-front-clouds i:after{
+  content:"";
+  position:absolute;
+  border-radius:50%;
+  background:inherit
+}
+.heaven-front-clouds i:nth-child(1){left:-7%;width:190px;height:105px;bottom:-42px}
+.heaven-front-clouds i:nth-child(1):before{left:42px;top:-58px;width:108px;height:100px}
+.heaven-front-clouds i:nth-child(1):after{right:-67px;top:-12px;width:126px;height:91px}
+
+.heaven-front-clouds i:nth-child(2){left:8%;width:145px;height:82px;bottom:-28px;background:linear-gradient(#fff6ef,#cfc4fb)}
+.heaven-front-clouds i:nth-child(2):before{left:20px;top:-41px;width:79px;height:73px}
+.heaven-front-clouds i:nth-child(2):after{right:-46px;top:-5px;width:81px;height:61px}
+
+.heaven-front-clouds i:nth-child(3){left:22%;width:176px;height:96px;bottom:-49px}
+.heaven-front-clouds i:nth-child(3):before{left:56px;top:-61px;width:106px;height:98px}
+.heaven-front-clouds i:nth-child(3):after{left:-52px;top:8px;width:92px;height:65px}
+
+.heaven-front-clouds i:nth-child(4){left:38%;width:128px;height:73px;bottom:-37px;background:linear-gradient(#fff1f6,#c4baf4)}
+.heaven-front-clouds i:nth-child(4):before{left:24px;top:-37px;width:70px;height:67px}
+.heaven-front-clouds i:nth-child(4):after{right:-34px;top:0;width:61px;height:48px}
+
+.heaven-front-clouds i:nth-child(5){left:48%;width:163px;height:91px;bottom:-55px;background:linear-gradient(#fff6ed,#dac7ff)}
+.heaven-front-clouds i:nth-child(5):before{left:36px;top:-53px;width:95px;height:89px}
+.heaven-front-clouds i:nth-child(5):after{right:-52px;top:-3px;width:92px;height:69px}
+
+.heaven-front-clouds i:nth-child(6){right:31%;width:119px;height:68px;bottom:-25px}
+.heaven-front-clouds i:nth-child(6):before{left:21px;top:-31px;width:58px;height:56px}
+.heaven-front-clouds i:nth-child(6):after{right:-34px;top:0;width:61px;height:47px}
+
+.heaven-front-clouds i:nth-child(7){right:19%;width:171px;height:94px;bottom:-44px;background:linear-gradient(#fff2f2,#c9bcf4)}
+.heaven-front-clouds i:nth-child(7):before{left:50px;top:-58px;width:101px;height:94px}
+.heaven-front-clouds i:nth-child(7):after{left:-50px;top:7px;width:91px;height:65px}
+
+.heaven-front-clouds i:nth-child(8){right:8%;width:132px;height:78px;bottom:-30px;background:linear-gradient(#fff7ef,#d4c5ff)}
+.heaven-front-clouds i:nth-child(8):before{left:28px;top:-42px;width:77px;height:72px}
+.heaven-front-clouds i:nth-child(8):after{right:-38px;top:-2px;width:67px;height:51px}
+
+.heaven-front-clouds i:nth-child(9){right:-5%;width:192px;height:106px;bottom:-51px}
+.heaven-front-clouds i:nth-child(9):before{left:29px;top:-55px;width:104px;height:98px}
+.heaven-front-clouds i:nth-child(9):after{right:9px;top:-36px;width:83px;height:76px}
+
+.heaven-front-clouds i:nth-child(10){left:62%;width:92px;height:54px;bottom:-18px;opacity:.86}
+.heaven-front-clouds i:nth-child(10):before{left:18px;top:-27px;width:49px;height:46px}
+.heaven-front-clouds i:nth-child(10):after{right:-25px;top:1px;width:45px;height:34px}
+
+/* subtle depth motion; deliberately slow */
+@keyframes heavenCloudDriftLeft{
+  0%,100%{transform:translateX(0)}
+  50%{transform:translateX(-7px)}
+}
+@keyframes heavenCloudDriftRight{
+  0%,100%{transform:translateX(0)}
+  50%{transform:translateX(8px)}
+}
+.heaven-cloud-wisps i:nth-child(odd),
+.heaven-back-clouds i:nth-child(odd){animation:heavenCloudDriftLeft 16s ease-in-out infinite}
+.heaven-cloud-wisps i:nth-child(even),
+.heaven-back-clouds i:nth-child(even){animation:heavenCloudDriftRight 19s ease-in-out infinite}
+.heaven-mid-clouds i{animation:heavenCloudDriftRight 22s ease-in-out infinite}

@@ -276,7 +276,9 @@
     return ''+
       '<div class="heaven-rays" aria-hidden="true"><i></i><i></i><i></i><i></i></div>'+
       '<div class="heaven-orbits" aria-hidden="true"><i></i><i></i><i></i></div>'+
-      '<div class="heaven-back-clouds" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>'+
+      '<div class="heaven-cloud-wisps" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>'+
+      '<div class="heaven-back-clouds" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>'+
+      '<div class="heaven-mid-clouds" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>'+
       '<div class="heaven-distant-gate" aria-hidden="true"><i></i><b></b><span></span></div>'+
       '<div class="heaven-city-back" aria-hidden="true">'+Array.from({length:10},(_,i)=>'<i class="h'+(i+1)+'"><b></b></i>').join("")+'</div>'+
       '<div class="heaven-plaza" aria-hidden="true"></div>'+
@@ -327,7 +329,8 @@
         '<span class="garden-lamp left"></span><span class="garden-lamp right"></span>'+
       '</div>'+
       '<div class="heaven-plaza-lamps" aria-hidden="true"><i></i><i></i><i></i><i></i></div>'+
-      '<div class="heaven-front-clouds" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>';
+      '<div class="heaven-building-clouds" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>'+
+      '<div class="heaven-front-clouds" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>';
   }
 
   function wrathMarkup(){
