@@ -6,7 +6,7 @@
  * 이후 Heaven / Imp City / 각 Ring은 regions 배열에 같은 구조로 추가할 수 있습니다.
  */
 window.HV_WORLD_CONFIG = {
-  schemaVersion: 7,
+  schemaVersion: 8,
   defaultRegion: "hotel",
   regions: [
     {
@@ -75,6 +75,36 @@ window.HV_WORLD_CONFIG = {
         {id:"lust-stage-prep",building:"stage",title:"STAGE PREP",detail:"클럽 무대와 조명 준비",icon:"♪",duration:90,reward:88},
         {id:"lust-lounge-reset",building:"lounge",title:"LOUNGE RESET",detail:"라운지 좌석과 테이블 정리",icon:"♡",duration:75,reward:74},
         {id:"lust-street-cleanup",building:"street",title:"STREET CLEANUP",detail:"영업 후 거리와 드롭오프 구역 정돈",icon:"✧",duration:65,reward:64}
+      ]
+    },
+    {
+      id:"mammon",
+      type:"scene",
+      name:"MAMMON",
+      subtitle:"GREED RING · MIDWAY & SHOW FLOOR",
+      status:"OPEN",
+      description:"초록·검정·금색 조명 아래 쇼 무대, 상품 부스와 탐욕스러운 상업 간판이 몰린 마몬 구역.",
+      activities:[
+        {id:"mammon-cash-count",building:"cash",title:"CASH COUNT",detail:"매표소와 판매대 매출 정산",icon:"$",duration:65,reward:66},
+        {id:"mammon-prize-restock",building:"prize",title:"PRIZE RESTOCK",detail:"경품 부스와 상품 진열 채우기",icon:"★",duration:75,reward:74},
+        {id:"mammon-stage-check",building:"stage",title:"STAGE CHECK",detail:"메인 쇼 무대와 장치 점검",icon:"♬",duration:90,reward:90},
+        {id:"mammon-merch-booth",building:"merch",title:"MERCH BOOTH",detail:"마몬 굿즈와 가격표 정리",icon:"◆",duration:70,reward:70},
+        {id:"mammon-sign-lights",building:"sign",title:"SIGN LIGHTS",detail:"네온 간판과 조명 점검",icon:"✦",duration:60,reward:60}
+      ]
+    },
+    {
+      id:"queen-bee",
+      type:"scene",
+      name:"QUEEN BEE",
+      subtitle:"GLUTTONY RING · PARTY ESTATE",
+      status:"OPEN",
+      description:"꿀빛 조명, 파티 하우스, 바와 댄스 구역이 이어지는 퀸비의 글러트니 파티 공간.",
+      activities:[
+        {id:"bee-bar-restock",building:"bar",title:"BAR RESTOCK",detail:"음료와 컵, 바 재고 채우기",icon:"◉",duration:65,reward:64},
+        {id:"bee-dance-floor",building:"dance",title:"DANCE FLOOR",detail:"댄스 플로어와 조명 준비",icon:"♪",duration:80,reward:80},
+        {id:"bee-honey-table",building:"buffet",title:"HONEY TABLE",detail:"간식과 허니 디스펜서 정리",icon:"⬡",duration:70,reward:68},
+        {id:"bee-sound-check",building:"sound",title:"SOUND CHECK",detail:"스피커와 파티 음향 점검",icon:"♫",duration:85,reward:84},
+        {id:"bee-party-cleanup",building:"party",title:"PARTY CLEANUP",detail:"파티 후 컵과 장식 정리",icon:"✧",duration:75,reward:72}
       ]
     },
     {

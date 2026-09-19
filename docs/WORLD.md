@@ -138,3 +138,28 @@ MISSION BOARD / FILE SORTING / MEETING PREP / DESK RESET / OFFICE CLEANUP.
 - 책상을 좌측 작업 구역, 회의 테이블을 우측 회의 구역으로 재배치
 - 컵, 서류, 테이크아웃 상자, 박스, 케이블 등 지저분한 소품 추가
 - 바닥/천장 반복선과 의미 없는 장식선을 줄여 형태를 더 명확하게 정리
+
+
+## Mammon & Queen Bee
+
+### MAMMON
+GREED의 상업 쇼 구역으로 추가했습니다.
+
+- 중앙 MAMMON 메인 무대
+- TICKETS / PRIZES / MERCH / CASH 부스
+- 초록·검정·금색의 쇼/판매 공간
+- 모든 부스와 무대는 하나의 ground line에 맞춰 배치
+
+MAMMON SHOW SHIFT:
+CASH COUNT / PRIZE RESTOCK / STAGE CHECK / MERCH BOOTH / SIGN LIGHTS.
+
+### QUEEN BEE
+GLUTTONY의 파티 에스테이트로 추가했습니다.
+
+- 중앙 파티 하우스
+- HONEY BAR / DANCE FLOOR / BITES 테이블
+- 스피커, 허니 탱크, 파티 가로등과 컵 소품
+- 노랑·주황·청록의 파티 조명
+
+BEE PARTY SHIFT:
+BAR RESTOCK / DANCE FLOOR / HONEY TABLE / SOUND CHECK / PARTY CLEANUP.

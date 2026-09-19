@@ -153,6 +153,8 @@
     const heading=region.id==="heaven"?["HEAVEN DUTIES","CITY ASSIGNMENTS"]:
       region.id==="wrath"?["WRATH CHORES","RANCH WORK"]:
       region.id==="lust"?["LUST NIGHT SHIFT","VENUE WORK"]:
+      region.id==="mammon"?["MAMMON SHOW SHIFT","GREED WORK"]:
+      region.id==="queen-bee"?["BEE PARTY SHIFT","PARTY WORK"]:
       region.id==="imp-office"?["I.M.P OFFICE SHIFT","OFFICE WORK"]:
       ["REGION DUTIES","ASSIGNMENTS"];
     return '<section class="scene-work-dock region-work-'+esc(region.id)+'">'+
@@ -410,6 +412,44 @@
       '<div class="lust-street" aria-hidden="true"><i></i><i></i><i></i><i></i></div>';
   }
 
+  function mammonMarkup(){
+    return ''+
+      '<div class="mammon-sky-glow" aria-hidden="true"><i></i><i></i></div>'+
+      '<div class="mammon-back-buildings" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>'+
+      '<div class="mammon-main-stage" aria-hidden="true">'+
+        '<div class="mammon-crown"><i></i><i></i><i></i></div>'+
+        '<b>MAMMON</b><span class="stage-mouth"></span>'+
+        '<i class="stage-light l1"></i><i class="stage-light l2"></i><i class="stage-light l3"></i><i class="stage-light l4"></i>'+
+      '</div>'+
+      '<div class="mammon-ticket-booth" aria-hidden="true"><b>TICKETS</b><span></span><i></i></div>'+
+      '<div class="mammon-prize-booth" aria-hidden="true"><b>PRIZES</b><span class="shelf"></span><i></i><i></i><i></i></div>'+
+      '<div class="mammon-merch" aria-hidden="true"><b>MERCH</b><span></span><i></i><i></i></div>'+
+      '<div class="mammon-cash-kiosk" aria-hidden="true"><b>$$$</b><i></i></div>'+
+      '<div class="mammon-sign sign1" aria-hidden="true">$</div><div class="mammon-sign sign2" aria-hidden="true">★</div>'+
+      '<div class="mammon-bollards" aria-hidden="true"><i></i><i></i><i></i><i></i></div>'+
+      '<div class="mammon-ground" aria-hidden="true"></div>';
+  }
+
+  function queenBeeMarkup(){
+    return ''+
+      '<div class="bee-sky" aria-hidden="true"><i></i><i></i><i></i><i></i></div>'+
+      '<div class="bee-party-house" aria-hidden="true">'+
+        '<div class="bee-roof"><i></i><i></i></div>'+
+        '<b>QUEEN BEE</b>'+
+        '<span class="bee-main-door"></span>'+
+        '<span class="bee-window w1"></span><span class="bee-window w2"></span><span class="bee-window w3"></span>'+
+      '</div>'+
+      '<div class="bee-bar" aria-hidden="true"><b>HONEY BAR</b><span></span><i></i><i></i><i></i></div>'+
+      '<div class="bee-dance" aria-hidden="true"><b>DANCE</b><span class="floor"></span><i></i><i></i></div>'+
+      '<div class="bee-buffet" aria-hidden="true"><b>BITES</b><span></span><i></i><i></i><i></i></div>'+
+      '<div class="bee-speaker left" aria-hidden="true"><i></i><b></b></div><div class="bee-speaker right" aria-hidden="true"><i></i><b></b></div>'+
+      '<div class="bee-honey-tanks" aria-hidden="true"><i></i><i></i><i></i></div>'+
+      '<div class="bee-lamps" aria-hidden="true"><i></i><i></i><i></i><i></i></div>'+
+      '<div class="bee-deck" aria-hidden="true"></div>'+
+      '<div class="bee-party-clutter" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>'+
+      '<div class="bee-ground" aria-hidden="true"></div>';
+  }
+
   function impOfficeMarkup(){
     return ''+
       '<div class="imp-back-wall" aria-hidden="true"></div>'+
@@ -462,6 +502,8 @@
     if(regionId==="heaven")return heavenMarkup();
     if(regionId==="wrath")return wrathMarkup();
     if(regionId==="lust")return lustMarkup();
+    if(regionId==="mammon")return mammonMarkup();
+    if(regionId==="queen-bee")return queenBeeMarkup();
     return impOfficeMarkup();
   }
 
