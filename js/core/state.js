@@ -286,6 +286,7 @@ function normalizeItem(i={}){
     description:i.description||"",
     acquisitionMode:i.acquisitionMode==="unique"?"unique":"repeatable",
     giftUseMode:i.giftUseMode==="consume"?"consume":"keep",
+    giftable:i.giftable!==false,
     secret:Boolean(i.secret),
     gachaEnabled:i.gachaEnabled!==false,
     enabled:i.enabled!==false,
@@ -306,6 +307,575 @@ function normalizeThought(t={}){
     enabled:t.enabled!==false
   };
 }
+
+function isLegacyFullBackup(raw){
+  return Boolean(
+    raw&&typeof raw==="object"&&!raw.state&&
+    Array.isArray(raw.characters)&&Array.isArray(raw.dialogues)&&
+    (String(raw.backupFormat||"").startsWith("hellaverse-")||Number(raw.version)>=20)
+  );
+}
+function legacySplitList(value){
+  if(Array.isArray(value))return value.map(String).map(x=>x.trim()).filter(Boolean);
+  return String(value||"").split(/[,;\n|]+/).map(x=>x.trim()).filter(Boolean);
+}
+function legacyEmotion(value){
+  const key=String(value||"NORMAL").toUpperCase();
+  const map={
+    NORMAL:["calm",10],GOOD:["joy",35],EXCITED:["joy",60],ANNOYED:["angry",35],
+    ANGRY:["angry",65],SAD:["sad",45],ANXIOUS:["anxious",45],CURIOUS:["curious",35],
+    GUARDED:["guarded",40],EMBARRASSED:["embarrassed",40]
+  };
+  return map[key]||["calm",10];
+}
+function legacyOrigin(c){
+  const group=String(c?.group||"").toUpperCase();
+  const affiliations=Array.isArray(c?.affiliations)?c.affiliations.map(x=>String(x).toUpperCase()):[];
+  if(group==="HEAVEN")return"angel";
+  if(group==="HOTEL"&&affiliations.includes("HEAVEN"))return"angel";
+  if(affiliations.includes("HEAVEN")&&!affiliations.includes("HELL"))return"angel";
+  return"hellborn";
+}
+function legacyMarkupEntries(text){
+  const value=String(text||"").trim();
+  if(!value)return[];
+  const re=/\[\[(CHARACTER|NARRATION)\]\]/g;
+  const matches=[...value.matchAll(re)];
+  if(!matches.length)return[{type:"dialogue",speaker:"",text:value}];
+  const entries=[];
+  const first=matches[0];
+  if(first.index>0){
+    const lead=value.slice(0,first.index).trim();
+    if(lead)entries.push({type:"narration",text:lead});
+  }
+  matches.forEach((m,index)=>{
+    const start=(m.index||0)+m[0].length;
+    const end=index+1<matches.length?(matches[index+1].index||value.length):value.length;
+    const chunk=value.slice(start,end).trim();
+    if(!chunk)return;
+    entries.push(m[1]==="NARRATION"
+      ?{type:"narration",text:chunk}
+      :{type:"dialogue",speaker:"",text:chunk});
+  });
+  return entries;
+}
+function legacyFlagEffects(setFlags,removeFlags){
+  return [
+    ...legacySplitList(setFlags).map(variableId=>({variableId,operation:"set",value:"true"})),
+    ...legacySplitList(removeFlags).map(variableId=>({variableId,operation:"set",value:"false"}))
+  ];
+}
+function legacyPreference(delta){
+  const n=Number(delta)||0;
+  if(n>=5)return"LOVED";
+  if(n>=2)return"LIKED";
+  if(n<=-4)return"HATED";
+  if(n<0)return"DISLIKED";
+  return"NEUTRAL";
+}
+function legacyChoiceOption(choice,characterId,nodeMap,tail,visited){
+  let entries=legacyMarkupEntries(choice?.response);
+  const fx=legacyFlagEffects(choice?.setFlags,choice?.removeFlags);
+  if(fx.length){
+    if(!entries.length)entries=[{type:"narration",text:"선택 결과가 적용되었다."}];
+    entries[0].effects=fx;
+  }
+  const nextId=String(choice?.nextNodeId||"");
+  if(nextId&&nodeMap.has(nextId)&&!visited.has(nextId)){
+    const nextVisited=new Set(visited);nextVisited.add(nextId);
+    entries.push(...legacyNodeEntries(nextId,characterId,nodeMap,tail,nextVisited));
+  }else if(choice?.endConversation){
+    entries.push(...clone(tail));
+  }
+  const option={
+    id:String(choice?.id||uid("option")),
+    label:String(choice?.text||choice?.playerLine||"선택"),
+    entries,
+    exitMode:choice?.endConversation&&!nextId?"end":"continue",
+    targetEventId:""
+  };
+  const affectionDelta=Number(choice?.affectionDelta)||0;
+  if(affectionDelta)option.affectionEffects=[{characterId,amount:affectionDelta}];
+  if(choice?.moodChange){
+    const [state,intensity]=legacyEmotion(choice.moodChange);
+    option.emotionEffects=[{characterId,state,intensity}];
+  }
+  const min=Number(choice?.requiredAffection)||0;
+  if(min>0)option.affectionCondition={characterId,operator:">=",value:min};
+  const mood=String(choice?.requiredMood||"ANY").toUpperCase();
+  if(mood!=="ANY"){
+    const [state]=legacyEmotion(mood);
+    option.emotionCondition={characterId,state,intensityOperator:">=",intensityValue:0};
+  }
+  const required=legacySplitList(choice?.requiredFlags);
+  const blocked=legacySplitList(choice?.blockedFlags);
+  if(required.length===1)option.condition={variableId:required[0],operator:"==",value:"true"};
+  else if(!required.length&&blocked.length===1)option.condition={variableId:blocked[0],operator:"!=",value:"true"};
+  return option;
+}
+function legacyNodeEntries(nodeId,characterId,nodeMap,tail,visited=new Set()){
+  const node=nodeMap.get(nodeId);if(!node)return[];
+  const entries=legacyMarkupEntries(node.text);
+  const choices=Array.isArray(node.choices)?node.choices:[];
+  if(choices.length){
+    entries.push({
+      type:"choice",
+      prompt:"어떻게 반응할까?",
+      options:choices.map(choice=>legacyChoiceOption(choice,characterId,nodeMap,tail,visited))
+    });
+  }
+  return entries;
+}
+function legacyDialogueEntries(dialogue){
+  const characterId=String(dialogue?.characterId||"");
+  const tail=[
+    ...legacyMarkupEntries(dialogue?.exitLine),
+    ...legacyMarkupEntries(dialogue?.after)
+  ];
+  let entries=legacyMarkupEntries(dialogue?.opening);
+  const nodes=Array.isArray(dialogue?.nodes)?dialogue.nodes:[];
+  const nodeMap=new Map(nodes.filter(n=>n?.id).map(n=>[String(n.id),n]));
+  const startId=String(dialogue?.openingNodeId||nodes[0]?.id||"");
+  if(startId&&nodeMap.has(startId)){
+    entries.push(...legacyNodeEntries(startId,characterId,nodeMap,tail,new Set([startId])));
+  }else{
+    entries.push(...tail);
+  }
+  if(!entries.some(e=>e.type==="choice"))entries.push(...tail);
+  if(!entries.length)entries=[{type:"narration",text:String(dialogue?.title||"대화")}];
+
+  const min=Number(dialogue?.requiredAffection)||0;
+  const max=Number(dialogue?.maxAffection??100);
+  const mood=String(dialogue?.requiredMood||"ANY").toUpperCase();
+  const required=legacySplitList(dialogue?.requiredFlags);
+  const blocked=legacySplitList(dialogue?.blockedFlags);
+  entries.forEach(entry=>{
+    if(min>0)entry.affectionCondition={characterId,operator:">=",value:min};
+    else if(max<100)entry.affectionCondition={characterId,operator:"<=",value:max};
+    if(mood!=="ANY"){
+      const [state]=legacyEmotion(mood);
+      entry.emotionCondition={characterId,state,intensityOperator:">=",intensityValue:0};
+    }
+    if(required.length===1)entry.condition={variableId:required[0],operator:"==",value:"true"};
+    else if(!required.length&&blocked.length===1)entry.condition={variableId:blocked[0],operator:"!=",value:"true"};
+  });
+  return entries;
+}
+function legacyGiftFlow(gift,characterId){
+  const entries=[
+    ...legacyMarkupEntries(gift?.opening),
+    ...legacyMarkupEntries(gift?.response)
+  ];
+  const fx=legacyFlagEffects(gift?.setFlags,gift?.removeFlags);
+  if(fx.length){
+    if(!entries.length)entries.push({type:"narration",text:"선물 반응"});
+    entries[0].effects=fx;
+  }
+  const options=[];
+  ["A","B"].forEach(key=>{
+    const label=String(gift?.["choice"+key]||"").trim();
+    if(!label)return;
+    const option={
+      label,
+      entries:legacyMarkupEntries(gift?.["choice"+key+"Response"]),
+      exitMode:"end",
+      targetEventId:""
+    };
+    const delta=Number(gift?.["choice"+key+"Delta"])||0;
+    if(delta)option.affectionEffects=[{characterId,amount:delta}];
+    const optionFx=legacyFlagEffects(gift?.["choice"+key+"SetFlags"],gift?.["choice"+key+"RemoveFlags"]);
+    if(optionFx.length)option.effects=optionFx;
+    options.push(option);
+  });
+  if(options.length)entries.push({type:"choice",prompt:"어떻게 건넬까?",options});
+  return entries.length?entries:[{type:"narration",text:String(gift?.name||"선물")}];
+}
+function migrateLegacyBackup(raw){
+  if(!isLegacyFullBackup(raw))return null;
+  const charactersRaw=Array.isArray(raw.characters)?raw.characters:[];
+  const characterIds=new Set(charactersRaw.map(c=>String(c?.id||"")).filter(Boolean));
+  const eventCatalog=new Map((Array.isArray(raw.events)?raw.events:[])
+    .filter(e=>e?.id).map(e=>[String(e.id),e]));
+  const variableIds=new Set([
+    ...Object.keys(raw.flags&&typeof raw.flags==="object"?raw.flags:{}),
+    ...eventCatalog.keys()
+  ]);
+  const rememberRefs=value=>legacySplitList(value).forEach(id=>variableIds.add(id));
+  (Array.isArray(raw.dialogues)?raw.dialogues:[]).forEach(dialogue=>{
+    rememberRefs(dialogue.requiredFlags);rememberRefs(dialogue.blockedFlags);
+    (Array.isArray(dialogue.nodes)?dialogue.nodes:[]).forEach(node=>
+      (Array.isArray(node.choices)?node.choices:[]).forEach(choice=>{
+        rememberRefs(choice.requiredFlags);rememberRefs(choice.blockedFlags);
+        rememberRefs(choice.setFlags);rememberRefs(choice.removeFlags);
+      })
+    );
+  });
+  (Array.isArray(raw.gifts)?raw.gifts:[]).forEach(gift=>{
+    rememberRefs(gift.requiredFlags);rememberRefs(gift.blockedFlags);
+    rememberRefs(gift.setFlags);rememberRefs(gift.removeFlags);
+  });
+
+  const variables=[...variableIds].sort().map(id=>({
+    id,
+    name:String(eventCatalog.get(id)?.name||id),
+    type:"boolean",
+    defaultValue:"false"
+  }));
+  const playVariables=Object.fromEntries([...variableIds].map(id=>[
+    id,Boolean(raw.flags&&typeof raw.flags==="object"?raw.flags[id]:false)
+  ]));
+
+  const affectionRaw=raw.affection&&typeof raw.affection==="object"?raw.affection:{};
+  const moodsRaw=raw.moods&&typeof raw.moods==="object"?raw.moods:{};
+  const affection={};
+  const emotions={};
+  const characters=charactersRaw.filter(c=>c?.id).map(c=>{
+    const id=String(c.id);
+    const affectionSource=affectionRaw[id];
+    const affectionValue=typeof affectionSource==="object"?affectionSource?.value:affectionSource;
+    affection[id]=clamp(affectionValue,0,100,0);
+    const [emotionState,emotionIntensity]=legacyEmotion(moodsRaw[id]||"NORMAL");
+    emotions[id]={state:emotionState,intensity:emotionIntensity};
+    return{
+      id,
+      name:String(c.name||id),
+      origin:legacyOrigin(c),
+      role:String(c.label||c.description||""),
+      quote:String(c.status||c.description||""),
+      image:String(c.image||""),
+      enabled:c.hidden!==true,
+      affectionStart:0,
+      emotionDefault:emotionState,
+      emotionIntensity
+    };
+  });
+
+  const events=[];
+  const asks=[];
+  const dialogues=Array.isArray(raw.dialogues)?raw.dialogues:[];
+  dialogues.filter(d=>d?.id&&characterIds.has(String(d.characterId||""))).forEach(dialogue=>{
+    const entries=legacyDialogueEntries(dialogue);
+    if(String(dialogue.kind||"").toUpperCase()==="ASK"){
+      const required=legacySplitList(dialogue.requiredFlags);
+      const blocked=legacySplitList(dialogue.blockedFlags);
+      const ask={
+        id:String(dialogue.id),
+        characterId:String(dialogue.characterId),
+        label:String(dialogue.title||"질문"),
+        minAffection:clamp(dialogue.requiredAffection,0,100,0),
+        startLocked:false,
+        affectionDelta:0,
+        entries,
+        enabled:true
+      };
+      if(required.length===1){
+        ask.startLocked=true;
+        ask.unlockCondition={variableId:required[0],operator:"==",value:"true"};
+      }else if(!required.length&&blocked.length===1){
+        ask.startLocked=true;
+        ask.unlockCondition={variableId:blocked[0],operator:"!=",value:"true"};
+      }
+      const mood=String(dialogue.requiredMood||"ANY").toUpperCase();
+      if(mood!=="ANY"){
+        const [state]=legacyEmotion(mood);
+        ask.startLocked=true;
+        ask.unlockEmotionCondition={
+          characterId:String(dialogue.characterId),
+          state,
+          intensityOperator:">=",
+          intensityValue:0
+        };
+      }
+      asks.push(ask);
+    }else{
+      events.push({
+        id:String(dialogue.id),
+        name:String((dialogue.kind||"TALK")+" · "+(dialogue.title||dialogue.id)),
+        characterId:String(dialogue.characterId),
+        nextEventId:"",
+        emotionExitMode:"keep",
+        entries
+      });
+    }
+  });
+
+  const categoryMap=new Map((Array.isArray(raw.thoughtCategoryCatalog)?raw.thoughtCategoryCatalog:[])
+    .filter(x=>x?.id).map(x=>[String(x.id),String(x.label||x.id)]));
+  const thoughts=(Array.isArray(raw.thoughts)?raw.thoughts:[])
+    .filter(t=>t?.id&&characterIds.has(String(t.characterId||"")))
+    .map(t=>({
+      id:String(t.id),
+      characterId:String(t.characterId),
+      category:categoryMap.get(String(t.category||""))||String(t.category||"일상"),
+      rarity:RARITIES.includes(t.rarity)?t.rarity:"COMMON",
+      frequency:["common","normal","rare"].includes(t.frequency)?t.frequency:"common",
+      text:String(t.text||""),
+      enabled:t.enabled!==false
+    }));
+
+  const itemsById=new Map();
+  const addLegacyItem=(item,category="기념품",giftable=false)=>{
+    if(!item?.id)return;
+    const id=String(item.id);
+    if(itemsById.has(id))return;
+    itemsById.set(id,{
+      id,
+      name:String(item.name||"아이템"),
+      category,
+      rarity:RARITIES.includes(item.rarity)?item.rarity:"COMMON",
+      collectionCharacterId:characterIds.has(String(item.characterId||""))?String(item.characterId):"",
+      description:String(item.desc||item.description||item.gachaDescription||""),
+      acquisitionMode:"repeatable",
+      giftUseMode:giftable?"consume":"keep",
+      giftable,
+      secret:false,
+      gachaEnabled:item.gachaEnabled!==false,
+      enabled:item.enabled!==false,
+      weight:Math.max(.01,Number(item.weight)||1),
+      reactions:[]
+    });
+  };
+  (Array.isArray(raw.items)?raw.items:[]).forEach(item=>addLegacyItem(item,"기념품",false));
+  const inventoryV2=raw.inventoryV2&&typeof raw.inventoryV2==="object"?raw.inventoryV2:{};
+  (Array.isArray(inventoryV2.basicItems)?inventoryV2.basicItems:[])
+    .forEach(item=>addLegacyItem(item,"선물",true));
+
+  (Array.isArray(raw.gifts)?raw.gifts:[]).forEach(gift=>{
+    if(!gift?.id||!characterIds.has(String(gift.characterId||"")))return;
+    const itemId="gift-item-"+String(gift.id);
+    if(!itemsById.has(itemId)){
+      addLegacyItem({
+        id:itemId,
+        name:gift.name,
+        characterId:gift.characterId,
+        desc:gift.shortDescription,
+        rarity:"COMMON",
+        gachaEnabled:false
+      },"선물",true);
+    }
+    const item=itemsById.get(itemId);if(!item)return;
+    const characterId=String(gift.characterId);
+    const flow=legacyGiftFlow(gift,characterId);
+    const [emotionState,emotionIntensity]=gift.moodChange?legacyEmotion(gift.moodChange):["",0];
+    const reaction={
+      id:"reaction-"+String(gift.id),
+      characterId,
+      preference:legacyPreference(gift.affectionDelta),
+      affectionDelta:clamp(gift.affectionDelta,-100,100,0),
+      emotionState,
+      emotionIntensity,
+      firstEntries:clone(flow),
+      repeatEntries:clone(flow),
+      specialEntries:[],
+      specialMinAffection:0,
+      specialEmotionState:"",
+      specialEmotionIntensity:0
+    };
+    item.reactions=(item.reactions||[]).filter(r=>r.characterId!==characterId);
+    item.reactions.push(reaction);
+    item.giftable=true;
+    item.giftUseMode="consume";
+    if(item.category==="기념품"&&!item.gachaEnabled)item.category="선물";
+  });
+
+  const giftRules=inventoryV2.giftRules&&typeof inventoryV2.giftRules==="object"?inventoryV2.giftRules:{};
+  Object.entries(giftRules).forEach(([itemId,targets])=>{
+    const item=itemsById.get(itemId);
+    if(!item||!targets||typeof targets!=="object")return;
+    Object.entries(targets).forEach(([characterId,rule])=>{
+      if(!characterIds.has(characterId)||!rule||typeof rule!=="object")return;
+      const entries=[
+        ...legacyMarkupEntries(rule.opening),
+        ...legacyMarkupEntries(rule.response)
+      ];
+      const approaches=Array.isArray(rule.approaches)?rule.approaches:[];
+      if(approaches.length){
+        entries.push({
+          type:"choice",
+          prompt:"어떻게 건넬까?",
+          options:approaches.map(approach=>{
+            const option={
+              label:String(approach.label||approach.playerLine||"선택"),
+              entries:legacyMarkupEntries(approach.response),
+              exitMode:"end",
+              targetEventId:""
+            };
+            const delta=Number(approach.affectionDelta)||0;
+            if(delta)option.affectionEffects=[{characterId,amount:delta}];
+            return option;
+          })
+        });
+      }
+      const fx=legacyFlagEffects(rule.setFlags,rule.removeFlags);
+      if(fx.length){
+        if(!entries.length)entries.push({type:"narration",text:"선물 반응"});
+        entries[0].effects=fx;
+      }
+      const [emotionState,emotionIntensity]=rule.moodChange?legacyEmotion(rule.moodChange):["",0];
+      const reaction={
+        id:"reaction-v2-"+itemId+"-"+characterId,
+        characterId,
+        preference:GIFT_PREFERENCES.some(x=>x[0]===rule.preference)?rule.preference:legacyPreference(rule.affectionDelta),
+        affectionDelta:clamp(rule.affectionDelta,-100,100,0),
+        emotionState,
+        emotionIntensity,
+        firstEntries:clone(entries.length?entries:[{type:"narration",text:"선물 반응"}]),
+        repeatEntries:clone(entries.length?entries:[{type:"narration",text:"선물 반응"}]),
+        specialEntries:[],
+        specialMinAffection:0,
+        specialEmotionState:"",
+        specialEmotionIntensity:0
+      };
+      item.reactions=(item.reactions||[]).filter(r=>r.characterId!==characterId);
+      item.reactions.push(reaction);
+      item.giftable=true;
+      item.giftUseMode="consume";
+    });
+  });
+
+  const inventoryCounts={};
+  const mergeCounts=source=>{
+    if(!source||typeof source!=="object")return;
+    Object.entries(source).forEach(([id,value])=>{
+      inventoryCounts[id]=Math.max(Number(inventoryCounts[id])||0,Math.max(0,Number(value)||0));
+    });
+  };
+  mergeCounts(raw.inventoryV1?.counts);
+  mergeCounts(inventoryV2.counts);
+  mergeCounts(raw.giftInventory?.ownedCounts);
+
+  const itemHistory=[];
+  const boxHistory=Array.isArray(raw.box?.history)?raw.box.history:[];
+  boxHistory.forEach(row=>{
+    if(!row?.itemId)return;
+    inventoryCounts[row.itemId]=Math.max(Number(inventoryCounts[row.itemId])||0,1);
+    itemHistory.push({itemId:String(row.itemId),source:"GACHA",amount:1,at:0});
+  });
+  if(inventoryV2.dialogueAcquired&&typeof inventoryV2.dialogueAcquired==="object"){
+    Object.entries(inventoryV2.dialogueAcquired).forEach(([key,value])=>{
+      const itemId=String(key).split(":")[0];
+      inventoryCounts[itemId]=Math.max(Number(inventoryCounts[itemId])||0,1);
+      const parsed=Date.parse(value);
+      itemHistory.push({itemId,source:"DIALOGUE",amount:1,at:Number.isFinite(parsed)?parsed:0});
+    });
+  }
+
+  const discoveredGiftReactionKeys=[];
+  const giftInteractionCounts={};
+  const interactionHistory=[];
+  (Array.isArray(raw.giftUseHistory)?raw.giftUseHistory:[]).forEach((row,index)=>{
+    const itemId="gift-item-"+String(row?.giftId||"");
+    const characterId=String(row?.characterId||"");
+    if(!itemsById.has(itemId)||!characterIds.has(characterId))return;
+    const key=itemId+"::"+characterId;
+    if(!discoveredGiftReactionKeys.includes(key))discoveredGiftReactionKeys.push(key);
+    giftInteractionCounts[key]=(Number(giftInteractionCounts[key])||0)+1;
+    const parsed=Date.parse(row.at);
+    interactionHistory.push({
+      id:String(row.id||"legacy-gift-"+index),
+      at:Number.isFinite(parsed)?parsed:0,
+      kind:"gift",
+      characterId,
+      itemId,
+      label:String(itemsById.get(itemId)?.name||itemId),
+      preference:String(row.preference||""),
+      flowType:"legacy"
+    });
+  });
+
+  const log=[];
+  (Array.isArray(raw.conversationHistory)?raw.conversationHistory:[]).forEach(conversation=>{
+    (Array.isArray(conversation?.messages)?conversation.messages:[]).forEach(message=>{
+      log.push({
+        kind:message?.type==="narration"?"narration":"dialogue",
+        speaker:String(message?.speaker||""),
+        text:String(message?.text||"").replace(/\[\[(CHARACTER|NARRATION)\]\]\s*/g,""),
+        eventName:String(conversation?.sceneTitle||"")
+      });
+    });
+  });
+
+  const seenSceneIds=new Set();
+  const progressCharacters=raw.conversationProgress?.characters;
+  if(progressCharacters&&typeof progressCharacters==="object"){
+    Object.values(progressCharacters).forEach(info=>{
+      if(!info||typeof info!=="object")return;
+      (Array.isArray(info.seenSceneIds)?info.seenSceneIds:[]).forEach(id=>seenSceneIds.add(String(id)));
+    });
+  }
+  const askIdSet=new Set(asks.map(a=>a.id));
+  const askedAskIds=[...seenSceneIds].filter(id=>askIdSet.has(id));
+
+  const thoughtCategories=[];
+  (Array.isArray(raw.thoughtCategoryCatalog)?raw.thoughtCategoryCatalog:[]).forEach(row=>{
+    const label=String(row?.label||"").trim();
+    if(label&&!thoughtCategories.includes(label))thoughtCategories.push(label);
+  });
+  (Array.isArray(raw.thoughtCategories)?raw.thoughtCategories:[]).forEach(row=>{
+    const label=String(row||"").trim();
+    if(label&&!thoughtCategories.includes(label))thoughtCategories.push(label);
+  });
+
+  const originMap={ANGEL:"angel",WINNER:"winner",HELLBORN:"hellborn",SINNER:"sinner"};
+  const playerOrigin=String(raw.player?.origin||"").toUpperCase();
+  const migrated={
+    profile:{
+      name:String(raw.player?.name||""),
+      origin:originMap[playerOrigin]||""
+    },
+    favoriteCharacterIds:[],
+    playState:{
+      variables:playVariables,
+      affection,
+      emotions,
+      log:log.slice(-200)
+    },
+    characters,
+    events,
+    variables,
+    asks,
+    items:[...itemsById.values()],
+    itemCategories:["기념품","선물","기타"],
+    inventoryCounts,
+    newItemIds:(Array.isArray(raw.newCollectionItems)?raw.newCollectionItems:[]).map(String),
+    itemHistory:itemHistory.slice(-500),
+    discoveredGiftReactionKeys,
+    giftInteractionCounts,
+    askedAskIds,
+    unlockedAskIds:[],
+    interactionHistory:interactionHistory.slice(-500),
+    collectionSettings:{showLocked:true,showOwnedCount:true,view:"grouped",sort:"recent"},
+    thoughts,
+    thoughtSettings:{categories:thoughtCategories.length?thoughtCategories:["일상","관계","과거","천국","지옥","비밀"]},
+    gacha:{
+      enabled:true,
+      currencyName:"SOUL",
+      balance:Math.max(0,Number(raw.points)||0),
+      singleCost:10,
+      tenCost:90,
+      rarityWeights:{COMMON:50,UNCOMMON:28,RARE:14,EPIC:7,LEGENDARY:3,MISTIC:1},
+      history:[]
+    },
+    discoveredThoughtIds:(Array.isArray(raw.seenThoughtIds)?raw.seenThoughtIds:[]).map(String)
+  };
+  const state=normalizeState(migrated);
+  return{
+    state,
+    report:{
+      legacyVersion:Number(raw.version)||0,
+      backupFormat:String(raw.backupFormat||"legacy"),
+      characters:state.characters.length,
+      dialogueEvents:state.events.length,
+      asks:state.asks.length,
+      items:state.items.length,
+      thoughts:state.thoughts.length,
+      variables:state.variables.length,
+      sourceDialogues:dialogues.length,
+      ignoredLegacyEventCatalog:Array.isArray(raw.events)?raw.events.length:0
+    }
+  };
+}
+
 function normalizePlayState(p={}){
   return {
     variables:p.variables&&typeof p.variables==="object"?{...p.variables}:{},
