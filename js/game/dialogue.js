@@ -2,6 +2,7 @@
 function startDialogue(characterId,eventId){
   const ch=getCharacter(characterId);if(!ch)return;
   selectedCharacterId=ch.id;
+  roomToolsOpen=false;
   roomMode="talk";
   activeInteractionReaction=null;
   activeInteractionEvent=null;
