@@ -425,3 +425,12 @@ details.advanced summary{cursor:pointer;color:var(--gold);font-size:.72rem}
   .form-grid .full{grid-column:auto}
   .table-row,.table-row.thought-row,.condition-grid,.effect-row{grid-template-columns:1fr}
 }
+
+
+/* v11 · editor safety controls */
+.editor-top-actions{flex-wrap:wrap;justify-content:flex-end}
+.editor-top-actions button:disabled{opacity:.35;cursor:not-allowed}
+@media(max-width:760px){
+  .editor-topbar{align-items:flex-start;flex-direction:column}
+  .editor-top-actions{width:100%;justify-content:flex-start}
+}

@@ -2,6 +2,14 @@
 
 const STATE_KEY = "hellaverse-studio-state-v2";
 const PREFS_KEY = "hellaverse-studio-prefs-v2";
+const DATA_BACKUP_KEY = "hellaverse-studio-backups-v2";
+const EDITOR_SNAPSHOT_KEY = "hellaverse-studio-editor-snapshot-v2";
+const AUX_STORAGE_KEYS = [
+  "hellaverse-world-settings-v1",
+  "hellaverse-world-region-v1",
+  "hellaverse-world-scene-placement-v1",
+  "hellaverse-world-scene-work-v1"
+];
 const RARITIES = ["COMMON","UNCOMMON","RARE","EPIC","LEGENDARY","MISTIC"];
 const ORIGINS = [
   ["sinner","죄인 · SINNER","hell"],
@@ -41,6 +49,8 @@ const defaultContentList = key => clone(Array.isArray(DEFAULT_CONTENT[key]) ? DE
 function defaultState(){
   return {
     profile:{name:"",origin:""},
+    favoriteCharacterIds:[],
+    playState:{variables:{},affection:{},emotions:{},log:[]},
     characters:defaultContentList("characters"),
     events:defaultContentList("events"),
     variables:defaultContentList("variables"),
@@ -296,6 +306,26 @@ function normalizeThought(t={}){
     enabled:t.enabled!==false
   };
 }
+function normalizePlayState(p={}){
+  return {
+    variables:p.variables&&typeof p.variables==="object"?{...p.variables}:{},
+    affection:p.affection&&typeof p.affection==="object"
+      ? Object.fromEntries(Object.entries(p.affection).map(([id,v])=>[id,clamp(v,0,100,0)]))
+      : {},
+    emotions:p.emotions&&typeof p.emotions==="object"
+      ? Object.fromEntries(Object.entries(p.emotions).map(([id,v])=>[id,{
+          state:EMOTIONS.some(x=>x[0]===v?.state)?v.state:"calm",
+          intensity:clamp(v?.intensity,0,100,0)
+        }]))
+      : {},
+    log:Array.isArray(p.log)?p.log.slice(-200).map(x=>({
+      kind:String(x?.kind||"dialogue"),
+      speaker:String(x?.speaker||""),
+      text:String(x?.text||""),
+      eventName:String(x?.eventName||"")
+    })):[]
+  };
+}
 function normalizeState(raw){
   const d=defaultState();
   const s=raw&&typeof raw==="object"?raw:{};
@@ -315,6 +345,8 @@ function normalizeState(raw){
       name:String(s.profile?.name||""),
       origin:rawOrigin ? normalizeOrigin(rawOrigin) : ""
     },
+    favoriteCharacterIds:Array.isArray(s.favoriteCharacterIds)?[...new Set(s.favoriteCharacterIds.map(String))]:[],
+    playState:normalizePlayState(s.playState),
     characters:(Array.isArray(s.characters)?s.characters:d.characters).map(normalizeCharacter),
     events:(Array.isArray(s.events)?s.events:d.events).map(normalizeEvent),
     variables:(Array.isArray(s.variables)?s.variables:d.variables).map(normalizeVariable),
@@ -362,7 +394,45 @@ function normalizeState(raw){
 function readState(){
   try{return normalizeState(JSON.parse(localStorage.getItem(STATE_KEY)))}catch{return normalizeState(null)}
 }
-function saveState(){localStorage.setItem(STATE_KEY,JSON.stringify(state))}
+function syncPlayStateFromSession(){
+  if(typeof session==="undefined"||!session)return;
+  state.playState={
+    variables:clone(session.variables||{}),
+    affection:clone(session.affection||{}),
+    emotions:clone(session.emotions||{}),
+    log:Array.isArray(session.log)?session.log.slice(-200):[]
+  };
+}
+function saveState(){
+  syncPlayStateFromSession();
+  localStorage.setItem(STATE_KEY,JSON.stringify(state));
+}
+function readBackupStore(){
+  try{
+    const raw=JSON.parse(localStorage.getItem(DATA_BACKUP_KEY)||"{}");
+    return {
+      slots:Array.from({length:3},(_,i)=>Array.isArray(raw.slots)?raw.slots[i]||null:null),
+      safety:raw.safety&&typeof raw.safety==="object"?raw.safety:null
+    };
+  }catch{return{slots:[null,null,null],safety:null}}
+}
+function writeBackupStore(store){localStorage.setItem(DATA_BACKUP_KEY,JSON.stringify(store))}
+function makeDataSnapshot(label="BACKUP"){
+  saveState();
+  return {
+    version:2,
+    label:String(label),
+    at:Date.now(),
+    state:clone(state),
+    prefs:clone(prefs),
+    extraStorage:Object.fromEntries(AUX_STORAGE_KEYS.map(key=>[key,localStorage.getItem(key)]))
+  };
+}
+function captureSafetySnapshot(label="자동 안전 백업"){
+  const store=readBackupStore();
+  store.safety=makeDataSnapshot(label);
+  writeBackupStore(store);
+}
 function readPrefs(){
   try{
     const p=JSON.parse(localStorage.getItem(PREFS_KEY)||"{}");
@@ -376,6 +446,10 @@ let prefs=readPrefs();
 let currentPage="home";
 let selectedCharacterId="";
 let homeIndex=0;
+let characterQuery="";
+let characterRealmFilter="ALL";
+let characterFavoritesOnly=false;
+let roomToolsOpen=false;
 let thoughtFilter="ALL";
 let collectionFilter="ALL";
 let collectionRarity="ALL";
@@ -389,6 +463,9 @@ let activeInteractionReaction=null;
 let activeInteractionEvent=null;
 let interactionContext=null;
 let editorDraft=null;
+let editorUndoStack=[];
+let editorRedoStack=[];
+let editorInitialSnapshot="";
 let editorTab="dialogue";
 let dialogueSubtab="characters";
 let selectedEditorCharacterId="";

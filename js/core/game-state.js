@@ -1,14 +1,24 @@
 "use strict";
 function createSession(){
+  const saved=normalizePlayState(state.playState);
   const variables={};
-  state.variables.forEach(v=>variables[v.id]=parseVariable(v,v.defaultValue));
+  state.variables.forEach(v=>{
+    variables[v.id]=v.id in saved.variables
+      ? parseVariable(v,saved.variables[v.id])
+      : parseVariable(v,v.defaultValue);
+  });
   const affection={};
   const emotions={};
   state.characters.forEach(c=>{
-    affection[c.id]=c.affectionStart;
-    emotions[c.id]={state:c.emotionDefault,intensity:c.emotionIntensity};
+    affection[c.id]=c.id in saved.affection
+      ? clamp(saved.affection[c.id],0,100,c.affectionStart)
+      : c.affectionStart;
+    const emo=saved.emotions[c.id];
+    emotions[c.id]=emo
+      ? {state:emo.state,intensity:emo.intensity}
+      : {state:c.emotionDefault,intensity:c.emotionIntensity};
   });
-  return {variables,affection,emotions,log:[]};
+  return {variables,affection,emotions,log:saved.log.slice(-200)};
 }
 function syncSessionDefinitions(){
   state.variables.forEach(v=>{
@@ -293,6 +303,7 @@ function applyOwnerEffects(o){
   applyItemEffects(o.itemEffects);
   applyAffectionEffects(o.affectionEffects);
   applyEmotionEffects(o.emotionEffects);
+  saveState();
 }
 function applyInteractionEffects(source){
   const ch=getCharacter(source.characterId);if(!ch)return;
@@ -311,6 +322,7 @@ function applyInteractionEffects(source){
     messages.push(ch.name+" 감정 → "+emotionLabel(source.emotionState)+" "+intensity);
   }
   if(messages.length)showToast(messages.join(" · "));
+  saveState();
 }
 function beginInteractionReaction(kind,source,entries,label="",meta={}){
   const ch=getCharacter(source.characterId);if(!ch)return;
@@ -408,7 +420,11 @@ function restoreInterruptedDialogue(){
 }
 function resetEventEmotion(event){
   if(event?.emotionExitMode!=="reset")return;
-  const ch=getCharacter(event.characterId);if(ch)session.emotions[ch.id]={state:ch.emotionDefault,intensity:ch.emotionIntensity};
+  const ch=getCharacter(event.characterId);
+  if(ch){
+    session.emotions[ch.id]={state:ch.emotionDefault,intensity:ch.emotionIntensity};
+    saveState();
+  }
 }
 
 function makeEntry(type){

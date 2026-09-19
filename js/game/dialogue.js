@@ -2,6 +2,7 @@
 function startDialogue(characterId,eventId){
   const ch=getCharacter(characterId);if(!ch)return;
   selectedCharacterId=ch.id;
+  roomToolsOpen=false;
   roomMode="talk";
   activeInteractionReaction=null;
   activeInteractionEvent=null;
@@ -123,7 +124,7 @@ function renderRoom(){
     '<button class="room-mode-button '+(roomMode==="ask"?"active":"")+'" type="button" data-action="room-mode" data-mode="ask" '+(interactionLocked?"disabled":"")+'>ASK</button>'+
     '<button class="room-mode-button '+(roomMode==="inventory"?"active":"")+'" type="button" data-action="room-mode" data-mode="inventory" '+(interactionLocked?"disabled":"")+'>INVENTORY</button></div>'+
     (roomMode==="talk"&&eventOptions.length&&!interactionLocked?'<select id="roomEventSelect" style="width:auto;min-width:190px">'+eventOptions.map(e=>'<option value="'+esc(e.id)+'" '+(ev?.id===e.id?"selected":"")+'>'+esc(e.name)+'</option>').join("")+'</select>':'')+
-    '<div class="room-actions"><button class="text-link" type="button" data-action="show-log">LOG</button><button class="text-link" type="button" data-action="show-history">HISTORY</button><button class="text-link" type="button" data-action="show-affection">AFFECTION</button><button class="text-link" type="button" data-action="show-emotion">EMOTION</button></div></div>'+
+    '<button class="room-more-button" type="button" data-action="toggle-room-tools" aria-label="추가 메뉴">•••</button><div class="room-actions '+(roomToolsOpen?"open":"")+'"><button class="text-link" type="button" data-action="show-log">LOG</button><button class="text-link" type="button" data-action="show-history">HISTORY</button><button class="text-link" type="button" data-action="show-affection">AFFECTION</button><button class="text-link" type="button" data-action="show-emotion">EMOTION</button><button class="text-link mobile-set" type="button" data-action="open-play-settings">SET</button></div></div>'+
     '<div class="room-stage"><div class="room-art">'+art+'</div><div id="roomDynamic"></div>'+
     (roomMode==="talk"&&!activeInteractionReaction?'<div class="room-control-bar"><button type="button" data-action="toggle-auto" class="'+(autoMode?"active":"")+'">AUTO</button><button type="button" data-action="open-play-settings">SET</button></div>':'')+
     '</div></section>';
@@ -160,6 +161,7 @@ function renderRoomBeat(){
   if(typing.token!==token){
     session.log.push({kind:entry.type,speaker,text:entry.text||"",eventName:currentEvent()?.name||""});
     if(session.log.length>200)session.log.splice(0,session.log.length-200);
+    saveState();
     startTyping(entry.text||"",token);
   }else{
     $("#dialogueText").textContent=typing.done?typing.full:typing.full.slice(0,typing.index);
@@ -267,6 +269,8 @@ function chooseOption(id){
   const option=entry.options.find(o=>o.id===id);if(!option||!ownerPasses(option))return;
   applyOwnerEffects(entry);applyOwnerEffects(option);
   session.log.push({kind:"choice",speaker:"CHOICE",text:(entry.prompt||"선택")+" → "+(option.label||""),eventName:currentEvent()?.name||""});
+  if(session.log.length>200)session.log.splice(0,session.log.length-200);
+  saveState();
   frame.index++;
   if(option.entries.length){
     playback.frames.push({sourceType:"option",sourceId:option.id,index:0,label:option.label||"분기",exitMode:option.exitMode,targetEventId:option.targetEventId||""});
@@ -368,9 +372,12 @@ function drawGacha(count){
   for(let n=0;n<count;n++){
     const pool=state.items.filter(i=>i.enabled&&i.gachaEnabled&&(i.acquisitionMode!=="unique"||!hasEverAcquired(i.id)));
     if(!pool.length)break;
-    const rarity=chooseWeighted(RARITIES,r=>state.gacha.rarityWeights[r])||"COMMON";
+    const represented=RARITIES.filter(r=>pool.some(x=>x.rarity===r));
+    const weighted=represented.filter(r=>Number(state.gacha.rarityWeights[r]||0)>0);
+    const rarities=weighted.length?weighted:represented;
+    const rarity=chooseWeighted(rarities,r=>weighted.length?state.gacha.rarityWeights[r]:1)||rarities[0];
     const candidates=pool.filter(x=>x.rarity===rarity);
-    const item=chooseWeighted(candidates.length?candidates:pool,x=>x.weight);
+    const item=chooseWeighted(candidates,x=>x.weight);
     if(!item)continue;
     const acquired=acquireItem(item.id,1,"GACHA",state,{notify:false});
     if(!acquired.gained)continue;

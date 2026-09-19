@@ -23,32 +23,65 @@ startForm.addEventListener("submit",event=>{
 });
 $("#changeProfileButton").addEventListener("click",renderStart);
 $("#brandButton").addEventListener("click",()=>setPage("home"));
+$("#dataButton").addEventListener("click",showDataManager);
 $("#editorButton").addEventListener("click",openEditor);
-$$(".nav-button").forEach(b=>b.addEventListener("click",()=>setPage(b.dataset.page)));
+$(".nav-button").forEach(b=>b.addEventListener("click",()=>setPage(b.dataset.page)));
+$("#editorUndoButton").addEventListener("click",editorUndo);
+$("#editorRedoButton").addEventListener("click",editorRedo);
+$("#editorRestoreButton").addEventListener("click",restoreEditorSnapshot);
 $("#editorCheckButton").addEventListener("click",renderValidationReport);
-$("#editorCancelButton").addEventListener("click",closeEditor);
+$("#editorCancelButton").addEventListener("click",()=>closeEditor());
 $("#editorSaveButton").addEventListener("click",saveEditor);
 $$(".editor-nav").forEach(b=>b.addEventListener("click",()=>{editorTab=b.dataset.editorTab;renderEditor()}));
 
-modalRoot.addEventListener("click",e=>{if(e.target.matches("[data-close-modal]"))closeModal()});
+modalRoot.addEventListener("click",e=>{
+  if(e.target.matches("[data-close-modal]")){closeModal();return}
+  const b=e.target.closest("[data-data-action]");if(!b)return;
+  const a=b.dataset.dataAction;
+  if(a==="save-slot")saveBackupSlot(Number(b.dataset.slot)||0);
+  else if(a==="load-slot")loadBackupSlot(Number(b.dataset.slot)||0);
+  else if(a==="restore-safety")restoreSafetySnapshot();
+  else if(a==="export")exportData();
+  else if(a==="reset-progress")resetPlayProgress();
+});
 modalRoot.addEventListener("input",e=>{
   if(e.target.id==="prefTextSpeed"){prefs.textSpeed=Number(e.target.value);savePrefs()}
   if(e.target.id==="prefAutoDelay"){prefs.autoDelay=Number(e.target.value);savePrefs()}
 });
 modalRoot.addEventListener("change",e=>{
   if(e.target.id==="prefStageClick"){prefs.stageClick=e.target.checked;savePrefs()}
+  if(e.target.id==="dataImportFile")importDataFile(e.target.files?.[0]);
 });
 
 pageRoot.addEventListener("click",e=>{
   const b=e.target.closest("[data-action]");if(!b)return;
   const a=b.dataset.action;
   if(a==="open-editor")openEditor();
+  else if(a==="character-open"){
+    const id=b.dataset.id;
+    const chars=enabledCharacters();
+    const index=chars.findIndex(ch=>ch.id===id);
+    if(index>=0)homeIndex=index;
+    selectedCharacterId=id;
+    startDialogue(id);
+  }
+  else if(a==="character-favorite"){
+    const id=b.dataset.id;
+    state.favoriteCharacterIds ||= [];
+    state.favoriteCharacterIds=state.favoriteCharacterIds.includes(id)
+      ? state.favoriteCharacterIds.filter(x=>x!==id)
+      : [...state.favoriteCharacterIds,id];
+    saveState();renderCharacters();
+  }
+  else if(a==="character-favorites"){characterFavoritesOnly=!characterFavoritesOnly;renderCharacters()}
+  else if(a==="toggle-room-tools"){roomToolsOpen=!roomToolsOpen;renderRoom()}
   else if(a==="home-prev"){const n=enabledCharacters().length;homeIndex=(homeIndex-1+n)%n;renderHome()}
   else if(a==="home-next"){const n=enabledCharacters().length;homeIndex=(homeIndex+1)%n;renderHome()}
   else if(a==="talk")startDialogue(selectedCharacterId);
   else if(a==="room-mode"){
     if(activeInteractionReaction||interactionContext?.followupActive)return;
     roomMode=b.dataset.mode||"talk";
+    roomToolsOpen=false;
     autoMode=false;clearAuto();
     renderRoom();
   }
@@ -78,6 +111,13 @@ pageRoot.addEventListener("click",e=>{
 });
 pageRoot.addEventListener("input",e=>{
   const t=e.target;
+  if(t.dataset.characterControl==="query"){
+    characterQuery=t.value;
+    renderCharacters();
+    const input=$('[data-character-control="query"]',pageRoot);
+    if(input){input.focus();try{input.setSelectionRange(input.value.length,input.value.length)}catch{}}
+    return;
+  }
   if(t.dataset.collectionControl==="query"){
     collectionQuery=t.value;
     const pos=window.scrollY;
@@ -89,6 +129,11 @@ pageRoot.addEventListener("input",e=>{
 });
 pageRoot.addEventListener("change",e=>{
   const t=e.target;
+  if(t.dataset.characterControl){
+    if(t.dataset.characterControl==="realm")characterRealmFilter=t.value;
+    renderCharacters();
+    return;
+  }
   if(t.id==="roomEventSelect"){
     roomMode="talk";
     startDialogue(selectedCharacterId,t.value);
@@ -115,6 +160,8 @@ editorBody.addEventListener("click",e=>{
   const b=e.target.closest("[data-action]");if(!b)return;
   const a=b.dataset.action;
   if(a==="run-validation"){renderValidationReport();return}
+  if(isEditorDeleteAction(a)&&!confirm("정말 삭제할까요? 연결된 참조는 가능한 범위에서 함께 정리됩니다."))return;
+  if(isEditorMutationAction(a))checkpointEditor();
 
   if(a==="mini-add-entry"||a==="mini-add-branch"){
     const rootList=getInteractionFlowList(b.dataset.flowScope,b.dataset.flowOwnerId,b.dataset.flowItemId,b.dataset.flowKey);
@@ -148,6 +195,7 @@ editorBody.addEventListener("click",e=>{
   if(a==="select-character"){selectedEditorCharacterId=b.dataset.id;renderCharacterManager();return}
   if(a==="delete-character"){
     const id=selectedEditorCharacterId;editorDraft.characters=editorDraft.characters.filter(c=>c.id!==id);
+    editorDraft.favoriteCharacterIds=(editorDraft.favoriteCharacterIds||[]).filter(x=>x!==id);
     cleanCharacterReference(id);
     editorDraft.events.forEach(ev=>{if(ev.characterId===id)ev.characterId=""});
     editorDraft.thoughts.forEach(t=>{if(t.characterId===id)t.characterId=""});
@@ -302,8 +350,23 @@ function sanitizeOptionTargets(events,removedId){
   events.forEach(e=>scan(e.entries));
 }
 
+editorBody.addEventListener("focusin",e=>{
+  if(e.target.matches("input,textarea,select")&&!e.target.dataset.itemEditorFilter){
+    e.target.dataset.undoStart=serializeEditorDraft();
+  }
+});
 editorBody.addEventListener("input",handleEditorField);
-editorBody.addEventListener("change",handleEditorField);
+editorBody.addEventListener("change",e=>{
+  const before=e.target.dataset.undoStart;
+  if(before&&before!==serializeEditorDraft()){
+    if(editorUndoStack.at(-1)!==before)editorUndoStack.push(before);
+    if(editorUndoStack.length>80)editorUndoStack.shift();
+    editorRedoStack=[];
+    delete e.target.dataset.undoStart;
+    updateEditorHistoryButtons();
+  }
+  handleEditorField(e);
+});
 function handleEditorField(e){
   const t=e.target;
 
