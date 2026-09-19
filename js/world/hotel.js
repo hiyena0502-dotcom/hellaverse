@@ -198,11 +198,15 @@
       '</button>'+
       '<div class="hotel-floor-interior">'+
         '<div class="hotel-ceiling-trim"><i></i><i></i><i></i><i></i><i></i></div>'+
+        '<div class="hotel-ceiling-medallions"><i></i><i></i><i></i><i></i></div>'+
         '<div class="hotel-wall-filigree left"></div><div class="hotel-wall-filigree right"></div>'+
+        '<div class="hotel-wall-panels"><i></i><i></i><i></i><i></i><i></i><i></i></div>'+
+        '<div class="hotel-arch-set"><i></i><i></i><i></i><i></i></div>'+
         '<div class="hotel-room room-left"></div><div class="hotel-room room-center"></div><div class="hotel-room room-right"></div>'+
         '<div class="hotel-column-set"><i></i><i></i><i></i><i></i></div>'+
         '<div class="hotel-balcony-rail"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>'+
-        '<div class="hotel-elevator"><span></span><span></span></div>'+
+        '<div class="hotel-floor-bulbs"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>'+
+        '<div class="hotel-elevator"><span></span><span></span><b></b><em></em></div>'+
         hotelPropMarkup(floor.id)+
         '<div class="hotel-actors">'+actors+'</div>'+
       '</div>'+
@@ -213,7 +217,9 @@
     return '<div class="hotel-crown" aria-hidden="true">'+
       '<div class="hotel-rays"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>'+
       '<div class="hotel-crown-wing left"><i></i><i></i><i></i></div><div class="hotel-crown-wing right"><i></i><i></i><i></i></div>'+
+      '<div class="hotel-sign-backplate"><i></i><i></i><i></i><i></i></div>'+
       '<div class="hotel-sign"><b>HAZBIN</b><span>HOTEL</span><em></em></div>'+
+      '<div class="hotel-eye-feathers left"><i></i><i></i><i></i><i></i></div><div class="hotel-eye-feathers right"><i></i><i></i><i></i><i></i></div>'+
       '<div class="hotel-eye"><i></i></div>'+
       '<div class="hotel-horns left"><i></i><i></i><i></i></div><div class="hotel-horns right"><i></i><i></i><i></i></div>'+
       '<div class="hotel-marquee-bulbs"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>'+
@@ -221,16 +227,34 @@
   }
 
   function hotelFacadeDecor(){
-    return '<div class="hotel-side-decor left" aria-hidden="true"><i>♥</i><i>♦</i><i>♣</i></div>'+
+    return ''+
+      '<div class="hotel-wing-shell wing-left" aria-hidden="true">'+
+        '<div class="hotel-wing-roof"><i></i><i></i><i></i><i></i><i></i></div>'+
+        '<div class="hotel-wing-windowwall"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>'+
+        '<div class="hotel-wing-music"><i></i><i></i><i></i><i></i><i></i><span>♪</span><span>♫</span><span>♪</span></div>'+
+        '<div class="hotel-wing-cards"><b>♦</b><b>♥</b><b>♣</b></div>'+
+        '<div class="hotel-wing-bulbs"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>'+
+      '</div>'+
+      '<div class="hotel-wing-shell wing-right" aria-hidden="true">'+
+        '<div class="hotel-ship-deck deck-one"><i></i><i></i><i></i><i></i></div>'+
+        '<div class="hotel-ship-deck deck-two"><i></i><i></i><i></i></div>'+
+        '<div class="hotel-ship-portholes"><i></i><i></i><i></i><i></i><i></i></div>'+
+        '<div class="hotel-ship-neon"><i></i><i></i><i></i><i></i><i></i></div>'+
+        '<div class="hotel-ship-heart">♡</div>'+
+      '</div>'+
+      '<div class="hotel-side-decor left" aria-hidden="true"><i>♥</i><i>♦</i><i>♣</i></div>'+
       '<div class="hotel-side-decor right" aria-hidden="true"><i></i><i></i><i></i></div>'+
-      '<div class="hotel-outer-tower left" aria-hidden="true"><b>♥</b><i></i><i></i><i></i></div>'+
-      '<div class="hotel-outer-tower right" aria-hidden="true"><b>♥</b><i></i><i></i><i></i></div>'+
+      '<div class="hotel-outer-tower left" aria-hidden="true"><b>♥</b><i></i><i></i><i></i><span></span></div>'+
+      '<div class="hotel-outer-tower right" aria-hidden="true"><b>♥</b><i></i><i></i><i></i><span></span></div>'+
       '<div class="hotel-roof-fin left" aria-hidden="true"></div><div class="hotel-roof-fin right" aria-hidden="true"></div>'+
+      '<div class="hotel-corner-spire left" aria-hidden="true"><i></i><b>◆</b></div><div class="hotel-corner-spire right" aria-hidden="true"><i></i><b>◆</b></div>'+
+      '<div class="hotel-arrow-sign left" aria-hidden="true"><i></i><b>➜</b></div><div class="hotel-arrow-sign right" aria-hidden="true"><i></i><b>➜</b></div>'+
+      '<div class="hotel-center-rib" aria-hidden="true"><i></i><i></i><i></i><i></i><span>♥</span><span>♥</span><span>♥</span></div>'+
       '<div class="hotel-vertical-sign" aria-hidden="true"><span>H</span><span>O</span><span>T</span><span>E</span><span>L</span></div>'+
+      '<div class="hotel-entrance-crown" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><b>♥</b></div>'+
       '<div class="hotel-entrance-marquee" aria-hidden="true"><i></i><b>♥</b><i></i></div>'+
-      '<div class="hotel-music-line" aria-hidden="true">♪ · ♫ · ♪ · ♫</div>';
+      '<div class="hotel-foundation-lights" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>';
   }
-
   window.renderWorld=function renderWorld(){
     const region=hotelRegion();
     const settings=readHotelSettings();
