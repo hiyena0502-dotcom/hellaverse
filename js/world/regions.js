@@ -279,23 +279,54 @@
       '<div class="heaven-back-clouds" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>'+
       '<div class="heaven-distant-gate" aria-hidden="true"><i></i><b></b><span></span></div>'+
       '<div class="heaven-city-back" aria-hidden="true">'+Array.from({length:10},(_,i)=>'<i class="h'+(i+1)+'"><b></b></i>').join("")+'</div>'+
-      '<div class="heaven-plaza" aria-hidden="true"><i></i><i></i><i></i></div>'+
+      '<div class="heaven-plaza" aria-hidden="true"></div>'+
       '<div class="heaven-building heaven-welcome" aria-hidden="true">'+
-        '<div class="heaven-building-halo"></div><b>WELCOME</b><span class="door"></span><i class="wing left"></i><i class="wing right"></i>'+
+        '<div class="heaven-building-halo"></div>'+
+        '<div class="heaven-roof-crest"><i></i><i></i><i></i></div>'+
+        '<b>WELCOME HALL</b>'+
+        '<span class="welcome-window left"><i></i></span><span class="welcome-window right"><i></i></span>'+
+        '<span class="door"><i></i></span>'+
+        '<span class="welcome-column left"></span><span class="welcome-column right"></span>'+
+        '<span class="welcome-step"></span>'+
+        '<i class="wing left"></i><i class="wing right"></i>'+
       '</div>'+
       '<div class="heaven-building heaven-transit" aria-hidden="true">'+
-        '<div class="heaven-building-halo"></div><b>CLOUD TRANSIT</b><span class="transit-ring r1"></span><span class="transit-ring r2"></span><i></i>'+
+        '<div class="heaven-building-halo"></div>'+
+        '<div class="transit-cap"><i></i></div>'+
+        '<b>CLOUD TRANSIT</b>'+
+        '<span class="transit-ring r1"></span><span class="transit-ring r2"></span>'+
+        '<span class="transit-window tw1"></span><span class="transit-window tw2"></span><span class="transit-window tw3"></span>'+
+        '<span class="transit-door"><i></i></span>'+
+        '<i class="transit-core"></i>'+
       '</div>'+
       '<div class="heaven-building heaven-court" aria-hidden="true">'+
-        '<div class="heaven-building-halo"></div><b>SERAPH COURT</b><span class="court-eye"><i></i></span><em></em><em></em><em></em>'+
+        '<div class="heaven-building-halo"></div>'+
+        '<div class="court-crown"><i></i><i></i><i></i><i></i><i></i></div>'+
+        '<b>SERAPH COURT</b>'+
+        '<span class="court-eye"><i></i></span>'+
+        '<span class="court-rosette"><i></i></span>'+
+        '<span class="court-balcony"></span>'+
+        '<em class="court-door d1"><i></i></em><em class="court-door d2"><i></i></em><em class="court-door d3"><i></i></em>'+
+        '<span class="court-side-tower left"><i></i></span><span class="court-side-tower right"><i></i></span>'+
       '</div>'+
       '<div class="heaven-building heaven-archive" aria-hidden="true">'+
-        '<div class="heaven-building-halo"></div><b>CELESTIAL ARCHIVE</b><span class="archive-door"></span><i></i><i></i><i></i>'+
+        '<div class="heaven-building-halo"></div>'+
+        '<div class="archive-crown"><i></i><i></i><i></i></div>'+
+        '<b>CELESTIAL ARCHIVE</b>'+
+        '<div class="archive-window-grid"><i></i><i></i><i></i><i></i><i></i><i></i></div>'+
+        '<span class="archive-door"><i></i></span>'+
+        '<span class="archive-pillar left"></span><span class="archive-pillar right"></span>'+
+        '<span class="archive-base"></span>'+
       '</div>'+
       '<div class="heaven-building heaven-garden" aria-hidden="true">'+
-        '<div class="heaven-building-halo"></div><b>SKY GARDEN</b><span class="garden-dome"></span><i></i><i></i><i></i><i></i>'+
+        '<div class="heaven-building-halo"></div>'+
+        '<b>SKY GARDEN</b>'+
+        '<span class="garden-dome"><i class="rib r1"></i><i class="rib r2"></i><i class="rib r3"></i></span>'+
+        '<span class="garden-terrace"></span>'+
+        '<span class="garden-pot p1"><i></i></span><span class="garden-pot p2"><i></i></span><span class="garden-pot p3"><i></i></span>'+
+        '<span class="garden-lamp left"></span><span class="garden-lamp right"></span>'+
       '</div>'+
-      '<div class="heaven-plaza-lamps" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>'+
+      '<div class="heaven-plaza-lamps" aria-hidden="true"><i></i><i></i><i></i><i></i></div>'+
       '<div class="heaven-front-clouds" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>';
   }
 

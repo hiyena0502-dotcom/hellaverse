@@ -879,3 +879,608 @@ button.scene-task-card:hover{
   .scene-work-grid{display:flex;overflow-x:auto;scrollbar-width:thin}
   .scene-task-card{flex:0 0 210px}
 }
+
+
+/* HEAVEN ARCHITECTURE REFINEMENT · detailed buildings, fewer meaningless lines */
+
+/* remove line clutter */
+.scene-heaven .heaven-orbits{display:none!important}
+.scene-heaven .heaven-rays i:nth-child(3),
+.scene-heaven .heaven-rays i:nth-child(4){display:none!important}
+.scene-heaven .heaven-city-back i:after{display:none!important}
+.scene-heaven .heaven-plaza i{display:none!important}
+.scene-heaven .heaven-plaza:before{
+  left:11%;
+  right:11%;
+  top:34%;
+  height:2px;
+  background:rgba(204,154,61,.28);
+  box-shadow:0 112px 0 rgba(204,154,61,.18)
+}
+.scene-heaven .heaven-plaza{
+  background:
+    radial-gradient(ellipse at 50% 0,rgba(255,249,211,.62),transparent 38%),
+    linear-gradient(180deg,#fff1c8 0%,#f3d58f 100%)
+}
+.scene-heaven .heaven-city-back i{
+  opacity:.42;
+  filter:saturate(.86)
+}
+.scene-heaven .heaven-city-back i b{
+  opacity:.65;
+  width:34px;
+  height:10px;
+  border-width:2px
+}
+
+/* shared architecture finish */
+.scene-heaven .heaven-building{
+  border-color:#6d50ad;
+  box-shadow:
+    inset 0 0 0 3px rgba(255,244,205,.34),
+    0 11px 22px rgba(92,62,126,.13);
+  filter:none
+}
+.scene-heaven .heaven-building>b{
+  z-index:8;
+  padding:3px 7px;
+  border:1px solid rgba(116,83,158,.26);
+  border-radius:999px;
+  background:rgba(255,245,210,.76);
+  color:#704f82;
+  text-shadow:none
+}
+.scene-heaven .heaven-building-halo{
+  border-width:3px;
+  opacity:.9
+}
+
+/* WELCOME HALL */
+.scene-heaven .heaven-welcome{
+  left:5.5%;
+  width:224px;
+  height:204px;
+  border-radius:82px 82px 0 0;
+  background:
+    linear-gradient(90deg,#e7a7d4 0 17%,#fff4d8 18% 82%,#e7a7d4 83%);
+  overflow:visible
+}
+.scene-heaven .heaven-welcome:before{
+  left:30px;
+  right:30px;
+  top:33px;
+  height:3px;
+  background:#8de2ed;
+  box-shadow:none
+}
+.scene-heaven .heaven-welcome:after{
+  content:"";
+  position:absolute;
+  left:20px;
+  right:20px;
+  bottom:0;
+  height:18px;
+  border-top:3px solid #8a63b6;
+  background:#f5dca5
+}
+.heaven-roof-crest{
+  position:absolute;
+  left:50%;
+  top:-8px;
+  width:120px;
+  height:54px;
+  transform:translateX(-50%)
+}
+.heaven-roof-crest:before{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:7px;
+  width:74px;
+  height:38px;
+  transform:translateX(-50%);
+  border:4px solid #8158b3;
+  border-bottom:0;
+  border-radius:50% 50% 0 0;
+  background:#f8d6e7
+}
+.heaven-roof-crest i{
+  position:absolute;
+  top:4px;
+  width:24px;
+  height:42px;
+  background:#f8e8bd;
+  border:3px solid #7a57ad;
+  clip-path:polygon(50% 0,100% 100%,0 100%)
+}
+.heaven-roof-crest i:nth-child(1){left:9px}
+.heaven-roof-crest i:nth-child(2){left:48px;height:50px;top:-5px}
+.heaven-roof-crest i:nth-child(3){right:9px}
+.scene-heaven .heaven-welcome>b{top:62px}
+.welcome-window{
+  position:absolute;
+  top:92px;
+  width:42px;
+  height:62px;
+  border:4px solid #805daf;
+  border-radius:24px 24px 5px 5px;
+  background:linear-gradient(180deg,#9ce8ef,#d4a9de)
+}
+.welcome-window.left{left:28px}
+.welcome-window.right{right:28px}
+.welcome-window i{
+  position:absolute;
+  left:50%;
+  top:7px;
+  bottom:7px;
+  width:2px;
+  transform:translateX(-50%);
+  background:rgba(255,244,195,.9)
+}
+.welcome-window:after{
+  content:"";
+  position:absolute;
+  left:6px;
+  right:6px;
+  top:50%;
+  height:2px;
+  background:rgba(255,244,195,.8)
+}
+.scene-heaven .heaven-welcome .door{
+  width:70px;
+  height:104px;
+  border-width:4px;
+  background:linear-gradient(180deg,#fff1bf,#f6d88f)
+}
+.scene-heaven .heaven-welcome .door:before{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:12px;
+  width:34px;
+  height:45px;
+  transform:translateX(-50%);
+  border:3px solid #d78cca;
+  border-radius:20px 20px 6px 6px
+}
+.scene-heaven .heaven-welcome .door i{
+  position:absolute;
+  left:50%;
+  bottom:14px;
+  width:8px;
+  height:8px;
+  transform:translateX(-50%);
+  border-radius:50%;
+  background:#8f63b2
+}
+.welcome-column{
+  position:absolute;
+  bottom:16px;
+  width:14px;
+  height:92px;
+  border:3px solid #7956ac;
+  background:#fff0c6
+}
+.welcome-column:before{
+  content:"";
+  position:absolute;
+  left:-7px;
+  right:-7px;
+  top:-8px;
+  height:8px;
+  background:#f2c98a;
+  border:2px solid #7956ac
+}
+.welcome-column.left{left:8px}
+.welcome-column.right{right:8px}
+.welcome-step{
+  position:absolute;
+  left:50%;
+  bottom:-13px;
+  width:102px;
+  height:14px;
+  transform:translateX(-50%);
+  border:3px solid #7653aa;
+  border-radius:50% 50% 3px 3px;
+  background:#f6df9e
+}
+.scene-heaven .heaven-welcome .wing{
+  top:102px;
+  width:50px;
+  height:60px;
+  opacity:.8
+}
+
+/* CLOUD TRANSIT */
+.scene-heaven .heaven-transit{
+  left:26.5%;
+  width:132px;
+  height:246px;
+  border-radius:66px 66px 12px 12px;
+  background:
+    linear-gradient(180deg,#a7edf3 0 28%,#f4d8ec 29% 40%,#d497d9 41% 100%)
+}
+.scene-heaven .heaven-transit:before{
+  width:6px;
+  background:#7454ad
+}
+.transit-cap{
+  position:absolute;
+  left:50%;
+  top:-19px;
+  width:78px;
+  height:54px;
+  transform:translateX(-50%);
+  border:4px solid #7353ae;
+  border-bottom:0;
+  border-radius:40px 40px 0 0;
+  background:#f7e3b1
+}
+.transit-cap:before{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:-18px;
+  width:4px;
+  height:20px;
+  transform:translateX(-50%);
+  background:#7353ae
+}
+.transit-cap i{
+  position:absolute;
+  left:50%;
+  top:8px;
+  width:25px;
+  height:25px;
+  transform:translateX(-50%) rotate(45deg);
+  border:3px solid #bf82c9;
+  background:#fff1c6
+}
+.scene-heaven .heaven-transit>b{top:76px}
+.scene-heaven .transit-ring.r1{top:24px;width:110px;height:26px}
+.scene-heaven .transit-ring.r2{bottom:28px;width:86px;height:22px}
+.transit-window{
+  position:absolute;
+  top:105px;
+  width:18px;
+  height:58px;
+  border:3px solid #7453ad;
+  border-radius:9px;
+  background:#9ce7ef
+}
+.transit-window.tw1{left:18px}
+.transit-window.tw2{left:50%;transform:translateX(-50%)}
+.transit-window.tw3{right:18px}
+.transit-door{
+  position:absolute;
+  left:50%;
+  bottom:0;
+  width:48px;
+  height:68px;
+  transform:translateX(-50%);
+  border:4px solid #6f50a7;
+  border-bottom:0;
+  border-radius:24px 24px 0 0;
+  background:#fff0bd
+}
+.transit-door i{
+  position:absolute;
+  left:50%;
+  top:22px;
+  width:8px;
+  height:8px;
+  transform:translateX(-50%);
+  border-radius:50%;
+  background:#d08bc8
+}
+.scene-heaven .transit-core{
+  top:113px;
+  height:72px;
+  width:5px;
+  box-shadow:0 0 9px #fff2b8
+}
+
+/* SERAPH COURT */
+.scene-heaven .heaven-court{
+  bottom:27%;
+  width:318px;
+  height:302px;
+  border-radius:160px 160px 12px 12px;
+  background:
+    linear-gradient(90deg,#9463c6 0 9%,#fff0c7 10% 20%,#c488d8 21% 79%,#fff0c7 80% 90%,#9463c6 91%)
+}
+.scene-heaven .heaven-court:before,
+.scene-heaven .heaven-court:after{
+  width:70px;
+  height:185px;
+  opacity:.9
+}
+.scene-heaven .heaven-court>b{top:78px}
+.court-crown{
+  position:absolute;
+  left:50%;
+  top:-30px;
+  width:174px;
+  height:78px;
+  transform:translateX(-50%)
+}
+.court-crown:before{
+  content:"";
+  position:absolute;
+  left:50%;
+  bottom:4px;
+  width:128px;
+  height:34px;
+  transform:translateX(-50%);
+  border:4px solid #724fa9;
+  border-radius:50% 50% 0 0;
+  background:#fff0bd
+}
+.court-crown i{
+  position:absolute;
+  bottom:17px;
+  width:24px;
+  background:#f4d795;
+  border:3px solid #714ea7;
+  clip-path:polygon(50% 0,100% 100%,0 100%)
+}
+.court-crown i:nth-child(1){left:8px;height:38px}
+.court-crown i:nth-child(2){left:43px;height:54px}
+.court-crown i:nth-child(3){left:75px;height:68px}
+.court-crown i:nth-child(4){right:43px;height:54px}
+.court-crown i:nth-child(5){right:8px;height:38px}
+.scene-heaven .heaven-court .court-eye{
+  top:112px;
+  width:96px;
+  height:54px;
+  border-width:4px
+}
+.court-rosette{
+  position:absolute;
+  left:50%;
+  top:177px;
+  width:52px;
+  height:52px;
+  transform:translateX(-50%) rotate(45deg);
+  border:4px solid #8159b0;
+  background:#f4c7df
+}
+.court-rosette i{
+  position:absolute;
+  inset:10px;
+  border:3px solid #b47bc2;
+  border-radius:50%;
+  background:#fff1c6
+}
+.court-balcony{
+  position:absolute;
+  left:42px;
+  right:42px;
+  top:230px;
+  height:12px;
+  border:3px solid #7652a9;
+  border-radius:50%;
+  background:#f2d999
+}
+.scene-heaven .court-door{
+  width:50px;
+  height:84px;
+  border-width:3px;
+  border-radius:25px 25px 0 0
+}
+.scene-heaven .court-door i{
+  position:absolute;
+  left:50%;
+  top:18px;
+  width:14px;
+  height:28px;
+  transform:translateX(-50%);
+  border:2px solid #bc83bf;
+  border-radius:8px
+}
+.scene-heaven .court-door.d1{left:45px}
+.scene-heaven .court-door.d2{left:50%;transform:translateX(-50%)}
+.scene-heaven .court-door.d3{right:45px}
+.court-side-tower{
+  position:absolute;
+  bottom:0;
+  width:38px;
+  height:144px;
+  border:4px solid #704ea5;
+  background:#f5dfac
+}
+.court-side-tower.left{left:-22px}
+.court-side-tower.right{right:-22px}
+.court-side-tower i{
+  position:absolute;
+  left:50%;
+  top:-30px;
+  width:38px;
+  height:38px;
+  transform:translateX(-50%) rotate(45deg);
+  border:4px solid #704ea5;
+  background:#d99bd8
+}
+
+/* CELESTIAL ARCHIVE */
+.scene-heaven .heaven-archive{
+  right:22.5%;
+  width:188px;
+  height:228px;
+  border-radius:34px 78px 0 0;
+  background:linear-gradient(90deg,#efa8cf 0 20%,#fff0c9 21% 80%,#d299da 81%)
+}
+.scene-heaven .heaven-archive:before{display:none}
+.scene-heaven .heaven-archive>b{top:84px}
+.archive-crown{
+  position:absolute;
+  left:50%;
+  top:-20px;
+  width:124px;
+  height:64px;
+  transform:translateX(-50%)
+}
+.archive-crown:before{
+  content:"";
+  position:absolute;
+  left:50%;
+  bottom:0;
+  width:90px;
+  height:30px;
+  transform:translateX(-50%);
+  border:4px solid #7452ab;
+  border-bottom:0;
+  border-radius:50% 50% 0 0;
+  background:#f5deb0
+}
+.archive-crown i{
+  position:absolute;
+  bottom:13px;
+  width:18px;
+  height:40px;
+  border:3px solid #7452ab;
+  background:#d99ed8;
+  clip-path:polygon(50% 0,100% 100%,0 100%)
+}
+.archive-crown i:nth-child(1){left:14px}
+.archive-crown i:nth-child(2){left:53px;height:55px}
+.archive-crown i:nth-child(3){right:14px}
+.archive-window-grid{
+  position:absolute;
+  left:22px;
+  right:22px;
+  top:111px;
+  height:48px;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:6px
+}
+.archive-window-grid i{
+  border:3px solid #7453aa;
+  border-radius:12px 12px 3px 3px;
+  background:linear-gradient(180deg,#91e5ee,#c79ed9)
+}
+.scene-heaven .archive-door{
+  width:66px;
+  height:77px;
+  border-width:4px
+}
+.scene-heaven .archive-door i{
+  position:absolute;
+  left:50%;
+  top:15px;
+  width:28px;
+  height:35px;
+  transform:translateX(-50%);
+  border:3px solid #d38fc5;
+  border-radius:14px 14px 4px 4px
+}
+.archive-pillar{
+  position:absolute;
+  bottom:0;
+  width:12px;
+  height:86px;
+  border:3px solid #7552aa;
+  background:#f6dda6
+}
+.archive-pillar.left{left:8px}
+.archive-pillar.right{right:8px}
+.archive-base{
+  position:absolute;
+  left:10px;
+  right:10px;
+  bottom:-10px;
+  height:12px;
+  border:3px solid #7451aa;
+  background:#efcf91
+}
+
+/* SKY GARDEN */
+.scene-heaven .heaven-garden{
+  right:4%;
+  width:198px;
+  height:180px
+}
+.scene-heaven .heaven-garden>b{top:48px}
+.scene-heaven .garden-dome{
+  width:160px;
+  height:122px;
+  border-width:5px;
+  background:linear-gradient(180deg,rgba(162,236,243,.9),rgba(220,159,219,.76))
+}
+.garden-dome .rib{
+  position:absolute;
+  bottom:0;
+  width:3px;
+  height:104px;
+  background:rgba(112,80,170,.6);
+  transform-origin:50% 100%
+}
+.garden-dome .rib.r1{left:31%;transform:rotate(14deg)}
+.garden-dome .rib.r2{left:50%;transform:translateX(-50%)}
+.garden-dome .rib.r3{right:31%;transform:rotate(-14deg)}
+.garden-terrace{
+  position:absolute;
+  left:50%;
+  bottom:-8px;
+  width:184px;
+  height:20px;
+  transform:translateX(-50%);
+  border:4px solid #6e50a7;
+  border-radius:50%;
+  background:#f2d69a
+}
+.garden-pot{
+  position:absolute;
+  z-index:3;
+  bottom:12px;
+  width:28px;
+  height:28px;
+  border:3px solid #7452aa;
+  border-radius:4px 4px 12px 12px;
+  background:#f0c68f
+}
+.garden-pot i{
+  position:absolute;
+  left:50%;
+  bottom:20px;
+  width:20px;
+  height:38px;
+  transform:translateX(-50%);
+  border-radius:50% 50% 30% 30%;
+  background:#e99dce;
+  box-shadow:-9px 7px 0 -4px #a8e6cf,9px 7px 0 -4px #a8e6cf
+}
+.garden-pot.p1{left:37px}
+.garden-pot.p2{left:85px}
+.garden-pot.p3{right:35px}
+.garden-lamp{
+  position:absolute;
+  bottom:10px;
+  width:3px;
+  height:76px;
+  background:#c18c3a
+}
+.garden-lamp:after{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:-7px;
+  width:28px;
+  height:10px;
+  transform:translateX(-50%);
+  border:3px solid #fff0a3;
+  border-radius:50%
+}
+.garden-lamp.left{left:4px}
+.garden-lamp.right{right:4px}
+
+/* fewer plaza lamps so they do not form a picket-fence of lines */
+.scene-heaven .heaven-plaza-lamps i:nth-child(2),
+.scene-heaven .heaven-plaza-lamps i:nth-child(3){display:none}
+.scene-heaven .heaven-plaza-lamps i:nth-child(1){left:18%}
+.scene-heaven .heaven-plaza-lamps i:nth-child(4){right:18%}
+.scene-heaven .heaven-plaza-lamps i{
+  height:70px;
+  opacity:.75
+}
