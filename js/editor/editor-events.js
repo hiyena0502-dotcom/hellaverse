@@ -160,6 +160,15 @@ editorBody.addEventListener("click",e=>{
   const b=e.target.closest("[data-action]");if(!b)return;
   const a=b.dataset.action;
   if(a==="run-validation"){renderValidationReport();return}
+  if(a==="editor-page"){
+    const kind=b.dataset.kind;
+    const page=Math.max(0,Number(b.dataset.page)||0);
+    if(kind==="event"){editorEventPage=page;renderEventManager()}
+    else if(kind==="ask"){editorAskPage=page;renderAskEditor()}
+    else if(kind==="item"){editorItemPage=page;renderItemEditor()}
+    else if(kind==="thought"){editorThoughtPage=page;renderThoughtEditor()}
+    return;
+  }
   if(isEditorDeleteAction(a)&&!confirm("정말 삭제할까요? 연결된 참조는 가능한 범위에서 함께 정리됩니다."))return;
   if(isEditorMutationAction(a))checkpointEditor();
 
@@ -215,7 +224,12 @@ editorBody.addEventListener("click",e=>{
   }
   if(a==="new-event"){
     const ev=normalizeEvent({id:uid("event"),name:"새 이벤트",characterId:selectedEditorCharacterId||editorDraft.characters[0]?.id||""});
-    editorDraft.events.push(ev);selectedEditorEventId=ev.id;selectedEntryId="";renderEventManager();return;
+    editorDraft.events.push(ev);
+    selectedEditorEventId=ev.id;
+    selectedEntryId="";
+    editorEventQuery="";
+    editorEventPage=Math.max(0,Math.ceil(editorDraft.events.length/EDITOR_EVENT_PAGE_SIZE)-1);
+    renderEventManager();return;
   }
   if(a==="select-event"){selectedEditorEventId=b.dataset.id;selectedEntryId="";renderEventManager();return}
   if(a==="delete-event"){
@@ -280,6 +294,8 @@ editorBody.addEventListener("click",e=>{
   }
   if(a==="new-ask"){
     editorDraft.asks.push(normalizeAsk({id:uid("ask"),characterId:editorDraft.characters[0]?.id||""}));
+    editorAskQuery="";
+    editorAskPage=Math.max(0,Math.ceil(editorDraft.asks.length/EDITOR_ASK_PAGE_SIZE)-1);
     renderAskEditor();return;
   }
   if(a==="delete-ask"){
@@ -309,6 +325,11 @@ editorBody.addEventListener("click",e=>{
   }
   if(a==="new-item"){
     editorDraft.items.push(normalizeItem({id:uid("item"),collectionCharacterId:editorDraft.characters[0]?.id||""}));
+    editorItemQuery="";
+    editorItemCharacterFilter="ALL";
+    editorItemRarityFilter="ALL";
+    editorItemCategoryFilter="ALL";
+    editorItemPage=Math.max(0,Math.ceil(editorDraft.items.length/EDITOR_ITEM_PAGE_SIZE)-1);
     renderItemEditor();return;
   }
   if(a==="new-item-reaction"){
@@ -340,7 +361,13 @@ editorBody.addEventListener("click",e=>{
     editorDraft.interactionHistory=(editorDraft.interactionHistory||[]).filter(h=>h.itemId!==id);
     renderItemEditor();return;
   }
-  if(a==="new-thought"){const t=normalizeThought({id:uid("thought"),category:editorDraft.thoughtSettings.categories[0]||"일상"});editorDraft.thoughts.push(t);renderThoughtEditor();return}
+  if(a==="new-thought"){
+    const t=normalizeThought({id:uid("thought"),category:editorDraft.thoughtSettings.categories[0]||"일상"});
+    editorDraft.thoughts.push(t);
+    editorThoughtQuery="";
+    editorThoughtPage=Math.max(0,Math.ceil(editorDraft.thoughts.length/EDITOR_THOUGHT_PAGE_SIZE)-1);
+    renderThoughtEditor();return
+  }
   if(a==="delete-thought"){const row=b.closest("[data-thought-id]");editorDraft.thoughts=editorDraft.thoughts.filter(t=>t.id!==row?.dataset.thoughtId);renderThoughtEditor();return}
   if(a==="add-category"){const inp=$("#newCategoryInput",editorBody);const v=inp?.value.trim();if(v&&!editorDraft.thoughtSettings.categories.includes(v)){editorDraft.thoughtSettings.categories.push(v);renderThoughtEditor()}return}
   if(a==="delete-category"){const v=b.dataset.id;editorDraft.thoughtSettings.categories=editorDraft.thoughtSettings.categories.filter(c=>c!==v);editorDraft.thoughts.forEach(t=>{if(t.category===v)t.category=editorDraft.thoughtSettings.categories[0]||"일상"});renderThoughtEditor();return}
@@ -351,24 +378,55 @@ function sanitizeOptionTargets(events,removedId){
 }
 
 editorBody.addEventListener("focusin",e=>{
-  if(e.target.matches("input,textarea,select")&&!e.target.dataset.itemEditorFilter){
+  if(
+    !editorLargeProject&&
+    e.target.matches("input,textarea,select")&&
+    !e.target.dataset.itemEditorFilter&&
+    !e.target.dataset.editorSearch
+  ){
     e.target.dataset.undoStart=serializeEditorDraft();
   }
 });
-editorBody.addEventListener("input",handleEditorField);
+editorBody.addEventListener("input",e=>{
+  if(!e.target.dataset.itemEditorFilter&&!e.target.dataset.editorSearch)markEditorDirty();
+  handleEditorField(e);
+});
 editorBody.addEventListener("change",e=>{
-  const before=e.target.dataset.undoStart;
-  if(before&&before!==serializeEditorDraft()){
-    if(editorUndoStack.at(-1)!==before)editorUndoStack.push(before);
-    if(editorUndoStack.length>80)editorUndoStack.shift();
-    editorRedoStack=[];
-    delete e.target.dataset.undoStart;
-    updateEditorHistoryButtons();
+  if(!editorLargeProject){
+    const before=e.target.dataset.undoStart;
+    if(before&&before!==serializeEditorDraft()){
+      if(editorUndoStack.at(-1)!==before)editorUndoStack.push(before);
+      if(editorUndoStack.length>12)editorUndoStack.shift();
+      editorRedoStack=[];
+      delete e.target.dataset.undoStart;
+      updateEditorHistoryButtons();
+    }
   }
+  if(!e.target.dataset.itemEditorFilter&&!e.target.dataset.editorSearch)markEditorDirty();
   handleEditorField(e);
 });
 function handleEditorField(e){
   const t=e.target;
+
+  if(t.dataset.editorSearch){
+    const kind=t.dataset.editorSearch;
+    if(kind==="event"){
+      editorEventQuery=t.value;
+      editorEventPage=0;
+      renderEventManager();
+    }else if(kind==="ask"){
+      editorAskQuery=t.value;
+      editorAskPage=0;
+      renderAskEditor();
+    }else if(kind==="thought"){
+      editorThoughtQuery=t.value;
+      editorThoughtPage=0;
+      renderThoughtEditor();
+    }
+    const search=$('[data-editor-search="'+kind+'"]',editorBody);
+    if(search){search.focus();try{search.setSelectionRange(search.value.length,search.value.length)}catch{}}
+    return;
+  }
 
   if(t.dataset.itemEditorFilter){
     const kind=t.dataset.itemEditorFilter;
@@ -376,6 +434,7 @@ function handleEditorField(e){
     if(kind==="character")editorItemCharacterFilter=t.value;
     if(kind==="rarity")editorItemRarityFilter=t.value;
     if(kind==="category")editorItemCategoryFilter=t.value;
+    editorItemPage=0;
     const pos=editorBody.scrollTop;
     renderItemEditor();
     editorBody.scrollTop=pos;
