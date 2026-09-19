@@ -42,6 +42,7 @@ function setPage(page){
 }
 function renderPage(){
   if(currentPage==="home")renderHome();
+  else if(currentPage==="world")renderWorld();
   else if(currentPage==="gacha")renderGacha();
   else if(currentPage==="thought")renderThought();
   else if(currentPage==="collection")renderCollection();
