@@ -195,6 +195,7 @@ editorBody.addEventListener("click",e=>{
   if(a==="select-character"){selectedEditorCharacterId=b.dataset.id;renderCharacterManager();return}
   if(a==="delete-character"){
     const id=selectedEditorCharacterId;editorDraft.characters=editorDraft.characters.filter(c=>c.id!==id);
+    editorDraft.favoriteCharacterIds=(editorDraft.favoriteCharacterIds||[]).filter(x=>x!==id);
     cleanCharacterReference(id);
     editorDraft.events.forEach(ev=>{if(ev.characterId===id)ev.characterId=""});
     editorDraft.thoughts.forEach(t=>{if(t.characterId===id)t.characterId=""});
