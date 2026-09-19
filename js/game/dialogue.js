@@ -210,7 +210,7 @@ function renderInventoryPanel(){
   clearAuto();
   const dynamic=$("#roomDynamic");if(!dynamic)return;
   const ch=getCharacter(selectedCharacterId);if(!ch)return;
-  const items=state.items.filter(i=>i.enabled&&itemCount(i.id)>0);
+  const items=state.items.filter(i=>i.enabled&&i.giftable!==false&&itemCount(i.id)>0);
   dynamic.innerHTML='<section class="inventory-panel"><div class="inventory-character-head"><div><p class="page-kicker">INVENTORY</p><h2>GIVE ITEM</h2></div><p>'+esc(ch.name)+'에게 보유 아이템을 건넬 수 있습니다.</p></div><div class="inventory-list">'+
     (items.length?items.map(i=>{
       const reaction=i.reactions.find(r=>r.characterId===ch.id);

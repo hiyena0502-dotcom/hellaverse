@@ -33,9 +33,10 @@ function saveBackupSlot(index){
   showToast("세이브 슬롯 "+(index+1)+"에 저장했습니다.");
   showDataManager();
 }
-function applyDataSnapshot(snapshot,label="백업"){
+function applyDataSnapshot(snapshot,label="백업",confirmMessage=""){
   if(!snapshot?.state)return;
-  if(!confirm(label+"을(를) 불러올까요? 현재 상태는 자동 안전 백업으로 보관됩니다."))return;
+  const message=confirmMessage||label+"을(를) 불러올까요? 현재 상태는 자동 안전 백업으로 보관됩니다.";
+  if(!confirm(message))return;
   captureSafetySnapshot("복원 전 자동 백업");
   state=normalizeState(snapshot.state);
   if(snapshot.extraStorage&&typeof snapshot.extraStorage==="object"){
@@ -86,9 +87,33 @@ function importDataFile(file){
   reader.onload=()=>{
     try{
       const raw=JSON.parse(String(reader.result||"{}"));
+      const legacy=migrateLegacyBackup(raw);
+      if(legacy){
+        const r=legacy.report;
+        const snapshot={
+          version:2,
+          label:"MIGRATED LEGACY BACKUP",
+          at:Date.now(),
+          state:legacy.state,
+          prefs:{}
+        };
+        const message=
+          "구형 Hellaverse 백업을 새 형식으로 변환해 불러옵니다.\n\n"+
+          "캐릭터 "+r.characters+"명\n"+
+          "대화 EVENT "+r.dialogueEvents+"개\n"+
+          "ASK "+r.asks+"개\n"+
+          "아이템 "+r.items+"개\n"+
+          "THOUGHT "+r.thoughts+"개\n\n"+
+          "기존 브라우저 상태는 자동 안전 백업으로 보관됩니다. 계속할까요?";
+        applyDataSnapshot(snapshot,"구형 백업 변환본",message);
+        return;
+      }
       const snapshot=raw?.state?raw:{version:2,label:"IMPORTED",at:Date.now(),state:raw,prefs:{}};
       applyDataSnapshot(snapshot,"가져온 JSON");
-    }catch{alert("백업 JSON 파일을 읽지 못했습니다.")}
+    }catch(error){
+      console.error("DATA IMPORT FAILED",error);
+      alert("백업 JSON을 불러오는 중 오류가 발생했습니다. 파일은 변경되지 않았습니다.");
+    }
   };
   reader.readAsText(file);
 }

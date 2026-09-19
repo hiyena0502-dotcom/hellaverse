@@ -454,7 +454,7 @@ function renderItemEditor(){
         '<button class="danger-button" data-action="delete-item">×</button>'+
         '<div class="full-row item-meta-strip"><span>'+esc(itemSourceLabel(i,editorDraft))+'</span><span>'+configured+' / '+editorDraft.characters.length+' REACTIONS</span><span>OWNED ×'+itemCount(i.id,editorDraft)+'</span></div>'+
         '<div class="full-row interaction-response-editor">'+
-          '<div class="inline-grid"><label class="checkline"><input type="checkbox" data-item-bind="gachaEnabled" '+(i.gachaEnabled?"checked":"")+'> 가챠 포함</label><label class="checkline"><input type="checkbox" data-item-bind="enabled" '+(i.enabled?"checked":"")+'> 사용</label><label class="checkline"><input type="checkbox" data-item-bind="secret" '+(i.secret?"checked":"")+'> SECRET</label><label class="field"><span>선물 시 처리</span><select data-item-bind="giftUseMode"><option value="keep" '+(i.giftUseMode==="keep"?"selected":"")+'>KEEP · 유지</option><option value="consume" '+(i.giftUseMode==="consume"?"selected":"")+'>CONSUMABLE · 1개 소비</option></select></label><label class="field"><span>가챠 가중치</span><input type="number" min=".01" step=".01" data-item-bind="weight" value="'+i.weight+'"></label></div>'+
+          '<div class="inline-grid"><label class="checkline"><input type="checkbox" data-item-bind="gachaEnabled" '+(i.gachaEnabled?"checked":"")+'> 가챠 포함</label><label class="checkline"><input type="checkbox" data-item-bind="giftable" '+(i.giftable!==false?"checked":"")+'> 선물 가능</label><label class="checkline"><input type="checkbox" data-item-bind="enabled" '+(i.enabled?"checked":"")+'> 사용</label><label class="checkline"><input type="checkbox" data-item-bind="secret" '+(i.secret?"checked":"")+'> SECRET</label><label class="field"><span>선물 시 처리</span><select data-item-bind="giftUseMode"><option value="keep" '+(i.giftUseMode==="keep"?"selected":"")+'>KEEP · 유지</option><option value="consume" '+(i.giftUseMode==="consume"?"selected":"")+'>CONSUMABLE · 1개 소비</option></select></label><label class="field"><span>가챠 가중치</span><input type="number" min=".01" step=".01" data-item-bind="weight" value="'+i.weight+'"></label></div>'+
           '<label class="field full"><span>아이템 설명</span><textarea data-item-bind="description">'+esc(i.description)+'</textarea></label>'+
           '<div class="reaction-manager"><div class="manager-list-head"><div><strong>CHARACTER REACTIONS</strong><p class="muted">같은 아이템을 여러 캐릭터에게 줄 수 있습니다. 취향은 기본 호감도 변화값을 자동 제안합니다.</p></div><button class="small-button" type="button" data-action="new-item-reaction" data-item-id="'+esc(i.id)+'">+ 캐릭터 반응</button></div>'+
           (i.reactions.length?i.reactions.map(r=>'<article class="item-reaction-card" data-item-id="'+esc(i.id)+'" data-reaction-id="'+esc(r.id)+'"><div class="item-reaction-head">'+
@@ -602,7 +602,7 @@ function validateDraft(source=editorDraft){
   source.items.forEach(item=>{
     if(item.collectionCharacterId&&!charIds.has(item.collectionCharacterId))push("error","ITEM · "+item.name,"컬렉션 소속 캐릭터가 삭제되었습니다.");
     if(!item.collectionCharacterId)push("warning","ITEM · "+item.name,"컬렉션 소속 캐릭터가 지정되지 않았습니다.");
-    if(!item.reactions.length)push("info","ITEM · "+item.name,"캐릭터별 선물 반응이 없습니다.");
+    if(item.giftable!==false&&!item.reactions.length)push("info","ITEM · "+item.name,"선물 가능한 아이템이지만 캐릭터별 선물 반응이 없습니다.");
     const seen=new Set();
     item.reactions.forEach(r=>{
       if(!r.characterId||!charIds.has(r.characterId))push("error","ITEM · "+item.name,"선물 반응 대상 캐릭터가 비어 있거나 삭제되었습니다.");
