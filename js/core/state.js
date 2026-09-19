@@ -961,6 +961,98 @@ function normalizeState(raw){
     discoveredThoughtIds:Array.isArray(s.discoveredThoughtIds)?[...new Set(s.discoveredThoughtIds)]:[]
   };
 }
+function compactOwnerForStorage(source,target){
+  for(const key of ["condition","itemCondition","askCondition","affectionCondition","emotionCondition"]){
+    if(source?.[key])target[key]=source[key];
+  }
+  for(const key of ["effects","itemEffects","affectionEffects","emotionEffects"]){
+    if(Array.isArray(source?.[key])&&source[key].length)target[key]=source[key];
+  }
+  return target;
+}
+function compactEntryForStorage(entry={}){
+  const out={id:entry.id,type:entry.type};
+  if(entry.type==="dialogue"){
+    if(entry.speaker)out.speaker=entry.speaker;
+    if(entry.text)out.text=entry.text;
+  }else if(entry.type==="narration"){
+    if(entry.text)out.text=entry.text;
+  }else if(entry.type==="choice"){
+    if(entry.prompt)out.prompt=entry.prompt;
+    out.options=(entry.options||[]).map(compactOptionForStorage);
+  }
+  return compactOwnerForStorage(entry,out);
+}
+function compactOptionForStorage(option={}){
+  const out={id:option.id,label:option.label||""};
+  if(Array.isArray(option.entries)&&option.entries.length)out.entries=option.entries.map(compactEntryForStorage);
+  if(option.exitMode==="end")out.exitMode="end";
+  if(option.targetEventId)out.targetEventId=option.targetEventId;
+  return compactOwnerForStorage(option,out);
+}
+function compactEventForStorage(event={}){
+  const out={
+    id:event.id,
+    name:event.name,
+    characterId:event.characterId,
+    entries:(event.entries||[]).map(compactEntryForStorage)
+  };
+  if(event.nextEventId)out.nextEventId=event.nextEventId;
+  if(event.emotionExitMode==="reset")out.emotionExitMode="reset";
+  return out;
+}
+function compactAskForStorage(ask={}){
+  const out={
+    id:ask.id,
+    characterId:ask.characterId,
+    label:ask.label||"",
+    entries:(ask.entries||[]).map(compactEntryForStorage)
+  };
+  if(ask.minAffection)out.minAffection=ask.minAffection;
+  if(ask.startLocked)out.startLocked=true;
+  if(ask.unlockMinAffection)out.unlockMinAffection=ask.unlockMinAffection;
+  if(ask.unlockCondition)out.unlockCondition=ask.unlockCondition;
+  if(ask.unlockItemCondition)out.unlockItemCondition=ask.unlockItemCondition;
+  if(ask.unlockAskCondition)out.unlockAskCondition=ask.unlockAskCondition;
+  if(ask.unlockEmotionCondition)out.unlockEmotionCondition=ask.unlockEmotionCondition;
+  if(ask.affectionDelta)out.affectionDelta=ask.affectionDelta;
+  if(ask.emotionState)out.emotionState=ask.emotionState;
+  if(ask.emotionIntensity)out.emotionIntensity=ask.emotionIntensity;
+  if(ask.enabled===false)out.enabled=false;
+  return out;
+}
+function compactReactionForStorage(reaction={}){
+  const out={
+    id:reaction.id,
+    characterId:reaction.characterId,
+    preference:reaction.preference||"NEUTRAL"
+  };
+  if(reaction.affectionDelta)out.affectionDelta=reaction.affectionDelta;
+  if(reaction.emotionState)out.emotionState=reaction.emotionState;
+  if(reaction.emotionIntensity)out.emotionIntensity=reaction.emotionIntensity;
+  if(Array.isArray(reaction.firstEntries)&&reaction.firstEntries.length)out.firstEntries=reaction.firstEntries.map(compactEntryForStorage);
+  if(Array.isArray(reaction.repeatEntries)&&reaction.repeatEntries.length)out.repeatEntries=reaction.repeatEntries.map(compactEntryForStorage);
+  if(Array.isArray(reaction.specialEntries)&&reaction.specialEntries.length)out.specialEntries=reaction.specialEntries.map(compactEntryForStorage);
+  if(reaction.specialMinAffection)out.specialMinAffection=reaction.specialMinAffection;
+  if(reaction.specialEmotionState)out.specialEmotionState=reaction.specialEmotionState;
+  if(reaction.specialEmotionIntensity)out.specialEmotionIntensity=reaction.specialEmotionIntensity;
+  return out;
+}
+function compactItemForStorage(item={}){
+  const out={...item};
+  out.reactions=(item.reactions||[]).map(compactReactionForStorage);
+  return out;
+}
+function compactStateForStorage(source){
+  const out={...source};
+  out.events=(source.events||[]).map(compactEventForStorage);
+  out.asks=(source.asks||[]).map(compactAskForStorage);
+  out.items=(source.items||[]).map(compactItemForStorage);
+  return out;
+}
+function storageSizeChars(value){
+  try{return JSON.stringify(value).length}catch{return 0}
+}
 function readState(){
   try{return normalizeState(JSON.parse(localStorage.getItem(STATE_KEY)))}catch{return normalizeState(null)}
 }
@@ -975,7 +1067,19 @@ function syncPlayStateFromSession(){
 }
 function saveState(){
   syncPlayStateFromSession();
-  localStorage.setItem(STATE_KEY,JSON.stringify(state));
+  const packed=compactStateForStorage(state);
+  const payload=JSON.stringify(packed);
+  try{
+    localStorage.setItem(STATE_KEY,payload);
+    return true;
+  }catch(error){
+    console.error("HELLAVERSE STATE SAVE FAILED",error,{chars:payload.length});
+    const wrapped=new Error("브라우저 저장 공간이 부족해 데이터를 저장하지 못했습니다.");
+    wrapped.name="HellaverseStorageError";
+    wrapped.cause=error;
+    wrapped.payloadChars=payload.length;
+    throw wrapped;
+  }
 }
 function readBackupStore(){
   try{
@@ -986,14 +1090,22 @@ function readBackupStore(){
     };
   }catch{return{slots:[null,null,null],safety:null}}
 }
-function writeBackupStore(store){localStorage.setItem(DATA_BACKUP_KEY,JSON.stringify(store))}
+function writeBackupStore(store){
+  try{
+    localStorage.setItem(DATA_BACKUP_KEY,JSON.stringify(store));
+    return true;
+  }catch(error){
+    console.warn("HELLAVERSE BACKUP SAVE FAILED",error);
+    return false;
+  }
+}
 function makeDataSnapshot(label="BACKUP"){
   saveState();
   return {
     version:2,
     label:String(label),
     at:Date.now(),
-    state:clone(state),
+    state:compactStateForStorage(state),
     prefs:clone(prefs),
     extraStorage:Object.fromEntries(AUX_STORAGE_KEYS.map(key=>[key,localStorage.getItem(key)]))
   };
@@ -1001,7 +1113,7 @@ function makeDataSnapshot(label="BACKUP"){
 function captureSafetySnapshot(label="자동 안전 백업"){
   const store=readBackupStore();
   store.safety=makeDataSnapshot(label);
-  writeBackupStore(store);
+  return writeBackupStore(store);
 }
 function readPrefs(){
   try{

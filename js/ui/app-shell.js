@@ -27,41 +27,96 @@ function showDataManager(){
   );
 }
 function saveBackupSlot(index){
-  const store=readBackupStore();
-  store.slots[index]=makeDataSnapshot("SLOT "+(index+1));
-  writeBackupStore(store);
-  showToast("세이브 슬롯 "+(index+1)+"에 저장했습니다.");
-  showDataManager();
+  try{
+    const store=readBackupStore();
+    store.slots[index]=makeDataSnapshot("SLOT "+(index+1));
+    if(!writeBackupStore(store)){
+      showToast("브라우저 저장 공간이 부족해 슬롯을 저장하지 못했습니다.");
+      return;
+    }
+    showToast("세이브 슬롯 "+(index+1)+"에 저장했습니다.");
+    showDataManager();
+  }catch(error){
+    console.error("SAVE SLOT FAILED",error);
+    closeModal();
+    alert("브라우저 저장 공간이 부족해 저장 슬롯을 만들지 못했습니다. JSON EXPORT를 사용해 백업해 주세요.");
+  }
 }
 function applyDataSnapshot(snapshot,label="백업",confirmMessage=""){
   if(!snapshot?.state)return;
   const message=confirmMessage||label+"을(를) 불러올까요? 현재 상태는 자동 안전 백업으로 보관됩니다.";
   if(!confirm(message))return;
-  captureSafetySnapshot("복원 전 자동 백업");
-  state=normalizeState(snapshot.state);
-  if(snapshot.extraStorage&&typeof snapshot.extraStorage==="object"){
-    AUX_STORAGE_KEYS.forEach(key=>{
-      const value=snapshot.extraStorage[key];
-      if(value===null||value===undefined)localStorage.removeItem(key);
-      else localStorage.setItem(key,String(value));
-    });
+
+  const previousState=clone(state);
+  const previousPrefs=clone(prefs);
+  const previousExtra=Object.fromEntries(AUX_STORAGE_KEYS.map(key=>[key,localStorage.getItem(key)]));
+  let safetySaved=false;
+
+  try{
+    safetySaved=captureSafetySnapshot("복원 전 자동 백업");
+  }catch(error){
+    console.warn("AUTO SAFETY SNAPSHOT FAILED",error);
   }
-  prefs={
-    textSpeed:clamp(snapshot.prefs?.textSpeed,0,80,24),
-    autoDelay:clamp(snapshot.prefs?.autoDelay,250,3000,900),
-    stageClick:snapshot.prefs?.stageClick!==false
-  };
-  session=createSession();
-  playback=null;
-  autoMode=false;
-  clearAuto();
-  pendingOrigin=state.profile.origin||"";
-  savePrefs();
-  saveState();
-  closeModal();
-  if(gameShell.hidden)renderStart();
-  else{updatePlayerBadge();renderPage()}
-  showToast(label+"을(를) 불러왔습니다.");
+  if(!safetySaved){
+    const proceed=confirm("현재 데이터가 커서 자동 안전 백업을 브라우저에 저장하지 못했습니다.\n\n그래도 가져오기를 계속할까요? 가능하면 먼저 JSON EXPORT를 권장합니다.");
+    if(!proceed)return;
+  }
+
+  try{
+    state=normalizeState(snapshot.state);
+    prefs={
+      textSpeed:clamp(snapshot.prefs?.textSpeed,0,80,24),
+      autoDelay:clamp(snapshot.prefs?.autoDelay,250,3000,900),
+      stageClick:snapshot.prefs?.stageClick!==false
+    };
+    session=createSession();
+    playback=null;
+    autoMode=false;
+    clearAuto();
+    pendingOrigin=state.profile.origin||"";
+
+    savePrefs();
+    saveState();
+
+    if(snapshot.extraStorage&&typeof snapshot.extraStorage==="object"){
+      AUX_STORAGE_KEYS.forEach(key=>{
+        const value=snapshot.extraStorage[key];
+        if(value===null||value===undefined)localStorage.removeItem(key);
+        else localStorage.setItem(key,String(value));
+      });
+    }
+
+    closeModal();
+    if(gameShell.hidden)renderStart();
+    else{updatePlayerBadge();renderPage()}
+    showToast(label+"을(를) 불러왔습니다.");
+  }catch(error){
+    console.error("APPLY DATA SNAPSHOT FAILED",error);
+    state=normalizeState(previousState);
+    prefs=previousPrefs;
+    session=createSession();
+    playback=null;
+    autoMode=false;
+    clearAuto();
+    pendingOrigin=state.profile.origin||"";
+
+    try{
+      savePrefs();
+      saveState();
+      AUX_STORAGE_KEYS.forEach(key=>{
+        const value=previousExtra[key];
+        if(value===null||value===undefined)localStorage.removeItem(key);
+        else localStorage.setItem(key,String(value));
+      });
+    }catch(rollbackError){
+      console.error("DATA ROLLBACK FAILED",rollbackError);
+    }
+
+    closeModal();
+    if(gameShell.hidden)renderStart();
+    else{updatePlayerBadge();renderPage()}
+    alert("백업을 저장할 브라우저 공간이 부족해서 가져오기를 취소했습니다. 화면은 이전 상태로 되돌렸습니다.\n\nJSON 파일 자체는 손상되지 않았습니다.");
+  }
 }
 function loadBackupSlot(index){
   const snap=readBackupStore().slots[index];
@@ -74,12 +129,18 @@ function restoreSafetySnapshot(){
   applyDataSnapshot(snap,"자동 안전 백업");
 }
 function exportData(){
-  const snap=makeDataSnapshot("JSON EXPORT");
-  const blob=new Blob([JSON.stringify(snap,null,2)],{type:"application/json"});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a");
-  a.href=url;a.download="hellaverse-backup.json";
-  document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+  try{
+    const snap=makeDataSnapshot("JSON EXPORT");
+    const blob=new Blob([JSON.stringify(snap,null,2)],{type:"application/json"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url;a.download="hellaverse-backup.json";
+    document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+  }catch(error){
+    console.error("EXPORT FAILED",error);
+    closeModal();
+    alert("브라우저 저장 공간 문제로 현재 상태를 먼저 정리하지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.");
+  }
 }
 function importDataFile(file){
   if(!file)return;

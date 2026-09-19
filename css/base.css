@@ -42,6 +42,7 @@ body:before{
   background-size:34px 34px
 }
 button,input,textarea,select{font:inherit}
+button,input,textarea,select,label,[role="button"]{touch-action:manipulation}
 button{cursor:pointer}
 button:disabled{opacity:.36;cursor:not-allowed}
 input,textarea,select{
