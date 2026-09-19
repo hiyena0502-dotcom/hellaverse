@@ -1,0 +1,34 @@
+/* THOUGHT */
+.thought-toolbar{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  flex-wrap:wrap;
+  padding:20px 0
+}
+.filter-chip{
+  border:1px solid var(--line);
+  border-radius:999px;
+  background:transparent;
+  color:var(--muted);
+  padding:8px 12px;
+  font-size:.72rem
+}
+.filter-chip.active{color:var(--text);border-color:rgba(201,166,107,.35)}
+.thought-groups{display:grid;gap:24px;padding-bottom:50px}
+.thought-group{border-top:1px solid var(--line)}
+.thought-group h2{
+  margin:14px 0;
+  font-family:Georgia,serif;
+  font-weight:500
+}
+.thought-card{
+  display:grid;
+  grid-template-columns:120px minmax(0,1fr);
+  gap:18px;
+  padding:16px 0;
+  border-top:1px solid rgba(243,236,232,.06)
+}
+.thought-card small{color:var(--gold);font-size:.68rem;letter-spacing:.12em}
+.thought-card p{margin:0;line-height:1.7;white-space:pre-wrap}
+.thought-locked{opacity:.45;filter:grayscale(.35)}
