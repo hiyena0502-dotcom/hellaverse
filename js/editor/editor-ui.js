@@ -1,7 +1,63 @@
 "use strict";
 /* EDITOR */
+function serializeEditorDraft(){return editorDraft?JSON.stringify(editorDraft):""}
+function updateEditorHistoryButtons(){
+  const undo=$("#editorUndoButton"),redo=$("#editorRedoButton"),restore=$("#editorRestoreButton");
+  if(undo)undo.disabled=!editorUndoStack.length;
+  if(redo)redo.disabled=!editorRedoStack.length;
+  if(restore)restore.disabled=!localStorage.getItem(EDITOR_SNAPSHOT_KEY);
+}
+function checkpointEditor(){
+  if(!editorDraft)return;
+  const snap=serializeEditorDraft();
+  if(editorUndoStack.at(-1)!==snap){
+    editorUndoStack.push(snap);
+    if(editorUndoStack.length>80)editorUndoStack.shift();
+  }
+  editorRedoStack=[];
+  updateEditorHistoryButtons();
+}
+function editorUndo(){
+  if(!editorDraft||!editorUndoStack.length)return;
+  editorRedoStack.push(serializeEditorDraft());
+  editorDraft=normalizeState(JSON.parse(editorUndoStack.pop()));
+  renderEditor();
+}
+function editorRedo(){
+  if(!editorDraft||!editorRedoStack.length)return;
+  editorUndoStack.push(serializeEditorDraft());
+  editorDraft=normalizeState(JSON.parse(editorRedoStack.pop()));
+  renderEditor();
+}
+function storeEditorRestorePoint(){
+  saveState();
+  const snap=makeDataSnapshot("EDITOR 저장 전 복구 지점");
+  localStorage.setItem(EDITOR_SNAPSHOT_KEY,JSON.stringify(snap));
+  captureSafetySnapshot("EDITOR 저장 전 자동 백업");
+}
+function restoreEditorSnapshot(){
+  const raw=localStorage.getItem(EDITOR_SNAPSHOT_KEY);
+  if(!raw){showToast("복구할 EDITOR 스냅샷이 없습니다.");return}
+  if(!confirm("마지막 EDITOR 저장 전 상태를 현재 편집 화면으로 불러올까요?"))return;
+  try{
+    checkpointEditor();
+    const snap=JSON.parse(raw);
+    editorDraft=normalizeState(snap.state||snap);
+    renderEditor();
+    showToast("마지막 저장 전 상태를 불러왔습니다.");
+  }catch{showToast("EDITOR 스냅샷을 읽지 못했습니다.")}
+}
+function isEditorMutationAction(action){
+  return /^(new-|delete-|add-|move-|duplicate-|mini-add-|mini-delete-)/.test(String(action||""));
+}
+function isEditorDeleteAction(action){
+  return /^delete-/.test(String(action||""))||/^mini-delete-/.test(String(action||""));
+}
 function openEditor(){
   editorDraft=clone(state);
+  editorUndoStack=[];
+  editorRedoStack=[];
+  editorInitialSnapshot=serializeEditorDraft();
   editorTab="dialogue";
   dialogueSubtab="characters";
   selectedEditorCharacterId=editorDraft.characters[0]?.id||"";
@@ -13,11 +69,18 @@ function openEditor(){
   editorOverlay.hidden=false;document.body.style.overflow="hidden";
   renderEditor();
 }
-function closeEditor(){
+function closeEditor(force=false){
+  if(!force&&editorDraft&&serializeEditorDraft()!==editorInitialSnapshot&&!confirm("저장하지 않은 EDITOR 변경사항이 있습니다. 닫을까요?"))return false;
   editorOverlay.hidden=true;document.body.style.overflow="";
   editorDraft=null;
+  editorUndoStack=[];
+  editorRedoStack=[];
+  editorInitialSnapshot="";
+  return true;
 }
 function saveEditor(){
+  if(!editorDraft)return;
+  storeEditorRestorePoint();
   state=normalizeState(editorDraft);
   saveState();
   session=createSession();
@@ -25,10 +88,12 @@ function saveEditor(){
   autoMode=false;
   clearAuto();
   if(selectedCharacterId&&!getCharacter(selectedCharacterId))selectedCharacterId=enabledCharacters()[0]?.id||"";
-  closeEditor();renderPage();
+  closeEditor(true);renderPage();
+  showToast("EDITOR 저장 완료 · 이전 상태는 RESTORE로 복구할 수 있습니다.");
 }
 function renderEditor(){
-  $$(".editor-nav").forEach(b=>b.classList.toggle("active",b.dataset.editorTab===editorTab));
+  updateEditorHistoryButtons();
+  $(".editor-nav").forEach(b=>b.classList.toggle("active",b.dataset.editorTab===editorTab));
   if(editorTab==="dialogue")renderDialogueEditor();
   else if(editorTab==="ask")renderAskEditor();
   else if(editorTab==="item")renderItemEditor();
