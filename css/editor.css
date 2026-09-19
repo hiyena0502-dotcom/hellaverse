@@ -434,3 +434,83 @@ details.advanced summary{cursor:pointer;color:var(--gold);font-size:.72rem}
   .editor-topbar{align-items:flex-start;flex-direction:column}
   .editor-top-actions{width:100%;justify-content:flex-start}
 }
+
+/* v15 · large editor performance */
+.editor-loading{
+  min-height:50vh;
+  display:grid;
+  place-items:center;
+  align-content:center;
+  gap:8px;
+  color:var(--muted);
+  text-align:center
+}
+.editor-loading strong{
+  color:var(--gold);
+  font-family:Georgia,serif;
+  font-size:1.6rem;
+  letter-spacing:.12em
+}
+.editor-list-search,
+.editor-list-toolbar input{min-width:0}
+.editor-list-toolbar{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:10px;
+  align-items:center;
+  margin:14px 0
+}
+.editor-list-toolbar span{
+  color:var(--muted);
+  font-size:.72rem;
+  white-space:nowrap
+}
+.editor-pager{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  margin:10px 0;
+  padding:8px 0;
+  border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line)
+}
+.editor-pager>span{
+  color:var(--muted);
+  font-size:.7rem;
+  letter-spacing:.06em
+}
+.editor-pager>div{display:flex;gap:6px}
+.editor-pager button{min-width:64px}
+.interaction-editor-row{contain:layout style}
+@media(max-width:760px){
+  .editor-overlay{
+    background:#0f0b0e;
+    backdrop-filter:none
+  }
+  .editor-shell{box-shadow:none}
+  .editor-topbar{
+    position:sticky;
+    top:0;
+    z-index:8
+  }
+  .editor-top-actions{
+    flex-wrap:nowrap;
+    overflow-x:auto;
+    padding-bottom:3px
+  }
+  .editor-top-actions button{flex:0 0 auto}
+  .editor-sidebar{
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior-x:contain
+  }
+  .editor-workspace{
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain
+  }
+  .editor-pager{
+    position:relative;
+    z-index:1
+  }
+  .editor-list-toolbar{grid-template-columns:1fr}
+}
