@@ -153,8 +153,8 @@
     const heading=region.id==="heaven"?["HEAVEN DUTIES","CITY ASSIGNMENTS"]:
       region.id==="wrath"?["WRATH CHORES","RANCH WORK"]:
       region.id==="lust"?["LUST NIGHT SHIFT","VENUE WORK"]:
-      region.id==="mammon"?["MAMMON SHOW SHIFT","GREED WORK"]:
-      region.id==="queen-bee"?["BEE PARTY SHIFT","PARTY WORK"]:
+      region.id==="mammon"?["GREED SHIFT","MONEY & SHOW WORK"]:
+      region.id==="queen-bee"?["GLUTTONY PARTY SHIFT","PARTY & BAR WORK"]:
       region.id==="imp-office"?["I.M.P OFFICE SHIFT","OFFICE WORK"]:
       ["REGION DUTIES","ASSIGNMENTS"];
     return '<section class="scene-work-dock region-work-'+esc(region.id)+'">'+
@@ -414,39 +414,48 @@
 
   function mammonMarkup(){
     return ''+
-      '<div class="mammon-sky-glow" aria-hidden="true"><i></i><i></i></div>'+
+      '<div class="mammon-sky-glow" aria-hidden="true"><i></i><i></i><i></i></div>'+
+      '<div class="mammon-factory-back" aria-hidden="true"><i class="stack s1"></i><i class="stack s2"></i><i class="stack s3"></i><span class="smoke a"></span><span class="smoke b"></span></div>'+
       '<div class="mammon-back-buildings" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>'+
+      '<div class="mammon-casino-tower" aria-hidden="true"><b>GREED</b><span class="coin"></span><i></i><i></i><i></i></div>'+
       '<div class="mammon-main-stage" aria-hidden="true">'+
         '<div class="mammon-crown"><i></i><i></i><i></i></div>'+
-        '<b>MAMMON</b><span class="stage-mouth"></span>'+
+        '<b>MAMMON&apos;S</b><small>SHOW FLOOR</small><span class="stage-mouth"></span>'+
         '<i class="stage-light l1"></i><i class="stage-light l2"></i><i class="stage-light l3"></i><i class="stage-light l4"></i>'+
       '</div>'+
       '<div class="mammon-ticket-booth" aria-hidden="true"><b>TICKETS</b><span></span><i></i></div>'+
       '<div class="mammon-prize-booth" aria-hidden="true"><b>PRIZES</b><span class="shelf"></span><i></i><i></i><i></i></div>'+
       '<div class="mammon-merch" aria-hidden="true"><b>MERCH</b><span></span><i></i><i></i></div>'+
-      '<div class="mammon-cash-kiosk" aria-hidden="true"><b>$$$</b><i></i></div>'+
+      '<div class="mammon-cash-kiosk" aria-hidden="true"><b>CASH</b><i></i></div>'+
+      '<div class="mammon-vending" aria-hidden="true"><b>BUY</b><i></i><i></i></div>'+
       '<div class="mammon-sign sign1" aria-hidden="true">$</div><div class="mammon-sign sign2" aria-hidden="true">★</div>'+
+      '<div class="mammon-coin-piles" aria-hidden="true"><i></i><i></i><i></i><i></i></div>'+
       '<div class="mammon-bollards" aria-hidden="true"><i></i><i></i><i></i><i></i></div>'+
       '<div class="mammon-ground" aria-hidden="true"></div>';
   }
 
   function queenBeeMarkup(){
     return ''+
-      '<div class="bee-sky" aria-hidden="true"><i></i><i></i><i></i><i></i></div>'+
+      '<div class="bee-sky" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>'+
+      '<div class="bee-string-lights" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>'+
       '<div class="bee-party-house" aria-hidden="true">'+
         '<div class="bee-roof"><i></i><i></i></div>'+
-        '<b>QUEEN BEE</b>'+
+        '<b>PARTY HOUSE</b><small>GLUTTONY</small>'+
         '<span class="bee-main-door"></span>'+
         '<span class="bee-window w1"></span><span class="bee-window w2"></span><span class="bee-window w3"></span>'+
+        '<span class="bee-balcony"><i></i><i></i><i></i><i></i></span>'+
       '</div>'+
       '<div class="bee-bar" aria-hidden="true"><b>HONEY BAR</b><span></span><i></i><i></i><i></i></div>'+
       '<div class="bee-dance" aria-hidden="true"><b>DANCE</b><span class="floor"></span><i></i><i></i></div>'+
       '<div class="bee-buffet" aria-hidden="true"><b>BITES</b><span></span><i></i><i></i><i></i></div>'+
+      '<div class="bee-honey-fountain" aria-hidden="true"><b></b><span></span><i></i></div>'+
+      '<div class="bee-lounge-cabana" aria-hidden="true"><b>LOUNGE</b><span></span><i></i><i></i></div>'+
+      '<div class="bee-snack-cart" aria-hidden="true"><b>SNACKS</b><span></span><i></i></div>'+
       '<div class="bee-speaker left" aria-hidden="true"><i></i><b></b></div><div class="bee-speaker right" aria-hidden="true"><i></i><b></b></div>'+
       '<div class="bee-honey-tanks" aria-hidden="true"><i></i><i></i><i></i></div>'+
       '<div class="bee-lamps" aria-hidden="true"><i></i><i></i><i></i><i></i></div>'+
       '<div class="bee-deck" aria-hidden="true"></div>'+
-      '<div class="bee-party-clutter" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>'+
+      '<div class="bee-party-clutter" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>'+
       '<div class="bee-ground" aria-hidden="true"></div>';
   }
 

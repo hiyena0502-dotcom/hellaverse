@@ -80,10 +80,10 @@ window.HV_WORLD_CONFIG = {
     {
       id:"mammon",
       type:"scene",
-      name:"MAMMON",
-      subtitle:"GREED RING · MIDWAY & SHOW FLOOR",
+      name:"GREED",
+      subtitle:"GREED RING · MAMMON'S ENTERTAINMENT DISTRICT",
       status:"OPEN",
-      description:"초록·검정·금색 조명 아래 쇼 무대, 상품 부스와 탐욕스러운 상업 간판이 몰린 마몬 구역.",
+      description:"공장, 카지노, 쇼장과 상업 간판이 겹쳐 있는 초록·검정·금색의 탐욕 고리 중심 구역.",
       activities:[
         {id:"mammon-cash-count",building:"cash",title:"CASH COUNT",detail:"매표소와 판매대 매출 정산",icon:"$",duration:65,reward:66},
         {id:"mammon-prize-restock",building:"prize",title:"PRIZE RESTOCK",detail:"경품 부스와 상품 진열 채우기",icon:"★",duration:75,reward:74},
@@ -95,10 +95,10 @@ window.HV_WORLD_CONFIG = {
     {
       id:"queen-bee",
       type:"scene",
-      name:"QUEEN BEE",
-      subtitle:"GLUTTONY RING · PARTY ESTATE",
+      name:"GLUTTONY",
+      subtitle:"GLUTTONY RING · BEE'S PARTY DISTRICT",
       status:"OPEN",
-      description:"꿀빛 조명, 파티 하우스, 바와 댄스 구역이 이어지는 퀸비의 글러트니 파티 공간.",
+      description:"파티 하우스, 바, 댄스 플로어와 음식·음료 구역이 이어지는 꿀빛 글러트니 파티 지구.",
       activities:[
         {id:"bee-bar-restock",building:"bar",title:"BAR RESTOCK",detail:"음료와 컵, 바 재고 채우기",icon:"◉",duration:65,reward:64},
         {id:"bee-dance-floor",building:"dance",title:"DANCE FLOOR",detail:"댄스 플로어와 조명 준비",icon:"♪",duration:80,reward:80},

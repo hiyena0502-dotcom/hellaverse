@@ -140,9 +140,9 @@ MISSION BOARD / FILE SORTING / MEETING PREP / DESK RESET / OFFICE CLEANUP.
 - 바닥/천장 반복선과 의미 없는 장식선을 줄여 형태를 더 명확하게 정리
 
 
-## Mammon & Queen Bee
+## Greed & Gluttony
 
-### MAMMON
+### GREED
 GREED의 상업 쇼 구역으로 추가했습니다.
 
 - 중앙 MAMMON 메인 무대
@@ -153,7 +153,7 @@ GREED의 상업 쇼 구역으로 추가했습니다.
 MAMMON SHOW SHIFT:
 CASH COUNT / PRIZE RESTOCK / STAGE CHECK / MERCH BOOTH / SIGN LIGHTS.
 
-### QUEEN BEE
+### GLUTTONY
 GLUTTONY의 파티 에스테이트로 추가했습니다.
 
 - 중앙 파티 하우스
@@ -163,3 +163,10 @@ GLUTTONY의 파티 에스테이트로 추가했습니다.
 
 BEE PARTY SHIFT:
 BAR RESTOCK / DANCE FLOOR / HONEY TABLE / SOUND CHECK / PARTY CLEANUP.
+
+
+### Ring naming correction
+WORLD 탭 이름은 캐릭터명이 아니라 죄악/고리 이름을 사용합니다.
+- MAMMON 파트 → GREED
+- QUEEN BEE 파트 → GLUTTONY
+캐릭터 이름은 각 지역 내부 시설/테마에서만 사용합니다.

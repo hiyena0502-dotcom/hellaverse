@@ -4272,3 +4272,357 @@ button.scene-task-card:hover{
 .region-work-queen-bee .scene-task-icon{color:#f1c258}
 .region-work-queen-bee .scene-task-icon{border-color:rgba(93,218,211,.34)}
 .region-work-queen-bee .scene-task-progress b{background:linear-gradient(90deg,#f0bd53,#65dcd5)}
+
+
+/* GREED RING · richer city / factory / casino pass */
+.scene-mammon{
+  --mammon-ground-line:17%;
+  background:
+    radial-gradient(circle at 48% 20%,rgba(174,231,76,.13),transparent 26%),
+    radial-gradient(circle at 80% 30%,rgba(210,176,64,.08),transparent 22%),
+    linear-gradient(180deg,#0c1b10 0%,#17371d 43%,#101f13 73%,#080d09 100%)
+}
+.mammon-sky-glow i:nth-child(3){
+  position:absolute;left:39%;top:7%;width:180px;height:90px;
+  border-radius:50%;background:rgba(218,188,77,.055);filter:blur(9px)
+}
+.mammon-factory-back{position:absolute;inset:0;z-index:2;pointer-events:none}
+.mammon-factory-back .stack{
+  position:absolute;
+  bottom:var(--mammon-ground-line);
+  width:42px;
+  border:5px solid #090d09;
+  border-bottom:0;
+  background:linear-gradient(90deg,#29372b,#152119)
+}
+.mammon-factory-back .stack:before{
+  content:"";
+  position:absolute;
+  left:-6px;right:-6px;top:18px;
+  height:10px;
+  background:#697b35;
+  border:3px solid #0a0d09
+}
+.mammon-factory-back .stack.s1{left:10%;height:220px}
+.mammon-factory-back .stack.s2{left:15%;height:174px}
+.mammon-factory-back .stack.s3{right:12%;height:205px}
+.mammon-factory-back .smoke{
+  position:absolute;
+  border-radius:50%;
+  background:rgba(54,71,51,.55)
+}
+.mammon-factory-back .smoke.a{left:8%;top:18%;width:150px;height:58px}
+.mammon-factory-back .smoke.b{right:8%;top:22%;width:130px;height:50px;opacity:.72}
+
+.mammon-casino-tower{
+  position:absolute;
+  z-index:8;
+  left:3%;
+  bottom:var(--mammon-ground-line);
+  width:150px;height:270px;
+  border:6px solid #080c08;
+  border-bottom:0;
+  background:linear-gradient(180deg,#234a28,#102414)
+}
+.mammon-casino-tower:before{
+  content:"";
+  position:absolute;
+  left:50%;top:-42px;
+  width:98px;height:56px;
+  transform:translateX(-50%);
+  border:5px solid #080c08;
+  background:#668f36;
+  clip-path:polygon(50% 0,100% 100%,0 100%)
+}
+.mammon-casino-tower>b{
+  position:absolute;
+  left:50%;top:26px;
+  transform:translateX(-50%);
+  color:#e0cd5f;
+  font-family:Georgia,serif;
+  font-size:.72rem;
+  letter-spacing:.1em
+}
+.mammon-casino-tower .coin{
+  position:absolute;
+  left:50%;top:65px;
+  width:58px;height:58px;
+  transform:translateX(-50%);
+  border:5px solid #d0b74c;
+  border-radius:50%;
+  background:#17361d
+}
+.mammon-casino-tower .coin:after{
+  content:"$";
+  position:absolute;inset:0;
+  display:grid;place-items:center;
+  color:#d8c453;
+  font-family:Georgia,serif;
+  font-size:1.55rem
+}
+.mammon-casino-tower i{
+  position:absolute;
+  left:25px;right:25px;
+  height:25px;
+  border:3px solid #6b9636;
+  background:#0a160c
+}
+.mammon-casino-tower i:nth-of-type(1){top:140px}
+.mammon-casino-tower i:nth-of-type(2){top:180px}
+.mammon-casino-tower i:nth-of-type(3){top:220px}
+
+.mammon-main-stage{
+  width:390px;height:282px;
+  left:51%;
+  background:linear-gradient(90deg,#204b25 0 14%,#0f2614 15% 85%,#204b25 86%)
+}
+.mammon-main-stage>b{top:34px;font-size:1.18rem}
+.mammon-main-stage>small{
+  position:absolute;
+  left:50%;top:65px;
+  transform:translateX(-50%);
+  color:#8eb748;
+  font-size:.42rem;
+  letter-spacing:.11em
+}
+.stage-mouth{width:198px;height:145px}
+.stage-mouth:before{width:112px;height:61px}
+.stage-mouth:after{top:36px;font-size:1.9rem}
+
+.mammon-ticket-booth{left:18%;width:138px;height:166px}
+.mammon-prize-booth{left:29%;width:160px;height:192px}
+.mammon-merch{right:18%;width:160px;height:184px}
+.mammon-cash-kiosk{right:6%;width:112px;height:148px}
+
+.mammon-vending{
+  position:absolute;
+  z-index:12;
+  right:31%;
+  bottom:var(--mammon-ground-line);
+  width:76px;height:138px;
+  border:5px solid #090d09;
+  border-bottom:0;
+  background:#1e4825
+}
+.mammon-vending>b{
+  position:absolute;
+  left:50%;top:9px;
+  transform:translateX(-50%);
+  color:#d7c85a;
+  font-size:.45rem
+}
+.mammon-vending i{
+  position:absolute;
+  left:12px;right:12px;
+  height:34px;
+  border:3px solid #6e9938;
+  background:#0b170d
+}
+.mammon-vending i:nth-of-type(1){top:35px}
+.mammon-vending i:nth-of-type(2){top:82px}
+
+.mammon-coin-piles{position:absolute;inset:0;z-index:13;pointer-events:none}
+.mammon-coin-piles i{
+  position:absolute;
+  bottom:var(--mammon-ground-line);
+  width:42px;height:14px;
+  border:3px solid #715e22;
+  border-radius:50%;
+  background:#d0b84d;
+  box-shadow:0 -8px 0 -1px #d0b84d,0 -16px 0 -2px #d0b84d
+}
+.mammon-coin-piles i:nth-child(1){left:15%}
+.mammon-coin-piles i:nth-child(2){left:44%;transform:scale(.8)}
+.mammon-coin-piles i:nth-child(3){right:27%}
+.mammon-coin-piles i:nth-child(4){right:2%;transform:scale(.72)}
+
+.region-work-mammon .scene-work-head span:before{content:"GREED · "}
+
+
+/* GLUTTONY RING · richer party district */
+.scene-queen-bee{
+  --bee-ground-line:16%;
+  background:
+    radial-gradient(circle at 50% 18%,rgba(255,209,91,.22),transparent 27%),
+    radial-gradient(circle at 19% 34%,rgba(100,223,215,.10),transparent 18%),
+    linear-gradient(180deg,#54255d 0%,#8e3c6c 34%,#e27b59 68%,#50304b 100%)
+}
+.bee-string-lights{
+  position:absolute;
+  z-index:8;
+  left:5%;right:5%;
+  top:17%;
+  height:70px;
+  border-top:3px solid rgba(73,39,68,.8);
+  border-radius:50%;
+  pointer-events:none
+}
+.bee-string-lights i{
+  position:absolute;
+  top:-4px;
+  width:11px;height:17px;
+  border-radius:50% 50% 45% 45%;
+  background:#ffd061;
+  box-shadow:0 0 10px rgba(255,210,95,.4)
+}
+.bee-string-lights i:nth-child(1){left:4%}
+.bee-string-lights i:nth-child(2){left:17%;top:7px;background:#69ddd7}
+.bee-string-lights i:nth-child(3){left:31%;top:15px}
+.bee-string-lights i:nth-child(4){left:45%;top:20px;background:#69ddd7}
+.bee-string-lights i:nth-child(5){right:45%;top:20px}
+.bee-string-lights i:nth-child(6){right:31%;top:15px;background:#69ddd7}
+.bee-string-lights i:nth-child(7){right:17%;top:7px}
+.bee-string-lights i:nth-child(8){right:4%;background:#69ddd7}
+
+.bee-party-house{
+  width:390px;height:270px;
+  background:linear-gradient(90deg,#e68458 0 14%,#f3b759 15% 85%,#e68458 86%)
+}
+.bee-party-house>b{top:47px;font-size:.9rem}
+.bee-party-house>small{
+  position:absolute;
+  left:50%;top:72px;
+  transform:translateX(-50%);
+  color:#8a476f;
+  font-size:.42rem;
+  letter-spacing:.12em
+}
+.bee-main-door{width:102px;height:134px}
+.bee-window{top:108px;width:59px;height:73px}
+.bee-window.w1{left:31px}.bee-window.w2{right:31px}
+.bee-balcony{
+  position:absolute;
+  left:28px;right:28px;
+  top:89px;
+  height:19px;
+  border-bottom:4px solid #5d3155
+}
+.bee-balcony i{
+  display:inline-block;
+  width:4px;height:17px;
+  margin-left:48px;
+  background:#5d3155
+}
+
+.bee-bar{left:4%;width:190px;height:165px}
+.bee-buffet{right:4%;width:185px;height:158px}
+.bee-dance{width:286px;height:72px}
+
+.bee-honey-fountain{
+  position:absolute;
+  z-index:13;
+  left:23%;
+  bottom:var(--bee-ground-line);
+  width:105px;height:116px
+}
+.bee-honey-fountain>b{
+  position:absolute;
+  left:50%;bottom:0;
+  width:100px;height:24px;
+  transform:translateX(-50%);
+  border:4px solid #4d2948;
+  border-radius:50%;
+  background:#e58a54
+}
+.bee-honey-fountain>span{
+  position:absolute;
+  left:50%;bottom:21px;
+  width:54px;height:46px;
+  transform:translateX(-50%);
+  border:4px solid #4d2948;
+  border-radius:50%;
+  background:#f2bb52
+}
+.bee-honey-fountain>i{
+  position:absolute;
+  left:50%;bottom:61px;
+  width:12px;height:48px;
+  transform:translateX(-50%);
+  border-radius:7px;
+  background:#f6ca59
+}
+.bee-honey-fountain>i:after{
+  content:"";
+  position:absolute;
+  left:50%;top:-11px;
+  width:48px;height:23px;
+  transform:translateX(-50%);
+  border:4px solid #4d2948;
+  border-radius:50%;
+  background:#f6ca59
+}
+
+.bee-lounge-cabana{
+  position:absolute;
+  z-index:10;
+  right:20%;
+  bottom:calc(var(--bee-ground-line) + 27px);
+  width:142px;height:126px;
+  border:5px solid #4c294a;
+  border-bottom:0;
+  border-radius:50% 50% 0 0;
+  background:#7eddd6
+}
+.bee-lounge-cabana>b{
+  position:absolute;
+  left:50%;top:13px;
+  transform:translateX(-50%);
+  color:#673856;
+  font-size:.46rem;
+  letter-spacing:.08em
+}
+.bee-lounge-cabana span{
+  position:absolute;
+  left:16px;right:16px;bottom:0;
+  height:49px;
+  border-radius:18px 18px 0 0;
+  background:#d86b6a
+}
+.bee-lounge-cabana i{
+  position:absolute;
+  bottom:15px;
+  width:28px;height:28px;
+  border-radius:50%;
+  background:#f5be55;
+  border:3px solid #5c3150
+}
+.bee-lounge-cabana i:nth-of-type(1){left:25px}
+.bee-lounge-cabana i:nth-of-type(2){right:25px}
+
+.bee-snack-cart{
+  position:absolute;
+  z-index:12;
+  left:34%;
+  bottom:var(--bee-ground-line);
+  width:104px;height:92px;
+  border:5px solid #4b2946;
+  background:#e67a5b
+}
+.bee-snack-cart>b{
+  position:absolute;
+  left:50%;top:8px;
+  transform:translateX(-50%);
+  color:#5f3150;
+  font-size:.42rem
+}
+.bee-snack-cart span{
+  position:absolute;
+  left:12px;right:12px;top:28px;
+  height:34px;
+  background:#f6c45a;
+  border:3px solid #5e3150
+}
+.bee-snack-cart i{
+  position:absolute;
+  left:50%;bottom:-12px;
+  width:18px;height:18px;
+  transform:translateX(-50%);
+  border:4px solid #4a2945;
+  border-radius:50%;
+  background:#36213b
+}
+
+.bee-party-clutter i:nth-child(6){left:10%;height:20px;background:#f2b657}
+.bee-party-clutter i:nth-child(7){right:11%;height:26px;background:#69dbd5}
+
+.region-work-queen-bee .scene-work-head span:before{content:"GLUTTONY · "}
