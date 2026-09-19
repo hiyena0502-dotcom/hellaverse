@@ -77,18 +77,36 @@
 
   function hotelPropMarkup(id){
     if(id==="lobby"){
-      return '<div class="hotel-props lobby-props" aria-hidden="true"><span class="hotel-chandelier">♥</span><span class="hotel-frontdesk"></span><span class="hotel-luggage"></span><span class="hotel-door"></span></div>';
+      return '<div class="hotel-props lobby-props" aria-hidden="true">'+
+        '<span class="hotel-chandelier">♥</span><span class="hotel-frontdesk"></span><span class="hotel-luggage"></span><span class="hotel-door"></span>'+
+        '<span class="hotel-staircase"></span><span class="hotel-piano"></span><span class="hotel-piano-seat"></span>'+
+        '<span class="hotel-lobby-column one"></span><span class="hotel-lobby-column two"></span>'+
+      '</div>';
     }
     if(id==="bar"){
-      return '<div class="hotel-props bar-props" aria-hidden="true"><span class="hotel-stage"></span><span class="hotel-mic"></span><span class="hotel-bar"></span><span class="hotel-bottles">◆ ◆ ◆</span></div>';
+      return '<div class="hotel-props bar-props" aria-hidden="true">'+
+        '<span class="hotel-curtain left"></span><span class="hotel-curtain right"></span><span class="hotel-stage"></span><span class="hotel-mic"></span>'+
+        '<span class="hotel-bar"></span><span class="hotel-bottles">◆ ◆ ◆</span><span class="hotel-stool one"></span><span class="hotel-stool two"></span>'+
+        '<span class="hotel-jukebox">♪</span>'+
+      '</div>';
     }
     if(id==="lounge"){
-      return '<div class="hotel-props lounge-props" aria-hidden="true"><span class="hotel-sofa"></span><span class="hotel-table"></span><span class="hotel-lamp"></span><span class="hotel-frame">♡</span></div>';
+      return '<div class="hotel-props lounge-props" aria-hidden="true">'+
+        '<span class="hotel-sofa"></span><span class="hotel-sidechair"></span><span class="hotel-table"></span><span class="hotel-lamp"></span>'+
+        '<span class="hotel-frame">♡</span><span class="hotel-rug"></span><span class="hotel-plant"></span>'+
+      '</div>';
     }
     if(id==="suites"){
-      return '<div class="hotel-props suites-props" aria-hidden="true"><span class="hotel-roomdoor"></span><span class="hotel-roomdoor second"></span><span class="hotel-roomdoor third"></span><span class="hotel-runner"></span></div>';
+      return '<div class="hotel-props suites-props" aria-hidden="true">'+
+        '<span class="hotel-roomdoor"></span><span class="hotel-roomdoor second"></span><span class="hotel-roomdoor third"></span>'+
+        '<span class="hotel-runner"></span><span class="hotel-sconce one">♥</span><span class="hotel-sconce two">♥</span>'+
+        '<span class="hotel-side-table"></span><span class="hotel-vase">◆</span>'+
+      '</div>';
     }
-    return '<div class="hotel-props penthouse-props" aria-hidden="true"><span class="hotel-throne"></span><span class="hotel-window"></span><span class="hotel-desk"></span><span class="hotel-apple">◆</span></div>';
+    return '<div class="hotel-props penthouse-props" aria-hidden="true">'+
+      '<span class="hotel-throne"></span><span class="hotel-window"></span><span class="hotel-desk"></span><span class="hotel-apple">◆</span>'+
+      '<span class="hotel-books"></span><span class="hotel-telescope"></span><span class="hotel-penthouse-lamp"></span>'+
+    '</div>';
   }
 
   function actorMarkup(character,index,floorIndex,settings){
@@ -121,7 +139,11 @@
         '<span>'+esc(floor.number)+'</span><strong>'+esc(floorDisplayName(floor,settings))+'</strong><small>VIEW</small>'+
       '</button>'+
       '<div class="hotel-floor-interior">'+
+        '<div class="hotel-ceiling-trim"><i></i><i></i><i></i><i></i><i></i></div>'+
+        '<div class="hotel-wall-filigree left"></div><div class="hotel-wall-filigree right"></div>'+
         '<div class="hotel-room room-left"></div><div class="hotel-room room-center"></div><div class="hotel-room room-right"></div>'+
+        '<div class="hotel-column-set"><i></i><i></i><i></i><i></i></div>'+
+        '<div class="hotel-balcony-rail"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>'+
         '<div class="hotel-elevator"><span></span><span></span></div>'+
         hotelPropMarkup(floor.id)+
         '<div class="hotel-actors">'+actors+'</div>'+
@@ -131,16 +153,23 @@
 
   function hotelCrown(){
     return '<div class="hotel-crown" aria-hidden="true">'+
-      '<div class="hotel-rays"><i></i><i></i><i></i><i></i><i></i></div>'+
-      '<div class="hotel-sign"><b>HAZBIN</b><span>HOTEL</span></div>'+
+      '<div class="hotel-rays"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>'+
+      '<div class="hotel-crown-wing left"><i></i><i></i><i></i></div><div class="hotel-crown-wing right"><i></i><i></i><i></i></div>'+
+      '<div class="hotel-sign"><b>HAZBIN</b><span>HOTEL</span><em></em></div>'+
       '<div class="hotel-eye"><i></i></div>'+
       '<div class="hotel-horns left"></div><div class="hotel-horns right"></div>'+
+      '<div class="hotel-marquee-bulbs"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>'+
     '</div>';
   }
 
   function hotelFacadeDecor(){
     return '<div class="hotel-side-decor left" aria-hidden="true"><i>♥</i><i>♦</i><i>♣</i></div>'+
       '<div class="hotel-side-decor right" aria-hidden="true"><i></i><i></i><i></i></div>'+
+      '<div class="hotel-outer-tower left" aria-hidden="true"><b>♥</b><i></i><i></i><i></i></div>'+
+      '<div class="hotel-outer-tower right" aria-hidden="true"><b>♥</b><i></i><i></i><i></i></div>'+
+      '<div class="hotel-roof-fin left" aria-hidden="true"></div><div class="hotel-roof-fin right" aria-hidden="true"></div>'+
+      '<div class="hotel-vertical-sign" aria-hidden="true"><span>H</span><span>O</span><span>T</span><span>E</span><span>L</span></div>'+
+      '<div class="hotel-entrance-marquee" aria-hidden="true"><i></i><b>♥</b><i></i></div>'+
       '<div class="hotel-music-line" aria-hidden="true">♪ · ♫ · ♪ · ♫</div>';
   }
 
@@ -167,8 +196,10 @@
           '<button class="ghost-button" type="button" data-action="hotel-settings">HOTEL SETTINGS</button></div>'+
         '</header>'+
         '<div class="hotel-scene-shell">'+
-          '<div class="hotel-sky" aria-hidden="true"><span></span><span></span><span></span><span></span></div>'+
+          '<div class="hotel-sky" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span></div>'+
+          '<div class="hotel-city-silhouette" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>'+
           '<div class="hotel-ground-glow" aria-hidden="true"></div>'+
+          '<div class="hotel-street-foreground" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>'+
           '<div class="hotel-building">'+
             hotelCrown()+hotelFacadeDecor()+
             '<div class="hotel-cutaway">'+floors+'</div>'+
