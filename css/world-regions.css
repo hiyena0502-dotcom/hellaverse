@@ -2086,3 +2086,276 @@ button.scene-task-card:hover{
     radial-gradient(circle at 25% 20%,rgba(255,207,133,.17),transparent 20%),
     linear-gradient(180deg,#91543c 0%,#633429 55%,#4b261f 100%)
 }
+
+
+/* WRATH GROUND ALIGNMENT + LANDMARKS
+   One shared ground line prevents floating props. */
+.scene-wrath{
+  --wrath-ground-line:15.5%;
+  --wrath-back-line:23%;
+}
+
+/* ground is drawn first; all foreground props sit on the same baseline */
+.scene-wrath .wrath-ground{
+  left:-4%;
+  right:-4%;
+  bottom:-10%;
+  height:34%;
+  z-index:0;
+  border-radius:46% 46% 0 0 / 10% 10% 0 0;
+  background:
+    radial-gradient(ellipse at 28% 12%,rgba(235,158,91,.18),transparent 24%),
+    radial-gradient(ellipse at 76% 26%,rgba(65,29,25,.12),transparent 25%),
+    linear-gradient(180deg,#8c4d38 0%,#6c382c 46%,#4c261f 100%)
+}
+
+/* distant volcano sits exactly on the desert horizon */
+.wrath-volcano-new{
+  position:absolute;
+  z-index:3;
+  left:5%;
+  bottom:var(--wrath-back-line);
+  width:270px;
+  height:188px;
+  pointer-events:none;
+  background:linear-gradient(90deg,#3f201f,#542725 48%,#3b1d1d);
+  clip-path:polygon(0 100%,20% 63%,32% 48%,42% 21%,50% 29%,59% 0,68% 34%,79% 52%,100% 100%)
+}
+.wrath-volcano-new:after{
+  content:"";
+  position:absolute;
+  left:51%;
+  top:47px;
+  width:13px;
+  height:104px;
+  transform:rotate(7deg);
+  background:linear-gradient(#d7613f,#8d352b 65%,transparent);
+  opacity:.75;
+  clip-path:polygon(25% 0,100% 0,62% 42%,100% 100%,18% 73%,48% 36%)
+}
+.wrath-volcano-new .rim{
+  position:absolute;
+  left:52%;
+  top:37px;
+  width:57px;
+  height:20px;
+  transform:translateX(-50%);
+  border-radius:50%;
+  background:#2b1717;
+  box-shadow:inset 0 5px 0 #a54231
+}
+.wrath-volcano-new .smoke{
+  position:absolute;
+  border-radius:50%;
+  background:rgba(91,54,51,.45);
+  filter:blur(.5px)
+}
+.wrath-volcano-new .smoke.s1{left:137px;top:2px;width:48px;height:31px}
+.wrath-volcano-new .smoke.s2{left:159px;top:-22px;width:63px;height:39px;opacity:.75}
+.wrath-volcano-new .smoke.s3{left:190px;top:-44px;width:48px;height:30px;opacity:.45}
+
+/* back town is on the horizon, not floating above it */
+.scene-wrath .wrath-low-town{
+  left:7%;
+  right:6%;
+  bottom:var(--wrath-back-line);
+  height:124px;
+  z-index:5
+}
+.scene-wrath .wrath-house{bottom:0}
+.scene-wrath .wrath-water-tower{bottom:0}
+
+/* ranch is one flat stage; every child uses bottom:0 unless intentionally stacked */
+.scene-wrath .wrath-ranch-strip{
+  left:6%;
+  right:5%;
+  bottom:var(--wrath-ground-line);
+  height:222px;
+  z-index:10
+}
+.scene-wrath .wrath-ranch-house{
+  left:1%;
+  bottom:0;
+  width:164px;
+  height:104px
+}
+.scene-wrath .wrath-stable{
+  left:35%;
+  bottom:0;
+  width:286px;
+  height:148px
+}
+.scene-wrath .wrath-corral{
+  bottom:0;
+  height:82px
+}
+.scene-wrath .wrath-corral.left{
+  left:18%;
+  width:154px;
+  transform:skewX(-3deg)
+}
+.scene-wrath .wrath-corral.right{
+  right:19%;
+  width:145px;
+  transform:skewX(3deg)
+}
+
+/* large ranch gate */
+.wrath-ranch-gate-new{
+  position:absolute;
+  right:0;
+  bottom:0;
+  width:238px;
+  height:174px
+}
+.wrath-ranch-gate-new .post{
+  position:absolute;
+  bottom:0;
+  width:20px;
+  height:132px;
+  border:4px solid #241412;
+  background:linear-gradient(90deg,#3a201b,#68402d 48%,#35201a)
+}
+.wrath-ranch-gate-new .post.left{left:15px}
+.wrath-ranch-gate-new .post.right{right:15px}
+.wrath-ranch-gate-new .post:after{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:-14px;
+  width:30px;
+  height:18px;
+  transform:translateX(-50%);
+  background:#4b2b20;
+  border:3px solid #241412;
+  clip-path:polygon(50% 0,100% 100%,0 100%)
+}
+.wrath-ranch-gate-new .gate-arch{
+  position:absolute;
+  left:22px;
+  right:22px;
+  top:14px;
+  height:90px;
+  border-top:11px solid #35201a;
+  border-radius:50% 50% 0 0;
+  transform:rotate(-1deg)
+}
+.wrath-ranch-gate-new .gate-arch:after{
+  content:"";
+  position:absolute;
+  left:18px;
+  right:18px;
+  top:18px;
+  height:24px;
+  border:4px solid #251412;
+  background:#5d3928;
+  transform:rotate(1deg)
+}
+.wrath-ranch-gate-new b{
+  position:absolute;
+  z-index:2;
+  left:50%;
+  top:42px;
+  width:160px;
+  transform:translateX(-50%) rotate(-1deg);
+  color:#e0a668;
+  font-family:Georgia,serif;
+  font-size:.54rem;
+  letter-spacing:.08em;
+  text-align:center;
+  white-space:nowrap
+}
+.wrath-ranch-gate-new em{
+  position:absolute;
+  left:50%;
+  bottom:0;
+  width:136px;
+  height:68px;
+  transform:translateX(-50%);
+  border:5px solid #392119;
+  border-bottom:0;
+  background:
+    linear-gradient(32deg,transparent 47%,#553322 48% 52%,transparent 53%),
+    linear-gradient(-32deg,transparent 47%,#553322 48% 52%,transparent 53%);
+  opacity:.9
+}
+
+/* hay: all anchored to the ranch baseline */
+.scene-wrath .wrath-hay{
+  bottom:0;
+  z-index:4
+}
+.scene-wrath .wrath-hay.bale{
+  width:44px;
+  height:25px;
+  border:3px solid #8a5a22;
+  border-radius:5px;
+  background:repeating-linear-gradient(90deg,#efc465 0 5px,#d7a13f 6px 9px)
+}
+.scene-wrath .wrath-hay.bale:after{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:-3px;
+  bottom:-3px;
+  width:3px;
+  background:#9b6828
+}
+.scene-wrath .wrath-hay.round{
+  width:43px;
+  height:43px;
+  border:3px solid #875820;
+  border-radius:50%;
+  background:repeating-radial-gradient(circle,#edc263 0 3px,#d49d3b 4px 7px)
+}
+.scene-wrath .wrath-hay.h1{left:30%}
+.scene-wrath .wrath-hay.h2{left:59%}
+.scene-wrath .wrath-hay.h3{right:20%}
+.scene-wrath .wrath-hay.h4{left:26%;bottom:25px}
+.scene-wrath .wrath-hay.h5{right:15%;bottom:0}
+
+.wrath-haystack{
+  position:absolute;
+  left:64%;
+  bottom:0;
+  width:92px;
+  height:72px
+}
+.wrath-haystack i{
+  position:absolute;
+  bottom:0;
+  width:44px;
+  height:25px;
+  border:3px solid #89591f;
+  border-radius:5px;
+  background:repeating-linear-gradient(90deg,#f0c668 0 5px,#dba643 6px 9px)
+}
+.wrath-haystack i:nth-child(1){left:0}
+.wrath-haystack i:nth-child(2){right:0}
+.wrath-haystack i:nth-child(3){left:24px;bottom:28px}
+.wrath-trough{bottom:0;right:30%}
+
+/* cacti / rocks / foreground fence share the same terrain, not separate floating bands */
+.scene-wrath .wrath-cacti i{bottom:calc(var(--wrath-ground-line) - 1%)}
+.scene-wrath .wrath-rocks i{bottom:calc(var(--wrath-ground-line) - 1.5%)}
+.scene-wrath .wrath-fence{
+  bottom:calc(var(--wrath-ground-line) - 2%);
+  height:44px
+}
+
+/* keep actors visibly standing on the ranch ground */
+.scene-wrath .world-scene-actor{
+  --scene-y:15.5%
+}
+
+/* WRATH work UI */
+.region-work-wrath{
+  border-color:rgba(213,135,68,.28);
+  background:linear-gradient(180deg,rgba(83,42,31,.48),rgba(27,15,15,.55))
+}
+.region-work-wrath .scene-work-head span,
+.region-work-wrath .scene-task-icon{color:#e7a05c}
+.region-work-wrath .scene-task-icon{border-color:rgba(226,155,84,.32)}
+.region-work-wrath .scene-task-progress b{
+  background:linear-gradient(90deg,#b64d35,#eca35e)
+}

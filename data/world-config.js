@@ -6,7 +6,7 @@
  * 이후 Heaven / Imp City / 각 Ring은 regions 배열에 같은 구조로 추가할 수 있습니다.
  */
 window.HV_WORLD_CONFIG = {
-  schemaVersion: 4,
+  schemaVersion: 5,
   defaultRegion: "hotel",
   regions: [
     {
@@ -53,7 +53,14 @@ window.HV_WORLD_CONFIG = {
       name:"WRATH",
       subtitle:"WRATH RING · RANCHLAND",
       status:"OPEN",
-      description:"주황빛 하늘 아래 목장과 농장, 거친 울타리와 바위 지형이 이어지는 분노의 고리."
+      description:"주황빛 하늘 아래 낮은 마을, 화산과 큰 목장 게이트, 마굿간과 사막 목장이 이어지는 분노의 고리.",
+      activities:[
+        {id:"wrath-stable-care",building:"stable",title:"STABLE CARE",detail:"마굿간 바닥과 말칸 정리",icon:"♞",duration:70,reward:68},
+        {id:"wrath-hay-stacking",building:"hay",title:"HAY STACKING",detail:"건초 묶음을 창고 옆에 쌓기",icon:"▧",duration:55,reward:54},
+        {id:"wrath-fence-repair",building:"fence",title:"FENCE REPAIR",detail:"목장 울타리와 우리 보수",icon:"╫",duration:85,reward:80},
+        {id:"wrath-water-trough",building:"trough",title:"WATER TROUGH",detail:"급수통 채우고 주변 정리",icon:"◒",duration:60,reward:58},
+        {id:"wrath-ranch-round",building:"ranch",title:"RANCH ROUND",detail:"목장 전체를 한 바퀴 점검",icon:"✦",duration:95,reward:90}
+      ]
     },
     {
       id:"lust",

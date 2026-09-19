@@ -83,3 +83,19 @@ Heaven은 입구 문을 전면에 두는 장면에서, 문 뒤의 실제 도심�
 
 천국 업무는 `hellaverse-world-scene-work-v1`에 진행 상태와 종료 시간을 저장합니다.
 완료 시 HOTEL WORK와 동일한 가챠 재화 잔액에 보상이 자동 지급됩니다.
+
+
+## Wrath ranch update
+
+WRATH는 낮은 사막 마을과 목장 중심으로 재정렬했습니다.
+
+- 멀리 화산과 메사/사막 능선
+- 낮은 집들과 물탱크
+- 큰 RANCH GATE
+- 목장집, 마굿간, 양쪽 우리
+- 네모/원형 건초 묶음과 건초 더미
+- 급수통, 선인장, 바위, 전경 울타리
+- 모든 주요 소품은 하나의 ground line에 맞춰 바닥에 붙도록 배치
+
+WRATH CHORES:
+STABLE CARE / HAY STACKING / FENCE REPAIR / WATER TROUGH / RANCH ROUND.
