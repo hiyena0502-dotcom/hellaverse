@@ -128,3 +128,13 @@ I.M.P OFFICE는 기존보다 가구와 벽 장식 크기를 줄이고 한 화면
 
 I.M.P OFFICE SHIFT:
 MISSION BOARD / FILE SORTING / MEETING PREP / DESK RESET / OFFICE CLEANUP.
+
+
+### I.M.P visual pass
+
+- 붉은 벽 트림과 붉은 가구 포인트 강화
+- STALLION 말 포스터 추가
+- 비노골적인 성인 핀업 스타일 포스터 2종 추가
+- 책상을 좌측 작업 구역, 회의 테이블을 우측 회의 구역으로 재배치
+- 컵, 서류, 테이크아웃 상자, 박스, 케이블 등 지저분한 소품 추가
+- 바닥/천장 반복선과 의미 없는 장식선을 줄여 형태를 더 명확하게 정리

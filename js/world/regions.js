@@ -413,25 +413,48 @@
   function impOfficeMarkup(){
     return ''+
       '<div class="imp-back-wall" aria-hidden="true"></div>'+
+      '<div class="imp-red-trim" aria-hidden="true"></div>'+
       '<div class="imp-ceiling" aria-hidden="true"><i></i><b></b></div>'+
       '<div class="imp-logo-plaque" aria-hidden="true"><b>I.M.P</b><span>IMMEDIATE MURDER PROFESSIONALS</span></div>'+
+
+      '<div class="imp-poster horse" aria-hidden="true">'+
+        '<span class="horse-head"><i></i></span><b>STALLION</b><em>RIDE HARD</em>'+
+      '</div>'+
+      '<div class="imp-poster pinup p1" aria-hidden="true">'+
+        '<span class="pinup-body"><i></i><em></em></span><b>HELL&apos;S HOTTEST</b>'+
+      '</div>'+
+      '<div class="imp-poster pinup p2" aria-hidden="true">'+
+        '<span class="pinup-body"><i></i><em></em></span><b>NIGHT SHIFT</b>'+
+      '</div>'+
+
       '<div class="imp-whiteboard" aria-hidden="true"><b>TO-DO</b><span>CLIENTS · JOBS · TARGETS</span><i></i><em></em></div>'+
-      '<div class="imp-portrait p1" aria-hidden="true"><i></i></div>'+
-      '<div class="imp-portrait p2" aria-hidden="true"><i></i></div>'+
       '<div class="imp-bulletin" aria-hidden="true"><b>MISSIONS</b><i></i><i></i><i></i><i></i><span></span></div>'+
       '<div class="imp-file-cabinet" aria-hidden="true"><i></i><i></i><i></i></div>'+
       '<div class="imp-exit-door" aria-hidden="true"><b>EXIT</b><i></i><em></em></div>'+
-      '<div class="imp-side-shelf" aria-hidden="true"><i></i><i></i><i></i><b></b></div>'+
-      '<div class="imp-coat-rack" aria-hidden="true"><i></i><b></b></div>'+
-      '<div class="imp-desk" aria-hidden="true">'+
-        '<b>I.M.P</b><span class="monitor"></span><i class="papers"></i><em class="phone"></em><strong class="lamp"></strong>'+
+
+      '<div class="imp-desk-zone" aria-hidden="true">'+
+        '<div class="imp-desk">'+
+          '<b>I.M.P</b><span class="monitor"></span><i class="papers"></i><em class="phone"></em><strong class="lamp"></strong>'+
+          '<span class="mug"></span><span class="takeout"></span>'+
+        '</div>'+
+        '<div class="imp-chair boss"></div>'+
+        '<div class="imp-side-shelf"><i></i><i></i><i></i><b></b></div>'+
       '</div>'+
-      '<div class="imp-chair boss" aria-hidden="true"></div>'+
+
       '<div class="imp-meeting-area" aria-hidden="true">'+
-        '<div class="imp-meeting-table"><i></i><b></b><em></em></div>'+
+        '<div class="imp-meeting-table"><i></i><b></b><em></em><span></span></div>'+
         '<div class="imp-chair c1"></div><div class="imp-chair c2"></div><div class="imp-chair c3"></div>'+
+        '<div class="imp-floor-box box1"><i></i></div><div class="imp-floor-box box2"><i></i></div>'+
       '</div>'+
+
+      '<div class="imp-coat-rack" aria-hidden="true"><i></i><b></b></div>'+
       '<div class="imp-trash" aria-hidden="true"><i></i><i></i></div>'+
+      '<div class="imp-floor-clutter" aria-hidden="true">'+
+        '<span class="paper p1"></span><span class="paper p2"></span><span class="paper p3"></span>'+
+        '<span class="cup c1"></span><span class="cup c2"></span>'+
+        '<span class="box b1"><i></i></span><span class="box b2"><i></i></span>'+
+        '<span class="cable"></span>'+
+      '</div>'+
       '<div class="imp-floor" aria-hidden="true"></div>';
   }
 

@@ -3230,3 +3230,462 @@ button.scene-task-card:hover{
 .region-work-imp-office .scene-task-progress b{
   background:linear-gradient(90deg,#913441,#d96e77)
 }
+
+
+/* I.M.P OFFICE CHAOTIC RED PASS · posters, clutter, cleaner geometry */
+
+/* remove decorative stripe noise / meaningless seams */
+.scene-imp-office .imp-back-wall{
+  background:
+    radial-gradient(circle at 18% 20%,rgba(167,45,55,.11),transparent 24%),
+    radial-gradient(circle at 82% 38%,rgba(118,25,35,.09),transparent 24%),
+    linear-gradient(180deg,#3a292d 0%,#4a2d32 100%);
+  border-bottom:6px solid #211416
+}
+.scene-imp-office .imp-floor{
+  background:linear-gradient(180deg,#352124 0%,#211518 100%);
+  border-top:4px solid #140d0f
+}
+.scene-imp-office .imp-ceiling{
+  background:linear-gradient(180deg,#2e2427,#21191b);
+  border-bottom:3px solid #1d1416
+}
+.scene-imp-office .imp-ceiling b{display:none}
+
+/* stronger red architectural accents */
+.imp-red-trim{
+  position:absolute;
+  z-index:3;
+  left:2%;
+  right:2%;
+  top:11.5%;
+  height:5px;
+  background:#7f2530;
+  box-shadow:
+    0 4px 0 #261416,
+    0 0 16px rgba(160,44,57,.16);
+  pointer-events:none
+}
+.imp-red-trim:after{
+  content:"";
+  position:absolute;
+  left:7%;
+  right:7%;
+  top:114px;
+  height:3px;
+  background:#6e222c;
+  opacity:.7
+}
+
+/* logo plaque: more red, less neutral */
+.imp-logo-plaque{
+  border-color:#1b1113;
+  background:linear-gradient(180deg,#471f25,#2d1a1e);
+  color:#e15e69;
+  box-shadow:
+    inset 0 0 0 2px #7e2c35,
+    0 0 15px rgba(186,54,68,.12)
+}
+.imp-logo-plaque span{color:#d2a3a0}
+
+/* poster wall */
+.imp-poster{
+  position:absolute;
+  z-index:5;
+  overflow:hidden;
+  border:5px solid #1b1113;
+  background:#241619;
+  box-shadow:
+    inset 0 0 0 2px #6e2932,
+    0 5px 8px rgba(0,0,0,.16);
+  transform-origin:center;
+  pointer-events:none
+}
+.imp-poster>b{
+  position:absolute;
+  left:6px;
+  right:6px;
+  bottom:5px;
+  color:#e67278;
+  font-family:Georgia,serif;
+  font-size:.38rem;
+  letter-spacing:.07em;
+  text-align:center;
+  white-space:nowrap
+}
+.imp-poster.horse{
+  left:22%;
+  top:15%;
+  width:82px;
+  height:112px;
+  transform:rotate(-2deg);
+  background:linear-gradient(180deg,#3b1e21,#6a2b31)
+}
+.imp-poster.horse>em{
+  position:absolute;
+  left:0;right:0;
+  top:9px;
+  color:#d5a083;
+  font-size:.28rem;
+  font-style:normal;
+  letter-spacing:.08em;
+  text-align:center
+}
+.horse-head{
+  position:absolute;
+  left:50%;
+  top:30px;
+  width:48px;
+  height:58px;
+  transform:translateX(-50%);
+  background:#171114;
+  clip-path:polygon(30% 4%,47% 17%,63% 0,77% 9%,72% 26%,90% 43%,76% 92%,52% 100%,28% 88%,12% 44%,23% 25%)
+}
+.horse-head:before,
+.horse-head:after{
+  content:"";
+  position:absolute;
+  top:6px;
+  width:16px;
+  height:26px;
+  background:#171114
+}
+.horse-head:before{left:-6px;transform:rotate(-24deg);clip-path:polygon(0 0,100% 34%,65% 100%)}
+.horse-head:after{right:-6px;transform:rotate(24deg);clip-path:polygon(100% 0,0 34%,35% 100%)}
+.horse-head i{
+  position:absolute;
+  left:50%;
+  top:29px;
+  width:7px;
+  height:7px;
+  transform:translateX(-50%);
+  border-radius:50%;
+  background:#b83e49;
+  box-shadow:-13px -2px 0 #b83e49,13px -2px 0 #b83e49
+}
+
+/* non-explicit adult pin-up silhouettes */
+.imp-poster.pinup{
+  width:74px;
+  height:108px;
+  background:
+    radial-gradient(circle at 50% 35%,rgba(216,59,88,.22),transparent 33%),
+    linear-gradient(180deg,#30181e,#4b2029);
+}
+.imp-poster.pinup.p1{
+  left:31%;
+  top:15.5%;
+  transform:rotate(2deg)
+}
+.imp-poster.pinup.p2{
+  right:31%;
+  top:15%;
+  transform:rotate(-2deg)
+}
+.pinup-body{
+  position:absolute;
+  left:50%;
+  top:17px;
+  width:36px;
+  height:66px;
+  transform:translateX(-50%)
+}
+.pinup-body:before{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:0;
+  width:16px;
+  height:16px;
+  transform:translateX(-50%);
+  border-radius:50%;
+  background:#d35f68
+}
+.pinup-body:after{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:14px;
+  width:28px;
+  height:43px;
+  transform:translateX(-50%);
+  background:#d35f68;
+  clip-path:polygon(32% 0,68% 0,82% 20%,68% 48%,83% 100%,54% 100%,50% 70%,46% 100%,17% 100%,32% 48%,18% 20%)
+}
+.pinup-body i,
+.pinup-body em{
+  position:absolute;
+  top:20px;
+  width:7px;
+  height:36px;
+  border-radius:999px;
+  background:#d35f68
+}
+.pinup-body i{left:1px;transform:rotate(17deg)}
+.pinup-body em{right:1px;transform:rotate(-17deg)}
+.imp-poster.pinup.p1:after{
+  content:"♥";
+  position:absolute;
+  right:6px;
+  top:7px;
+  color:#ef6b8b;
+  font-size:.7rem;
+  transform:rotate(14deg)
+}
+.imp-poster.pinup.p2:after{
+  content:"✦";
+  position:absolute;
+  left:6px;
+  top:7px;
+  color:#ef6b8b;
+  font-size:.66rem;
+  transform:rotate(-14deg)
+}
+
+/* board positions shifted to keep posters readable */
+.scene-imp-office .imp-whiteboard{
+  left:4%;
+  top:19%;
+  width:166px
+}
+.scene-imp-office .imp-bulletin{
+  right:17%;
+  top:19%;
+  width:148px
+}
+.scene-imp-office .imp-file-cabinet{
+  right:29%;
+  height:132px
+}
+
+/* DESK ZONE: left side, visibly separate from meeting area */
+.imp-desk-zone{
+  position:absolute;
+  z-index:9;
+  left:6%;
+  bottom:var(--imp-floor-line);
+  width:330px;
+  height:155px;
+  pointer-events:none
+}
+.scene-imp-office .imp-desk-zone .imp-desk{
+  left:0;
+  bottom:0;
+  width:224px;
+  height:94px;
+  border-color:#170f11;
+  background:linear-gradient(180deg,#64272f,#3b1c22);
+  box-shadow:
+    inset 0 -8px 0 rgba(111,25,34,.38),
+    inset 0 0 0 2px #7b2d37
+}
+.scene-imp-office .imp-desk-zone .imp-desk b{color:#e05f69}
+.scene-imp-office .imp-desk-zone .imp-chair.boss{
+  left:175px;
+  bottom:61px;
+  background:linear-gradient(#c64f59,#622730);
+  border-color:#1a1012
+}
+.imp-desk .mug{
+  position:absolute!important;
+  left:56px!important;
+  top:-16px!important;
+  width:16px!important;
+  height:18px!important;
+  border:3px solid #231517!important;
+  border-radius:3px 3px 7px 7px!important;
+  background:#9d303c!important
+}
+.imp-desk .mug:after{
+  content:"";
+  position:absolute;
+  right:-10px;
+  top:4px;
+  width:10px;
+  height:8px;
+  border:3px solid #231517;
+  border-left:0;
+  border-radius:0 7px 7px 0
+}
+.imp-desk .takeout{
+  position:absolute!important;
+  left:122px!important;
+  top:-17px!important;
+  width:31px!important;
+  height:22px!important;
+  background:#d9b58f!important;
+  border:3px solid #4a2727!important;
+  transform:rotate(5deg)!important;
+  clip-path:polygon(8% 0,92% 0,100% 100%,0 100%)
+}
+.scene-imp-office .imp-desk-zone .imp-side-shelf{
+  left:248px;
+  bottom:0
+}
+
+/* MEETING ZONE: moved clearly to right side */
+.scene-imp-office .imp-meeting-area{
+  left:auto;
+  right:7%;
+  bottom:calc(var(--imp-floor-line) + 1%);
+  width:295px;
+  height:142px
+}
+.scene-imp-office .imp-meeting-area .imp-meeting-table{
+  width:174px;
+  height:68px;
+  background:#54242b;
+  border-color:#170f11;
+  box-shadow:
+    inset 0 0 0 2px #8d3542,
+    0 7px 8px rgba(0,0,0,.15)
+}
+.scene-imp-office .imp-meeting-area .imp-meeting-table span{
+  position:absolute;
+  left:26px;
+  top:17px;
+  width:32px;
+  height:19px;
+  background:#d1b08f;
+  transform:rotate(-7deg)
+}
+.scene-imp-office .imp-meeting-area .imp-chair{
+  background:linear-gradient(#b94653,#57232b)
+}
+.scene-imp-office .imp-meeting-area .imp-chair.c1{left:3%}
+.scene-imp-office .imp-meeting-area .imp-chair.c3{right:3%}
+
+/* floor boxes near meeting area */
+.imp-floor-box{
+  position:absolute;
+  bottom:0;
+  width:44px;
+  height:31px;
+  border:4px solid #231517;
+  background:#775148
+}
+.imp-floor-box:before,
+.imp-floor-box:after{
+  content:"";
+  position:absolute;
+  background:#3c2423
+}
+.imp-floor-box:before{left:50%;top:0;bottom:0;width:3px}
+.imp-floor-box:after{left:0;right:0;top:50%;height:3px}
+.imp-floor-box.box1{left:-18px}
+.imp-floor-box.box2{right:-13px;width:38px;height:26px}
+.imp-floor-box i{
+  position:absolute;
+  left:7px;
+  top:-11px;
+  width:27px;
+  height:13px;
+  background:#c9ab88;
+  transform:rotate(-5deg)
+}
+
+/* more red utility accents */
+.scene-imp-office .imp-exit-door{
+  background:#5a2029;
+  box-shadow:inset 0 0 0 2px #852d38
+}
+.scene-imp-office .imp-exit-door em{background:#401820}
+.scene-imp-office .imp-side-shelf{background:#612e35}
+.scene-imp-office .imp-coat-rack b{background:#7b2b38}
+.scene-imp-office .imp-trash{background:#5d3538}
+
+/* floor clutter */
+.imp-floor-clutter{
+  position:absolute;
+  z-index:8;
+  left:0;right:0;
+  bottom:var(--imp-floor-line);
+  height:64px;
+  pointer-events:none
+}
+.imp-floor-clutter .paper{
+  position:absolute;
+  width:33px;
+  height:20px;
+  background:#d0b79e;
+  box-shadow:0 2px 3px rgba(0,0,0,.14)
+}
+.imp-floor-clutter .paper:after{
+  content:"";
+  position:absolute;
+  left:5px;right:5px;top:6px;
+  height:2px;
+  background:#8f6662;
+  box-shadow:0 5px 0 #8f6662
+}
+.imp-floor-clutter .paper.p1{left:34%;bottom:7px;transform:rotate(12deg)}
+.imp-floor-clutter .paper.p2{left:48%;bottom:3px;transform:rotate(-8deg)}
+.imp-floor-clutter .paper.p3{right:21%;bottom:10px;transform:rotate(5deg)}
+.imp-floor-clutter .cup{
+  position:absolute;
+  bottom:0;
+  width:15px;
+  height:25px;
+  border:3px solid #211416;
+  border-radius:2px 2px 7px 7px;
+  background:#8f2e39
+}
+.imp-floor-clutter .cup:before{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:-10px;
+  width:3px;
+  height:12px;
+  transform:rotate(12deg);
+  background:#d5b897
+}
+.imp-floor-clutter .cup.c1{left:29%}
+.imp-floor-clutter .cup.c2{right:36%;transform:rotate(8deg)}
+.imp-floor-clutter .box{
+  position:absolute;
+  bottom:0;
+  width:51px;
+  height:34px;
+  border:4px solid #231517;
+  background:#725049
+}
+.imp-floor-clutter .box i{
+  position:absolute;
+  left:50%;
+  top:0;bottom:0;
+  width:3px;
+  transform:translateX(-50%);
+  background:#3d2825
+}
+.imp-floor-clutter .box.b1{left:2%}
+.imp-floor-clutter .box.b2{right:2%;width:43px;height:29px}
+.imp-floor-clutter .cable{
+  position:absolute;
+  left:43%;
+  bottom:2px;
+  width:108px;
+  height:28px;
+  border:4px solid #1b1113;
+  border-color:#1b1113 transparent transparent transparent;
+  border-radius:50%;
+  transform:rotate(-4deg)
+}
+
+/* simplify leftover line-heavy details */
+.scene-imp-office .imp-whiteboard i{
+  height:2px;
+  box-shadow:32px -13px 0 #8d5258
+}
+.scene-imp-office .imp-bulletin{
+  box-shadow:inset 0 0 0 2px #5f343a
+}
+.scene-imp-office .imp-file-cabinet i{
+  border-width:1px
+}
+.scene-imp-office .imp-file-cabinet i:after{
+  height:3px
+}
+.scene-imp-office .imp-chair{
+  box-shadow:none
+}
