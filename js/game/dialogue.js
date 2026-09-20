@@ -1,4 +1,6 @@
 "use strict";
+let roomExitActive=false;
+let roomExitTargetPage="home";
 function startDialogue(characterId,eventId){
   const ch=getCharacter(characterId);if(!ch)return;
   selectedCharacterId=ch.id;
@@ -96,7 +98,7 @@ function playableTalkEventsForCharacter(characterId){
 function continuousTalkEvents(){
   const enabledIds=new Set((state.characters||[]).filter(character=>character.enabled!==false).map(character=>character.id));
   return (state.events||[]).filter(ev=>
-    ev.menuVisible!==false&&enabledIds.has(ev.characterId)&&eventHasPlayableStart(ev)
+    !isExitEvent(ev)&&ev.menuVisible!==false&&enabledIds.has(ev.characterId)&&eventHasPlayableStart(ev)
   );
 }
 function randomTalkEvent(events,excludeId=""){
@@ -124,8 +126,65 @@ function nextContinuousEvent(){
   const next=randomTalkEvent(pool.length?pool:candidates,currentId);
   return next?.id||null;
 }
+function playableExitEventsForCharacter(characterId){
+  return exitEventsForCharacter(characterId).filter(eventHasPlayableStart);
+}
+function completeRoomExit(){
+  const target=roomExitTargetPage||"home";
+  roomExitActive=false;
+  roomExitTargetPage="home";
+  activeInteractionReaction=null;
+  activeInteractionEvent=null;
+  interactionContext=null;
+  playback=null;
+  typing.token="";
+  clearTyping();
+  clearAuto();
+  autoMode=false;
+  setPage(target);
+}
+function beginRoomExit(targetPage="home"){
+  if(currentPage!=="room"){setPage(targetPage);return false}
+  if(roomExitActive)return true;
+  const ch=getCharacter(selectedCharacterId);
+  const exits=playableExitEventsForCharacter(ch?.id||"");
+  const ev=randomTalkEvent(exits);
+  roomExitTargetPage=targetPage||"home";
+  activeInteractionReaction=null;
+  activeInteractionEvent=null;
+  interactionContext=null;
+  roomToolsOpen=false;
+  roomMode="talk";
+  autoMode=false;
+  clearAuto();
+  clearTyping();
+
+  if(!ev){
+    completeRoomExit();
+    return false;
+  }
+
+  roomExitActive=true;
+  playback={
+    characterId:ch.id,
+    eventId:ev.id,
+    continuationQueue:[],
+    continuationTotal:0,
+    autoVisitedEventIds:[],
+    frames:[{sourceType:"event",sourceId:ev.id,index:0,label:"EXIT",exitMode:"continue",targetEventId:""}],
+    ended:false
+  };
+  typing.token="";
+  renderRoom();
+  return true;
+}
 function finishEvent(){
   const ev=currentEvent();
+  if(roomExitActive){
+    resetEventEmotion(ev);
+    completeRoomExit();
+    return false;
+  }
   if(activeInteractionEvent&&ev?.id===activeInteractionEvent.id){
     completeInteraction(activeInteractionEvent.interactionMeta);
     restoreInterruptedDialogue();
