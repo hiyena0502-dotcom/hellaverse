@@ -294,7 +294,7 @@ function resetPlayProgress(){
   state.gacha.history=[];
   session=createSession();
   playback=null;
-  saveState();
+  saveProgressState();
   closeModal();
   renderPage();
   showToast("플레이 진행도를 초기화했습니다.");
@@ -310,7 +310,7 @@ function renderStart(){
 function enterGame(){
   const name=playerNameInput.value.trim();
   if(!name||!validOrigin(pendingOrigin)){startHint.textContent="이름과 출신을 모두 선택하세요.";return false}
-  state.profile={name,origin:pendingOrigin};saveState();
+  state.profile={name,origin:pendingOrigin};saveProgressState();
   startScreen.hidden=true;gameShell.hidden=false;
   updatePlayerBadge();
   const chars=enabledCharacters();
