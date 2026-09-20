@@ -13,6 +13,7 @@ function startDialogue(characterId,eventId){
     eventId:ev.id,
     continuationQueue:[...(ev.continuationEventIds||[])],
     continuationTotal:(ev.continuationEventIds||[]).length,
+    autoVisitedEventIds:[ev.id],
     frames:[{sourceType:"event",sourceId:ev.id,index:0,label:"본편",exitMode:"continue",targetEventId:""}],
     ended:false
   }:null;
@@ -56,6 +57,7 @@ function jumpEvent(id,{preserveContinuation=false,label="본편"}={}){
     playback.continuationTotal=playback.continuationQueue.length;
   }
   playback.frames=[{sourceType:"event",sourceId:ev.id,index:0,label,exitMode:"continue",targetEventId:""}];
+  rememberContinuousEvent(ev.id);
   playback.ended=false;typing.token="";
   return true;
 }
@@ -75,6 +77,46 @@ function continuationStatusLabel(){
   const current=Math.max(1,total+1-remaining);
   return "SERIES "+current+" / "+(total+1);
 }
+function rememberContinuousEvent(id){
+  if(!playback||!id)return;
+  playback.autoVisitedEventIds=Array.isArray(playback.autoVisitedEventIds)?playback.autoVisitedEventIds:[];
+  if(!playback.autoVisitedEventIds.includes(id))playback.autoVisitedEventIds.push(id);
+}
+function eventHasPlayableStart(ev){
+  if(!ev||!Array.isArray(ev.entries)||!ev.entries.length)return false;
+  return ev.entries.some(entry=>{
+    if(!ownerPasses(entry))return false;
+    if(entry.type==="choice")return visibleOptions(entry).length>0;
+    return true;
+  });
+}
+function continuousTalkEvents(){
+  const enabledIds=new Set((state.characters||[]).filter(character=>character.enabled!==false).map(character=>character.id));
+  return (state.events||[]).filter(ev=>
+    ev.menuVisible!==false&&enabledIds.has(ev.characterId)&&eventHasPlayableStart(ev)
+  );
+}
+function nextContinuousEvent(){
+  if(!playback)return null;
+  const current=currentEvent();
+  const candidates=continuousTalkEvents();
+  if(!candidates.length)return null;
+
+  const visited=new Set(Array.isArray(playback.autoVisitedEventIds)?playback.autoVisitedEventIds:[]);
+  const unvisited=candidates.filter(ev=>!visited.has(ev.id));
+  const currentCharacterId=current?.characterId||playback.characterId||"";
+  let next=unvisited.find(ev=>ev.id!==current?.id&&ev.characterId===currentCharacterId)
+    || unvisited.find(ev=>ev.id!==current?.id);
+
+  if(!next){
+    playback.autoVisitedEventIds=current?.id?[current.id]:[];
+    const currentIndex=candidates.findIndex(ev=>ev.id===current?.id);
+    if(candidates.length===1)next=candidates[0];
+    else if(currentIndex>=0)next=candidates[(currentIndex+1)%candidates.length];
+    else next=candidates[0];
+  }
+  return next?.id||null;
+}
 function finishEvent(){
   const ev=currentEvent();
   if(activeInteractionEvent&&ev?.id===activeInteractionEvent.id){
@@ -84,11 +126,14 @@ function finishEvent(){
   }
   const nextId=nextQueuedEvent();
   if(nextId&&jumpEvent(nextId,{preserveContinuation:true,label:"연속"}))return true;
-  resetEventEmotion(ev);
   if(interactionContext?.followupActive){
+    resetEventEmotion(ev);
     restoreInterruptedDialogue();
     return true;
   }
+  const continuousId=nextContinuousEvent();
+  if(continuousId&&jumpEvent(continuousId,{label:"다음 TALK"}))return true;
+  resetEventEmotion(ev);
   if(playback)playback.ended=true;
   return false;
 }
@@ -200,7 +245,7 @@ function renderRoomBeat(){
     dynamic.innerHTML='<div class="room-empty"><h2>등록된 이벤트가 없습니다.</h2><p>편집기에서 이 캐릭터의 이벤트를 추가하세요.</p></div>';return;
   }
   if(!settlePlayback()){
-    dynamic.innerHTML='<div class="room-empty"><h2>이벤트가 끝났습니다.</h2><p>다른 이벤트를 선택하거나 ASK / INVENTORY를 이용할 수 있습니다.</p></div>';clearTyping();clearAuto();return;
+    dynamic.innerHTML='<div class="room-empty"><h2>이어갈 TALK를 찾지 못했습니다.</h2><p>현재 조건에서 재생 가능한 TALK가 없습니다. 다른 TALK를 선택하거나 ASK / INVENTORY를 이용할 수 있습니다.</p></div>';clearTyping();clearAuto();return;
   }
   const frame=playback.frames.at(-1),entry=frameEntries(frame)[frame.index];
   if(entry.type==="choice"){
