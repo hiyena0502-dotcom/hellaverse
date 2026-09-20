@@ -628,4 +628,17 @@ document.addEventListener("keydown",e=>{
   }
 });
 
-renderStart();
+bootstrapStorage()
+  .then(info=>{
+    console.info("Hellaverse storage ready",info);
+    renderStart();
+  })
+  .catch(error=>{
+    console.error("HELLAVERSE BOOTSTRAP FAILED",error);
+    storageMode="localStorage-fallback";
+    state=readState();
+    session=createSession();
+    pendingOrigin=state.profile.origin||"";
+    renderStart();
+    showToast("저장소 초기화에 실패해 호환 모드로 시작했습니다.");
+  });
