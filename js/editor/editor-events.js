@@ -57,7 +57,7 @@ startForm.addEventListener("submit",event=>{
   enterGame();
 });
 $("#changeProfileButton").addEventListener("click",renderStart);
-$("#brandButton").addEventListener("click",()=>setPage("home"));
+$("#brandButton").addEventListener("click",()=>currentPage==="room"?beginRoomExit("home"):setPage("home"));
 $("#dataButton").addEventListener("click",showDataManager);
 $("#editorButton").addEventListener("click",openEditor);
 $("#startImportButton").addEventListener("click",openImportPicker);
@@ -66,7 +66,7 @@ $("#updateBanner").addEventListener("click",()=>{
   url.searchParams.set("updated",String(Date.now()));
   location.replace(url.href);
 });
-document.querySelectorAll(".nav-button").forEach(b=>b.addEventListener("click",()=>setPage(b.dataset.page)));
+document.querySelectorAll(".nav-button").forEach(b=>b.addEventListener("click",()=>currentPage==="room"?beginRoomExit(b.dataset.page):setPage(b.dataset.page)));
 $("#editorUndoButton").addEventListener("click",editorUndo);
 $("#editorRedoButton").addEventListener("click",editorRedo);
 $("#editorRestoreButton").addEventListener("click",restoreEditorSnapshot);
@@ -131,7 +131,7 @@ pageRoot.addEventListener("click",e=>{
   else if(a==="ask-topic")startAsk(b.dataset.id);
   else if(a==="inventory-item")useInventoryItem(b.dataset.id);
   else if(a==="finish-interaction")finishInteractionReaction();
-  else if(a==="back-home"){activeInteractionReaction=null;interactionContext=null;setPage("home")}
+  else if(a==="back-home"){beginRoomExit("home")}
   else if(a==="random-thought")randomThought();
   else if(a==="show-affection")showAffection();
   else if(a==="show-emotion")showEmotion();
