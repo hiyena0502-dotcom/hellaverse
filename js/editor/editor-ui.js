@@ -33,7 +33,7 @@ function updateEditorHistoryButtons(){
     redo.disabled=editorLargeProject||!editorRedoStack.length;
     redo.title=editorLargeProject?"대용량 프로젝트에서는 전체 스냅샷 REDO를 비활성화합니다.":"";
   }
-  if(restore)restore.disabled=!localStorage.getItem(EDITOR_SNAPSHOT_KEY);
+  if(restore)restore.disabled=!hasEditorSnapshot();
 }
 function checkpointEditor(){
   if(!editorDraft)return;
@@ -70,11 +70,7 @@ function editorRedo(){
 function storeEditorRestorePoint(){
   saveState();
   const snap=makeDataSnapshot("EDITOR 저장 전 복구 지점");
-  try{
-    localStorage.setItem(EDITOR_SNAPSHOT_KEY,JSON.stringify(snap));
-  }catch(error){
-    console.warn("EDITOR RESTORE SNAPSHOT SKIPPED",error);
-  }
+  if(!writeEditorSnapshot(snap))console.warn("EDITOR RESTORE SNAPSHOT SKIPPED");
   try{
     captureSafetySnapshot("EDITOR 저장 전 자동 백업");
   }catch(error){
@@ -82,16 +78,19 @@ function storeEditorRestorePoint(){
   }
 }
 function restoreEditorSnapshot(){
-  const raw=localStorage.getItem(EDITOR_SNAPSHOT_KEY);
-  if(!raw){showToast("복구할 EDITOR 스냅샷이 없습니다.");return}
+  const snap=readEditorSnapshot();
+  if(!snap){showToast("복구할 EDITOR 스냅샷이 없습니다.");return}
   if(!confirm("마지막 EDITOR 저장 전 상태를 현재 편집 화면으로 불러올까요?"))return;
   try{
     checkpointEditor();
-    const snap=JSON.parse(raw);
     editorDraft=normalizeState(snap.state||snap);
+    markEditorDirty();
     renderEditor();
     showToast("마지막 저장 전 상태를 불러왔습니다.");
-  }catch{showToast("EDITOR 스냅샷을 읽지 못했습니다.")}
+  }catch(error){
+    console.error("EDITOR RESTORE FAILED",error);
+    showToast("EDITOR 스냅샷을 읽지 못했습니다.");
+  }
 }
 function isEditorMutationAction(action){
   return /^(new-|delete-|add-|move-|duplicate-|mini-add-|mini-delete-)/.test(String(action||""));
