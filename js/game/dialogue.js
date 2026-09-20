@@ -9,7 +9,8 @@ function startDialogue(characterId,eventId){
   activeInteractionReaction=null;
   activeInteractionEvent=null;
   interactionContext=null;
-  const ev=eventId?getEvent(eventId):randomTalkEvent(playableTalkEventsForCharacter(ch.id));
+  const ev=eventId?getEvent(eventId):randomTalkForCharacter(ch.id);
+  if(ev)rememberRecentTalk(ch.id,ev.id);
   playback=ev?{
     characterId:ch.id,
     roomCharacterId:ch.id,
@@ -109,6 +110,25 @@ function randomTalkEvent(events,excludeId=""){
   const index=Math.min(pool.length-1,Math.floor(Math.random()*pool.length));
   return pool[index]||pool[0]||null;
 }
+function recentTalkIds(characterId){
+  session.recentTalks ||= {};
+  return Array.isArray(session.recentTalks[characterId])?session.recentTalks[characterId]:[];
+}
+function rememberRecentTalk(characterId,eventId){
+  if(!characterId||!eventId)return;
+  session.recentTalks ||= {};
+  const next=[...recentTalkIds(characterId).filter(id=>id!==eventId),eventId].slice(-3);
+  session.recentTalks[characterId]=next;
+  state.playState.recentTalks=clone(session.recentTalks);
+}
+function randomTalkForCharacter(characterId,excludeId=""){
+  const candidates=playableTalkEventsForCharacter(characterId);
+  if(!candidates.length)return null;
+  const recent=new Set(recentTalkIds(characterId));
+  let pool=candidates.filter(ev=>ev.id!==excludeId&&!recent.has(ev.id));
+  if(!pool.length)pool=candidates.filter(ev=>ev.id!==excludeId);
+  return randomTalkEvent(pool.length?pool:candidates,excludeId);
+}
 function nextContinuousEvent(){
   if(!playback)return null;
   const current=currentEvent();
@@ -118,21 +138,45 @@ function nextContinuousEvent(){
   if(!candidates.length)return null;
 
   const visited=new Set(Array.isArray(playback.autoVisitedEventIds)?playback.autoVisitedEventIds:[]);
-  let pool=candidates.filter(ev=>ev.id!==currentId&&!visited.has(ev.id));
+  const recent=new Set(recentTalkIds(roomCharacterId));
+  let pool=candidates.filter(ev=>ev.id!==currentId&&!visited.has(ev.id)&&!recent.has(ev.id));
 
+  if(!pool.length)pool=candidates.filter(ev=>ev.id!==currentId&&!visited.has(ev.id));
   if(!pool.length){
     playback.autoVisitedEventIds=currentId?[currentId]:[];
-    pool=candidates.filter(ev=>ev.id!==currentId);
+    pool=candidates.filter(ev=>ev.id!==currentId&&!recent.has(ev.id));
   }
+  if(!pool.length)pool=candidates.filter(ev=>ev.id!==currentId);
 
   const next=randomTalkEvent(pool.length?pool:candidates,currentId);
+  if(next)rememberRecentTalk(roomCharacterId,next.id);
   return next?.id||null;
 }
 function playableExitEventsForCharacter(characterId){
   return exitEventsForCharacter(characterId).filter(eventHasPlayableStart);
 }
+const FALLBACK_EXIT_LINES={
+  "lucifer-morningstar":["벌써 가는 거야? 뭐, 다음엔 좀 더 재미있는 걸 준비해 두지.","그래, 다녀와. 너무 오래 비우진 말고.","다음에 올 땐 오리 하나쯤 가져와도 환영이야."],
+  "charlie-morningstar":["조심히 가! 다음에 오면 또 얘기하자!","와줘서 고마워. 다음에도 꼭 들러 줘!","좋은 하루 보내! 여기선 그게 조금 어려울 수도 있지만!"],
+  "vaggie":["그래. 조심해서 가.","다음에 올 땐 미리 말해 줘.","볼일 끝났으면 가도 돼. 또 보자."],
+  "alastor":["벌써 가시는 겁니까? 다음 방문도 기대하지요.","그럼 다음 방송까지, 좋은 밤 되시길.","떠나는 타이밍도 제법 훌륭하군요. 또 뵙지요."],
+  "angel-dust":["벌써 가게? 다음엔 좀 더 오래 놀다 가.","그래, 잘 가. 재밌는 거 생기면 다시 와.","다음에 올 땐 간식도 챙겨 와, 알겠지?"],
+  "husk":["그래, 또 봐.","문 닫고 가. 다음에 보자.","잘 가. 난 여기 있을 테니까."],
+  "niffty":["다음에 또 와! 그땐 더 깨끗해져 있을 거야! 아마도!","잘 가! 돌아오기 전에 어지르면 안 돼!","또 와! 다음엔 내가 먼저 찾아낼 거야!"],
+  "baxter":["그래. 다음엔 실험 중이 아닐 때 와.","조심히 가. 장비는 건드리지 말고.","다음 방문 전엔 노크부터 해."]
+};
+function fallbackExitLines(character){
+  if(!character)return["다음에 또 보자."];
+  const id=String(character.id||"").toLowerCase();
+  if(FALLBACK_EXIT_LINES[id])return FALLBACK_EXIT_LINES[id];
+  const name=String(character.name||"").toLowerCase();
+  const match=Object.keys(FALLBACK_EXIT_LINES).find(key=>name.includes(key.split("-")[0]));
+  return match?FALLBACK_EXIT_LINES[match]:["조심히 가. 다음에 또 보자.","그래, 또 보자.","다음에 다시 들러."];
+}
 function fallbackExitEvent(character){
   if(!character)return null;
+  const lines=fallbackExitLines(character);
+  const text=lines[Math.floor(Math.random()*lines.length)]||lines[0];
   return {
     id:"__room-exit-fallback__"+character.id,
     name:"EXIT",
@@ -146,7 +190,7 @@ function fallbackExitEvent(character){
       type:"dialogue",
       speaker:character.name,
       speakerCharacterId:character.id,
-      text:"다음에 또 보자."
+      text
     })]
   };
 }
@@ -166,11 +210,21 @@ function completeRoomExit(){
   clearTyping();
   clearAuto();
   autoMode=false;
-  setPage(target);
+  if(target==="profile"){
+    currentPage="home";
+    renderStart();
+  }else setPage(target);
 }
 function beginRoomExit(targetPage="home"){
-  if(currentPage!=="room"){setPage(targetPage);return false}
+  if(currentPage!=="room"){
+    if(targetPage==="profile"){renderStart();return false}
+    setPage(targetPage);return false
+  }
   if(roomExitActive)return true;
+  if(activeInteractionReaction||interactionContext?.followupActive){
+    showToast("ASK/선물 반응을 끝까지 본 뒤 이동할 수 있습니다.");
+    return false;
+  }
   const ch=getCharacter(selectedCharacterId);
   const exits=playableExitEventsForCharacter(ch?.id||"");
   const ev=randomTalkEvent(exits)||fallbackExitEvent(ch);
