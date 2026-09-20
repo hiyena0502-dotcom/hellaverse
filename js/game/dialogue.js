@@ -535,14 +535,21 @@ function renderAskPanel(){
   syncAskUnlocks(ch.id);
   const affection=Number(session.affection[ch.id]??ch.affectionStart);
   const asks=asksForCharacter(ch.id);
-  dynamic.innerHTML='<section class="ask-panel"><div class="inventory-character-head"><div><p class="page-kicker">ASK</p><h2>대화 중 무엇을 물어볼까?</h2></div><p>LOCKED → NEW → ASKED</p></div><div class="ask-list">'+
+  dynamic.innerHTML='<section class="ask-panel"><div class="inventory-character-head"><div><p class="page-kicker">ASK</p><h2>무엇을 물어볼까?</h2></div><p>잠긴 질문은 조건을 만족하면 열립니다.</p></div>'+
+    relationshipProgressMarkup(ch.id)+'<div class="ask-list">'+
     (asks.length?asks.map(a=>{
       const unlocked=isAskUnlocked(a);
       const asked=(state.askedAskIds||[]).includes(a.id);
-      const available=unlocked&&affection>=a.minAffection;
+      const affinityPass=affection>=a.minAffection;
+      const available=unlocked&&affinityPass&&(!asked||a.repeatable);
       const status=!unlocked?"LOCKED":asked?"ASKED":"NEW";
       const label=unlocked?a.label:"???";
-      return '<button class="ask-entry '+status.toLowerCase()+'" type="button" data-action="ask-topic" data-id="'+esc(a.id)+'" '+(!available?"disabled":"")+'><span>'+esc(label)+'</span><small>'+status+(unlocked&&!available?' · 호감도 '+a.minAffection:'')+'</small></button>';
+      let detail=status;
+      if(!unlocked&&a.unlockHint)detail+=' · '+a.unlockHint;
+      else if(unlocked&&!affinityPass)detail+=' · 호감도 '+a.minAffection;
+      else if(asked&&a.repeatable)detail+=' · 다시 묻기 가능';
+      else if(asked&&!a.repeatable)detail+=' · 완료';
+      return '<button class="ask-entry '+status.toLowerCase()+'" type="button" data-action="ask-topic" data-id="'+esc(a.id)+'" '+(!available?"disabled":"")+'><span>'+esc(label)+'</span><small>'+esc(detail)+'</small></button>';
     }).join(""):'<div class="editor-note">등록된 질문이 없습니다.</div>')+
     '</div></section>';
 }
@@ -550,7 +557,9 @@ function startAsk(id){
   const ask=state.asks.find(a=>a.id===id&&a.enabled);if(!ask)return;
   const ch=getCharacter(ask.characterId);if(!ch||selectedCharacterId!==ch.id)return;
   syncAskUnlocks(ch.id);
-  if(!isAskUnlocked(ask)){showToast("아직 해금되지 않은 질문입니다.");return}
+  if(!isAskUnlocked(ask)){showToast(ask.unlockHint||"아직 해금되지 않은 질문입니다.");return}
+  const alreadyAsked=(state.askedAskIds||[]).includes(ask.id);
+  if(alreadyAsked&&!ask.repeatable){showToast("이미 확인한 질문입니다.");return}
   const affection=Number(session.affection[ch.id]??ch.affectionStart);
   if(affection<ask.minAffection){showToast("아직 물어볼 수 없습니다.");return}
   beginInteractionReaction("ask",ask,ask.entries,ask.label,{askId:ask.id});
@@ -564,19 +573,53 @@ function renderInventoryPanel(){
   clearAuto();
   const dynamic=$("#roomDynamic");if(!dynamic)return;
   const ch=getCharacter(selectedCharacterId);if(!ch)return;
-  const items=state.items.filter(i=>i.enabled&&i.giftable!==false&&itemCount(i.id)>0);
-  dynamic.innerHTML='<section class="inventory-panel"><div class="inventory-character-head"><div><p class="page-kicker">INVENTORY</p><h2>GIVE ITEM</h2></div><p>'+esc(ch.name)+'에게 보유 아이템을 건넬 수 있습니다.</p></div><div class="inventory-list">'+
-    (items.length?items.map(i=>{
+  const owned=state.items.filter(i=>i.enabled&&i.giftable!==false&&itemCount(i.id)>0);
+  if(selectedInventoryItemId&&!owned.some(item=>item.id===selectedInventoryItemId))selectedInventoryItemId="";
+  const filtered=owned.filter(item=>{
+    const reaction=item.reactions.find(r=>r.characterId===ch.id);
+    const discovered=isGiftPreferenceDiscovered(item.id,ch.id);
+    const pref=discovered?(reaction?.preference||"NEUTRAL"):"UNKNOWN";
+    if(inventoryQuery&&![item.name,item.category,item.rarity,item.description].join(" ").toLowerCase().includes(inventoryQuery.toLowerCase()))return false;
+    if(inventoryCategory!=="ALL"&&item.category!==inventoryCategory)return false;
+    if(inventoryPreference!=="ALL"&&pref!==inventoryPreference)return false;
+    if(inventoryUnknownOnly&&discovered)return false;
+    return true;
+  });
+  const selected=itemById(selectedInventoryItemId);
+  const selectedReaction=selected?.reactions.find(r=>r.characterId===ch.id);
+  const selectedDiscovered=selected?isGiftPreferenceDiscovered(selected.id,ch.id):false;
+  const selectedPreference=selectedDiscovered?(selectedReaction?.preference||"NO SPECIAL REACTION"):"???";
+  const categories=[...new Set(owned.map(item=>item.category))].sort();
+  const preview=selected&&itemCount(selected.id)>0
+    ? '<article class="inventory-preview-card"><div><p class="page-kicker">SELECTED GIFT</p><h3>'+esc(selected.name)+'</h3><p>'+esc(selected.description||"설명 없음")+'</p></div>'+
+      '<div class="inventory-preview-meta"><span>'+esc(selected.rarity)+'</span><span>'+esc(selected.category)+'</span><span>반응 '+esc(selectedPreference)+'</span><span>'+(selected.giftUseMode==="consume"?"소모형":"보존형")+'</span><span>×'+itemCount(selected.id)+'</span></div>'+
+      '<button class="gold-button" type="button" data-action="give-item" data-id="'+esc(selected.id)+'">'+esc(ch.name)+'에게 선물하기</button></article>'
+    : "";
+  dynamic.innerHTML='<section class="inventory-panel"><div class="inventory-character-head"><div><p class="page-kicker">INVENTORY</p><h2>GIVE ITEM</h2></div><p>아이템을 먼저 확인한 뒤 선물합니다.</p></div>'+
+    relationshipProgressMarkup(ch.id)+
+    '<div class="inventory-filter-bar"><input data-inventory-control="query" value="'+esc(inventoryQuery)+'" placeholder="선물 검색">'+
+      '<select data-inventory-control="category"><option value="ALL">모든 카테고리</option>'+categories.map(cat=>'<option value="'+esc(cat)+'" '+(inventoryCategory===cat?"selected":"")+'>'+esc(cat)+'</option>').join("")+'</select>'+
+      '<select data-inventory-control="preference"><option value="ALL">모든 반응</option><option value="UNKNOWN" '+(inventoryPreference==="UNKNOWN"?"selected":"")+'>미확인</option>'+
+      ["LOVED","LIKED","NEUTRAL","DISLIKED","HATED"].map(pref=>'<option value="'+pref+'" '+(inventoryPreference===pref?"selected":"")+'>'+pref+'</option>').join("")+'</select>'+
+      '<button class="filter-chip '+(inventoryUnknownOnly?"active":"")+'" type="button" data-action="inventory-unknown">미확인만</button></div>'+
+    preview+'<div class="inventory-list">'+
+    (filtered.length?filtered.map(i=>{
       const reaction=i.reactions.find(r=>r.characterId===ch.id);
       const discovered=isGiftPreferenceDiscovered(i.id,ch.id);
       const reactionLabel=discovered?(reaction?reaction.preference:"NO SPECIAL REACTION"):"???";
-      return '<button class="inventory-entry" type="button" data-action="inventory-item" data-id="'+esc(i.id)+'"><span><b>'+esc(i.name)+'</b><small>'+esc(i.rarity)+' · '+esc(i.category)+' · '+esc(reactionLabel)+' · '+esc(i.giftUseMode.toUpperCase())+'</small></span><span class="count">GIVE · ×'+itemCount(i.id)+'</span></button>';
-    }).join(""):'<div class="editor-note">보유 아이템이 없습니다.</div>')+
+      const times=giftInteractionCount(i.id,ch.id);
+      return '<button class="inventory-entry '+(i.id===selectedInventoryItemId?"selected":"")+'" type="button" data-action="inventory-preview" data-id="'+esc(i.id)+'"><span><b>'+esc(i.name)+'</b><small>'+esc(i.rarity)+' · '+esc(i.category)+' · '+esc(reactionLabel)+(times?' · '+times+'회 선물':'')+'</small></span><span class="count">×'+itemCount(i.id)+'</span></button>';
+    }).join(""):'<div class="editor-note">조건에 맞는 선물이 없습니다.</div>')+
     '</div></section>';
+}
+function giftNeedsConfirmation(item){
+  if(!item||item.giftUseMode!=="consume")return false;
+  return itemCount(item.id)<=1||["RARE","EPIC","LEGENDARY","MISTIC"].includes(item.rarity);
 }
 function useInventoryItem(id){
   const item=itemById(id);if(!item||itemCount(id)<=0)return;
   const ch=getCharacter(selectedCharacterId);if(!ch)return;
+  if(giftNeedsConfirmation(item)&&!confirm(item.name+"을(를) "+ch.name+"에게 선물할까요?\n소모형 아이템이며 현재 "+itemCount(id)+"개 보유 중입니다."))return;
   const key=giftReactionKey(item.id,ch.id);
   const reaction=item.reactions.find(r=>r.characterId===ch.id) || normalizeItemReaction({
     characterId:ch.id,
@@ -589,24 +632,23 @@ function useInventoryItem(id){
   const currentCount=giftInteractionCount(item.id,ch.id);
   const emotion=session.emotions[ch.id]||{state:ch.emotionDefault,intensity:ch.emotionIntensity};
   const affection=Number(session.affection[ch.id]??ch.affectionStart);
+  const specialAlreadySeen=(state.discoveredSpecialGiftKeys||[]).includes(key);
   const hasSpecialRule=Number(reaction.specialMinAffection)>0||Boolean(reaction.specialEmotionState);
-  const specialPass=hasSpecialRule
+  const specialPass=!specialAlreadySeen&&hasSpecialRule
     && affection>=Number(reaction.specialMinAffection||0)
     && (!reaction.specialEmotionState||(emotion.state===reaction.specialEmotionState&&emotion.intensity>=Number(reaction.specialEmotionIntensity||0)))
     && reaction.specialEntries.length>0;
 
-  let flowType=specialPass?"SPECIAL":currentCount===0?"FIRST":"REPEAT";
+  const flowType=specialPass?"SPECIAL":currentCount===0?"FIRST":"REPEAT";
   let entries=specialPass?reaction.specialEntries:(currentCount===0?reaction.firstEntries:reaction.repeatEntries);
   if(!entries?.length)entries=reaction.firstEntries?.length?reaction.firstEntries:reaction.repeatEntries;
 
-  discoverGiftPreference(item.id,ch.id);
-  state.giftInteractionCounts ||= {};
-  state.giftInteractionCounts[key]=currentCount+1;
-  if(item.giftUseMode==="consume")consumeInventoryItem(item.id,1,state);
-  recordInteraction({kind:"gift",characterId:ch.id,itemId:item.id,label:item.name,preference:reaction.preference,flowType});
-  saveProgressState();
-
-  beginInteractionReaction("item",reaction,entries,item.name,{itemId:item.id,preference:reaction.preference,flowType});
+  beginInteractionReaction("gift",reaction,entries,item.name,{
+    itemId:item.id,
+    preference:reaction.preference,
+    flowType,
+    consume:item.giftUseMode==="consume"
+  });
 }
 function chName(id){return getCharacter(id)?.name||"UNKNOWN"}
 function advanceDialogue(fromAuto=false){
