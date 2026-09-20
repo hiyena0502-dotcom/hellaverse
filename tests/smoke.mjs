@@ -131,9 +131,9 @@ const storyPackInstall=vm.runInContext(`
 })()
 `,context);
 assert.equal(storyPackInstall.changed,true,"eligible project must receive story pack");
-assert.equal(storyPackInstall.eventCount,11,"story pack event count changed");
-assert.equal(storyPackInstall.variableCount,7,"story pack variable count changed");
-assert.equal(storyPackInstall.packVersion,1,"story pack version marker missing");
+assert.equal(storyPackInstall.eventCount,20,"story pack event count changed");
+assert.equal(storyPackInstall.variableCount,10,"story pack variable count changed");
+assert.equal(storyPackInstall.packVersion,2,"story pack version marker missing");
 assert.equal(storyPackInstall.openingVisible,true,"opening event must be visible");
 assert.equal(storyPackInstall.hiddenVisible,false,"continuation event must be hidden");
 assert.equal(storyPackInstall.speakerCharacterId,"lucifer-morningstar","speaker image id must survive compaction");
