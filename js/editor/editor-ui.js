@@ -94,7 +94,7 @@ function restoreEditorSnapshot(){
   }
 }
 function isEditorMutationAction(action){
-  return /^(new-|delete-|add-|move-|duplicate-|mini-add-|mini-delete-)/.test(String(action||""));
+  return /^(new-|delete-|remove-|add-|move-|duplicate-|mini-add-|mini-delete-)/.test(String(action||""));
 }
 function isEditorDeleteAction(action){
   return /^delete-/.test(String(action||""))||/^mini-delete-/.test(String(action||""));
