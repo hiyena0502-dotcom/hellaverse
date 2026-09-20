@@ -42,6 +42,7 @@ modalRoot.addEventListener("click",e=>{
   else if(a==="load-slot")loadBackupSlot(Number(b.dataset.slot)||0);
   else if(a==="restore-safety")restoreSafetySnapshot();
   else if(a==="export")exportData();
+  else if(a==="confirm-import")confirmPendingImport();
   else if(a==="reset-progress")resetPlayProgress();
 });
 modalRoot.addEventListener("input",e=>{
@@ -71,7 +72,7 @@ pageRoot.addEventListener("click",e=>{
     state.favoriteCharacterIds=state.favoriteCharacterIds.includes(id)
       ? state.favoriteCharacterIds.filter(x=>x!==id)
       : [...state.favoriteCharacterIds,id];
-    saveState();renderCharacters();
+    saveProgressState();renderCharacters();
   }
   else if(a==="character-favorites"){characterFavoritesOnly=!characterFavoritesOnly;renderCharacters()}
   else if(a==="toggle-room-tools"){roomToolsOpen=!roomToolsOpen;renderRoom()}
@@ -104,7 +105,7 @@ pageRoot.addEventListener("click",e=>{
   else if(a==="collection-filter"){collectionFilter=b.dataset.id;renderCollection()}
   else if(a==="collection-view"){
     state.collectionSettings.view=b.dataset.view==="all"?"all":"grouped";
-    saveState();
+    saveProgressState();
     renderCollection();
   }
   else if(a==="collection-detail")collectionDetail(b.dataset.id);
@@ -293,15 +294,19 @@ editorBody.addEventListener("click",e=>{
     refreshOwnerEditor(kind||"entry",b);return;
   }
   if(a==="new-ask"){
-    editorDraft.asks.push(normalizeAsk({id:uid("ask"),characterId:editorDraft.characters[0]?.id||""}));
+    const ask=normalizeAsk({id:uid("ask"),characterId:editorDraft.characters[0]?.id||""});
+    editorDraft.asks.push(ask);
+    selectedAskId=ask.id;
     editorAskQuery="";
     editorAskPage=Math.max(0,Math.ceil(editorDraft.asks.length/EDITOR_ASK_PAGE_SIZE)-1);
     renderAskEditor();return;
   }
+  if(a==="select-ask"){selectedAskId=b.dataset.id;renderAskEditor();return}
   if(a==="delete-ask"){
     const row=b.closest("[data-ask-id]");const id=row?.dataset.askId;if(!id)return;
     editorDraft.asks=editorDraft.asks.filter(a=>a.id!==id);
     cleanAskReference(id);
+    selectedAskId=editorDraft.asks[0]?.id||"";
     renderAskEditor();return;
   }
   if(a==="add-item-category"){
@@ -324,7 +329,9 @@ editorBody.addEventListener("click",e=>{
     return;
   }
   if(a==="new-item"){
-    editorDraft.items.push(normalizeItem({id:uid("item"),collectionCharacterId:editorDraft.characters[0]?.id||""}));
+    const item=normalizeItem({id:uid("item"),collectionCharacterId:editorDraft.characters[0]?.id||""});
+    editorDraft.items.push(item);
+    selectedItemId=item.id;
     editorItemQuery="";
     editorItemCharacterFilter="ALL";
     editorItemRarityFilter="ALL";
@@ -332,6 +339,7 @@ editorBody.addEventListener("click",e=>{
     editorItemPage=Math.max(0,Math.ceil(editorDraft.items.length/EDITOR_ITEM_PAGE_SIZE)-1);
     renderItemEditor();return;
   }
+  if(a==="select-item"){selectedItemId=b.dataset.id;renderItemEditor();return}
   if(a==="new-item-reaction"){
     const item=editorDraft.items.find(i=>i.id===b.dataset.itemId);if(!item)return;
     item.reactions.push(normalizeItemReaction({
@@ -359,16 +367,25 @@ editorBody.addEventListener("click",e=>{
     editorDraft.discoveredGiftReactionKeys=(editorDraft.discoveredGiftReactionKeys||[]).filter(k=>!k.startsWith(id+"::"));
     editorDraft.giftInteractionCounts=Object.fromEntries(Object.entries(editorDraft.giftInteractionCounts||{}).filter(([k])=>!k.startsWith(id+"::")));
     editorDraft.interactionHistory=(editorDraft.interactionHistory||[]).filter(h=>h.itemId!==id);
+    selectedItemId=editorDraft.items[0]?.id||"";
     renderItemEditor();return;
   }
   if(a==="new-thought"){
     const t=normalizeThought({id:uid("thought"),category:editorDraft.thoughtSettings.categories[0]||"일상"});
     editorDraft.thoughts.push(t);
+    selectedThoughtId=t.id;
     editorThoughtQuery="";
     editorThoughtPage=Math.max(0,Math.ceil(editorDraft.thoughts.length/EDITOR_THOUGHT_PAGE_SIZE)-1);
     renderThoughtEditor();return
   }
-  if(a==="delete-thought"){const row=b.closest("[data-thought-id]");editorDraft.thoughts=editorDraft.thoughts.filter(t=>t.id!==row?.dataset.thoughtId);renderThoughtEditor();return}
+  if(a==="select-thought"){selectedThoughtId=b.dataset.id;renderThoughtEditor();return}
+  if(a==="delete-thought"){
+    const row=b.closest("[data-thought-id]");
+    const id=row?.dataset.thoughtId;if(!id)return;
+    editorDraft.thoughts=editorDraft.thoughts.filter(t=>t.id!==id);
+    selectedThoughtId=editorDraft.thoughts[0]?.id||"";
+    renderThoughtEditor();return
+  }
   if(a==="add-category"){const inp=$("#newCategoryInput",editorBody);const v=inp?.value.trim();if(v&&!editorDraft.thoughtSettings.categories.includes(v)){editorDraft.thoughtSettings.categories.push(v);renderThoughtEditor()}return}
   if(a==="delete-category"){const v=b.dataset.id;editorDraft.thoughtSettings.categories=editorDraft.thoughtSettings.categories.filter(c=>c!==v);editorDraft.thoughts.forEach(t=>{if(t.category===v)t.category=editorDraft.thoughtSettings.categories[0]||"일상"});renderThoughtEditor();return}
 });
@@ -628,4 +645,17 @@ document.addEventListener("keydown",e=>{
   }
 });
 
-renderStart();
+bootstrapStorage()
+  .then(info=>{
+    console.info("Hellaverse storage ready",info);
+    renderStart();
+  })
+  .catch(error=>{
+    console.error("HELLAVERSE BOOTSTRAP FAILED",error);
+    storageMode="localStorage-fallback";
+    state=readState();
+    session=createSession();
+    pendingOrigin=state.profile.origin||"";
+    renderStart();
+    showToast("저장소 초기화에 실패해 호환 모드로 시작했습니다.");
+  });

@@ -4,6 +4,11 @@ const STATE_KEY = "hellaverse-studio-state-v2";
 const PREFS_KEY = "hellaverse-studio-prefs-v2";
 const DATA_BACKUP_KEY = "hellaverse-studio-backups-v2";
 const EDITOR_SNAPSHOT_KEY = "hellaverse-studio-editor-snapshot-v2";
+const STORAGE_META_KEY = "hellaverse-storage-meta-v1";
+const STORAGE_DB_NAME = "hellaverse-studio-db";
+const STORAGE_DB_VERSION = 1;
+const STORAGE_DB_STORE = "kv";
+const CURRENT_SCHEMA_VERSION = 3;
 const AUX_STORAGE_KEYS = [
   "hellaverse-world-settings-v1",
   "hellaverse-world-region-v1",
@@ -48,6 +53,7 @@ const defaultContentList = key => clone(Array.isArray(DEFAULT_CONTENT[key]) ? DE
 
 function defaultState(){
   return {
+    schemaVersion:CURRENT_SCHEMA_VERSION,
     profile:{name:"",origin:""},
     favoriteCharacterIds:[],
     playState:{variables:{},affection:{},emotions:{},log:[]},
@@ -896,9 +902,41 @@ function normalizePlayState(p={}){
     })):[]
   };
 }
+function migrateStateV1ToV2(source){
+  const s={...source};
+  s.playState=s.playState&&typeof s.playState==="object"?s.playState:{variables:{},affection:{},emotions:{},log:[]};
+  s.favoriteCharacterIds=Array.isArray(s.favoriteCharacterIds)?s.favoriteCharacterIds:[];
+  s.collectionSettings=s.collectionSettings&&typeof s.collectionSettings==="object"
+    ? s.collectionSettings
+    : {showLocked:true,showOwnedCount:true,view:"grouped",sort:"recent"};
+  s.schemaVersion=2;
+  return s;
+}
+function migrateStateV2ToV3(source){
+  const s={...source};
+  if(Array.isArray(s.items)){
+    s.items=s.items.map(item=>({
+      ...item,
+      giftable:item?.giftable!==false
+    }));
+  }
+  s.schemaVersion=3;
+  return s;
+}
+function migrateStateSchema(raw){
+  let s=raw&&typeof raw==="object"?raw:{};
+  let version=Math.max(1,Number(s.schemaVersion)||1);
+  if(version<2){s=migrateStateV1ToV2(s);version=2}
+  if(version<3){s=migrateStateV2ToV3(s);version=3}
+  if(version>CURRENT_SCHEMA_VERSION){
+    console.warn("Hellaverse data schema is newer than this build",{version,current:CURRENT_SCHEMA_VERSION});
+  }
+  return {...s,schemaVersion:CURRENT_SCHEMA_VERSION};
+}
+
 function normalizeState(raw){
   const d=defaultState();
-  const s=raw&&typeof raw==="object"?raw:{};
+  const s=migrateStateSchema(raw);
   const rawItems=Array.isArray(s.items) ? s.items : Array.isArray(s.collection) ? s.collection : d.items;
   const items=rawItems.map(normalizeItem);
   const inventoryCounts={...(s.inventoryCounts&&typeof s.inventoryCounts==="object"?s.inventoryCounts:{})};
@@ -911,6 +949,7 @@ function normalizeState(raw){
   });
   const rawOrigin=s.profile?.origin;
   return {
+    schemaVersion:CURRENT_SCHEMA_VERSION,
     profile:{
       name:String(s.profile?.name||""),
       origin:rawOrigin ? normalizeOrigin(rawOrigin) : ""
@@ -1053,8 +1092,114 @@ function compactStateForStorage(source){
 function storageSizeChars(value){
   try{return JSON.stringify(value).length}catch{return 0}
 }
+function normalizeBackupStore(raw){
+  const source=raw&&typeof raw==="object"?raw:{};
+  return{
+    slots:Array.from({length:3},(_,i)=>Array.isArray(source.slots)?source.slots[i]||null:null),
+    safety:source.safety&&typeof source.safety==="object"?source.safety:null
+  };
+}
+function legacyLocalState(){
+  try{
+    const raw=localStorage.getItem(STATE_KEY);
+    return raw?JSON.parse(raw):null;
+  }catch{return null}
+}
+function legacyLocalBackups(){
+  try{
+    const raw=localStorage.getItem(DATA_BACKUP_KEY);
+    return raw?normalizeBackupStore(JSON.parse(raw)):null;
+  }catch{return null}
+}
+function legacyLocalEditorSnapshot(){
+  try{
+    const raw=localStorage.getItem(EDITOR_SNAPSHOT_KEY);
+    return raw?JSON.parse(raw):null;
+  }catch{return null}
+}
+function openStorageDb(){
+  return new Promise((resolve,reject)=>{
+    if(!("indexedDB" in window)){reject(new Error("IndexedDB unavailable"));return}
+    const request=indexedDB.open(STORAGE_DB_NAME,STORAGE_DB_VERSION);
+    request.onupgradeneeded=()=>{
+      const db=request.result;
+      if(!db.objectStoreNames.contains(STORAGE_DB_STORE))db.createObjectStore(STORAGE_DB_STORE);
+    };
+    request.onsuccess=()=>resolve(request.result);
+    request.onerror=()=>reject(request.error||new Error("IndexedDB open failed"));
+    request.onblocked=()=>console.warn("Hellaverse IndexedDB upgrade blocked");
+  });
+}
+let storageDbPromise=null;
+function getStorageDb(){
+  storageDbPromise ||= openStorageDb();
+  return storageDbPromise;
+}
+async function idbGet(key){
+  const db=await getStorageDb();
+  return new Promise((resolve,reject)=>{
+    const tx=db.transaction(STORAGE_DB_STORE,"readonly");
+    const req=tx.objectStore(STORAGE_DB_STORE).get(key);
+    req.onsuccess=()=>resolve(req.result);
+    req.onerror=()=>reject(req.error||new Error("IndexedDB read failed"));
+  });
+}
+async function idbSet(key,value){
+  const db=await getStorageDb();
+  return new Promise((resolve,reject)=>{
+    const tx=db.transaction(STORAGE_DB_STORE,"readwrite");
+    tx.objectStore(STORAGE_DB_STORE).put(value,key);
+    tx.oncomplete=()=>resolve(true);
+    tx.onerror=()=>reject(tx.error||new Error("IndexedDB write failed"));
+    tx.onabort=()=>reject(tx.error||new Error("IndexedDB write aborted"));
+  });
+}
+async function idbDelete(key){
+  const db=await getStorageDb();
+  return new Promise((resolve,reject)=>{
+    const tx=db.transaction(STORAGE_DB_STORE,"readwrite");
+    tx.objectStore(STORAGE_DB_STORE).delete(key);
+    tx.oncomplete=()=>resolve(true);
+    tx.onerror=()=>reject(tx.error||new Error("IndexedDB delete failed"));
+    tx.onabort=()=>reject(tx.error||new Error("IndexedDB delete aborted"));
+  });
+}
+
+let storageMode="booting";
+let storageWriteChain=Promise.resolve();
+let storageLastError=null;
+let backupStoreCache=normalizeBackupStore(null);
+let editorSnapshotCache=null;
+
+function queueStorageWrite(key,value){
+  if(storageMode!=="indexedDB")return false;
+  const snapshot=clone(value);
+  storageWriteChain=storageWriteChain
+    .catch(()=>{})
+    .then(()=>idbSet(key,snapshot))
+    .then(()=>{
+      storageLastError=null;
+      try{
+        localStorage.setItem(STORAGE_META_KEY,JSON.stringify({
+          mode:"indexedDB",
+          schemaVersion:CURRENT_SCHEMA_VERSION,
+          updatedAt:Date.now()
+        }));
+      }catch{}
+    })
+    .catch(error=>{
+      storageLastError=error;
+      console.error("HELLAVERSE INDEXEDDB WRITE FAILED",key,error);
+    });
+  return true;
+}
+async function flushStorageWrites(){
+  try{await storageWriteChain}catch{}
+  return !storageLastError;
+}
 function readState(){
-  try{return normalizeState(JSON.parse(localStorage.getItem(STATE_KEY)))}catch{return normalizeState(null)}
+  const legacy=legacyLocalState();
+  return normalizeState(legacy||null);
 }
 function syncPlayStateFromSession(){
   if(typeof session==="undefined"||!session)return;
@@ -1065,44 +1210,130 @@ function syncPlayStateFromSession(){
     log:Array.isArray(session.log)?session.log.slice(-200):[]
   };
 }
+function progressStateFrom(source=state){
+  return{
+    profile:clone(source.profile||{name:"",origin:""}),
+    favoriteCharacterIds:[...(source.favoriteCharacterIds||[])],
+    playState:clone(source.playState||{}),
+    inventoryCounts:clone(source.inventoryCounts||{}),
+    newItemIds:[...(source.newItemIds||[])],
+    itemHistory:clone(source.itemHistory||[]),
+    discoveredGiftReactionKeys:[...(source.discoveredGiftReactionKeys||[])],
+    giftInteractionCounts:clone(source.giftInteractionCounts||{}),
+    askedAskIds:[...(source.askedAskIds||[])],
+    unlockedAskIds:[...(source.unlockedAskIds||[])],
+    interactionHistory:clone(source.interactionHistory||[]),
+    collectionSettings:clone(source.collectionSettings||{}),
+    discoveredThoughtIds:[...(source.discoveredThoughtIds||[])],
+    gacha:{
+      balance:Math.max(0,Number(source.gacha?.balance)||0),
+      history:clone(source.gacha?.history||[])
+    }
+  };
+}
+function mergeProgressState(base,progress){
+  if(!progress||typeof progress!=="object")return base;
+  const merged={...base};
+  for(const key of [
+    "profile","favoriteCharacterIds","playState","inventoryCounts","newItemIds",
+    "itemHistory","discoveredGiftReactionKeys","giftInteractionCounts","askedAskIds",
+    "unlockedAskIds","interactionHistory","collectionSettings","discoveredThoughtIds"
+  ]){
+    if(progress[key]!==undefined)merged[key]=clone(progress[key]);
+  }
+  if(progress.gacha&&typeof progress.gacha==="object"){
+    merged.gacha={
+      ...merged.gacha,
+      balance:Math.max(0,Number(progress.gacha.balance ?? merged.gacha?.balance)||0),
+      history:Array.isArray(progress.gacha.history)?clone(progress.gacha.history):merged.gacha?.history||[]
+    };
+  }
+  return merged;
+}
+function saveProgressState(){
+  syncPlayStateFromSession();
+  const progress=progressStateFrom(state);
+  if(storageMode==="indexedDB"){
+    queueStorageWrite("progress",progress);
+    return true;
+  }
+  if(storageMode==="booting")return true;
+  try{
+    localStorage.setItem(STATE_KEY,JSON.stringify(compactStateForStorage(state)));
+    return true;
+  }catch(error){
+    storageLastError=error;
+    console.warn("HELLAVERSE PROGRESS FALLBACK SAVE FAILED",error);
+    return false;
+  }
+}
 function saveState(){
   syncPlayStateFromSession();
   const packed=compactStateForStorage(state);
-  const payload=JSON.stringify(packed);
+  packed.schemaVersion=CURRENT_SCHEMA_VERSION;
+  if(storageMode==="indexedDB"){
+    queueStorageWrite("state",packed);
+    queueStorageWrite("progress",progressStateFrom(state));
+    return true;
+  }
+  if(storageMode==="booting"){
+    return true;
+  }
   try{
-    localStorage.setItem(STATE_KEY,payload);
+    localStorage.setItem(STATE_KEY,JSON.stringify(packed));
     return true;
   }catch(error){
-    console.error("HELLAVERSE STATE SAVE FAILED",error,{chars:payload.length});
-    const wrapped=new Error("브라우저 저장 공간이 부족해 데이터를 저장하지 못했습니다.");
-    wrapped.name="HellaverseStorageError";
-    wrapped.cause=error;
-    wrapped.payloadChars=payload.length;
-    throw wrapped;
+    storageLastError=error;
+    console.error("HELLAVERSE FALLBACK SAVE FAILED",error);
+    return false;
   }
 }
 function readBackupStore(){
-  try{
-    const raw=JSON.parse(localStorage.getItem(DATA_BACKUP_KEY)||"{}");
-    return {
-      slots:Array.from({length:3},(_,i)=>Array.isArray(raw.slots)?raw.slots[i]||null:null),
-      safety:raw.safety&&typeof raw.safety==="object"?raw.safety:null
-    };
-  }catch{return{slots:[null,null,null],safety:null}}
+  return clone(backupStoreCache);
 }
 function writeBackupStore(store){
+  backupStoreCache=normalizeBackupStore(store);
+  if(storageMode==="indexedDB"){
+    queueStorageWrite("backups",backupStoreCache);
+    return true;
+  }
   try{
-    localStorage.setItem(DATA_BACKUP_KEY,JSON.stringify(store));
+    localStorage.setItem(DATA_BACKUP_KEY,JSON.stringify(backupStoreCache));
     return true;
   }catch(error){
-    console.warn("HELLAVERSE BACKUP SAVE FAILED",error);
+    storageLastError=error;
+    console.warn("HELLAVERSE FALLBACK BACKUP SAVE FAILED",error);
+    return false;
+  }
+}
+function readEditorSnapshot(){
+  return editorSnapshotCache?clone(editorSnapshotCache):null;
+}
+function hasEditorSnapshot(){return Boolean(editorSnapshotCache)}
+function writeEditorSnapshot(snapshot){
+  editorSnapshotCache=snapshot?clone(snapshot):null;
+  if(storageMode==="indexedDB"){
+    if(editorSnapshotCache)queueStorageWrite("editorSnapshot",editorSnapshotCache);
+    else storageWriteChain=storageWriteChain.catch(()=>{}).then(()=>idbDelete("editorSnapshot")).catch(error=>{
+      storageLastError=error;
+      console.error("HELLAVERSE EDITOR SNAPSHOT DELETE FAILED",error);
+    });
+    return true;
+  }
+  try{
+    if(editorSnapshotCache)localStorage.setItem(EDITOR_SNAPSHOT_KEY,JSON.stringify(editorSnapshotCache));
+    else localStorage.removeItem(EDITOR_SNAPSHOT_KEY);
+    return true;
+  }catch(error){
+    storageLastError=error;
     return false;
   }
 }
 function makeDataSnapshot(label="BACKUP"){
   saveState();
   return {
-    version:2,
+    version:3,
+    schemaVersion:CURRENT_SCHEMA_VERSION,
     label:String(label),
     at:Date.now(),
     state:compactStateForStorage(state),
@@ -1114,6 +1345,65 @@ function captureSafetySnapshot(label="자동 안전 백업"){
   const store=readBackupStore();
   store.safety=makeDataSnapshot(label);
   return writeBackupStore(store);
+}
+async function bootstrapStorage(){
+  const legacyState=legacyLocalState();
+  const legacyBackups=legacyLocalBackups();
+  const legacyEditor=legacyLocalEditorSnapshot();
+
+  try{
+    await getStorageDb();
+    const [dbState,dbBackups,dbEditor,dbProgress]=await Promise.all([
+      idbGet("state"),
+      idbGet("backups"),
+      idbGet("editorSnapshot"),
+      idbGet("progress")
+    ]);
+
+    const chosenState=dbState||legacyState||defaultState();
+    state=normalizeState(mergeProgressState(chosenState,dbProgress));
+    backupStoreCache=normalizeBackupStore(dbBackups||legacyBackups);
+    editorSnapshotCache=dbEditor||legacyEditor||null;
+    storageMode="indexedDB";
+
+    if(!dbState)await idbSet("state",compactStateForStorage(state));
+    if(!dbProgress)await idbSet("progress",progressStateFrom(state));
+    if(!dbBackups&&legacyBackups)await idbSet("backups",backupStoreCache);
+    if(!dbEditor&&legacyEditor)await idbSet("editorSnapshot",editorSnapshotCache);
+
+    try{
+      localStorage.removeItem(STATE_KEY);
+      localStorage.removeItem(DATA_BACKUP_KEY);
+      localStorage.removeItem(EDITOR_SNAPSHOT_KEY);
+      localStorage.setItem(STORAGE_META_KEY,JSON.stringify({
+        mode:"indexedDB",
+        schemaVersion:CURRENT_SCHEMA_VERSION,
+        migratedAt:Date.now()
+      }));
+    }catch{}
+  }catch(error){
+    console.warn("IndexedDB unavailable; using localStorage fallback",error);
+    storageMode="localStorage-fallback";
+    state=normalizeState(legacyState||defaultState());
+    backupStoreCache=normalizeBackupStore(legacyBackups);
+    editorSnapshotCache=legacyEditor||null;
+  }
+
+  pendingOrigin=state.profile.origin||"";
+  if(typeof createSession==="function")session=createSession();
+  return{
+    mode:storageMode,
+    schemaVersion:CURRENT_SCHEMA_VERSION,
+    stateChars:storageSizeChars(compactStateForStorage(state))
+  };
+}
+function storageStatus(){
+  return{
+    mode:storageMode,
+    schemaVersion:CURRENT_SCHEMA_VERSION,
+    lastError:storageLastError?String(storageLastError.message||storageLastError):"",
+    stateChars:storageSizeChars(compactStateForStorage(state))
+  };
 }
 function readPrefs(){
   try{

@@ -514,3 +514,36 @@ details.advanced summary{cursor:pointer;color:var(--gold);font-size:.72rem}
   }
   .editor-list-toolbar{grid-template-columns:1fr}
 }
+
+
+/* v16 · selected-detail editor */
+.editor-select-layout{margin-top:14px}
+.editor-select-layout>.manager-list{
+  position:sticky;
+  top:0;
+  max-height:calc(100vh - 250px);
+  overflow:auto
+}
+.editor-single-detail{width:100%}
+.editor-single-detail.ask-row,
+.editor-single-detail.item-row{display:grid}
+.editor-single-detail.thought-row{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px
+}
+.editor-single-detail.thought-row textarea{
+  grid-column:1/-1;
+  min-height:220px
+}
+.editor-single-detail.thought-row>span{grid-column:1/-1}
+@media(max-width:760px){
+  .editor-select-layout{display:grid;grid-template-columns:1fr}
+  .editor-select-layout>.manager-list{
+    position:relative;
+    max-height:320px
+  }
+  .editor-single-detail.thought-row{grid-template-columns:1fr}
+  .editor-single-detail.thought-row textarea,
+  .editor-single-detail.thought-row>span{grid-column:auto}
+}

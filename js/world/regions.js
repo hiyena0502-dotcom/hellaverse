@@ -118,7 +118,7 @@
     });
     if(earned){
       saveSceneWork(work);
-      saveState();
+      saveProgressState();
     }
     return earned;
   }

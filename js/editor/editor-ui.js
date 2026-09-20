@@ -2,9 +2,9 @@
 /* EDITOR */
 const EDITOR_LARGE_PROJECT_THRESHOLD=700;
 const EDITOR_EVENT_PAGE_SIZE=60;
-const EDITOR_ASK_PAGE_SIZE=8;
-const EDITOR_ITEM_PAGE_SIZE=6;
-const EDITOR_THOUGHT_PAGE_SIZE=30;
+const EDITOR_ASK_PAGE_SIZE=30;
+const EDITOR_ITEM_PAGE_SIZE=30;
+const EDITOR_THOUGHT_PAGE_SIZE=50;
 let editorDirty=false;
 let editorLargeProject=false;
 let editorEventQuery="";
@@ -33,7 +33,7 @@ function updateEditorHistoryButtons(){
     redo.disabled=editorLargeProject||!editorRedoStack.length;
     redo.title=editorLargeProject?"대용량 프로젝트에서는 전체 스냅샷 REDO를 비활성화합니다.":"";
   }
-  if(restore)restore.disabled=!localStorage.getItem(EDITOR_SNAPSHOT_KEY);
+  if(restore)restore.disabled=!hasEditorSnapshot();
 }
 function checkpointEditor(){
   if(!editorDraft)return;
@@ -70,11 +70,7 @@ function editorRedo(){
 function storeEditorRestorePoint(){
   saveState();
   const snap=makeDataSnapshot("EDITOR 저장 전 복구 지점");
-  try{
-    localStorage.setItem(EDITOR_SNAPSHOT_KEY,JSON.stringify(snap));
-  }catch(error){
-    console.warn("EDITOR RESTORE SNAPSHOT SKIPPED",error);
-  }
+  if(!writeEditorSnapshot(snap))console.warn("EDITOR RESTORE SNAPSHOT SKIPPED");
   try{
     captureSafetySnapshot("EDITOR 저장 전 자동 백업");
   }catch(error){
@@ -82,16 +78,19 @@ function storeEditorRestorePoint(){
   }
 }
 function restoreEditorSnapshot(){
-  const raw=localStorage.getItem(EDITOR_SNAPSHOT_KEY);
-  if(!raw){showToast("복구할 EDITOR 스냅샷이 없습니다.");return}
+  const snap=readEditorSnapshot();
+  if(!snap){showToast("복구할 EDITOR 스냅샷이 없습니다.");return}
   if(!confirm("마지막 EDITOR 저장 전 상태를 현재 편집 화면으로 불러올까요?"))return;
   try{
     checkpointEditor();
-    const snap=JSON.parse(raw);
     editorDraft=normalizeState(snap.state||snap);
+    markEditorDirty();
     renderEditor();
     showToast("마지막 저장 전 상태를 불러왔습니다.");
-  }catch{showToast("EDITOR 스냅샷을 읽지 못했습니다.")}
+  }catch(error){
+    console.error("EDITOR RESTORE FAILED",error);
+    showToast("EDITOR 스냅샷을 읽지 못했습니다.");
+  }
 }
 function isEditorMutationAction(action){
   return /^(new-|delete-|add-|move-|duplicate-|mini-add-|mini-delete-)/.test(String(action||""));
@@ -500,26 +499,33 @@ function renderAskEditor(){
   const pages=Math.max(1,Math.ceil(filtered.length/EDITOR_ASK_PAGE_SIZE));
   editorAskPage=Math.max(0,Math.min(editorAskPage,pages-1));
   const visible=filtered.slice(editorAskPage*EDITOR_ASK_PAGE_SIZE,(editorAskPage+1)*EDITOR_ASK_PAGE_SIZE);
-  editorBody.innerHTML=editorHead("ASK","ASK 설정","질문은 LOCKED → NEW → ASKED 상태를 가지며, 해금 조건과 반응 FLOW를 따로 관리합니다.",'<button class="small-button" data-action="new-ask">+ 질문</button>')+
+  if(!editorDraft.asks.some(a=>a.id===selectedAskId))selectedAskId=filtered[0]?.id||editorDraft.asks[0]?.id||"";
+  if(filtered.length&&!filtered.some(a=>a.id===selectedAskId))selectedAskId=filtered[0].id;
+  const a=editorDraft.asks.find(x=>x.id===selectedAskId)||null;
+
+  editorBody.innerHTML=editorHead("ASK","ASK 설정","목록에서 질문 하나를 선택해 해당 FLOW만 편집합니다.",'<button class="small-button" data-action="new-ask">+ 질문</button>')+
     '<div class="editor-list-toolbar"><input data-editor-search="ask" value="'+esc(editorAskQuery)+'" placeholder="ASK / 캐릭터 검색"><span>'+filtered.length+' / '+editorDraft.asks.length+'</span></div>'+
-    editorPager("ask",editorAskPage,filtered.length,EDITOR_ASK_PAGE_SIZE,"ASK")+
-    '<div class="ask-editor-grid">'+
-    (visible.length?visible.map(a=>'<div class="ask-row interaction-editor-row" data-ask-id="'+esc(a.id)+'">'+
-      '<select data-ask-bind="characterId">'+charOptions(a.characterId,"질문 대상")+'</select>'+
-      '<input data-ask-bind="label" value="'+esc(a.label)+'" placeholder="질문 문구">'+
-      '<label class="field"><span>사용 최소 호감도</span><input type="number" min="0" max="100" data-ask-bind="minAffection" value="'+a.minAffection+'"></label>'+
-      '<label class="checkline"><input type="checkbox" data-ask-bind="enabled" '+(a.enabled?"checked":"")+'> 사용</label>'+
-      '<button class="danger-button" data-action="delete-ask">×</button>'+
-      '<div class="full-row interaction-response-editor">'+
-        renderAskUnlockEditor(a)+
-        '<div class="interaction-effect-grid">'+
-          '<label class="field"><span>질문 실행 시 호감도 변화</span><input type="number" min="-100" max="100" data-ask-bind="affectionDelta" value="'+a.affectionDelta+'"></label>'+
-          '<label class="field"><span>감정 변화</span><select data-ask-bind="emotionState"><option value="">변경 없음</option>'+EMOTIONS.map(x=>'<option value="'+x[0]+'" '+(a.emotionState===x[0]?"selected":"")+'>'+x[1]+'</option>').join("")+'</select></label>'+
-          '<label class="field"><span>감정 강도</span><input type="number" min="0" max="100" data-ask-bind="emotionIntensity" value="'+a.emotionIntensity+'"></label>'+
-        '</div>'+interactionFlowEditor(a.entries,"ask",a.id)+
-      '</div>'+
-    '</div>').join(""):'<div class="editor-note">검색 결과가 없습니다.</div>')+
-    '</div>'+editorPager("ask",editorAskPage,filtered.length,EDITOR_ASK_PAGE_SIZE,"ASK");
+    '<div class="manager-layout editor-select-layout"><aside class="manager-list"><div class="manager-list-items">'+
+      (visible.length?visible.map(x=>'<button class="manager-item '+(x.id===selectedAskId?"active":"")+'" data-action="select-ask" data-id="'+esc(x.id)+'"><strong>'+esc(x.label)+'</strong><small>'+esc(getCharacterDraft(x.characterId)?.name||"캐릭터 미지정")+(x.enabled?"":" · HIDDEN")+'</small></button>').join(""):'<div class="editor-note">검색 결과가 없습니다.</div>')+
+      '</div>'+editorPager("ask",editorAskPage,filtered.length,EDITOR_ASK_PAGE_SIZE,"ASK")+'</aside>'+
+      '<section class="manager-detail">'+(a?
+        '<div class="ask-row interaction-editor-row editor-single-detail" data-ask-id="'+esc(a.id)+'">'+
+          '<select data-ask-bind="characterId">'+charOptions(a.characterId,"질문 대상")+'</select>'+
+          '<input data-ask-bind="label" value="'+esc(a.label)+'" placeholder="질문 문구">'+
+          '<label class="field"><span>사용 최소 호감도</span><input type="number" min="0" max="100" data-ask-bind="minAffection" value="'+a.minAffection+'"></label>'+
+          '<label class="checkline"><input type="checkbox" data-ask-bind="enabled" '+(a.enabled?"checked":"")+'> 사용</label>'+
+          '<button class="danger-button" data-action="delete-ask">현재 ASK 삭제</button>'+
+          '<div class="full-row interaction-response-editor">'+
+            renderAskUnlockEditor(a)+
+            '<div class="interaction-effect-grid">'+
+              '<label class="field"><span>질문 실행 시 호감도 변화</span><input type="number" min="-100" max="100" data-ask-bind="affectionDelta" value="'+a.affectionDelta+'"></label>'+
+              '<label class="field"><span>감정 변화</span><select data-ask-bind="emotionState"><option value="">변경 없음</option>'+EMOTIONS.map(x=>'<option value="'+x[0]+'" '+(a.emotionState===x[0]?"selected":"")+'> '+x[1]+'</option>').join("")+'</select></label>'+
+              '<label class="field"><span>감정 강도</span><input type="number" min="0" max="100" data-ask-bind="emotionIntensity" value="'+a.emotionIntensity+'"></label>'+
+            '</div>'+interactionFlowEditor(a.entries,"ask",a.id)+
+          '</div>'+
+        '</div>'
+        :'<div class="inspector-empty">왼쪽에서 ASK를 선택하세요.</div>')+
+      '</section></div>';
 }
 function renderItemEditor(){
   const q=editorItemQuery.trim().toLowerCase();
@@ -535,12 +541,14 @@ function renderItemEditor(){
     }
     return true;
   });
-
-  const itemPages=Math.max(1,Math.ceil(filtered.length/EDITOR_ITEM_PAGE_SIZE));
-  editorItemPage=Math.max(0,Math.min(editorItemPage,itemPages-1));
+  const pages=Math.max(1,Math.ceil(filtered.length/EDITOR_ITEM_PAGE_SIZE));
+  editorItemPage=Math.max(0,Math.min(editorItemPage,pages-1));
   const visible=filtered.slice(editorItemPage*EDITOR_ITEM_PAGE_SIZE,(editorItemPage+1)*EDITOR_ITEM_PAGE_SIZE);
+  if(!editorDraft.items.some(i=>i.id===selectedItemId))selectedItemId=filtered[0]?.id||editorDraft.items[0]?.id||"";
+  if(filtered.length&&!filtered.some(i=>i.id===selectedItemId))selectedItemId=filtered[0].id;
+  const i=editorDraft.items.find(x=>x.id===selectedItemId)||null;
 
-  editorBody.innerHTML=editorHead("ITEM","아이템 설정","아이템의 분류·획득 방식·컬렉션 소속과 캐릭터별 선물 반응을 관리합니다.",'<button class="small-button" data-action="new-item">+ 아이템</button>')+
+  editorBody.innerHTML=editorHead("ITEM","아이템 설정","목록에서 아이템 하나를 선택해 해당 반응만 편집합니다.",'<button class="small-button" data-action="new-item">+ 아이템</button>')+
     '<section class="settings-card item-category-manager"><div class="manager-list-head"><div><h3>CATEGORIES</h3><p class="muted">희귀도와 별개인 물건 종류입니다.</p></div></div>'+
       '<div class="category-list">'+categories.map(cat=>'<span class="category-tag">'+esc(cat)+(cat!=="기타"?'<button type="button" data-action="delete-item-category" data-id="'+esc(cat)+'">×</button>':'')+'</span>').join("")+'</div>'+
       '<div class="category-add-row"><input id="newItemCategoryInput" placeholder="새 아이템 카테고리"><button class="small-button" type="button" data-action="add-item-category">추가</button></div>'+
@@ -551,40 +559,42 @@ function renderItemEditor(){
       '<select data-item-editor-filter="rarity"><option value="ALL">모든 희귀도</option>'+RARITIES.map(r=>'<option value="'+r+'" '+(editorItemRarityFilter===r?"selected":"")+'>'+r+'</option>').join("")+'</select>'+
       '<select data-item-editor-filter="category"><option value="ALL">모든 카테고리</option>'+categories.map(cat=>'<option value="'+esc(cat)+'" '+(editorItemCategoryFilter===cat?"selected":"")+'>'+esc(cat)+'</option>').join("")+'</select>'+
       '<span class="item-filter-count">'+filtered.length+' / '+editorDraft.items.length+'</span>'+
-    '</div>'+editorPager("item",editorItemPage,filtered.length,EDITOR_ITEM_PAGE_SIZE,"ITEM")+
-    '<div class="item-editor-grid">'+
-    (visible.length?visible.map(i=>{
-      const configured=new Set(i.reactions.map(r=>r.characterId).filter(id=>editorDraft.characters.some(ch=>ch.id===id))).size;
-      const categoryOptions=[...new Set([...categories,i.category].filter(Boolean))];
-      return '<div class="item-row interaction-editor-row" data-item-id="'+esc(i.id)+'">'+
-        '<select data-item-bind="collectionCharacterId">'+charOptions(i.collectionCharacterId,"컬렉션 소속")+'</select>'+
-        '<input data-item-bind="name" value="'+esc(i.name)+'" placeholder="아이템 이름">'+
-        '<select data-item-bind="rarity">'+RARITIES.map(r=>'<option '+(i.rarity===r?"selected":"")+'>'+r+'</option>').join("")+'</select>'+
-        '<select data-item-bind="category">'+categoryOptions.map(cat=>'<option value="'+esc(cat)+'" '+(i.category===cat?"selected":"")+'>'+esc(cat)+'</option>').join("")+'</select>'+
-        '<select data-item-bind="acquisitionMode"><option value="repeatable" '+(i.acquisitionMode==="repeatable"?"selected":"")+'>REPEATABLE</option><option value="unique" '+(i.acquisitionMode==="unique"?"selected":"")+'>UNIQUE</option></select>'+
-        '<button class="danger-button" data-action="delete-item">×</button>'+
-        '<div class="full-row item-meta-strip"><span>'+esc(itemSourceLabel(i,editorDraft))+'</span><span>'+configured+' / '+editorDraft.characters.length+' REACTIONS</span><span>OWNED ×'+itemCount(i.id,editorDraft)+'</span></div>'+
-        '<div class="full-row interaction-response-editor">'+
-          '<div class="inline-grid"><label class="checkline"><input type="checkbox" data-item-bind="gachaEnabled" '+(i.gachaEnabled?"checked":"")+'> 가챠 포함</label><label class="checkline"><input type="checkbox" data-item-bind="giftable" '+(i.giftable!==false?"checked":"")+'> 선물 가능</label><label class="checkline"><input type="checkbox" data-item-bind="enabled" '+(i.enabled?"checked":"")+'> 사용</label><label class="checkline"><input type="checkbox" data-item-bind="secret" '+(i.secret?"checked":"")+'> SECRET</label><label class="field"><span>선물 시 처리</span><select data-item-bind="giftUseMode"><option value="keep" '+(i.giftUseMode==="keep"?"selected":"")+'>KEEP · 유지</option><option value="consume" '+(i.giftUseMode==="consume"?"selected":"")+'>CONSUMABLE · 1개 소비</option></select></label><label class="field"><span>가챠 가중치</span><input type="number" min=".01" step=".01" data-item-bind="weight" value="'+i.weight+'"></label></div>'+
-          '<label class="field full"><span>아이템 설명</span><textarea data-item-bind="description">'+esc(i.description)+'</textarea></label>'+
-          '<div class="reaction-manager"><div class="manager-list-head"><div><strong>CHARACTER REACTIONS</strong><p class="muted">같은 아이템을 여러 캐릭터에게 줄 수 있습니다. 취향은 기본 호감도 변화값을 자동 제안합니다.</p></div><button class="small-button" type="button" data-action="new-item-reaction" data-item-id="'+esc(i.id)+'">+ 캐릭터 반응</button></div>'+
-          (i.reactions.length?i.reactions.map(r=>'<article class="item-reaction-card" data-item-id="'+esc(i.id)+'" data-reaction-id="'+esc(r.id)+'"><div class="item-reaction-head">'+
-            '<select data-reaction-bind="characterId">'+charOptions(r.characterId,"선물 대상")+'</select>'+
-            '<label class="field"><span>취향</span><select data-reaction-bind="preference">'+GIFT_PREFERENCES.map(p=>'<option value="'+p[0]+'" '+(r.preference===p[0]?"selected":"")+'>'+p[0]+'</option>').join("")+'</select></label>'+
-            '<label class="field"><span>호감도</span><input type="number" min="-100" max="100" data-reaction-bind="affectionDelta" value="'+r.affectionDelta+'"></label>'+
-            '<label class="field"><span>감정</span><select data-reaction-bind="emotionState"><option value="">변경 없음</option>'+EMOTIONS.map(x=>'<option value="'+x[0]+'" '+(r.emotionState===x[0]?"selected":"")+'>'+x[1]+'</option>').join("")+'</select></label>'+
-            '<label class="field"><span>강도</span><input type="number" min="0" max="100" data-reaction-bind="emotionIntensity" value="'+r.emotionIntensity+'"></label>'+
-            '<button class="danger-button" type="button" data-action="delete-item-reaction">×</button></div>'+
-            '<div class="special-reaction-rule"><label class="field"><span>SPECIAL 최소 호감도</span><input type="number" min="0" max="100" data-reaction-bind="specialMinAffection" value="'+r.specialMinAffection+'"></label><label class="field"><span>SPECIAL 감정</span><select data-reaction-bind="specialEmotionState"><option value="">감정 조건 없음</option>'+EMOTIONS.map(x=>'<option value="'+x[0]+'" '+(r.specialEmotionState===x[0]?"selected":"")+'>'+x[1]+'</option>').join("")+'</select></label><label class="field"><span>SPECIAL 최소 강도</span><input type="number" min="0" max="100" data-reaction-bind="specialEmotionIntensity" value="'+r.specialEmotionIntensity+'"></label></div>'+
-            interactionFlowEditor(r.firstEntries,"item-reaction",r.id,i.id,"firstEntries","FIRST GIFT")+
-            interactionFlowEditor(r.repeatEntries,"item-reaction",r.id,i.id,"repeatEntries","REPEAT GIFT")+
-            interactionFlowEditor(r.specialEntries,"item-reaction",r.id,i.id,"specialEntries","SPECIAL")+
-          '</article>').join(""):'<div class="editor-note">캐릭터별 반응이 없습니다. 설정하지 않은 캐릭터에게도 줄 수 있지만 기본 무반응 지문이 나옵니다.</div>')+
-          '</div>'+
-        '</div>'+
-      '</div>';
-    }).join(""):'<div class="editor-note">현재 필터에 맞는 아이템이 없습니다.</div>')+
-    '</div>'+editorPager("item",editorItemPage,filtered.length,EDITOR_ITEM_PAGE_SIZE,"ITEM");
+    '</div>'+
+    '<div class="manager-layout editor-select-layout"><aside class="manager-list"><div class="manager-list-items">'+
+      (visible.length?visible.map(x=>'<button class="manager-item '+(x.id===selectedItemId?"active":"")+'" data-action="select-item" data-id="'+esc(x.id)+'"><strong>'+esc(x.name)+'</strong><small>'+esc(x.rarity)+' · '+esc(getCharacterDraft(x.collectionCharacterId)?.name||"미지정")+'</small></button>').join(""):'<div class="editor-note">검색 결과가 없습니다.</div>')+
+      '</div>'+editorPager("item",editorItemPage,filtered.length,EDITOR_ITEM_PAGE_SIZE,"ITEM")+'</aside>'+
+      '<section class="manager-detail">'+(i?renderSelectedItemEditor(i,categories):'<div class="inspector-empty">왼쪽에서 아이템을 선택하세요.</div>')+'</section></div>';
+}
+function renderSelectedItemEditor(i,categories){
+  const configured=new Set(i.reactions.map(r=>r.characterId).filter(id=>editorDraft.characters.some(ch=>ch.id===id))).size;
+  const categoryOptions=[...new Set([...categories,i.category].filter(Boolean))];
+  return '<div class="item-row interaction-editor-row editor-single-detail" data-item-id="'+esc(i.id)+'">'+
+    '<select data-item-bind="collectionCharacterId">'+charOptions(i.collectionCharacterId,"컬렉션 소속")+'</select>'+
+    '<input data-item-bind="name" value="'+esc(i.name)+'" placeholder="아이템 이름">'+
+    '<select data-item-bind="rarity">'+RARITIES.map(r=>'<option '+(i.rarity===r?"selected":"")+'>'+r+'</option>').join("")+'</select>'+
+    '<select data-item-bind="category">'+categoryOptions.map(cat=>'<option value="'+esc(cat)+'" '+(i.category===cat?"selected":"")+'>'+esc(cat)+'</option>').join("")+'</select>'+
+    '<select data-item-bind="acquisitionMode"><option value="repeatable" '+(i.acquisitionMode==="repeatable"?"selected":"")+'>REPEATABLE</option><option value="unique" '+(i.acquisitionMode==="unique"?"selected":"")+'>UNIQUE</option></select>'+
+    '<button class="danger-button" data-action="delete-item">현재 아이템 삭제</button>'+
+    '<div class="full-row item-meta-strip"><span>'+esc(itemSourceLabel(i,editorDraft))+'</span><span>'+configured+' / '+editorDraft.characters.length+' REACTIONS</span><span>OWNED ×'+itemCount(i.id,editorDraft)+'</span></div>'+
+    '<div class="full-row interaction-response-editor">'+
+      '<div class="inline-grid"><label class="checkline"><input type="checkbox" data-item-bind="gachaEnabled" '+(i.gachaEnabled?"checked":"")+'> 가챠 포함</label><label class="checkline"><input type="checkbox" data-item-bind="giftable" '+(i.giftable!==false?"checked":"")+'> 선물 가능</label><label class="checkline"><input type="checkbox" data-item-bind="enabled" '+(i.enabled?"checked":"")+'> 사용</label><label class="checkline"><input type="checkbox" data-item-bind="secret" '+(i.secret?"checked":"")+'> SECRET</label><label class="field"><span>선물 시 처리</span><select data-item-bind="giftUseMode"><option value="keep" '+(i.giftUseMode==="keep"?"selected":"")+'>KEEP · 유지</option><option value="consume" '+(i.giftUseMode==="consume"?"selected":"")+'>CONSUMABLE · 1개 소비</option></select></label><label class="field"><span>가챠 가중치</span><input type="number" min=".01" step=".01" data-item-bind="weight" value="'+i.weight+'"></label></div>'+
+      '<label class="field full"><span>아이템 설명</span><textarea data-item-bind="description">'+esc(i.description)+'</textarea></label>'+
+      '<div class="reaction-manager"><div class="manager-list-head"><div><strong>CHARACTER REACTIONS</strong><p class="muted">현재 아이템의 캐릭터별 선물 반응만 표시합니다.</p></div><button class="small-button" type="button" data-action="new-item-reaction" data-item-id="'+esc(i.id)+'">+ 캐릭터 반응</button></div>'+
+      (i.reactions.length?i.reactions.map(r=>'<article class="item-reaction-card" data-item-id="'+esc(i.id)+'" data-reaction-id="'+esc(r.id)+'"><div class="item-reaction-head">'+
+        '<select data-reaction-bind="characterId">'+charOptions(r.characterId,"선물 대상")+'</select>'+
+        '<label class="field"><span>취향</span><select data-reaction-bind="preference">'+GIFT_PREFERENCES.map(p=>'<option value="'+p[0]+'" '+(r.preference===p[0]?"selected":"")+'> '+p[0]+'</option>').join("")+'</select></label>'+
+        '<label class="field"><span>호감도</span><input type="number" min="-100" max="100" data-reaction-bind="affectionDelta" value="'+r.affectionDelta+'"></label>'+
+        '<label class="field"><span>감정</span><select data-reaction-bind="emotionState"><option value="">변경 없음</option>'+EMOTIONS.map(x=>'<option value="'+x[0]+'" '+(r.emotionState===x[0]?"selected":"")+'> '+x[1]+'</option>').join("")+'</select></label>'+
+        '<label class="field"><span>강도</span><input type="number" min="0" max="100" data-reaction-bind="emotionIntensity" value="'+r.emotionIntensity+'"></label>'+
+        '<button class="danger-button" type="button" data-action="delete-item-reaction">×</button></div>'+
+        '<div class="special-reaction-rule"><label class="field"><span>SPECIAL 최소 호감도</span><input type="number" min="0" max="100" data-reaction-bind="specialMinAffection" value="'+r.specialMinAffection+'"></label><label class="field"><span>SPECIAL 감정</span><select data-reaction-bind="specialEmotionState"><option value="">감정 조건 없음</option>'+EMOTIONS.map(x=>'<option value="'+x[0]+'" '+(r.specialEmotionState===x[0]?"selected":"")+'> '+x[1]+'</option>').join("")+'</select></label><label class="field"><span>SPECIAL 최소 강도</span><input type="number" min="0" max="100" data-reaction-bind="specialEmotionIntensity" value="'+r.specialEmotionIntensity+'"></label></div>'+
+        interactionFlowEditor(r.firstEntries,"item-reaction",r.id,i.id,"firstEntries","FIRST GIFT")+
+        interactionFlowEditor(r.repeatEntries,"item-reaction",r.id,i.id,"repeatEntries","REPEAT GIFT")+
+        interactionFlowEditor(r.specialEntries,"item-reaction",r.id,i.id,"specialEntries","SPECIAL")+
+      '</article>').join(""):'<div class="editor-note">캐릭터별 반응이 없습니다.</div>')+
+      '</div>'+
+    '</div>'+
+  '</div>';
 }
 function renderGachaEditor(){
   const total=RARITIES.reduce((s,r)=>s+Number(editorDraft.gacha.rarityWeights[r]||0),0)||1;
@@ -604,12 +614,27 @@ function renderThoughtEditor(){
   const pages=Math.max(1,Math.ceil(filtered.length/EDITOR_THOUGHT_PAGE_SIZE));
   editorThoughtPage=Math.max(0,Math.min(editorThoughtPage,pages-1));
   const visible=filtered.slice(editorThoughtPage*EDITOR_THOUGHT_PAGE_SIZE,(editorThoughtPage+1)*EDITOR_THOUGHT_PAGE_SIZE);
-  editorBody.innerHTML=editorHead("THOUGHT","Thought 설정","캐릭터별 생각, 카테고리, 등장 빈도를 관리합니다.",'<button class="small-button" data-action="new-thought">+ Thought</button>')+
-  '<section class="settings-card" style="margin-top:16px"><h3>CATEGORIES</h3><div class="category-list">'+editorDraft.thoughtSettings.categories.map(c=>'<span class="category-tag">'+esc(c)+'<button data-action="delete-category" data-id="'+esc(c)+'">×</button></span>').join("")+'</div><div style="display:flex;gap:7px;margin-top:10px"><input id="newCategoryInput" placeholder="새 카테고리"><button class="small-button" data-action="add-category">추가</button></div></section>'+
-  '<div class="editor-list-toolbar"><input data-editor-search="thought" value="'+esc(editorThoughtQuery)+'" placeholder="THOUGHT / 캐릭터 / 카테고리 검색"><span>'+filtered.length+' / '+editorDraft.thoughts.length+'</span></div>'+
-  editorPager("thought",editorThoughtPage,filtered.length,EDITOR_THOUGHT_PAGE_SIZE,"THOUGHT")+
-  '<div class="table-editor">'+(visible.length?visible.map(t=>'<div class="table-row thought-row" data-thought-id="'+esc(t.id)+'"><select data-thought-bind="characterId">'+charOptions(t.characterId,"캐릭터")+'</select><select data-thought-bind="category">'+editorDraft.thoughtSettings.categories.map(c=>'<option '+(t.category===c?"selected":"")+'>'+esc(c)+'</option>').join("")+'</select><select data-thought-bind="frequency">'+FREQUENCIES.map(f=>'<option value="'+f[0]+'" '+(t.frequency===f[0]?"selected":"")+'>'+f[1]+'</option>').join("")+'</select><select data-thought-bind="rarity">'+RARITIES.map(r=>'<option '+(t.rarity===r?"selected":"")+'>'+r+'</option>').join("")+'</select><textarea data-thought-bind="text">'+esc(t.text)+'</textarea><span><label class="checkline"><input type="checkbox" data-thought-bind="enabled" '+(t.enabled?"checked":"")+'> 사용</label><button class="danger-button" data-action="delete-thought">×</button></span></div>').join(""):'<div class="editor-note">검색 결과가 없습니다.</div>')+'</div>'+
-  editorPager("thought",editorThoughtPage,filtered.length,EDITOR_THOUGHT_PAGE_SIZE,"THOUGHT");
+  if(!editorDraft.thoughts.some(t=>t.id===selectedThoughtId))selectedThoughtId=filtered[0]?.id||editorDraft.thoughts[0]?.id||"";
+  if(filtered.length&&!filtered.some(t=>t.id===selectedThoughtId))selectedThoughtId=filtered[0].id;
+  const t=editorDraft.thoughts.find(x=>x.id===selectedThoughtId)||null;
+
+  editorBody.innerHTML=editorHead("THOUGHT","Thought 설정","목록에서 한 문장만 선택해 편집합니다.",'<button class="small-button" data-action="new-thought">+ Thought</button>')+
+    '<section class="settings-card" style="margin-top:16px"><h3>CATEGORIES</h3><div class="category-list">'+editorDraft.thoughtSettings.categories.map(c=>'<span class="category-tag">'+esc(c)+'<button data-action="delete-category" data-id="'+esc(c)+'">×</button></span>').join("")+'</div><div style="display:flex;gap:7px;margin-top:10px"><input id="newCategoryInput" placeholder="새 카테고리"><button class="small-button" data-action="add-category">추가</button></div></section>'+
+    '<div class="editor-list-toolbar"><input data-editor-search="thought" value="'+esc(editorThoughtQuery)+'" placeholder="THOUGHT / 캐릭터 / 카테고리 검색"><span>'+filtered.length+' / '+editorDraft.thoughts.length+'</span></div>'+
+    '<div class="manager-layout editor-select-layout"><aside class="manager-list"><div class="manager-list-items">'+
+      (visible.length?visible.map(x=>'<button class="manager-item '+(x.id===selectedThoughtId?"active":"")+'" data-action="select-thought" data-id="'+esc(x.id)+'"><strong>'+esc((x.text||"빈 문장").slice(0,52))+'</strong><small>'+esc(getCharacterDraft(x.characterId)?.name||"캐릭터 미지정")+' · '+esc(x.category)+'</small></button>').join(""):'<div class="editor-note">검색 결과가 없습니다.</div>')+
+      '</div>'+editorPager("thought",editorThoughtPage,filtered.length,EDITOR_THOUGHT_PAGE_SIZE,"THOUGHT")+'</aside>'+
+      '<section class="manager-detail">'+(t?
+        '<div class="table-row thought-row editor-single-detail" data-thought-id="'+esc(t.id)+'">'+
+          '<select data-thought-bind="characterId">'+charOptions(t.characterId,"캐릭터")+'</select>'+
+          '<select data-thought-bind="category">'+editorDraft.thoughtSettings.categories.map(cat=>'<option '+(t.category===cat?"selected":"")+'>'+esc(cat)+'</option>').join("")+'</select>'+
+          '<select data-thought-bind="frequency">'+FREQUENCIES.map(f=>'<option value="'+f[0]+'" '+(t.frequency===f[0]?"selected":"")+'> '+f[1]+'</option>').join("")+'</select>'+
+          '<select data-thought-bind="rarity">'+RARITIES.map(r=>'<option '+(t.rarity===r?"selected":"")+'>'+r+'</option>').join("")+'</select>'+
+          '<textarea data-thought-bind="text">'+esc(t.text)+'</textarea>'+
+          '<span><label class="checkline"><input type="checkbox" data-thought-bind="enabled" '+(t.enabled?"checked":"")+'> 사용</label><button class="danger-button" data-action="delete-thought">현재 THOUGHT 삭제</button></span>'+
+        '</div>'
+        :'<div class="inspector-empty">왼쪽에서 THOUGHT를 선택하세요.</div>')+
+      '</section></div>';
 }
 function renderCollectionEditor(){
   const chars=editorDraft.characters;

@@ -161,7 +161,7 @@ function renderRoomBeat(){
   if(typing.token!==token){
     session.log.push({kind:entry.type,speaker,text:entry.text||"",eventName:currentEvent()?.name||""});
     if(session.log.length>200)session.log.splice(0,session.log.length-200);
-    saveState();
+    saveProgressState();
     startTyping(entry.text||"",token);
   }else{
     $("#dialogueText").textContent=typing.done?typing.full:typing.full.slice(0,typing.index);
@@ -250,7 +250,7 @@ function useInventoryItem(id){
   state.giftInteractionCounts[key]=currentCount+1;
   if(item.giftUseMode==="consume")consumeInventoryItem(item.id,1,state);
   recordInteraction({kind:"gift",characterId:ch.id,itemId:item.id,label:item.name,preference:reaction.preference,flowType});
-  saveState();
+  saveProgressState();
 
   beginInteractionReaction("item",reaction,entries,item.name,{itemId:item.id,preference:reaction.preference,flowType});
 }
@@ -270,7 +270,7 @@ function chooseOption(id){
   applyOwnerEffects(entry);applyOwnerEffects(option);
   session.log.push({kind:"choice",speaker:"CHOICE",text:(entry.prompt||"선택")+" → "+(option.label||""),eventName:currentEvent()?.name||""});
   if(session.log.length>200)session.log.splice(0,session.log.length-200);
-  saveState();
+  saveProgressState();
   frame.index++;
   if(option.entries.length){
     playback.frames.push({sourceType:"option",sourceId:option.id,index:0,label:option.label||"분기",exitMode:option.exitMode,targetEventId:option.targetEventId||""});
@@ -318,7 +318,7 @@ function randomThought(){
   let roll=Math.random()*total,chosen=candidates[0];
   for(const t of candidates){roll-=weight[t.frequency]||1;if(roll<=0){chosen=t;break}}
   if(!state.discoveredThoughtIds.includes(chosen.id))state.discoveredThoughtIds.push(chosen.id);
-  saveState();
+  saveProgressState();
   openModal(ch.name+" · THOUGHT",'<p class="label">'+esc(chosen.category)+' · '+esc(chosen.frequency.toUpperCase())+'</p><p style="white-space:pre-wrap;line-height:1.8;font-family:Georgia,serif;font-size:1.2rem">'+esc(chosen.text)+'</p>');
 }
 function chooseWeighted(items,getWeight){
@@ -352,7 +352,7 @@ function playGachaAnimation(results){
 }
 function clearGachaHistory(){
   state.gacha.history=[];
-  saveState();
+  saveProgressState();
   renderGacha();
   showToast("가챠 RECENT 기록을 비웠습니다.");
 }
@@ -386,7 +386,7 @@ function drawGacha(count){
   }
 
   state.gacha.history=state.gacha.history.slice(-50);
-  saveState();
+  saveProgressState();
   if(!results.length){showToast("획득 가능한 아이템이 없습니다.");renderGacha();return}
   gachaAnimating=true;
   renderGacha();
@@ -399,7 +399,7 @@ function collectionDetail(id){
   const wasNew=state.newItemIds.includes(i.id);
   if(wasNew){
     markItemSeen(i.id,state);
-    saveState();
+    saveProgressState();
     if(currentPage==="collection")renderCollection();
   }
   const sources=itemSourceTypes(i).join(" + ");
