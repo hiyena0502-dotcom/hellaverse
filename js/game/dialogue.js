@@ -152,6 +152,10 @@ function fallbackExitEvent(character){
 }
 function completeRoomExit(){
   const target=roomExitTargetPage||"home";
+  const fallbackId=String(playback?.eventId||"");
+  if(fallbackId.startsWith("__room-exit-fallback__")){
+    state.events=state.events.filter(event=>event.id!==fallbackId);
+  }
   roomExitActive=false;
   roomExitTargetPage="home";
   activeInteractionReaction=null;
