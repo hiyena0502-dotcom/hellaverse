@@ -174,6 +174,17 @@ input:focus,textarea:focus,select:focus,button:focus-visible{
   color:var(--text);
   letter-spacing:.24em
 }
+.start-import-button{
+  margin-top:14px;
+  border:0;
+  border-bottom:1px solid var(--line);
+  padding:8px 2px;
+  background:transparent;
+  color:var(--gold);
+  font-size:.72rem;
+  letter-spacing:.12em
+}
+.start-import-button:hover{color:var(--text);border-color:var(--gold)}
 .title-hint{
   min-height:1.3em;
   margin:16px 0 0;
@@ -233,12 +244,49 @@ input:focus,textarea:focus,select:focus,button:focus-visible{
   align-items:center;
   gap:16px
 }
+.save-status{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  color:var(--muted);
+  font-size:.62rem;
+  letter-spacing:.12em
+}
+.save-status:before{
+  content:"";
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:var(--success);
+  box-shadow:0 0 10px rgba(132,181,143,.42)
+}
+.save-status[data-status="saving"]{color:var(--gold)}
+.save-status[data-status="saving"]:before{
+  background:var(--gold);
+  animation:savePulse .9s ease-in-out infinite alternate
+}
+.save-status[data-status="failed"]{color:#f0b4bc}
+.save-status[data-status="failed"]:before{background:var(--danger);box-shadow:0 0 10px rgba(212,90,104,.5)}
+@keyframes savePulse{to{opacity:.32;transform:scale(.72)}}
 .player-badge{
   color:var(--gold);
   font-size:.72rem;
   letter-spacing:.1em
 }
 .page-root{min-height:calc(100vh - 60px)}
+.update-banner{
+  position:sticky;
+  top:58px;
+  z-index:19;
+  width:100%;
+  min-height:38px;
+  border:0;
+  border-bottom:1px solid rgba(201,166,107,.34);
+  background:linear-gradient(90deg,rgba(167,45,72,.2),rgba(201,166,107,.12),rgba(167,45,72,.2));
+  color:var(--text);
+  font-size:.72rem;
+  letter-spacing:.1em
+}
 
 /* GENERIC PAGE */
 .page-head{
@@ -270,6 +318,7 @@ input:focus,textarea:focus,select:focus,button:focus-visible{
   font-weight:500
 }
 .empty-panel p{margin:0 0 18px;color:var(--muted)}
+.empty-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
 
 /* HOME / CHARACTER LOBBY */
 .home-lobby{
@@ -511,5 +560,8 @@ input:focus,textarea:focus,select:focus,button:focus-visible{
 @media(max-width:620px){
   .player-badge{display:none}
   .hud-tools{gap:12px}
+  .save-status{font-size:0;gap:0}
+  .save-status:before{width:7px;height:7px}
   .brand-mark,.nav-button,.text-link{font-size:.65rem}
+  .update-banner{top:96px}
 }

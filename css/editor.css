@@ -19,6 +19,7 @@
   border-radius:12px;
   background:rgba(21,16,20,.97)
 }
+.modal-card:focus{outline:1px solid rgba(213,176,106,.55);outline-offset:2px}
 .modal-card h2{
   margin:6px 0 18px;
   font-family:Georgia,serif;

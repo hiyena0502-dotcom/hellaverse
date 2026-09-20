@@ -30,7 +30,10 @@
 
   function saveActiveRegion(id){
     activeRegion=id;
-    localStorage.setItem(REGION_KEY,id);
+    try{localStorage.setItem(REGION_KEY,id)}catch(error){
+      console.warn("HELLAVERSE REGION SAVE FAILED",error);
+      setStorageUiStatus("failed");
+    }
   }
 
   function readSceneState(){
@@ -43,7 +46,11 @@
   }
 
   function saveSceneState(value){
-    localStorage.setItem(SCENE_KEY,JSON.stringify(value));
+    try{localStorage.setItem(SCENE_KEY,JSON.stringify(value));return true}catch(error){
+      console.warn("HELLAVERSE SCENE SAVE FAILED",error);
+      setStorageUiStatus("failed");
+      return false;
+    }
   }
 
   function readSceneWork(){
@@ -56,7 +63,11 @@
   }
 
   function saveSceneWork(value){
-    localStorage.setItem(SCENE_WORK_KEY,JSON.stringify(value));
+    try{localStorage.setItem(SCENE_WORK_KEY,JSON.stringify(value));return true}catch(error){
+      console.warn("HELLAVERSE WORK SAVE FAILED",error);
+      setStorageUiStatus("failed");
+      return false;
+    }
   }
 
   function regionActivities(regionId){
@@ -84,6 +95,7 @@
 
   function ensureSceneTasks(regionId){
     const work=readSceneWork();
+    const before=JSON.stringify(work[regionId]||null);
     work[regionId] ||= {};
     regionActivities(regionId).forEach(task=>{
       const normalized=normalizeSceneTask(regionId,work[regionId][task.id]);
@@ -95,7 +107,7 @@
         reward:Math.max(1,Math.round(task.reward||1))
       };
     });
-    saveSceneWork(work);
+    if(before!==JSON.stringify(work[regionId]))saveSceneWork(work);
     return work;
   }
 
@@ -123,8 +135,7 @@
     return earned;
   }
 
-  function sceneTaskCard(regionId,task){
-    const work=ensureSceneTasks(regionId);
+  function sceneTaskCard(regionId,task,work){
     const slot=normalizeSceneTask(regionId,work[regionId]?.[task.id]);
     if(!slot)return "";
     const currency=esc(state.gacha.currencyName||"SOUL");
@@ -150,6 +161,7 @@
 
   function sceneWorkDock(region){
     if(!Array.isArray(region.activities)||!region.activities.length)return "";
+    const work=ensureSceneTasks(region.id);
     const heading=region.id==="heaven"?["HEAVEN DUTIES","CITY ASSIGNMENTS"]:
       region.id==="wrath"?["WRATH CHORES","RANCH WORK"]:
       region.id==="lust"?["LUST NIGHT SHIFT","VENUE WORK"]:
@@ -159,7 +171,7 @@
       ["REGION DUTIES","ASSIGNMENTS"];
     return '<section class="scene-work-dock region-work-'+esc(region.id)+'">'+
       '<div class="scene-work-head"><div><span>'+esc(heading[0])+'</span><strong>'+esc(heading[1])+'</strong></div><small>실패 없음 · 자동 진행</small></div>'+
-      '<div class="scene-work-grid">'+region.activities.map(task=>sceneTaskCard(region.id,task)).join("")+'</div>'+
+      '<div class="scene-work-grid">'+region.activities.map(task=>sceneTaskCard(region.id,task,work)).join("")+'</div>'+
     '</section>';
   }
 
@@ -179,9 +191,9 @@
 
   function scheduleSceneWork(regionId){
     clearTimeout(sceneWorkTimer);
-    if(activeRegion!==regionId)return;
+    if(currentPage!=="world"||activeRegion!==regionId)return;
     sceneWorkTimer=setTimeout(()=>{
-      if(activeRegion!==regionId)return;
+      if(currentPage!=="world"||activeRegion!==regionId)return;
       const earned=settleSceneTasks(regionId);
       if(earned){
         renderSceneRegion();

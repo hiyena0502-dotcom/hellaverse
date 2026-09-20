@@ -1,8 +1,10 @@
 "use strict";
+let lastValidationIssues=[];
 function renderValidationReport(){
   if(!editorDraft)return;
   $$(".editor-nav").forEach(b=>b.classList.remove("active"));
   const issues=validateDraft(editorDraft);
+  lastValidationIssues=issues;
   const counts={
     error:issues.filter(x=>x.level==="error").length,
     warning:issues.filter(x=>x.level==="warning").length,
@@ -10,7 +12,40 @@ function renderValidationReport(){
   };
   editorBody.innerHTML=editorHead("CHECK","프로젝트 검사","삭제된 참조와 비어 있는 콘텐츠, 설정 충돌을 저장 전에 확인합니다.",'<button class="small-button" data-action="run-validation">다시 검사</button>')+
     '<div class="validation-summary"><div><b>'+counts.error+'</b><span>ERROR</span></div><div><b>'+counts.warning+'</b><span>WARNING</span></div><div><b>'+counts.info+'</b><span>INFO</span></div></div>'+
-    (issues.length?'<div class="validation-list">'+issues.map(x=>'<article class="validation-row '+x.level+'"><span>'+esc(x.level.toUpperCase())+'</span><div><strong>'+esc(x.area)+'</strong><p>'+esc(x.text)+'</p></div></article>').join("")+'</div>':'<div class="validation-clean"><strong>문제를 찾지 못했습니다.</strong><p>현재 편집 중인 프로젝트 구조가 정상입니다.</p></div>');
+    (issues.length?'<div class="validation-list">'+issues.map((x,index)=>'<button type="button" class="validation-row '+x.level+'" data-action="validation-jump" data-index="'+index+'"><span>'+esc(x.level.toUpperCase())+'</span><div><strong>'+esc(x.area)+'</strong><p>'+esc(x.text)+'</p></div><em>수정 →</em></button>').join("")+'</div>':'<div class="validation-clean"><strong>문제를 찾지 못했습니다.</strong><p>현재 편집 중인 프로젝트 구조가 정상입니다.</p></div>');
+}
+function jumpToValidationIssue(issue){
+  if(!issue||!editorDraft)return;
+  const parts=String(issue.area||"").split(" · ");
+  const area=parts[0];
+  if(area==="EVENT"){
+    editorTab="dialogue";dialogueSubtab="events";
+    selectedEditorEventId=editorDraft.events.find(item=>item.name===parts[1])?.id||editorDraft.events[0]?.id||"";
+    editorEventQuery="";
+    editorEventPage=Math.max(0,Math.floor(Math.max(0,editorDraft.events.findIndex(item=>item.id===selectedEditorEventId))/EDITOR_EVENT_PAGE_SIZE));
+  }else if(area==="ASK"){
+    editorTab="ask";
+    selectedAskId=editorDraft.asks.find(item=>item.label===parts[1])?.id||editorDraft.asks[0]?.id||"";
+    editorAskQuery="";
+    editorAskPage=Math.max(0,Math.floor(Math.max(0,editorDraft.asks.findIndex(item=>item.id===selectedAskId))/EDITOR_ASK_PAGE_SIZE));
+  }else if(area==="ITEM"||area.startsWith("GIFT")){
+    editorTab="item";
+    selectedItemId=editorDraft.items.find(item=>item.name===parts[1])?.id||editorDraft.items[0]?.id||"";
+    editorItemQuery="";editorItemCharacterFilter="ALL";editorItemRarityFilter="ALL";editorItemCategoryFilter="ALL";
+    editorItemPage=Math.max(0,Math.floor(Math.max(0,editorDraft.items.findIndex(item=>item.id===selectedItemId))/EDITOR_ITEM_PAGE_SIZE));
+  }else if(area==="THOUGHT"){
+    editorTab="thought";
+    const character=editorDraft.characters.find(item=>item.name===parts[1]);
+    selectedThoughtId=editorDraft.thoughts.find(item=>!character||item.characterId===character.id)?.id||editorDraft.thoughts[0]?.id||"";
+    editorThoughtQuery="";
+    editorThoughtPage=Math.max(0,Math.floor(Math.max(0,editorDraft.thoughts.findIndex(item=>item.id===selectedThoughtId))/EDITOR_THOUGHT_PAGE_SIZE));
+  }else if(area==="GACHA"){
+    editorTab="gacha";
+  }else{
+    editorTab="dialogue";dialogueSubtab="characters";
+  }
+  renderEditor();
+  requestAnimationFrame(()=>editorBody.scrollTo({top:0,behavior:"smooth"}));
 }
 /* APP EVENTS */
 originChoice.addEventListener("click",e=>{
@@ -25,6 +60,12 @@ $("#changeProfileButton").addEventListener("click",renderStart);
 $("#brandButton").addEventListener("click",()=>setPage("home"));
 $("#dataButton").addEventListener("click",showDataManager);
 $("#editorButton").addEventListener("click",openEditor);
+$("#startImportButton").addEventListener("click",openImportPicker);
+$("#updateBanner").addEventListener("click",()=>{
+  const url=new URL(location.href);
+  url.searchParams.set("updated",String(Date.now()));
+  location.replace(url.href);
+});
 document.querySelectorAll(".nav-button").forEach(b=>b.addEventListener("click",()=>setPage(b.dataset.page)));
 $("#editorUndoButton").addEventListener("click",editorUndo);
 $("#editorRedoButton").addEventListener("click",editorRedo);
@@ -58,6 +99,7 @@ pageRoot.addEventListener("click",e=>{
   const b=e.target.closest("[data-action]");if(!b)return;
   const a=b.dataset.action;
   if(a==="open-editor")openEditor();
+  else if(a==="open-import")openImportPicker();
   else if(a==="character-open"){
     const id=b.dataset.id;
     const chars=enabledCharacters();
@@ -161,6 +203,7 @@ editorBody.addEventListener("click",e=>{
   const b=e.target.closest("[data-action]");if(!b)return;
   const a=b.dataset.action;
   if(a==="run-validation"){renderValidationReport();return}
+  if(a==="validation-jump"){jumpToValidationIssue(lastValidationIssues[Number(b.dataset.index)]);return}
   if(a==="editor-page"){
     const kind=b.dataset.kind;
     const page=Math.max(0,Number(b.dataset.page)||0);
@@ -672,6 +715,15 @@ function handleEditorField(e){
 }
 
 document.addEventListener("keydown",e=>{
+  if(e.key==="Tab"&&modalRoot.innerHTML){
+    const focusable=$$("button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex='-1'])",modalRoot)
+      .filter(item=>!item.hidden&&item.getClientRects().length);
+    if(focusable.length){
+      const first=focusable[0],last=focusable.at(-1);
+      if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}
+      else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}
+    }
+  }
   if(e.key==="Escape"){
     if(modalRoot.innerHTML){closeModal();return}
     if(!editorOverlay.hidden){closeEditor();return}
@@ -687,7 +739,9 @@ document.addEventListener("keydown",e=>{
 bootstrapStorage()
   .then(info=>{
     console.info("Hellaverse storage ready",info);
+    setStorageUiStatus("saved");
     renderStart();
+    installUpdateCheck();
   })
   .catch(error=>{
     console.error("HELLAVERSE BOOTSTRAP FAILED",error);
@@ -695,6 +749,8 @@ bootstrapStorage()
     state=readState();
     session=createSession();
     pendingOrigin=state.profile.origin||"";
+    setStorageUiStatus("failed","COMPAT MODE");
     renderStart();
+    installUpdateCheck();
     showToast("저장소 초기화에 실패해 호환 모드로 시작했습니다.");
   });

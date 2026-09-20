@@ -1,6 +1,9 @@
 "use strict";
 let pendingImportPreview=null;
 let uiRecoveryActive=false;
+let modalReturnFocus=null;
+let modalSequence=0;
+let updateCheckTimer=null;
 
 function projectImportStats(source){
   const s=normalizeState(source);
@@ -54,9 +57,18 @@ function showToast(text){
   toastTimer=setTimeout(()=>toastEl.hidden=true,1500);
 }
 function openModal(title,body){
-  modalRoot.innerHTML='<div class="modal-backdrop" data-close-modal><section class="modal-card" role="dialog"><button class="modal-close" type="button" data-close-modal>×</button><p class="label">HELLAVERSE</p><h2>'+esc(title)+'</h2>'+body+'</section></div>';
+  if(!modalRoot.innerHTML)modalReturnFocus=document.activeElement;
+  const titleId="modalTitle"+(++modalSequence);
+  modalRoot.innerHTML='<div class="modal-backdrop" data-close-modal><section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="'+titleId+'" tabindex="-1"><button class="modal-close" type="button" data-close-modal aria-label="닫기" title="닫기">×</button><p class="label">HELLAVERSE</p><h2 id="'+titleId+'">'+esc(title)+'</h2>'+body+'</section></div>';
+  requestAnimationFrame(()=>$(".modal-card",modalRoot)?.focus());
 }
-function closeModal(){modalRoot.innerHTML=""}
+function closeModal(){
+  if(!modalRoot.innerHTML)return;
+  modalRoot.innerHTML="";
+  const target=modalReturnFocus;
+  modalReturnFocus=null;
+  if(target&&document.contains(target))requestAnimationFrame(()=>target.focus());
+}
 function backupDate(snapshot){return snapshot?.at?new Date(snapshot.at).toLocaleString("ko-KR"):"EMPTY"}
 function showDataManager(){
   const store=readBackupStore();
@@ -77,23 +89,22 @@ function showDataManager(){
     '<button class="danger-button" type="button" data-data-action="reset-progress">RESET PLAY PROGRESS</button></div></div>'
   );
 }
-function saveBackupSlot(index){
+async function saveBackupSlot(index){
+  const previousStore=readBackupStore();
   try{
-    const store=readBackupStore();
+    const store=clone(previousStore);
     store.slots[index]=makeDataSnapshot("SLOT "+(index+1));
-    if(!writeBackupStore(store)){
-      showToast("브라우저 저장 공간이 부족해 슬롯을 저장하지 못했습니다.");
-      return;
-    }
+    if(!writeBackupStore(store)||!await flushStorageWrites())throw storageLastError||new Error("Save slot flush failed");
     showToast("세이브 슬롯 "+(index+1)+"에 저장했습니다.");
     showDataManager();
   }catch(error){
+    backupStoreCache=normalizeBackupStore(previousStore);
     console.error("SAVE SLOT FAILED",error);
     closeModal();
     alert("브라우저 저장 공간이 부족해 저장 슬롯을 만들지 못했습니다. JSON EXPORT를 사용해 백업해 주세요.");
   }
 }
-function applyDataSnapshot(snapshot,label="백업",confirmMessage="",skipConfirm=false){
+async function applyDataSnapshot(snapshot,label="백업",confirmMessage="",skipConfirm=false){
   if(!snapshot?.state)return;
   const message=confirmMessage||label+"을(를) 불러올까요? 현재 상태는 자동 안전 백업으로 보관됩니다.";
   if(!skipConfirm&&!confirm(message))return;
@@ -105,6 +116,7 @@ function applyDataSnapshot(snapshot,label="백업",confirmMessage="",skipConfirm
 
   try{
     safetySaved=captureSafetySnapshot("복원 전 자동 백업");
+    if(safetySaved)safetySaved=await flushStorageWrites();
   }catch(error){
     console.warn("AUTO SAFETY SNAPSHOT FAILED",error);
   }
@@ -127,7 +139,7 @@ function applyDataSnapshot(snapshot,label="백업",confirmMessage="",skipConfirm
     pendingOrigin=state.profile.origin||"";
 
     savePrefs();
-    saveState();
+    if(!saveState()||!await flushStorageWrites())throw storageLastError||new Error("Imported state flush failed");
 
     if(snapshot.extraStorage&&typeof snapshot.extraStorage==="object"){
       AUX_STORAGE_KEYS.forEach(key=>{
@@ -154,6 +166,7 @@ function applyDataSnapshot(snapshot,label="백업",confirmMessage="",skipConfirm
     try{
       savePrefs();
       saveState();
+      await flushStorageWrites();
       AUX_STORAGE_KEYS.forEach(key=>{
         const value=previousExtra[key];
         if(value===null||value===undefined)localStorage.removeItem(key);
@@ -222,12 +235,12 @@ function showImportPreview(prepared){
     '</div>'
   );
 }
-function confirmPendingImport(){
+async function confirmPendingImport(){
   const prepared=pendingImportPreview;
   if(!prepared||prepared.stats.errors)return;
   pendingImportPreview=null;
   closeModal();
-  applyDataSnapshot(
+  await applyDataSnapshot(
     prepared.snapshot,
     prepared.label,
     "",
@@ -278,9 +291,20 @@ function importDataFile(file){
   };
   reader.readAsText(file);
 }
-function resetPlayProgress(){
+async function resetPlayProgress(){
   if(!confirm("대화 진행도, 호감도·감정·변수, ASK/선물 기록과 아이템 획득 진행도를 초기화할까요? 편집한 콘텐츠 자체는 유지됩니다."))return;
-  captureSafetySnapshot("진행도 초기화 전 자동 백업");
+  let safetySaved=false;
+  try{
+    safetySaved=captureSafetySnapshot("진행도 초기화 전 자동 백업");
+    if(safetySaved)safetySaved=await flushStorageWrites();
+  }catch(error){
+    console.error("RESET SAFETY SNAPSHOT FAILED",error);
+  }
+  if(!safetySaved){
+    showToast("안전 백업을 만들지 못해 초기화를 취소했습니다.");
+    return;
+  }
+  const previousState=clone(state);
   state.playState=normalizePlayState({});
   state.inventoryCounts={};
   state.newItemIds=[];
@@ -294,7 +318,12 @@ function resetPlayProgress(){
   state.gacha.history=[];
   session=createSession();
   playback=null;
-  saveProgressState();
+  if(!saveProgressState()||!await flushStorageWrites()){
+    state=previousState;
+    session=createSession();
+    showToast("진행도 초기화 저장에 실패했습니다.");
+    return;
+  }
   closeModal();
   renderPage();
   showToast("플레이 진행도를 초기화했습니다.");
@@ -305,7 +334,39 @@ function renderStart(){
   pendingOrigin=validOrigin(state.profile.origin)?state.profile.origin:(validOrigin(pendingOrigin)?pendingOrigin:"");
   $$("[data-origin]",originChoice).forEach(b=>b.classList.toggle("active",b.dataset.origin===pendingOrigin));
   startHint.textContent="";
+  const importButton=$("#startImportButton");
+  if(importButton)importButton.hidden=state.characters.length>0;
   startScreen.hidden=false;gameShell.hidden=true;
+}
+function openImportPicker(){
+  showDataManager();
+  $("#dataImportFile",modalRoot)?.click();
+}
+
+async function checkForAppUpdate(){
+  if(location.protocol==="file:")return;
+  const current=document.querySelector('meta[name="hellaverse-build"]')?.content||"";
+  if(!current)return;
+  try{
+    const url=new URL("index.html",location.href);
+    url.searchParams.set("build-check",String(Date.now()));
+    const html=await fetch(url,{cache:"no-store"}).then(response=>{
+      if(!response.ok)throw new Error("Update check HTTP "+response.status);
+      return response.text();
+    });
+    const latest=new DOMParser().parseFromString(html,"text/html").querySelector('meta[name="hellaverse-build"]')?.content||"";
+    const banner=$("#updateBanner");
+    if(banner&&latest&&latest!==current)banner.hidden=false;
+  }catch(error){
+    console.debug("HELLAVERSE UPDATE CHECK SKIPPED",error);
+  }
+}
+function installUpdateCheck(){
+  clearTimeout(updateCheckTimer);
+  updateCheckTimer=setTimeout(checkForAppUpdate,5000);
+  document.addEventListener("visibilitychange",()=>{
+    if(document.visibilityState==="visible")checkForAppUpdate();
+  });
 }
 function enterGame(){
   const name=playerNameInput.value.trim();
@@ -343,7 +404,7 @@ function renderPage(){
 function renderHome(){
   const chars=enabledCharacters();
   if(!chars.length){
-    pageRoot.innerHTML='<section class="empty-panel"><div><p class="page-kicker">HOME</p><h2>대화할 캐릭터가 없습니다.</h2><p>EDITOR → 대화 이벤트 → 캐릭터에서 첫 캐릭터를 추가하세요.</p><button class="gold-button" type="button" data-action="open-editor">편집기 열기</button></div></section>';
+    pageRoot.innerHTML='<section class="empty-panel"><div><p class="page-kicker">HOME</p><h2>첫 이야기를 준비해 볼까요?</h2><p>EDITOR에서 캐릭터를 만들거나, 기존 프로젝트 JSON을 불러오면 바로 시작할 수 있습니다.</p><div class="empty-actions"><button class="gold-button" type="button" data-action="open-editor">캐릭터 만들기</button><button class="ghost-button" type="button" data-action="open-import">JSON 불러오기</button></div></div></section>';
     return;
   }
   homeIndex=Math.max(0,Math.min(homeIndex,chars.length-1));

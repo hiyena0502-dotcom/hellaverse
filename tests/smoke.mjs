@@ -22,12 +22,15 @@ for(const path of jsFiles){
 }
 
 const index=read("index.html");
-for(const id of ["brandButton","dataButton","editorButton","changeProfileButton","editorOverlay","editorBody"]){
+for(const id of ["brandButton","dataButton","editorButton","changeProfileButton","editorOverlay","editorBody","startImportButton","saveStatus","updateBanner"]){
   assert.match(index,new RegExp('id="'+id+'"'),"missing #"+id);
 }
 assert.match(index,/class="nav-button[^"]*"[^>]*data-page="home"/,"HOME nav missing");
-assert.match(index,/js\/core\/state\.js\?v=17/,"v17 state asset cache bust missing");
-assert.match(index,/js\/editor\/editor-events\.js\?v=17/,"v17 editor asset cache bust missing");
+const build=index.match(/<meta name="hellaverse-build" content="([^"]+)"/i)?.[1];
+assert.ok(build,"build metadata missing");
+const assetRefs=[...index.matchAll(/(?:href|src)="((?:css|js|data)\/[^"]+)"/g)].map(match=>match[1]);
+assert.ok(assetRefs.length>=10,"versioned local assets missing");
+assetRefs.forEach(asset=>assert.equal(new URL(asset,"https://example.test/").searchParams.get("v"),build,asset+" cache version must match build "+build));
 
 const editorEvents=read("js/editor/editor-events.js");
 const stateCode=read("js/core/state.js");
@@ -40,8 +43,11 @@ assert.match(editorEvents,/document\.querySelectorAll\("\.nav-button"\)\.forEach
 assert.match(stateCode,/STORAGE_DB_NAME/,"IndexedDB storage constants missing");
 assert.match(stateCode,/function bootstrapStorage\(/,"IndexedDB bootstrap missing");
 assert.match(stateCode,/function saveProgressState\(/,"progress-only persistence missing");
+assert.match(stateCode,/function mergeEditorDraftIntoLiveState\(/,"editor/live progress merge missing");
+assert.match(stateCode,/function flushStorageWrites\(/,"durable write flush missing");
 assert.match(appShell,/function showImportPreview\(/,"import preview missing");
 assert.match(appShell,/function recoverUiFromError\(/,"UI recovery boundary missing");
+assert.match(appShell,/function checkForAppUpdate\(/,"update detection missing");
 assert.match(editorUi,/function renderSelectedItemEditor\(/,"single-detail ITEM editor missing");
 assert.match(editorUi,/data-action="select-ask"/,"single-detail ASK selection missing");
 assert.match(editorUi,/data-action="select-thought"/,"single-detail THOUGHT selection missing");
@@ -50,6 +56,8 @@ assert.match(editorUi,/data-action="add-continuation"/,"continuation add action 
 assert.match(editorUi,/data-action="move-continuation"/,"continuation move action missing");
 assert.match(editorEvents,/a==="remove-continuation"/,"continuation remove action missing");
 assert.match(stateCode,/function migrateStateV3ToV4\(/,"schema v4 continuation migration missing");
+assert.match(editorEvents,/data-action="validation-jump"/,"validation issue navigation missing");
+assert.match(read("js/world/regions.js"),/currentPage!=="world"\|\|activeRegion!==regionId/,"WORLD timer must stop outside WORLD");
 
 const storage=new Map();
 const dummy=()=>({
@@ -143,6 +151,42 @@ assert.deepEqual([...result.migratedContinuation],["event-b"],"v3 nextEventId mu
 assert.ok(result.progressChars<result.fullChars*0.1,
   `progress payload should be <10% of project payload (full=${result.fullChars}, progress=${result.progressChars})`);
 
+const editorMerge=vm.runInContext(`
+(()=>{
+  const opened=normalizeState({
+    schemaVersion:4,
+    profile:{name:"Player",origin:"hellborn"},
+    characters:[{id:"char-a",name:"Before",origin:"hellborn"}],
+    variables:[{id:"var-a",name:"Flag",type:"boolean",defaultValue:false}],
+    items:[{id:"item-a",name:"Token",category:"기타",rarity:"COMMON",collectionCharacterId:"char-a"}],
+    gacha:{balance:100}
+  });
+  const baseline=progressStateFrom(opened);
+  const draft=clone(opened);
+  draft.characters[0].name="Edited";
+  const live=clone(opened);
+  live.gacha.balance=148;
+  live.inventoryCounts={"item-a":3};
+  live.playState.affection={"char-a":27};
+  const merged=mergeEditorDraftIntoLiveState(live,draft,baseline);
+  const explicitDraft=clone(draft);
+  explicitDraft.gacha.balance=777;
+  const explicit=mergeEditorDraftIntoLiveState(live,explicitDraft,baseline);
+  return{
+    characterName:merged.characters[0].name,
+    balance:merged.gacha.balance,
+    itemCount:merged.inventoryCounts["item-a"],
+    affection:merged.playState.affection["char-a"],
+    explicitBalance:explicit.gacha.balance
+  };
+})()
+`,context);
+assert.equal(editorMerge.characterName,"Edited","editor content change must be applied");
+assert.equal(editorMerge.balance,148,"live WORLD reward must survive editor save");
+assert.equal(editorMerge.itemCount,3,"live inventory progress must survive editor save");
+assert.equal(editorMerge.affection,27,"live affection progress must survive editor save");
+assert.equal(editorMerge.explicitBalance,777,"explicit editor balance change must be applied");
+
 
 vm.runInContext(`
 function getEvent(id){return state.events.find(e=>e.id===id)||null}
@@ -187,5 +231,4 @@ const continuationOrder=vm.runInContext(`
 `,context);
 assert.deepEqual([...continuationOrder],["A","B","C","D"],"continuation runtime order must be A -> B -> C -> D");
 
-console.log("Hellaverse smoke OK",result,{continuationOrder});
-
+console.log("Hellaverse smoke OK",result,{editorMerge,continuationOrder});

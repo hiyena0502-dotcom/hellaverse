@@ -1192,17 +1192,30 @@ async function idbDelete(key){
 let storageMode="booting";
 let storageWriteChain=Promise.resolve();
 let storageLastError=null;
+let storagePendingWrites=0;
+let storageBatchError=null;
 let backupStoreCache=normalizeBackupStore(null);
 let editorSnapshotCache=null;
 
+function setStorageUiStatus(status="saved",text=""){
+  const el=typeof document!=="undefined"?document.querySelector("#saveStatus"):null;
+  if(!el)return;
+  el.dataset.status=status;
+  el.textContent=text||(status==="saving"?"SAVING":status==="failed"?"SAVE FAILED":"SAVED");
+}
 function queueStorageWrite(key,value){
   if(storageMode!=="indexedDB")return false;
+  if(storagePendingWrites===0){
+    storageBatchError=null;
+    storageLastError=null;
+  }
+  storagePendingWrites+=1;
+  setStorageUiStatus("saving");
   const snapshot=clone(value);
   storageWriteChain=storageWriteChain
     .catch(()=>{})
     .then(()=>idbSet(key,snapshot))
     .then(()=>{
-      storageLastError=null;
       try{
         localStorage.setItem(STORAGE_META_KEY,JSON.stringify({
           mode:"indexedDB",
@@ -1213,13 +1226,18 @@ function queueStorageWrite(key,value){
     })
     .catch(error=>{
       storageLastError=error;
+      storageBatchError ||= error;
       console.error("HELLAVERSE INDEXEDDB WRITE FAILED",key,error);
+    })
+    .finally(()=>{
+      storagePendingWrites=Math.max(0,storagePendingWrites-1);
+      if(storagePendingWrites===0)setStorageUiStatus(storageBatchError?"failed":"saved");
     });
   return true;
 }
 async function flushStorageWrites(){
   try{await storageWriteChain}catch{}
-  return !storageLastError;
+  return !storageBatchError;
 }
 function readState(){
   const legacy=legacyLocalState();
@@ -1274,6 +1292,57 @@ function mergeProgressState(base,progress){
   }
   return merged;
 }
+function sanitizeProgressReferences(source){
+  const result=normalizeState(source);
+  const characterIds=new Set(result.characters.map(item=>item.id));
+  const variableIds=new Set(result.variables.map(item=>item.id));
+  const itemIds=new Set(result.items.map(item=>item.id));
+  const askIds=new Set(result.asks.map(item=>item.id));
+  const thoughtIds=new Set(result.thoughts.map(item=>item.id));
+  result.favoriteCharacterIds=result.favoriteCharacterIds.filter(id=>characterIds.has(id));
+  result.playState.affection=Object.fromEntries(Object.entries(result.playState.affection||{}).filter(([id])=>characterIds.has(id)));
+  result.playState.emotions=Object.fromEntries(Object.entries(result.playState.emotions||{}).filter(([id])=>characterIds.has(id)));
+  result.playState.variables=Object.fromEntries(Object.entries(result.playState.variables||{}).filter(([id])=>variableIds.has(id)));
+  result.inventoryCounts=Object.fromEntries(Object.entries(result.inventoryCounts||{}).filter(([id])=>itemIds.has(id)));
+  result.newItemIds=result.newItemIds.filter(id=>itemIds.has(id));
+  result.itemHistory=result.itemHistory.filter(row=>!row?.itemId||itemIds.has(row.itemId));
+  result.discoveredGiftReactionKeys=result.discoveredGiftReactionKeys.filter(key=>{
+    const [itemId,characterId]=String(key).split("::");
+    return itemIds.has(itemId)&&characterIds.has(characterId);
+  });
+  result.giftInteractionCounts=Object.fromEntries(Object.entries(result.giftInteractionCounts||{}).filter(([key])=>{
+    const [itemId,characterId]=String(key).split("::");
+    return itemIds.has(itemId)&&characterIds.has(characterId);
+  }));
+  result.askedAskIds=result.askedAskIds.filter(id=>askIds.has(id));
+  result.unlockedAskIds=result.unlockedAskIds.filter(id=>askIds.has(id));
+  result.discoveredThoughtIds=result.discoveredThoughtIds.filter(id=>thoughtIds.has(id));
+  result.interactionHistory=result.interactionHistory.filter(row=>(!row?.characterId||characterIds.has(row.characterId))&&(!row?.itemId||itemIds.has(row.itemId))&&(!row?.askId||askIds.has(row.askId)));
+  result.gacha.history=result.gacha.history.filter(row=>!row?.itemId||itemIds.has(row.itemId));
+  return result;
+}
+function mergeEditorDraftIntoLiveState(live,draft,baseline){
+  const liveProgress=progressStateFrom(live);
+  const merged=clone(draft);
+  for(const key of [
+    "profile","favoriteCharacterIds","playState","inventoryCounts","newItemIds",
+    "itemHistory","discoveredGiftReactionKeys","giftInteractionCounts","askedAskIds",
+    "unlockedAskIds","interactionHistory","discoveredThoughtIds"
+  ])merged[key]=clone(liveProgress[key]);
+  merged.collectionSettings={
+    ...merged.collectionSettings,
+    view:liveProgress.collectionSettings?.view||"grouped",
+    sort:liveProgress.collectionSettings?.sort||"recent"
+  };
+  const draftBalance=Math.max(0,Number(draft.gacha?.balance)||0);
+  const baselineBalance=Math.max(0,Number(baseline?.gacha?.balance)||0);
+  merged.gacha={
+    ...merged.gacha,
+    balance:draftBalance!==baselineBalance?draftBalance:liveProgress.gacha.balance,
+    history:clone(liveProgress.gacha.history||[])
+  };
+  return sanitizeProgressReferences(merged);
+}
 function saveProgressState(){
   syncPlayStateFromSession();
   const progress=progressStateFrom(state);
@@ -1283,10 +1352,14 @@ function saveProgressState(){
   }
   if(storageMode==="booting")return true;
   try{
+    setStorageUiStatus("saving");
     localStorage.setItem(STATE_KEY,JSON.stringify(compactStateForStorage(state)));
+    storageLastError=null;
+    setStorageUiStatus("saved");
     return true;
   }catch(error){
     storageLastError=error;
+    setStorageUiStatus("failed");
     console.warn("HELLAVERSE PROGRESS FALLBACK SAVE FAILED",error);
     return false;
   }
@@ -1304,10 +1377,14 @@ function saveState(){
     return true;
   }
   try{
+    setStorageUiStatus("saving");
     localStorage.setItem(STATE_KEY,JSON.stringify(packed));
+    storageLastError=null;
+    setStorageUiStatus("saved");
     return true;
   }catch(error){
     storageLastError=error;
+    setStorageUiStatus("failed");
     console.error("HELLAVERSE FALLBACK SAVE FAILED",error);
     return false;
   }
@@ -1322,10 +1399,14 @@ function writeBackupStore(store){
     return true;
   }
   try{
+    setStorageUiStatus("saving");
     localStorage.setItem(DATA_BACKUP_KEY,JSON.stringify(backupStoreCache));
+    storageLastError=null;
+    setStorageUiStatus("saved");
     return true;
   }catch(error){
     storageLastError=error;
+    setStorageUiStatus("failed");
     console.warn("HELLAVERSE FALLBACK BACKUP SAVE FAILED",error);
     return false;
   }
@@ -1338,18 +1419,31 @@ function writeEditorSnapshot(snapshot){
   editorSnapshotCache=snapshot?clone(snapshot):null;
   if(storageMode==="indexedDB"){
     if(editorSnapshotCache)queueStorageWrite("editorSnapshot",editorSnapshotCache);
-    else storageWriteChain=storageWriteChain.catch(()=>{}).then(()=>idbDelete("editorSnapshot")).catch(error=>{
-      storageLastError=error;
-      console.error("HELLAVERSE EDITOR SNAPSHOT DELETE FAILED",error);
-    });
+    else{
+      if(storagePendingWrites===0){storageBatchError=null;storageLastError=null}
+      storagePendingWrites+=1;
+      setStorageUiStatus("saving");
+      storageWriteChain=storageWriteChain.catch(()=>{}).then(()=>idbDelete("editorSnapshot")).catch(error=>{
+        storageLastError=error;
+        storageBatchError ||= error;
+        console.error("HELLAVERSE EDITOR SNAPSHOT DELETE FAILED",error);
+      }).finally(()=>{
+        storagePendingWrites=Math.max(0,storagePendingWrites-1);
+        if(storagePendingWrites===0)setStorageUiStatus(storageBatchError?"failed":"saved");
+      });
+    }
     return true;
   }
   try{
+    setStorageUiStatus("saving");
     if(editorSnapshotCache)localStorage.setItem(EDITOR_SNAPSHOT_KEY,JSON.stringify(editorSnapshotCache));
     else localStorage.removeItem(EDITOR_SNAPSHOT_KEY);
+    storageLastError=null;
+    setStorageUiStatus("saved");
     return true;
   }catch(error){
     storageLastError=error;
+    setStorageUiStatus("failed");
     return false;
   }
 }

@@ -667,18 +667,24 @@
 .validation-summary span{color:var(--muted);font-size:.65rem;letter-spacing:.1em}
 .validation-list{display:grid;gap:7px}
 .validation-row{
+  width:100%;
   display:grid;
-  grid-template-columns:90px minmax(0,1fr);
+  grid-template-columns:90px minmax(0,1fr) auto;
   gap:12px;
+  align-items:center;
   padding:11px 12px;
   border:1px solid var(--line);
   border-left-width:3px;
   border-radius:7px;
-  background:rgba(255,255,255,.012)
+  background:rgba(255,255,255,.012);
+  color:var(--text);
+  text-align:left
 }
+.validation-row:hover,.validation-row:focus-visible{border-right-color:var(--gold);background:rgba(213,176,106,.045)}
 .validation-row>span{font-size:.62rem;letter-spacing:.12em}
 .validation-row strong{font-size:.78rem}
 .validation-row p{margin:4px 0 0;color:var(--muted);font-size:.72rem;line-height:1.5}
+.validation-row em{color:var(--gold);font-size:.68rem;font-style:normal;white-space:nowrap}
 .validation-row.error{border-left-color:#b65465}
 .validation-row.warning{border-left-color:#c99f5b}
 .validation-row.info{border-left-color:#77727a}

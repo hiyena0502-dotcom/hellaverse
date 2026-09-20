@@ -15,6 +15,8 @@ let editorEventPage=0;
 let editorAskPage=0;
 let editorItemPage=0;
 let editorThoughtPage=0;
+let editorProgressBaseline=null;
+let editorReturnFocus=null;
 
 function editorProjectWeight(source=editorDraft){
   if(!source)return 0;
@@ -68,15 +70,16 @@ function editorRedo(){
   markEditorDirty();
   renderEditor();
 }
-function storeEditorRestorePoint(){
+async function storeEditorRestorePoint(){
   saveState();
   const snap=makeDataSnapshot("EDITOR 저장 전 복구 지점");
-  if(!writeEditorSnapshot(snap))console.warn("EDITOR RESTORE SNAPSHOT SKIPPED");
+  if(!writeEditorSnapshot(snap))throw new Error("EDITOR restore snapshot save failed");
   try{
-    captureSafetySnapshot("EDITOR 저장 전 자동 백업");
+    if(!captureSafetySnapshot("EDITOR 저장 전 자동 백업"))throw new Error("EDITOR safety snapshot save failed");
   }catch(error){
     console.warn("EDITOR AUTO SAFETY SKIPPED",error);
   }
+  if(!await flushStorageWrites())throw storageLastError||new Error("EDITOR restore point flush failed");
 }
 function restoreEditorSnapshot(){
   const snap=readEditorSnapshot();
@@ -101,6 +104,7 @@ function isEditorDeleteAction(action){
 }
 function openEditor(){
   if(!editorOverlay.hidden)return;
+  editorReturnFocus=document.activeElement;
   editorOverlay.hidden=false;
   document.body.style.overflow="hidden";
   editorBody.innerHTML='<div class="editor-loading"><strong>EDITOR</strong><span>데이터를 준비하는 중…</span></div>';
@@ -120,6 +124,7 @@ function openEditor(){
     if(editorOverlay.hidden)return;
     try{
       editorDraft=clone(state);
+      editorProgressBaseline=progressStateFrom(state);
       editorLargeProject=editorProjectWeight(editorDraft)>=EDITOR_LARGE_PROJECT_THRESHOLD;
       editorTab="dialogue";
       dialogueSubtab="characters";
@@ -130,10 +135,12 @@ function openEditor(){
       selectedAskId=editorDraft.asks[0]?.id||"";
       selectedItemId=editorDraft.items[0]?.id||"";
       renderEditor();
+      $("#editorCancelButton")?.focus();
       if(editorLargeProject)showToast("대용량 EDITOR 모드 · 목록을 나눠서 표시합니다.");
     }catch(error){
       console.error("EDITOR OPEN FAILED",error);
       editorDraft=null;
+      editorProgressBaseline=null;
       editorOverlay.hidden=true;
       document.body.style.overflow="";
       alert("EDITOR를 여는 중 오류가 발생했습니다.");
@@ -144,20 +151,34 @@ function closeEditor(force=false){
   if(!force&&editorDraft&&editorDirty&&!confirm("저장하지 않은 EDITOR 변경사항이 있습니다. 닫을까요?"))return false;
   editorOverlay.hidden=true;document.body.style.overflow="";
   editorDraft=null;
+  editorProgressBaseline=null;
   editorUndoStack=[];
   editorRedoStack=[];
   editorInitialSnapshot="";
   editorDirty=false;
   editorLargeProject=false;
+  const focusTarget=editorReturnFocus;
+  editorReturnFocus=null;
+  if(focusTarget&&document.contains(focusTarget))requestAnimationFrame(()=>focusTarget.focus());
   return true;
 }
-function saveEditor(){
+async function saveEditor(){
   if(!editorDraft)return;
-  const previousState=state;
+  const issues=validateDraft(editorDraft);
+  const errorCount=issues.filter(issue=>issue.level==="error").length;
+  if(errorCount){
+    renderValidationReport();
+    showToast("ERROR "+errorCount+"개를 먼저 수정해 주세요.");
+    return;
+  }
+  syncPlayStateFromSession();
+  const previousState=clone(state);
+  const saveButton=$("#editorSaveButton");
+  if(saveButton){saveButton.disabled=true;saveButton.textContent="저장 중…"}
   try{
-    storeEditorRestorePoint();
-    state=normalizeState(editorDraft);
-    saveState();
+    await storeEditorRestorePoint();
+    state=mergeEditorDraftIntoLiveState(state,editorDraft,editorProgressBaseline);
+    if(!saveState()||!await flushStorageWrites())throw storageLastError||new Error("EDITOR state flush failed");
     session=createSession();
     playback=null;
     autoMode=false;
@@ -168,8 +189,14 @@ function saveEditor(){
   }catch(error){
     console.error("EDITOR SAVE FAILED",error);
     state=previousState;
-    try{session=createSession()}catch{}
+    try{
+      session=createSession();
+      saveState();
+      await flushStorageWrites();
+    }catch{}
     alert("EDITOR 저장 중 브라우저 저장 공간 문제가 발생했습니다. 편집 화면은 그대로 유지합니다.");
+  }finally{
+    if(saveButton){saveButton.disabled=false;saveButton.textContent="모두 저장"}
   }
 }
 function renderEditor(){

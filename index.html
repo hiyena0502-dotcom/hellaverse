@@ -7,16 +7,17 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <meta name="theme-color" content="#0b080a" />
+  <meta name="hellaverse-build" content="18" />
   <title>Hellaverse</title>
-  <link rel="stylesheet" href="css/base.css?v=15" />
-  <link rel="stylesheet" href="css/world.css?v=10" />
-  <link rel="stylesheet" href="css/world-regions.css?v=10" />
-  <link rel="stylesheet" href="css/dialogue.css?v=15" />
-  <link rel="stylesheet" href="css/gacha.css?v=15" />
-  <link rel="stylesheet" href="css/thoughts.css?v=1" />
-  <link rel="stylesheet" href="css/collection.css?v=1" />
-  <link rel="stylesheet" href="css/editor.css?v=17" />
-  <link rel="stylesheet" href="css/features.css?v=16" />
+  <link rel="stylesheet" href="css/base.css?v=18" />
+  <link rel="stylesheet" href="css/world.css?v=18" />
+  <link rel="stylesheet" href="css/world-regions.css?v=18" />
+  <link rel="stylesheet" href="css/dialogue.css?v=18" />
+  <link rel="stylesheet" href="css/gacha.css?v=18" />
+  <link rel="stylesheet" href="css/thoughts.css?v=18" />
+  <link rel="stylesheet" href="css/collection.css?v=18" />
+  <link rel="stylesheet" href="css/editor.css?v=18" />
+  <link rel="stylesheet" href="css/features.css?v=18" />
 </head>
 <body>
   <section id="startScreen" class="title-screen">
@@ -51,7 +52,8 @@
       </div>
 
       <button id="enterGameButton" class="title-enter" type="submit">ENTER</button>
-      <p id="startHint" class="title-hint">이름과 출신을 선택하세요.</p>
+      <button id="startImportButton" class="start-import-button" type="button" hidden>기존 JSON 불러오기</button>
+      <p id="startHint" class="title-hint" role="status" aria-live="polite">이름과 출신을 선택하세요.</p>
     </form>
   </section>
 
@@ -70,18 +72,20 @@
         <span class="world-entry-copy"><b>WORLD</b><small>MAP</small></span>
       </button>
       <div class="hud-tools">
+        <span id="saveStatus" class="save-status" data-status="saved" role="status" aria-live="polite">SAVED</span>
         <span id="playerBadge" class="player-badge"></span>
         <button id="dataButton" class="text-link" type="button">DATA</button>
         <button id="editorButton" class="text-link" type="button">EDITOR</button>
         <button id="changeProfileButton" class="text-link" type="button">PROFILE</button>
       </div>
     </header>
+    <button id="updateBanner" class="update-banner" type="button" hidden>새 버전이 있습니다 · 새로고침</button>
 
     <main id="pageRoot" class="page-root"></main>
   </div>
 
   <div id="modalRoot"></div>
-  <div id="toast" class="toast" hidden></div>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
   <div id="editorOverlay" class="editor-overlay" hidden>
     <section class="editor-shell" role="dialog" aria-modal="true" aria-labelledby="editorTitle">
@@ -127,15 +131,15 @@
     </section>
   </div>
 
-  <script src="data/default-content.js?v=1"></script>
-  <script src="data/world-config.js?v=10"></script>
-  <script src="js/core/state.js?v=17"></script>
-  <script src="js/core/game-state.js?v=17"></script>
-  <script src="js/ui/app-shell.js?v=16"></script>
-  <script src="js/world/hotel.js?v=16"></script>
-  <script src="js/world/regions.js?v=16"></script>
-  <script src="js/game/dialogue.js?v=17"></script>
-  <script src="js/editor/editor-ui.js?v=17"></script>
-  <script src="js/editor/editor-events.js?v=17"></script>
+  <script src="data/default-content.js?v=18"></script>
+  <script src="data/world-config.js?v=18"></script>
+  <script src="js/core/state.js?v=18"></script>
+  <script src="js/core/game-state.js?v=18"></script>
+  <script src="js/ui/app-shell.js?v=18"></script>
+  <script src="js/world/hotel.js?v=18"></script>
+  <script src="js/world/regions.js?v=18"></script>
+  <script src="js/game/dialogue.js?v=18"></script>
+  <script src="js/editor/editor-ui.js?v=18"></script>
+  <script src="js/editor/editor-events.js?v=18"></script>
 </body>
 </html>

@@ -26,6 +26,7 @@
 상단 **DATA**에서 다음을 사용할 수 있습니다.
 
 - 자동 저장
+- 상단 `SAVING / SAVED / SAVE FAILED` 상태 표시
 - 저장소 상태(INDEXEDDB / schema / 프로젝트 크기) 확인
 - 수동 세이브 슬롯 3개
 - 자동 안전 백업
@@ -34,6 +35,8 @@
 - 플레이 진행도 초기화
 
 IMPORT는 CHARACTER / EVENT / ASK / ITEM / THOUGHT / VARIABLE 개수와 ERROR / WARNING을 먼저 검사합니다. ERROR가 남은 데이터는 즉시 적용하지 않습니다.
+
+기본 콘텐츠가 비어 있는 첫 실행 화면과 HOME에서는 바로 JSON IMPORT를 열 수 있습니다. 배포 뒤 새 빌드가 감지되면 상단에 새로고침 배너가 표시됩니다.
 
 DATA 백업에는 메인 state뿐 아니라 WORLD의 호텔 설정, 현재 지역, 지역 배치와 지역 활동 상태도 같이 포함됩니다.
 
@@ -47,6 +50,9 @@ EDITOR에는 CHECK 외에 다음 보호 기능이 있습니다.
 - 삭제 전 확인
 - 미저장 변경이 있을 때 닫기 확인
 - 저장 직전 자동 안전 백업
+- 저장 완료 확인 후에만 성공 안내 표시
+- EDITOR가 열린 동안 추가된 보상·인벤토리·호감도 등 플레이 진행도 병합 보존
+- CHECK 오류를 누르면 해당 EVENT / ASK / ITEM / THOUGHT 편집 화면으로 이동
 - EVENT / ASK / ITEM / THOUGHT 검색·페이지 분할
 - EVENT 종료 후 여러 대화를 순서대로 재생하는 CONTINUATION 큐 편집
 - ASK / ITEM / THOUGHT는 선택한 항목 1개만 상세 렌더링
@@ -66,6 +72,9 @@ EDITOR에는 CHECK 외에 다음 보호 기능이 있습니다.
 - 모든 주요 JavaScript 파일 문법 검사
 - 핵심 버튼/탐색 이벤트 구조 확인
 - IndexedDB / schema migration / IMPORT preview / recovery boundary 존재 확인
+- EDITOR 저장 중 실시간 진행도 병합 회귀 검사
+- 빌드 번호와 모든 로컬 asset cache version 일치 검사
+- WORLD 밖에서 지역 작업 타이머가 중단되는지 구조 검사
 - EVENT 1,000 / ASK 500 / ITEM 300 / THOUGHT 500 대형 fixture 정규화
 - 전체 프로젝트와 progress 저장 크기 분리 검증
 
