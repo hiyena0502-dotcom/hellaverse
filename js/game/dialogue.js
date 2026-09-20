@@ -7,7 +7,7 @@ function startDialogue(characterId,eventId){
   activeInteractionReaction=null;
   activeInteractionEvent=null;
   interactionContext=null;
-  const ev=eventId?getEvent(eventId):eventsForCharacter(ch.id)[0];
+  const ev=eventId?getEvent(eventId):randomTalkEvent(playableTalkEventsForCharacter(ch.id));
   playback=ev?{
     characterId:ch.id,
     eventId:ev.id,
@@ -90,31 +90,38 @@ function eventHasPlayableStart(ev){
     return true;
   });
 }
+function playableTalkEventsForCharacter(characterId){
+  return eventsForCharacter(characterId).filter(eventHasPlayableStart);
+}
 function continuousTalkEvents(){
   const enabledIds=new Set((state.characters||[]).filter(character=>character.enabled!==false).map(character=>character.id));
   return (state.events||[]).filter(ev=>
     ev.menuVisible!==false&&enabledIds.has(ev.characterId)&&eventHasPlayableStart(ev)
   );
 }
+function randomTalkEvent(events,excludeId=""){
+  const available=(events||[]).filter(ev=>ev&&ev.id!==excludeId);
+  const pool=available.length?available:(events||[]).filter(Boolean);
+  if(!pool.length)return null;
+  const index=Math.min(pool.length-1,Math.floor(Math.random()*pool.length));
+  return pool[index]||pool[0]||null;
+}
 function nextContinuousEvent(){
   if(!playback)return null;
   const current=currentEvent();
+  const currentId=current?.id||"";
   const candidates=continuousTalkEvents();
   if(!candidates.length)return null;
 
   const visited=new Set(Array.isArray(playback.autoVisitedEventIds)?playback.autoVisitedEventIds:[]);
-  const unvisited=candidates.filter(ev=>!visited.has(ev.id));
-  const currentCharacterId=current?.characterId||playback.characterId||"";
-  let next=unvisited.find(ev=>ev.id!==current?.id&&ev.characterId===currentCharacterId)
-    || unvisited.find(ev=>ev.id!==current?.id);
+  let pool=candidates.filter(ev=>ev.id!==currentId&&!visited.has(ev.id));
 
-  if(!next){
-    playback.autoVisitedEventIds=current?.id?[current.id]:[];
-    const currentIndex=candidates.findIndex(ev=>ev.id===current?.id);
-    if(candidates.length===1)next=candidates[0];
-    else if(currentIndex>=0)next=candidates[(currentIndex+1)%candidates.length];
-    else next=candidates[0];
+  if(!pool.length){
+    playback.autoVisitedEventIds=currentId?[currentId]:[];
+    pool=candidates.filter(ev=>ev.id!==currentId);
   }
+
+  const next=randomTalkEvent(pool.length?pool:candidates,currentId);
   return next?.id||null;
 }
 function finishEvent(){
@@ -132,7 +139,7 @@ function finishEvent(){
     return true;
   }
   const continuousId=nextContinuousEvent();
-  if(continuousId&&jumpEvent(continuousId,{label:"다음 TALK"}))return true;
+  if(continuousId&&jumpEvent(continuousId,{label:"랜덤 TALK"}))return true;
   resetEventEmotion(ev);
   if(playback)playback.ended=true;
   return false;
