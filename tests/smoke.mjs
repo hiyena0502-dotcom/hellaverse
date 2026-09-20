@@ -41,6 +41,7 @@ const dialogueCode=read("js/game/dialogue.js");
 const gameStateCode=read("js/core/game-state.js");
 const storyPackCode=read("data/story-packs.js");
 const dialogueCss=read("css/dialogue.css");
+const featuresCss=read("css/features.css");
 
 assert.ok(!editorEvents.includes('$(".nav-button").forEach'),"nav must use querySelectorAll/$$, not single $ helper");
 assert.match(editorEvents,/document\.querySelectorAll\("\.nav-button"\)\.forEach/,"nav click delegation missing");
@@ -68,6 +69,25 @@ assert.match(dialogueCode,/function randomTalkEvent\(/,"random TALK picker missi
 assert.match(dialogueCode,/randomTalkForCharacter\(ch\.id\)/,"room entry must use character-scoped recent-aware random TALK");
 assert.match(dialogueCode,/const candidates=playableTalkEventsForCharacter\(roomCharacterId\)/,"continuous random TALK must stay inside the selected character room");
 assert.match(dialogueCode,/function rememberRecentTalk\(/,"recent TALK memory missing");
+assert.match(dialogueCode,/function markTalkDiscovered\(/,"TALK discovery tracker missing");
+assert.match(dialogueCode,/function shuffleTalk\(/,"NEW TALK shuffle action missing");
+assert.match(dialogueCode,/function relationshipProgress\(/,"relationship discovery progress missing");
+assert.match(dialogueCode,/data-action="inventory-preview"/,"gift list must preview before giving");
+assert.match(dialogueCode,/data-action="give-item"/,"gift preview confirmation action missing");
+assert.match(dialogueCode,/function giftNeedsConfirmation\(/,"rare or last consumable confirmation missing");
+assert.match(dialogueCode,/function renderInteractionCompleteMenu\(/,"post-interaction next-action panel missing");
+assert.ok(!/roomSpeakerName[^\n]*textContent=character\.name/.test(dialogueCode),"room owner title must not change with guest speakers");
+assert.match(gameStateCode,/if\(meta\.consume\)consumeInventoryItem/,"gift consumption must commit only after reaction completion");
+assert.ok(!/function beginInteractionReaction[\s\S]*?applyInteractionEffects\(source\)/.test(gameStateCode),"interaction rewards must not commit before reaction completion");
+assert.match(stateCode,/discoveredTalkIds/,"TALK discovery persistence missing");
+assert.match(stateCode,/discoveredSpecialGiftKeys/,"special gift discovery persistence missing");
+assert.match(editorUi,/data-ask-bind="repeatable"/,"ASK repeatable editor control missing");
+assert.match(editorUi,/data-ask-bind="unlockHint"/,"ASK unlock hint editor control missing");
+assert.match(editorEvents,/a==="interaction-after"/,"post-interaction action handler missing");
+assert.match(editorEvents,/a==="inventory-preview"/,"gift preview click handler missing");
+assert.match(featuresCss,/\.ask-list,.inventory-list\{[\s\S]*?overflow:auto/,"ASK and inventory lists must scroll inside the room");
+assert.match(featuresCss,/\.inventory-filter-bar\{/,"gift search and filter toolbar missing");
+assert.match(featuresCss,/\.inventory-preview-card\{/,"gift preview card styling missing");
 assert.match(dialogueCode,/function dialogueTextNeedsScroll\(/,"long dialogue overflow guard missing");
 assert.match(dialogueCode,/ASK\/선물 반응을 끝까지 본 뒤 이동할 수 있습니다/,"interaction exit guard missing");
 assert.match(dialogueCode,/FALLBACK_EXIT_LINES/,"character-specific fallback EXIT lines missing");
@@ -187,12 +207,18 @@ const result=vm.runInContext(`
     rarity:"COMMON",frequency:"normal",text:"Thought "+i,enabled:true
   }));
   source.playState={variables:{flag:true},affection:{"char-0":42},emotions:{},log:[]};
+  source.discoveredTalkIds=["event-1","event-2"];
+  source.discoveredSpecialGiftKeys=["item-1::char-1"];
   const normalized=normalizeState(source);
   const compact=compactStateForStorage(normalized);
   const progress=progressStateFrom(normalized);
   const migrated=normalizeState({schemaVersion:2,characters:source.characters,items:[{
     id:"old-item",name:"Old",collectionCharacterId:"char-0",rarity:"COMMON",category:"기타"
   }]});
+  const askShape=normalizeAsk({
+    id:"ask-repeat",characterId:"char-0",label:"Repeat?",repeatable:true,unlockHint:"친해지면 열릴 것 같다"
+  });
+  const packedAsk=compactAskForStorage(askShape);
   const legacyNext=normalizeState({
     schemaVersion:3,
     characters:[{id:"char-x",name:"X",origin:"hellborn"}],
@@ -207,7 +233,11 @@ const result=vm.runInContext(`
     fullChars:JSON.stringify(compact).length,
     progressChars:JSON.stringify(progress).length,
     migratedGiftable:migrated.items[0].giftable,
-    migratedContinuation:legacyNext.events[0].continuationEventIds
+    migratedContinuation:legacyNext.events[0].continuationEventIds,
+    askRepeatable:packedAsk.repeatable,
+    askHint:packedAsk.unlockHint,
+    talkDiscovery:[...progress.discoveredTalkIds],
+    specialDiscovery:[...progress.discoveredSpecialGiftKeys]
   };
 })()
 `,context);
@@ -216,6 +246,10 @@ assert.equal(result.schema,4,"current schema must be 4");
 assert.deepEqual([...result.counts],[1000,500,300,500],"large fixture counts changed during normalization");
 assert.equal(result.migratedGiftable,true,"v2 -> v3 item migration must default giftable=true");
 assert.deepEqual([...result.migratedContinuation],["event-b"],"v3 nextEventId must migrate to v4 continuationEventIds");
+assert.equal(result.askRepeatable,true,"ASK repeatable flag must survive compaction");
+assert.equal(result.askHint,"친해지면 열릴 것 같다","ASK unlock hint must survive compaction");
+assert.deepEqual([...result.talkDiscovery],["event-1","event-2"],"TALK discovery must persist in progress payload");
+assert.deepEqual([...result.specialDiscovery],["item-1::char-1"],"special gift discovery must persist in progress payload");
 assert.ok(result.progressChars<result.fullChars*0.1,
   `progress payload should be <10% of project payload (full=${result.fullChars}, progress=${result.progressChars})`);
 
