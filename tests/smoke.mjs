@@ -63,6 +63,8 @@ assert.match(stateCode,/function installStoryPacks\(/,"one-time story pack insta
 assert.match(gameStateCode,/e\.menuVisible!==false/,"hidden continuation events must stay out of TALK menus");
 assert.match(dialogueCode,/function updateRoomSpeakerVisual\(/,"per-line speaker art switching missing");
 assert.match(dialogueCode,/function nextContinuousEvent\(/,"continuous TALK fallback missing");
+assert.match(dialogueCode,/function randomTalkEvent\(/,"random TALK picker missing");
+assert.match(dialogueCode,/randomTalkEvent\(playableTalkEventsForCharacter\(ch\.id\)\)/,"room entry must start from a random TALK");
 assert.ok(!dialogueCode.includes("이벤트가 끝났습니다."),"terminal event-ended screen must be removed");
 assert.match(editorUi,/data-entry-field="speakerCharacterId"/,"speaker image selector missing from event editor");
 assert.match(editorEvents,/data-action="validation-jump"/,"validation issue navigation missing");
@@ -312,8 +314,14 @@ const continuousFlow=vm.runInContext(`
   return order;
 })()
 `,context);
-assert.deepEqual([...continuousFlow],["talk-a1","talk-a2","talk-b1","talk-a1"],
-  "continuous TALK must prefer same-character roots, then other characters, then loop");
+assert.equal(new Set(continuousFlow.slice(0,3)).size,3,
+  "shuffle-bag TALK must visit each visible root before repeating");
+assert.deepEqual([...new Set(continuousFlow.slice(0,3))].sort(),["talk-a1","talk-a2","talk-b1"],
+  "shuffle-bag TALK must include all visible roots regardless of random order");
+assert.notEqual(continuousFlow[2],continuousFlow[3],
+  "shuffle-bag TALK must avoid an immediate repeat when multiple roots exist");
+assert.ok(["talk-a1","talk-a2","talk-b1"].includes(continuousFlow[3]),
+  "shuffle-bag TALK must restart from a visible root after a full cycle");
 assert.ok(!continuousFlow.includes("hidden-a"),"hidden continuation events must not be auto-picked as TALK roots");
 
 console.log("Hellaverse smoke OK",result,{editorMerge,continuationOrder,continuousFlow});
