@@ -58,7 +58,7 @@ function defaultState(){
     storyPackVersions:{},
     profile:{name:"",origin:""},
     favoriteCharacterIds:[],
-    playState:{variables:{},affection:{},emotions:{},log:[]},
+    playState:{variables:{},affection:{},emotions:{},log:[],recentTalks:{}},
     characters:defaultContentList("characters"),
     events:defaultContentList("events"),
     variables:defaultContentList("variables"),
@@ -918,7 +918,13 @@ function normalizePlayState(p={}){
       speaker:String(x?.speaker||""),
       text:String(x?.text||""),
       eventName:String(x?.eventName||"")
-    })):[]
+    })):[],
+    recentTalks:p.recentTalks&&typeof p.recentTalks==="object"
+      ? Object.fromEntries(Object.entries(p.recentTalks).map(([characterId,ids])=>[
+          String(characterId),
+          Array.isArray(ids)?[...new Set(ids.map(String).filter(Boolean))].slice(-3):[]
+        ]).filter(([,ids])=>ids.length))
+      : {}
   };
 }
 function migrateStateV1ToV2(source){
@@ -1300,7 +1306,8 @@ function syncPlayStateFromSession(){
     variables:clone(session.variables||{}),
     affection:clone(session.affection||{}),
     emotions:clone(session.emotions||{}),
-    log:Array.isArray(session.log)?session.log.slice(-200):[]
+    log:Array.isArray(session.log)?session.log.slice(-200):[],
+    recentTalks:clone(session.recentTalks||{})
   };
 }
 function progressStateFrom(source=state){
@@ -1354,6 +1361,11 @@ function sanitizeProgressReferences(source){
   result.playState.affection=Object.fromEntries(Object.entries(result.playState.affection||{}).filter(([id])=>characterIds.has(id)));
   result.playState.emotions=Object.fromEntries(Object.entries(result.playState.emotions||{}).filter(([id])=>characterIds.has(id)));
   result.playState.variables=Object.fromEntries(Object.entries(result.playState.variables||{}).filter(([id])=>variableIds.has(id)));
+  const eventIds=new Set(result.events.filter(event=>event.menuVisible!==false&&!isExitEvent(event)).map(event=>event.id));
+  result.playState.recentTalks=Object.fromEntries(Object.entries(result.playState.recentTalks||{})
+    .filter(([characterId])=>characterIds.has(characterId))
+    .map(([characterId,ids])=>[characterId,(ids||[]).filter(id=>eventIds.has(id)).slice(-3)])
+    .filter(([,ids])=>ids.length));
   result.inventoryCounts=Object.fromEntries(Object.entries(result.inventoryCounts||{}).filter(([id])=>itemIds.has(id)));
   result.newItemIds=result.newItemIds.filter(id=>itemIds.has(id));
   result.itemHistory=result.itemHistory.filter(row=>!row?.itemId||itemIds.has(row.itemId));
