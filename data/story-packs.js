@@ -25,7 +25,7 @@
 
   window.HV_STORY_PACKS=[{
     id:"hotel-ensemble-comedy",
-    version:1,
+    version:2,
     requiredCharacterIds:Object.values(C),
     variables:[
       {id:"hotel_welcome_started",name:"호텔 환영회 시작",type:"boolean",defaultValue:"false"},
@@ -34,7 +34,10 @@
       {id:"hotel_welcome_result",name:"호텔 환영회 결과",type:"string",defaultValue:""},
       {id:"hotel_welcome_complete",name:"호텔 환영회 완료",type:"boolean",defaultValue:"false"},
       {id:"hotel_fridge_result",name:"심야 냉장고 재판 결과",type:"string",defaultValue:""},
-      {id:"hotel_compliment_result",name:"익명 칭찬 상자 결과",type:"string",defaultValue:""}
+      {id:"hotel_compliment_result",name:"익명 칭찬 상자 결과",type:"string",defaultValue:""},
+      {id:"hotel_photo_result",name:"호텔 단체사진 결과",type:"string",defaultValue:""},
+      {id:"hotel_laundry_result",name:"공용 세탁실 결과",type:"string",defaultValue:""},
+      {id:"hotel_game_result",name:"게임의 밤 결과",type:"string",defaultValue:""}
     ],
     events:[
       {
@@ -373,6 +376,249 @@
           player("compliment-03-d9","익명은 조금 실패했지만 칭찬은 제대로 도착했네요."),
           dialogue("compliment-03-d10",C.niffty,"NIFFTY","다음엔 종이 말고 옷에 직접 써줄게!"),
           dialogue("compliment-03-d11",C.vaggie,"VAGGIE","다음 행사는 내가 준비할게.")
+        ]
+      },
+      {
+        id:"hotel-photo-01-lineup",
+        name:"호텔 단체사진 01 · 한 프레임에 전원",
+        characterId:C.charlie,
+        menuVisible:true,
+        continuationEventIds:["hotel-photo-02-timer"],
+        entries:[
+          narration("photo-01-n1","찰리가 로비 벽에 ‘오늘은 꼭 단체사진 성공!’이라고 적힌 종이를 붙인다. 그 아래에는 이미 실패한 폴라로이드가 네 장 놓여 있다."),
+          dialogue("photo-01-d1",C.charlie,"CHARLIE","이번엔 진짜야! 모두 한 장에, 눈 뜨고, 싸우지 않고 찍는 거야!"),
+          dialogue("photo-01-d2",C.husk,"HUSK","조건이 너무 많군."),
+          dialogue("photo-01-d3",C.angel,"ANGEL DUST","난 왼쪽. 조명도 왼쪽. 내 좋은 쪽이 거기거든."),
+          dialogue("photo-01-d4",C.vaggie,"VAGGIE","넌 아까 오른쪽이 좋다며."),
+          dialogue("photo-01-d5",C.angel,"ANGEL DUST","아까랑 지금은 얼굴이 달라."),
+          dialogue("photo-01-d6",C.lucifer,"LUCIFER","키 순서라면 난 당연히 앞줄 중앙이군."),
+          dialogue("photo-01-d7",C.niffty,"NIFFTY","난 어디든 좋아! 천장도 돼!"),
+          dialogue("photo-01-d8",C.baxter,"BAXTER","천장에는 타이머 센서가 있다. 제발 사람은 바닥에 있어."),
+          choice("photo-01-c1","전원을 한 프레임 안에 넣으려면 어떻게 배치할까?",[
+            option("photo-01-o1","키와 역할대로 빠르게 줄을 세운다",[
+              player("photo-01-o1-d1","앞줄, 뒷줄만 정해요. 자리 취향은 사진 한 장 찍고 바꾸죠."),
+              dialogue("photo-01-o1-d2",C.vaggie,"VAGGIE","좋아. 십 초 안에 움직여."),
+              dialogue("photo-01-o1-d3",C.husk,"HUSK","사진이 아니라 대피 훈련 같은데.")
+            ],{effects:[effect("photo-01-o1-fx","hotel_photo_result","set","order")],affectionEffects:[affection("photo-01-o1-af",C.vaggie,1)]}),
+            option("photo-01-o2","각자 편한 자리에 서게 둔다",[
+              player("photo-01-o2-d1","그냥 제일 편한 자리에 서요. 서로 안 가리기만 하면 돼요."),
+              dialogue("photo-01-o2-d2",C.charlie,"CHARLIE","자연스러운 분위기! 그것도 좋아!"),
+              dialogue("photo-01-o2-d3",C.alastor,"ALASTOR","자연스러움이란 대개 통제 포기의 우아한 표현이지요.")
+            ],{effects:[effect("photo-01-o2-fx","hotel_photo_result","set","natural")]}),
+            option("photo-01-o3","촬영 직전까지 자리를 비워 둔다",[
+              player("photo-01-o3-d1","타이머 누르고 마지막 순간에 빈 곳으로 뛰어들어요. 고민할 시간이 없으면 싸울 시간도 없어요."),
+              dialogue("photo-01-o3-d2",C.angel,"ANGEL DUST","위험한데 재밌네."),
+              dialogue("photo-01-o3-d3",C.baxter,"BAXTER","내 카메라 근처에서 뛰지만 마.")
+            ],{effects:[effect("photo-01-o3-fx","hotel_photo_result","set","rush")],affectionEffects:[affection("photo-01-o3-af",C.angel,1)]})
+          ]),
+          dialogue("photo-01-d9",C.charlie,"CHARLIE","좋아, 이제 남은 건 셔터 한 번뿐이야."),
+          dialogue("photo-01-d10",C.baxter,"BAXTER","그 말을 하기엔 루시퍼가 카메라에 뭔가 붙이고 있는데.")
+        ]
+      },
+      {
+        id:"hotel-photo-02-timer",
+        name:"호텔 단체사진 02 · 셔터 전쟁",
+        characterId:C.baxter,
+        menuVisible:false,
+        continuationEventIds:["hotel-photo-03-result"],
+        entries:[
+          narration("photo-02-n1","카메라 렌즈 둘레에 금빛 왕관 모양 장식이 생겼다. 백스터가 아무 말 없이 루시퍼를 본다."),
+          dialogue("photo-02-d1",C.lucifer,"LUCIFER","작은 보정이야. 왕실 사진에는 왕실 광택이 필요하거든."),
+          dialogue("photo-02-d2",C.baxter,"BAXTER","그 광택이 자동초점을 태우고 있어."),
+          dialogue("photo-02-d3",C.alastor,"ALASTOR","사진 한 장을 위해 이렇게까지 기계를 달래야 하다니. 라디오의 시대가 그립군요."),
+          dialogue("photo-02-d4",C.angel,"ANGEL DUST","라디오는 얼굴이 안 나오니까 네가 좋아하는 거겠지."),
+          dialogue("photo-02-d5",C.alastor,"ALASTOR","제 얼굴은 상상에 맡길수록 가치가 높답니다."),
+          dialogue("photo-02-d6",C.niffty,"NIFFTY","렌즈 닦아줄까? 아주 세게?"),
+          dialogue("photo-02-d7",C.baxter,"BAXTER","아무도. 카메라를. 만지지 마."),
+          narration("photo-02-n2","타이머가 갑자기 10에서 시작한다."),
+          dialogue("photo-02-d8",C.charlie,"CHARLIE","다들 자리! 지금!"),
+          player("photo-02-d9","싸움은 사진 찍고 이어가요! 카메라 봐요!"),
+          dialogue("photo-02-d10",C.husk,"HUSK","내가 왜 이 말에 익숙해지고 있지."),
+          narration("photo-02-n3","3. 2. 1. 셔터가 눌리는 순간, 금빛 장식 하나가 렌즈 앞으로 천천히 떨어진다.")
+        ]
+      },
+      {
+        id:"hotel-photo-03-result",
+        name:"호텔 단체사진 03 · 완벽하게 망한 한 장",
+        characterId:C.charlie,
+        menuVisible:false,
+        entries:[
+          narration("photo-03-order-n1","정렬은 완벽했다. 문제는 전원이 동시에 떨어지는 장식을 보느라 카메라가 아니라 위를 보고 있다는 점이다.",{condition:{variableId:"hotel_photo_result",operator:"==",value:"order"}}),
+          narration("photo-03-natural-n1","자세는 제각각이지만 이상할 정도로 모두 평소다운 표정이다. 루시퍼만 렌즈 앞 장식을 잡으려다 팔이 흐릿하다.",{condition:{variableId:"hotel_photo_result",operator:"==",value:"natural"}}),
+          narration("photo-03-rush-n1","절반은 뛰는 중이고 절반은 웃는 중이다. 니프티는 정말로 잠깐 천장에 있다.",{condition:{variableId:"hotel_photo_result",operator:"==",value:"rush"}}),
+          dialogue("photo-03-d1",C.charlie,"CHARLIE","…완벽하진 않네."),
+          dialogue("photo-03-d2",C.vaggie,"VAGGIE","다시 찍을까?"),
+          dialogue("photo-03-d3",C.husk,"HUSK","안 돼."),
+          dialogue("photo-03-d4",C.angel,"ANGEL DUST","난 잘 나왔는데? 채택."),
+          dialogue("photo-03-d5",C.lucifer,"LUCIFER","내 장식도 아주 역동적으로 나왔군."),
+          dialogue("photo-03-d6",C.baxter,"BAXTER","네 장식 때문에 망한 거야."),
+          dialogue("photo-03-d7",C.alastor,"ALASTOR","그래도 드물게 모두가 같은 순간을 보고 있군요."),
+          player("photo-03-d8","그럼 성공한 단체사진 아닌가요?"),
+          dialogue("photo-03-d9",C.charlie,"CHARLIE","맞아. 액자에 넣자!"),
+          dialogue("photo-03-d10",C.niffty,"NIFFTY","액자 닦아도 돼?!"),
+          dialogue("photo-03-d11",C.baxter,"BAXTER","장식 없는 액자로.")
+        ]
+      },
+
+      {
+        id:"hotel-laundry-01-mixup",
+        name:"공용 세탁실 01 · 이름표 없는 빨래",
+        characterId:C.niffty,
+        menuVisible:true,
+        continuationEventIds:["hotel-laundry-02-sorting"],
+        entries:[
+          narration("laundry-01-n1","세탁실 문을 열자 빨래 바구니 여섯 개와 옷 더미 하나가 정확히 같은 크기로 정렬되어 있다."),
+          dialogue("laundry-01-d1",C.niffty,"NIFFTY","좋은 소식! 전부 빨았어! 더 좋은 소식! 누구 건지는 몰라!"),
+          dialogue("laundry-01-d2",C.vaggie,"VAGGIE","이름표 붙이라고 했잖아."),
+          dialogue("laundry-01-d3",C.niffty,"NIFFTY","이름표도 빨았어!"),
+          dialogue("laundry-01-d4",C.angel,"ANGEL DUST","내 실크 셔츠를 뜨거운 물에 넣은 건 아니지?"),
+          dialogue("laundry-01-d5",C.husk,"HUSK","저 조그만 분홍 천이 네 거면 유감이군."),
+          dialogue("laundry-01-d6",C.angel,"ANGEL DUST","그건 원래 그 크기야."),
+          dialogue("laundry-01-d7",C.lucifer,"LUCIFER","내 흰 코트는 특별 세탁이 필요한데. 왕실 섬유는 섬세하다고."),
+          dialogue("laundry-01-d8",C.baxter,"BAXTER","그 코트에서 약한 마력 방전이 측정된다. 세탁기 탓하지 마."),
+          player("laundry-01-d9","옷 주인부터 찾죠. 특징 하나씩 말해요. 서로 놀리는 건 나중에."),
+          dialogue("laundry-01-d10",C.husk,"HUSK","그 ‘나중에’가 제일 믿음직스럽군.")
+        ]
+      },
+      {
+        id:"hotel-laundry-02-sorting",
+        name:"공용 세탁실 02 · 소유권 분쟁",
+        characterId:C.vaggie,
+        menuVisible:false,
+        continuationEventIds:["hotel-laundry-03-finish"],
+        entries:[
+          narration("laundry-02-n1","문제의 옷들이 테이블 위에 올라온다. 검은 조끼, 붉은 리본, 분홍 셔츠, 흰 장갑, 정체불명의 작은 양말 한 짝."),
+          dialogue("laundry-02-d1",C.alastor,"ALASTOR","붉은 리본이 전부 제 것이라는 성급한 결론은 삼가 주시길."),
+          dialogue("laundry-02-d2",C.angel,"ANGEL DUST","그럼 저 귀여운 양말은 네 거야?"),
+          dialogue("laundry-02-d3",C.alastor,"ALASTOR","질문을 취소할 기회를 드리지요."),
+          dialogue("laundry-02-d4",C.lucifer,"LUCIFER","흰 장갑은 내 것 같지만… 왜 한 짝뿐이지?"),
+          dialogue("laundry-02-d5",C.niffty,"NIFFTY","다른 한 짝은 필터 안에서 새로운 삶을 시작했어!"),
+          choice("laundry-02-c1","뒤섞인 빨래를 어떤 방식으로 돌려줄까?",[
+            option("laundry-02-o1","특징을 확인해 하나씩 소유자를 맞춘다",[
+              player("laundry-02-o1-d1","색 말고 단추, 재질, 수선 자국을 봐요. 하나씩 맞추면 돼요."),
+              dialogue("laundry-02-o1-d2",C.vaggie,"VAGGIE","그래. 가장 확실해."),
+              dialogue("laundry-02-o1-d3",C.baxter,"BAXTER","드디어 분류라는 개념이 등장했군.")
+            ],{effects:[effect("laundry-02-o1-fx","hotel_laundry_result","set","careful")],affectionEffects:[affection("laundry-02-o1-af",C.vaggie,1)]}),
+            option("laundry-02-o2","각자 자기 것만 골라 가게 한다",[
+              player("laundry-02-o2-d1","각자 확실히 자기 것만 가져가요. 남는 건 마지막에 같이 확인하고."),
+              dialogue("laundry-02-o2-d2",C.husk,"HUSK","빨리 끝나는 방식이면 찬성."),
+              dialogue("laundry-02-o2-d3",C.niffty,"NIFFTY","남는 건 내 거 해도 돼?")
+            ],{effects:[effect("laundry-02-o2-fx","hotel_laundry_result","set","quick")]}),
+            option("laundry-02-o3","옷을 입어 보고 맞으면 가져간다",[
+              player("laundry-02-o3-d1","정 모르겠으면 입어 보고 맞는 사람이 가져가죠."),
+              dialogue("laundry-02-o3-d2",C.angel,"ANGEL DUST","드디어 이 상황을 이해하는 사람이 나왔네."),
+              dialogue("laundry-02-o3-d3",C.husk,"HUSK","난 참가 안 한다.")
+            ],{effects:[effect("laundry-02-o3-fx","hotel_laundry_result","set","tryon")],affectionEffects:[affection("laundry-02-o3-af",C.angel,1)]})
+          ]),
+          narration("laundry-02-n2","분류가 끝날 즈음 세탁기 안에서 둔탁한 소리가 난다."),
+          dialogue("laundry-02-d6",C.baxter,"BAXTER","아직 안 끝났어. 안에서 금속성 물체가 회전 중이다."),
+          dialogue("laundry-02-d7",C.lucifer,"LUCIFER","…내 지팡이 장식이 하나 없긴 한데.")
+        ]
+      },
+      {
+        id:"hotel-laundry-03-finish",
+        name:"공용 세탁실 03 · 탈수 금지 물품",
+        characterId:C.lucifer,
+        menuVisible:false,
+        entries:[
+          narration("laundry-03-n1","세탁기가 멈추고 문이 열린다. 안에서 금빛 사과 장식과 양말 한 짝이 나란히 굴러나온다."),
+          dialogue("laundry-03-d1",C.lucifer,"LUCIFER","아! 찾았다."),
+          dialogue("laundry-03-d2",C.baxter,"BAXTER","그게 드럼을 세 번 찍고도 멀쩡한 게 더 문제야."),
+          narration("laundry-03-careful-n1","테이블 위 빨래는 주인별로 가지런히 정리되어 있다. 니프티가 보기 드물게 손을 대지 않고 감상한다.",{condition:{variableId:"hotel_laundry_result",operator:"==",value:"careful"}}),
+          narration("laundry-03-quick-n1","각자 빨래는 대부분 돌아갔다. 정체불명의 셔츠 한 장만 남아 모두가 눈을 피한다.",{condition:{variableId:"hotel_laundry_result",operator:"==",value:"quick"}}),
+          narration("laundry-03-tryon-n1","세탁실이 잠시 패션쇼가 되었고, 누구 것인지 몰랐던 옷의 절반은 예상보다 빨리 주인을 찾았다.",{condition:{variableId:"hotel_laundry_result",operator:"==",value:"tryon"}}),
+          dialogue("laundry-03-d3",C.niffty,"NIFFTY","다음엔 이름표를 옷 안쪽에 박아버릴게!"),
+          dialogue("laundry-03-d4",C.vaggie,"VAGGIE","펜으로 써. 그냥 펜으로."),
+          dialogue("laundry-03-d5",C.angel,"ANGEL DUST","그리고 뜨거운 물 금지."),
+          dialogue("laundry-03-d6",C.husk,"HUSK","왕실 장식 세탁 금지도 추가해."),
+          dialogue("laundry-03-d7",C.lucifer,"LUCIFER","그건 실수 한 번이었어."),
+          dialogue("laundry-03-d8",C.baxter,"BAXTER","세탁기 기록엔 네 번이라고 돼 있는데."),
+          player("laundry-03-d9","규칙표는 제가 써둘게요."),
+          dialogue("laundry-03-d10",C.alastor,"ALASTOR","‘마법, 무기, 왕실 장식은 주머니에서 꺼낼 것.’ 아주 품격 있는 호텔 규칙이군요.")
+        ]
+      },
+
+      {
+        id:"hotel-game-01-invitation",
+        name:"게임의 밤 01 · 친목 활동 강제 개시",
+        characterId:C.husk,
+        menuVisible:true,
+        continuationEventIds:["hotel-game-02-board"],
+        entries:[
+          narration("game-01-n1","찰리가 ‘친목을 위한 평화로운 게임의 밤’이라고 적힌 팻말을 바에 세운다. 허스크는 이미 피곤한 얼굴이다."),
+          dialogue("game-01-d1",C.charlie,"CHARLIE","한 판만! 경쟁보다 협동이 중요한 게임으로 골랐어!"),
+          dialogue("game-01-d2",C.husk,"HUSK","그 말 듣고 안심된 적이 한 번도 없어."),
+          dialogue("game-01-d3",C.angel,"ANGEL DUST","상품 있어? 없으면 내가 만들게."),
+          dialogue("game-01-d4",C.vaggie,"VAGGIE","상품 없음. 내기 없음. 속임수 없음."),
+          dialogue("game-01-d5",C.alastor,"ALASTOR","규칙이 세 줄이나 되니 이미 절반은 깨졌겠군요."),
+          dialogue("game-01-d6",C.lucifer,"LUCIFER","그래서 내가 게임을 하나 가져왔지! 왕실 가족용 협동 보드게임!"),
+          narration("game-01-n2","루시퍼가 금빛 상자를 열자 작은 말들이 스스로 걸어 나와 테이블 위에 선다."),
+          dialogue("game-01-d7",C.baxter,"BAXTER","왜 보드게임에서 마력 반응이 나와?"),
+          dialogue("game-01-d8",C.lucifer,"LUCIFER","몰입감."),
+          dialogue("game-01-d9",C.niffty,"NIFFTY","말이 도망가면 잡아도 돼?!"),
+          player("game-01-d10","일단 설명서부터 읽고 시작해요. 이번엔 순서를 바꾸지 맙시다."),
+          dialogue("game-01-d11",C.husk,"HUSK","이 호텔에서 가장 비현실적인 제안이군.")
+        ]
+      },
+      {
+        id:"hotel-game-02-board",
+        name:"게임의 밤 02 · 보드가 플레이어를 고른다",
+        characterId:C.lucifer,
+        menuVisible:false,
+        continuationEventIds:["hotel-game-03-score"],
+        entries:[
+          narration("game-02-n1","게임 시작 오 분 만에 보드 위 성이 세워지고, 작은 말들은 주인들의 성격을 닮은 듯 제멋대로 움직이기 시작한다."),
+          dialogue("game-02-d1",C.angel,"ANGEL DUST","내 말이 왜 허스크 말만 따라다녀?"),
+          dialogue("game-02-d2",C.husk,"HUSK","내가 묻고 싶다."),
+          dialogue("game-02-d3",C.alastor,"ALASTOR","제 말은 훌륭하군요. 벌써 규칙판을 점령했습니다."),
+          dialogue("game-02-d4",C.vaggie,"VAGGIE","그건 점령이 아니라 규칙 위반이야."),
+          dialogue("game-02-d5",C.baxter,"BAXTER","보드가 참가자의 감정에 반응해 경로를 바꾼다."),
+          dialogue("game-02-d6",C.lucifer,"LUCIFER","가족 간 이해를 돕는 기능이지."),
+          dialogue("game-02-d7",C.charlie,"CHARLIE","아빠, 왜 설명서엔 그 내용이 없어?"),
+          dialogue("game-02-d8",C.lucifer,"LUCIFER","서프라이즈도 가족 활동의 일부니까?"),
+          choice("game-02-c1","점점 과몰입하는 게임을 어떻게 끝까지 진행할까?",[
+            option("game-02-o1","모두의 말을 한 팀으로 묶는다",[
+              player("game-02-o1-d1","개인 점수 없애고 전부 한 팀으로 해요. 보드가 싸움을 먹고 큰다면 먹이를 끊는 거죠."),
+              dialogue("game-02-o1-d2",C.charlie,"CHARLIE","완벽해! 진짜 협동 게임이 됐어!"),
+              dialogue("game-02-o1-d3",C.alastor,"ALASTOR","승자가 사라지는군요. 섭섭한 구조입니다.")
+            ],{effects:[effect("game-02-o1-fx","hotel_game_result","set","team")],affectionEffects:[affection("game-02-o1-af",C.charlie,1)]}),
+            option("game-02-o2","규칙을 최소화하고 시간 제한을 둔다",[
+              player("game-02-o2-d1","규칙 세 개만 남기고 십 분 안에 끝내요. 보드가 새 규칙 만들면 무효."),
+              dialogue("game-02-o2-d2",C.vaggie,"VAGGIE","좋아. 끝나는 시간이 보이는 게 제일 좋아."),
+              dialogue("game-02-o2-d3",C.husk,"HUSK","이제야 게임 같군.")
+            ],{effects:[effect("game-02-o2-fx","hotel_game_result","set","control")]}),
+            option("game-02-o3","보드가 하고 싶은 대로 한 판 지켜본다",[
+              player("game-02-o3-d1","한 판만 보드가 정하는 대로 가보죠. 대신 위험해지면 바로 접어요."),
+              dialogue("game-02-o3-d2",C.angel,"ANGEL DUST","살아있는 보드랑 기싸움? 난 찬성."),
+              dialogue("game-02-o3-d3",C.baxter,"BAXTER","과학적 호기심 때문에 반대하기가 어렵군.")
+            ],{effects:[effect("game-02-o3-fx","hotel_game_result","set","chaos")],emotionEffects:[emotion("game-02-o3-em",C.baxter,"curious",45)]})
+          ]),
+          narration("game-02-n2","보드 중앙의 성이 갑자기 열리고 작은 종이 울린다."),
+          dialogue("game-02-d9",C.niffty,"NIFFTY","끝났어? 부숴도 돼?"),
+          dialogue("game-02-d10",C.lucifer,"LUCIFER","아직 점수 계산이 남았어!")
+        ]
+      },
+      {
+        id:"hotel-game-03-score",
+        name:"게임의 밤 03 · 승자 없는 우승",
+        characterId:C.charlie,
+        menuVisible:false,
+        entries:[
+          narration("game-03-team-n1","모든 말이 같은 칸에 모이자 보드가 잠시 멈추더니 ‘공동 승리’라는 금빛 글자를 띄운다.",{condition:{variableId:"hotel_game_result",operator:"==",value:"team"}}),
+          narration("game-03-control-n1","시간 제한이 끝나자 허스크가 정확히 종을 치고 보드를 닫는다. 처음으로 게임이 스스로 끝나지 못했다.",{condition:{variableId:"hotel_game_result",operator:"==",value:"control"}}),
+          narration("game-03-chaos-n1","보드는 끝내 모든 말을 테이블 밖으로 탈주시킨 뒤, 스스로 ‘재경기’를 요구하는 문구를 띄운다.",{condition:{variableId:"hotel_game_result",operator:"==",value:"chaos"}}),
+          dialogue("game-03-d1",C.charlie,"CHARLIE","그래도 다 같이 한 게임을 끝냈어!"),
+          dialogue("game-03-d2",C.husk,"HUSK","‘끝냈다’의 정의부터 확인하자."),
+          dialogue("game-03-d3",C.angel,"ANGEL DUST","난 재밌었어. 특히 알래스터 말이 규칙판 뜯어먹은 거."),
+          dialogue("game-03-d4",C.alastor,"ALASTOR","취향이 고약한 말이었지요."),
+          dialogue("game-03-d5",C.baxter,"BAXTER","난 보드 내부 구조를 보고 싶어."),
+          dialogue("game-03-d6",C.lucifer,"LUCIFER","분해는 안 돼! 절판된 가족용 초판이야."),
+          dialogue("game-03-d7",C.vaggie,"VAGGIE","다음 게임의 밤은 평범한 카드로 한다."),
+          dialogue("game-03-d8",C.husk,"HUSK","내 카드엔 손대지 마."),
+          dialogue("game-03-d9",C.niffty,"NIFFTY","그럼 숨바꼭질!"),
+          player("game-03-d10","오늘은 여기서 끝내는 게 공동 승리 같아요."),
+          dialogue("game-03-d11",C.charlie,"CHARLIE","좋아. 다음엔 더 평화로운 걸 찾자!"),
+          dialogue("game-03-d12",C.husk,"HUSK","그 말이 제일 불안하다.")
         ]
       }
     ]
