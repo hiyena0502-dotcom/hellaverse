@@ -1,6 +1,12 @@
 "use strict";
 let roomExitActive=false;
 let roomExitTargetPage="home";
+let interactionCompleteMenu=null;
+let selectedInventoryItemId="";
+let inventoryQuery="";
+let inventoryCategory="ALL";
+let inventoryPreference="ALL";
+let inventoryUnknownOnly=false;
 function startDialogue(characterId,eventId){
   const ch=getCharacter(characterId);if(!ch)return;
   selectedCharacterId=ch.id;
@@ -9,8 +15,13 @@ function startDialogue(characterId,eventId){
   activeInteractionReaction=null;
   activeInteractionEvent=null;
   interactionContext=null;
+  interactionCompleteMenu=null;
   const ev=eventId?getEvent(eventId):randomTalkForCharacter(ch.id);
-  if(ev)rememberRecentTalk(ch.id,ev.id);
+  const wasNew=Boolean(ev&&!isTalkDiscovered(ev.id));
+  if(ev){
+    rememberRecentTalk(ch.id,ev.id);
+    markTalkDiscovered(ev.id);
+  }
   playback=ev?{
     characterId:ch.id,
     roomCharacterId:ch.id,
@@ -18,6 +29,7 @@ function startDialogue(characterId,eventId){
     continuationQueue:[...(ev.continuationEventIds||[])],
     continuationTotal:(ev.continuationEventIds||[]).length,
     autoVisitedEventIds:[ev.id],
+    newTalkEventId:wasNew?ev.id:"",
     frames:[{sourceType:"event",sourceId:ev.id,index:0,label:"본편",exitMode:"continue",targetEventId:""}],
     ended:false
   }:null;
@@ -111,6 +123,16 @@ function randomTalkEvent(events,excludeId=""){
   const index=Math.min(pool.length-1,Math.floor(Math.random()*pool.length));
   return pool[index]||pool[0]||null;
 }
+function isTalkDiscovered(eventId){
+  return (state.discoveredTalkIds||[]).includes(eventId);
+}
+function markTalkDiscovered(eventId){
+  if(!eventId)return false;
+  state.discoveredTalkIds ||= [];
+  if(state.discoveredTalkIds.includes(eventId))return false;
+  state.discoveredTalkIds.push(eventId);
+  return true;
+}
 function recentTalkIds(characterId){
   session.recentTalks ||= {};
   return Array.isArray(session.recentTalks[characterId])?session.recentTalks[characterId]:[];
@@ -152,6 +174,41 @@ function nextContinuousEvent(){
   const next=randomTalkEvent(pool.length?pool:candidates,currentId);
   if(next)rememberRecentTalk(roomCharacterId,next.id);
   return next?.id||null;
+}
+function shuffleTalk(){
+  if(!playback||activeInteractionEvent||interactionContext?.followupActive)return false;
+  if((playback.continuationQueue||[]).length){
+    showToast("연속 이야기 중에는 다음 TALK로 건너뛸 수 없습니다.");
+    return false;
+  }
+  const characterId=playback.roomCharacterId||selectedCharacterId;
+  const currentId=currentEvent()?.id||"";
+  const next=randomTalkForCharacter(characterId,currentId);
+  if(!next||next.id===currentId){
+    showToast("지금 볼 수 있는 다른 TALK가 없습니다.");
+    return false;
+  }
+  startDialogue(characterId,next.id);
+  return true;
+}
+function relationshipProgress(characterId){
+  const talkIds=eventsForCharacter(characterId).map(event=>event.id);
+  const talkSeen=talkIds.filter(id=>(state.discoveredTalkIds||[]).includes(id)).length;
+  const asks=asksForCharacter(characterId);
+  const askSeen=asks.filter(ask=>(state.askedAskIds||[]).includes(ask.id)).length;
+  const giftItems=state.items.filter(item=>item.enabled&&item.giftable!==false&&(
+    item.reactions.some(reaction=>reaction.characterId===characterId)||item.collectionCharacterId===characterId
+  ));
+  const giftSeen=giftItems.filter(item=>isGiftPreferenceDiscovered(item.id,characterId)).length;
+  const specialTotal=state.items.filter(item=>item.reactions.some(reaction=>
+    reaction.characterId===characterId&&reaction.specialEntries?.length
+  )).length;
+  const specialSeen=(state.discoveredSpecialGiftKeys||[]).filter(key=>String(key).endsWith("::"+characterId)).length;
+  return{talkSeen,talkTotal:talkIds.length,askSeen,askTotal:asks.length,giftSeen,giftTotal:giftItems.length,specialSeen,specialTotal};
+}
+function relationshipProgressMarkup(characterId){
+  const p=relationshipProgress(characterId);
+  return '<div class="relationship-progress"><span>TALK '+p.talkSeen+'/'+p.talkTotal+'</span><span>ASK '+p.askSeen+'/'+p.askTotal+'</span><span>GIFT '+p.giftSeen+'/'+p.giftTotal+'</span><span>SPECIAL '+p.specialSeen+'/'+p.specialTotal+'</span></div>';
 }
 function playableExitEventsForCharacter(characterId){
   return exitEventsForCharacter(characterId).filter(eventHasPlayableStart);
