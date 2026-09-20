@@ -428,13 +428,14 @@ editorBody.addEventListener("focusin",e=>{
     !editorLargeProject&&
     e.target.matches("input,textarea,select")&&
     !e.target.dataset.itemEditorFilter&&
-    !e.target.dataset.editorSearch
+    !e.target.dataset.editorSearch&&
+    !e.target.hasAttribute("data-continuation-search")
   ){
     e.target.dataset.undoStart=serializeEditorDraft();
   }
 });
 editorBody.addEventListener("input",e=>{
-  if(!e.target.dataset.itemEditorFilter&&!e.target.dataset.editorSearch)markEditorDirty();
+  if(!e.target.dataset.itemEditorFilter&&!e.target.dataset.editorSearch&&!e.target.hasAttribute("data-continuation-search"))markEditorDirty();
   handleEditorField(e);
 });
 editorBody.addEventListener("change",e=>{
@@ -448,7 +449,7 @@ editorBody.addEventListener("change",e=>{
       updateEditorHistoryButtons();
     }
   }
-  if(!e.target.dataset.itemEditorFilter&&!e.target.dataset.editorSearch)markEditorDirty();
+  if(!e.target.dataset.itemEditorFilter&&!e.target.dataset.editorSearch&&!e.target.hasAttribute("data-continuation-search"))markEditorDirty();
   handleEditorField(e);
 });
 function handleEditorField(e){
