@@ -131,6 +131,25 @@ function nextContinuousEvent(){
 function playableExitEventsForCharacter(characterId){
   return exitEventsForCharacter(characterId).filter(eventHasPlayableStart);
 }
+function fallbackExitEvent(character){
+  if(!character)return null;
+  return {
+    id:"__room-exit-fallback__"+character.id,
+    name:"EXIT",
+    characterId:character.id,
+    eventRole:"exit",
+    menuVisible:false,
+    continuationEventIds:[],
+    emotionExitMode:"keep",
+    entries:[normalizeEntry({
+      id:"__room-exit-line__"+character.id,
+      type:"dialogue",
+      speaker:character.name,
+      speakerCharacterId:character.id,
+      text:"다음에 또 보자."
+    })]
+  };
+}
 function completeRoomExit(){
   const target=roomExitTargetPage||"home";
   roomExitActive=false;
@@ -150,7 +169,7 @@ function beginRoomExit(targetPage="home"){
   if(roomExitActive)return true;
   const ch=getCharacter(selectedCharacterId);
   const exits=playableExitEventsForCharacter(ch?.id||"");
-  const ev=randomTalkEvent(exits);
+  const ev=randomTalkEvent(exits)||fallbackExitEvent(ch);
   roomExitTargetPage=targetPage||"home";
   activeInteractionReaction=null;
   activeInteractionEvent=null;
@@ -167,6 +186,7 @@ function beginRoomExit(targetPage="home"){
   }
 
   roomExitActive=true;
+  if(!getEvent(ev.id))state.events.push(ev);
   playback={
     characterId:ch.id,
     roomCharacterId:ch.id,
