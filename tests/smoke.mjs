@@ -40,6 +40,7 @@ const editorUi=read("js/editor/editor-ui.js");
 const dialogueCode=read("js/game/dialogue.js");
 const gameStateCode=read("js/core/game-state.js");
 const storyPackCode=read("data/story-packs.js");
+const dialogueCss=read("css/dialogue.css");
 
 assert.ok(!editorEvents.includes('$(".nav-button").forEach'),"nav must use querySelectorAll/$$, not single $ helper");
 assert.match(editorEvents,/document\.querySelectorAll\("\.nav-button"\)\.forEach/,"nav click delegation missing");
@@ -74,6 +75,8 @@ assert.ok(!dialogueCode.includes("이벤트가 끝났습니다."),"terminal even
 assert.match(editorUi,/data-entry-field="speakerCharacterId"/,"speaker image selector missing from event editor");
 assert.match(editorEvents,/data-action="validation-jump"/,"validation issue navigation missing");
 assert.match(read("js/world/regions.js"),/currentPage!=="world"\|\|activeRegion!==regionId/,"WORLD timer must stop outside WORLD");
+assert.match(dialogueCss,/#roomDynamic\{[\s\S]*?position:absolute;[\s\S]*?left:50%;[\s\S]*?bottom:54px;/,"room dialogue anchor must stay pinned to lower center");
+assert.match(dialogueCss,/\.dialogue-box\{[\s\S]*?height:190px;[\s\S]*?grid-template-rows:/,"desktop dialogue box height must stay stable");
 
 const storage=new Map();
 const dummy=()=>({
