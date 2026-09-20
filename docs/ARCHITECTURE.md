@@ -17,15 +17,32 @@
 
 ## 저장
 
-주 키:
+### IndexedDB
 
-- `hellaverse-studio-state-v2` — 프로젝트 데이터 + 플레이 진행
-- `hellaverse-studio-prefs-v2` — 대화 속도 / AUTO / stage click
-- `hellaverse-studio-backups-v2` — 수동 슬롯 3개 + 자동 안전 백업
-- `hellaverse-studio-editor-snapshot-v2` — 마지막 EDITOR 저장 전 상태
+대형 데이터의 주 저장소는 `hellaverse-studio-db` IndexedDB입니다. `kv` object store에 다음 레코드를 둡니다.
 
-WORLD 보조 키도 DATA 백업에 함께 포함합니다.
+- `state` — 캐릭터 / EVENT / ASK / ITEM / THOUGHT 등 프로젝트 전체
+- `progress` — 프로필, 호감도·감정·변수, 인벤토리, ASK/선물/THOUGHT/가챠 진행
+- `backups` — 수동 슬롯 3개 + 자동 안전 백업
+- `editorSnapshot` — 마지막 EDITOR 저장 전 상태
 
+기존 localStorage의 다음 키가 있으면 `bootstrapStorage()`에서 IndexedDB로 자동 이전합니다.
+
+- `hellaverse-studio-state-v2`
+- `hellaverse-studio-backups-v2`
+- `hellaverse-studio-editor-snapshot-v2`
+
+IndexedDB를 사용할 수 없는 환경에서는 localStorage fallback을 유지합니다.
+
+### Schema migration
+
+현재 `CURRENT_SCHEMA_VERSION`은 3입니다. `normalizeState()` 전에 `migrateStateSchema()`가 v1 → v2 → v3 순서로 적용됩니다. 새 구조 변경은 기존 migration을 수정하지 말고 다음 버전 migration을 추가합니다.
+
+### localStorage 유지 항목
+
+작은 환경 설정과 WORLD 보조 값은 localStorage를 계속 사용합니다.
+
+- `hellaverse-studio-prefs-v2`
 - `hellaverse-world-settings-v1`
 - `hellaverse-world-region-v1`
 - `hellaverse-world-scene-placement-v1`
@@ -40,7 +57,7 @@ WORLD 보조 키도 DATA 백업에 함께 포함합니다.
 - emotions
 - dialogue log
 
-따라서 새로고침과 EDITOR 저장 뒤에도 진행 상태가 유지됩니다.
+따라서 새로고침과 EDITOR 저장 뒤에도 진행 상태가 유지됩니다. 일반 플레이 중에는 `saveProgressState()`만 호출하고, 프로젝트 콘텐츠가 실제로 바뀌는 EDITOR 저장 / IMPORT에서는 `saveState()`를 사용합니다.
 
 ## UI 소유
 
@@ -50,6 +67,16 @@ WORLD 보조 키도 DATA 백업에 함께 포함합니다.
 - EDITOR: `editor-ui.js`, `editor-events.js`
 
 WORLD는 이미 별도 모듈로 활성화되어 있으므로 같은 기능을 app-shell에 중복 구현하지 않습니다.
+
+## IMPORT / 오류 격리
+
+IMPORT는 먼저 `prepareImportPreview()`로 legacy 변환 및 schema migration을 적용한 뒤 `validateDraft()` 검사를 수행합니다. ERROR가 있으면 적용 버튼을 비활성화합니다.
+
+전역 `error` / `unhandledrejection`은 `recoverUiFromError()`가 받아 EDITOR나 모달을 닫고 사용 가능한 화면으로 복구합니다. 저장 데이터 자체를 자동 삭제하지 않습니다.
+
+## 자동 회귀 검사
+
+`tests/smoke.mjs`와 `.github/workflows/smoke.yml`이 대형 fixture와 주요 UI wiring을 검사합니다. 새 기능 추가 시 기존 smoke 조건을 제거하지 말고 필요한 검사를 확장합니다.
 
 ## 수정 원칙
 
