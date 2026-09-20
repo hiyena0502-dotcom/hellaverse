@@ -25,7 +25,7 @@
 
   window.HV_STORY_PACKS=[{
     id:"hotel-ensemble-comedy",
-    version:2,
+    version:3,
     requiredCharacterIds:Object.values(C),
     variables:[
       {id:"hotel_welcome_started",name:"호텔 환영회 시작",type:"boolean",defaultValue:"false"},
@@ -37,7 +37,8 @@
       {id:"hotel_compliment_result",name:"익명 칭찬 상자 결과",type:"string",defaultValue:""},
       {id:"hotel_photo_result",name:"호텔 단체사진 결과",type:"string",defaultValue:""},
       {id:"hotel_laundry_result",name:"공용 세탁실 결과",type:"string",defaultValue:""},
-      {id:"hotel_game_result",name:"게임의 밤 결과",type:"string",defaultValue:""}
+      {id:"hotel_game_result",name:"게임의 밤 결과",type:"string",defaultValue:""},
+      {id:"hotel_movie_pick",name:"심야 영화 선택",type:"string",defaultValue:""}
     ],
     events:[
       {
@@ -619,6 +620,102 @@
           player("game-03-d10","오늘은 여기서 끝내는 게 공동 승리 같아요."),
           dialogue("game-03-d11",C.charlie,"CHARLIE","좋아. 다음엔 더 평화로운 걸 찾자!"),
           dialogue("game-03-d12",C.husk,"HUSK","그 말이 제일 불안하다.")
+        ]
+      },
+      {
+        id:"hotel-movie-01-pick",
+        name:"심야 영화 01 · 리모컨은 하나",
+        characterId:C.angel,
+        menuVisible:true,
+        continuationEventIds:["hotel-movie-02-couch"],
+        entries:[
+          narration("movie-01-n1","늦은 밤, 로비 소파 앞에 간식과 담요가 쌓였다. 문제는 리모컨이 하나고 보고 싶은 영화는 여섯 개라는 것이다."),
+          dialogue("movie-01-d1",C.charlie,"CHARLIE","오늘은 그냥 편하게 영화 한 편 보는 거야. 아무 계획도 없어!"),
+          dialogue("movie-01-d2",C.vaggie,"VAGGIE","그 말이 계획보다 더 불안해."),
+          dialogue("movie-01-d3",C.angel,"ANGEL DUST","난 공포. 피 많이 나오는 걸로."),
+          dialogue("movie-01-d4",C.husk,"HUSK","난 조용한 거."),
+          dialogue("movie-01-d5",C.niffty,"NIFFTY","벌레 나오는 거! 아주 크게!"),
+          dialogue("movie-01-d6",C.baxter,"BAXTER","다큐멘터리. 최소한 사실관계가 맞는 걸 보자."),
+          dialogue("movie-01-d7",C.lucifer,"LUCIFER","뮤지컬은 어때? 좋은 왕이라면 최소 세 곡은 직접 불러야—"),
+          dialogue("movie-01-d8",C.alastor,"ALASTOR","무성 영화라면 모두의 요구를 절반쯤 만족시키겠군요."),
+          choice("movie-01-c1","당신은 뭘 보고 싶어?",[
+            option("movie-01-o1","공포 영화가 보고 싶다",[
+              player("movie-01-o1-d1","전 공포요. 오늘은 그냥 놀랄 준비 하고 왔어요."),
+              dialogue("movie-01-o1-d2",C.angel,"ANGEL DUST","봐! 취향 있는 사람이 또 있잖아."),
+              dialogue("movie-01-o1-d3",C.husk,"HUSK","둘이 동시에 소리만 안 지르면 상관없어.")
+            ],{effects:[effect("movie-01-o1-fx","hotel_movie_pick","set","horror")],affectionEffects:[affection("movie-01-o1-af",C.angel,1)]}),
+            option("movie-01-o2","가벼운 코미디가 좋다",[
+              player("movie-01-o2-d1","오늘은 코미디가 좋아요. 아무 생각 없이 웃고 싶어요."),
+              dialogue("movie-01-o2-d2",C.charlie,"CHARLIE","좋아! 그게 영화의 밤 취지랑 제일 가깝다!"),
+              dialogue("movie-01-o2-d3",C.alastor,"ALASTOR","누가 무엇을 보고 웃는지가 더 흥미롭겠군요.")
+            ],{effects:[effect("movie-01-o2-fx","hotel_movie_pick","set","comedy")],affectionEffects:[affection("movie-01-o2-af",C.charlie,1)]}),
+            option("movie-01-o3","아무거나 좋고 간식이 중요하다",[
+              player("movie-01-o3-d1","전 영화보다 간식이요. 팝콘 있는 쪽에 투표할게요."),
+              dialogue("movie-01-o3-d2",C.husk,"HUSK","가장 정직한 답이군."),
+              dialogue("movie-01-o3-d3",C.niffty,"NIFFTY","팝콘에 벌레 모양 사탕 넣어도 돼?!")
+            ],{effects:[effect("movie-01-o3-fx","hotel_movie_pick","set","snack")],affectionEffects:[affection("movie-01-o3-af",C.husk,1)]})
+          ]),
+          dialogue("movie-01-d9",C.vaggie,"VAGGIE","좋아. 이번엔 다수결도 협상도 없어. 그냥 틀자."),
+          dialogue("movie-01-d10",C.angel,"ANGEL DUST","드디어 영화보다 긴 예고편이 끝났네.")
+        ]
+      },
+      {
+        id:"hotel-movie-02-couch",
+        name:"심야 영화 02 · 소파 자리 전쟁",
+        characterId:C.husk,
+        menuVisible:false,
+        continuationEventIds:["hotel-movie-03-credits"],
+        entries:[
+          narration("movie-02-n1","영화가 시작되자 이번엔 소파 자리가 문제다. 엔젤은 담요를 두 장 차지했고, 루시퍼는 팔걸이에 왕관 모양 쿠션을 올려놨다."),
+          dialogue("movie-02-d1",C.husk,"HUSK","난 바에 있을 거다. 거기선 아무도 내 팔걸이 안 훔쳐."),
+          dialogue("movie-02-d2",C.angel,"ANGEL DUST","이건 훔친 게 아니라 선점이야."),
+          dialogue("movie-02-d3",C.lucifer,"LUCIFER","왕실 쿠션은 좌석이 아니라 상징물이란다."),
+          dialogue("movie-02-d4",C.vaggie,"VAGGIE","그럼 상징물은 바닥에 둬."),
+          narration("movie-02-horror-n1","첫 점프 스케어가 터지자 엔젤이 웃고, 찰리는 담요를 턱까지 끌어올린다.",{condition:{variableId:"hotel_movie_pick",operator:"==",value:"horror"}}),
+          narration("movie-02-comedy-n1","첫 웃음 포인트에서 찰리가 가장 크게 웃고, 알래스터는 영화보다 주변 반응을 더 즐기는 표정이다.",{condition:{variableId:"hotel_movie_pick",operator:"==",value:"comedy"}}),
+          narration("movie-02-snack-n1","영화 제목이 뜨기도 전에 팝콘 그릇이 절반 비었다. 범인은 한 명이 아니다.",{condition:{variableId:"hotel_movie_pick",operator:"==",value:"snack"}}),
+          player("movie-02-d5","전 그냥 여기 앉을게요. 누가 밀면 같이 밀립니다."),
+          dialogue("movie-02-d6",C.charlie,"CHARLIE","완벽해! 다 같이 붙어 앉으면 더 영화의 밤 같아."),
+          dialogue("movie-02-d7",C.baxter,"BAXTER","밀집도는 올라가지만 화면 시야각은 나빠져."),
+          dialogue("movie-02-d8",C.niffty,"NIFFTY","난 등받이 위에 앉을래!"),
+          dialogue("movie-02-d9",C.vaggie,"VAGGIE","발로 화면만 가리지 마."),
+          narration("movie-02-n2","몇 분 뒤, 누가 어디에 앉았는지는 중요하지 않게 된다. 모두가 같은 화면을 보고 있기 때문이다.")
+        ]
+      },
+      {
+        id:"hotel-movie-03-credits",
+        name:"심야 영화 03 · 엔딩 크레딧 이후",
+        characterId:C.charlie,
+        menuVisible:false,
+        entries:[
+          narration("movie-03-n1","엔딩 크레딧이 올라가지만 아무도 바로 일어나지 않는다. 빈 그릇과 구겨진 담요만 늘어났다."),
+          dialogue("movie-03-d1",C.charlie,"CHARLIE","이런 거 좋다. 별일 안 일어나고 그냥 같이 있는 거."),
+          dialogue("movie-03-d2",C.husk,"HUSK","팝콘 그릇 세 개 엎어진 건 별일에 안 들어가나 보군."),
+          dialogue("movie-03-d3",C.niffty,"NIFFTY","두 개야! 하나는 내가 잡았어!"),
+          dialogue("movie-03-d4",C.angel,"ANGEL DUST","다음 편 바로 갈 사람?"),
+          dialogue("movie-03-d5",C.vaggie,"VAGGIE","지금 새벽 세 시야."),
+          dialogue("movie-03-d6",C.lucifer,"LUCIFER","뮤지컬이라면 시간 감각이 더 빨리—"),
+          dialogue("movie-03-d7",C.baxter,"BAXTER","안 돼."),
+          dialogue("movie-03-d8",C.alastor,"ALASTOR","의견 일치가 이렇게 빠른 것도 드문 일이군요."),
+          choice("movie-03-c1","당신은 어떻게 할까?",[
+            option("movie-03-o1","한 편 더 보자고 한다",[
+              player("movie-03-o1-d1","전 한 편 더 볼래요. 대신 이번엔 짧은 걸로."),
+              dialogue("movie-03-o1-d2",C.angel,"ANGEL DUST","좋아, 내 편 하나 확보."),
+              dialogue("movie-03-o1-d3",C.vaggie,"VAGGIE","내일 아침 일정은 네가 설명해.")
+            ]),
+            option("movie-03-o2","간식 정리부터 돕는다",[
+              player("movie-03-o2-d1","영화는 여기까지. 전 그릇부터 치울게요."),
+              dialogue("movie-03-o2-d2",C.charlie,"CHARLIE","나도 도울게!"),
+              dialogue("movie-03-o2-d3",C.husk,"HUSK","그 말은 마음에 드네.")
+            ]),
+            option("movie-03-o3","소파에서 그대로 버틴다",[
+              player("movie-03-o3-d1","전 여기서 안 움직일래요. 이미 너무 편해졌어요."),
+              dialogue("movie-03-o3-d2",C.niffty,"NIFFTY","담요 덮어줄까? 얼굴까지?"),
+              dialogue("movie-03-o3-d3",C.lucifer,"LUCIFER","왕실 쿠션 하나 빌려주지.")
+            ])
+          ]),
+          dialogue("movie-03-d9",C.charlie,"CHARLIE","그럼 다음 영화의 밤도 있는 걸로!"),
+          dialogue("movie-03-d10",C.husk,"HUSK","그 결론은 누가 승인했지?")
         ]
       }
     ]
