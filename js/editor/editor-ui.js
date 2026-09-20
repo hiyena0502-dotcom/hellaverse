@@ -8,6 +8,7 @@ const EDITOR_THOUGHT_PAGE_SIZE=50;
 let editorDirty=false;
 let editorLargeProject=false;
 let editorEventQuery="";
+let editorContinuationQuery="";
 let editorAskQuery="";
 let editorThoughtQuery="";
 let editorEventPage=0;
@@ -108,6 +109,7 @@ function openEditor(){
   editorInitialSnapshot="";
   editorDirty=false;
   editorEventQuery="";
+  editorContinuationQuery="";
   editorAskQuery="";
   editorThoughtQuery="";
   editorEventPage=0;
@@ -252,10 +254,29 @@ function renderEventManager(){
 }
 function getCharacterDraft(id){return editorDraft.characters.find(c=>c.id===id)||null}
 function eventProperties(ev){
+  const chain=Array.isArray(ev.continuationEventIds)?ev.continuationEventIds:[];
+  const selected=new Set(chain);
+  const q=editorContinuationQuery.trim().toLowerCase();
+  const candidates=q?editorDraft.events.filter(x=>{
+    if(x.id===ev.id||selected.has(x.id))return false;
+    const text=[x.name,x.id,getCharacterDraft(x.characterId)?.name].join(" ").toLowerCase();
+    return text.includes(q);
+  }).slice(0,10):[];
+  const chainRows=chain.map((id,index)=>{
+    const target=editorDraft.events.find(x=>x.id===id);
+    if(!target)return '<div class="continuation-row missing" data-continuation-id="'+esc(id)+'"><span class="continuation-index">'+String(index+1).padStart(2,"0")+'</span><div><strong>삭제된 EVENT</strong><small>'+esc(id)+'</small></div><div class="icon-actions"><button class="icon-button" data-action="remove-continuation" data-id="'+esc(id)+'">×</button></div></div>';
+    return '<div class="continuation-row" data-continuation-id="'+esc(id)+'"><span class="continuation-index">'+String(index+1).padStart(2,"0")+'</span><div><strong>'+esc(target.name)+'</strong><small>'+esc(getCharacterDraft(target.characterId)?.name||"캐릭터 미지정")+'</small></div><div class="icon-actions"><button class="icon-button" data-action="move-continuation" data-id="'+esc(id)+'" data-dir="-1" '+(index===0?"disabled":"")+'>↑</button><button class="icon-button" data-action="move-continuation" data-id="'+esc(id)+'" data-dir="1" '+(index===chain.length-1?"disabled":"")+'>↓</button><button class="icon-button" data-action="remove-continuation" data-id="'+esc(id)+'">×</button></div></div>';
+  }).join("");
+  const results=candidates.map(x=>'<button class="continuation-search-result" type="button" data-action="add-continuation" data-id="'+esc(x.id)+'"><span>+</span><div><strong>'+esc(x.name)+'</strong><small>'+esc(getCharacterDraft(x.characterId)?.name||"캐릭터 미지정")+' · '+esc(x.id)+'</small></div></button>').join("");
+
   return '<label class="field"><span>이벤트 이름</span><input data-bind="event-name" value="'+esc(ev.name)+'"></label>'+
     '<label class="field" style="margin-top:9px"><span>캐릭터</span><select data-bind="event-character">'+charOptions(ev.characterId,"캐릭터 선택")+'</select></label>'+
-    '<label class="field" style="margin-top:9px"><span>종료 후 이동</span><select data-bind="event-next">'+eventOptions(ev.nextEventId,"이벤트 종료",editorDraft,ev.id)+'</select></label>'+
     '<label class="field" style="margin-top:9px"><span>종료 시 감정</span><select data-bind="event-emotion-exit"><option value="keep" '+(ev.emotionExitMode==="keep"?"selected":"")+'>현재 감정 유지</option><option value="reset" '+(ev.emotionExitMode==="reset"?"selected":"")+'>기본 감정으로 초기화</option></select></label>'+
+    '<section class="event-continuation-editor"><div class="continuation-head"><div><strong>CONTINUATION</strong><small>이 EVENT가 끝난 뒤 위에서부터 자동 재생</small></div><b>'+chain.length+'</b></div>'+
+      '<div class="continuation-list">'+(chainRows||'<div class="editor-note">이어지는 대화가 없습니다. 아래에서 EVENT를 검색해 추가하세요.</div>')+'</div>'+
+      '<div class="continuation-search"><input data-continuation-search value="'+esc(editorContinuationQuery)+'" placeholder="이어질 EVENT 검색 · 이름 / 캐릭터">'+
+      '<div class="continuation-search-results">'+(q?(results||'<div class="editor-note">추가할 수 있는 EVENT가 없습니다.</div>'):'<div class="editor-note">검색어를 입력하면 최대 10개까지 표시됩니다.</div>')+'</div></div>'+
+    '</section>'+
     '<button class="danger-button" style="width:100%;margin-top:10px" data-action="delete-event">이벤트 삭제</button>';
 }
 function entryLabel(e){
@@ -733,7 +754,14 @@ function validateDraft(source=editorDraft){
   source.events.forEach(ev=>{
     if(!charIds.has(ev.characterId))push("error","EVENT · "+ev.name,"캐릭터가 지정되지 않았습니다.");
     if(!ev.entries.length)push("warning","EVENT · "+ev.name,"FLOW가 비어 있습니다.");
-    if(ev.nextEventId&&!eventIds.has(ev.nextEventId))push("error","EVENT · "+ev.name,"종료 후 이동 이벤트가 존재하지 않습니다.");
+    const continuationIds=Array.isArray(ev.continuationEventIds)?ev.continuationEventIds:[];
+    const seenContinuation=new Set();
+    continuationIds.forEach((id,index)=>{
+      if(!eventIds.has(id))push("error","EVENT · "+ev.name,"CONTINUATION "+(index+1)+"의 EVENT가 존재하지 않습니다.");
+      if(id===ev.id)push("error","EVENT · "+ev.name,"자기 자신을 CONTINUATION으로 연결할 수 없습니다.");
+      if(seenContinuation.has(id))push("warning","EVENT · "+ev.name,"같은 EVENT가 CONTINUATION에 두 번 들어 있습니다.");
+      seenContinuation.add(id);
+    });
   });
   source.asks.forEach(a=>{
     if(!charIds.has(a.characterId))push("error","ASK · "+a.label,"질문 대상 캐릭터가 없습니다.");
