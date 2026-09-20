@@ -129,7 +129,11 @@ pageRoot.addEventListener("click",e=>{
     renderRoom();
   }
   else if(a==="ask-topic")startAsk(b.dataset.id);
-  else if(a==="inventory-item")useInventoryItem(b.dataset.id);
+  else if(a==="inventory-preview"){selectedInventoryItemId=b.dataset.id;renderInventoryPanel()}
+  else if(a==="give-item")useInventoryItem(b.dataset.id);
+  else if(a==="inventory-unknown"){inventoryUnknownOnly=!inventoryUnknownOnly;renderInventoryPanel()}
+  else if(a==="shuffle-talk")shuffleTalk();
+  else if(a==="interaction-after")finishInteractionChoice(b.dataset.mode);
   else if(a==="finish-interaction")finishInteractionReaction();
   else if(a==="back-home"){beginRoomExit("home")}
   else if(a==="random-thought")randomThought();
@@ -154,6 +158,13 @@ pageRoot.addEventListener("click",e=>{
 });
 pageRoot.addEventListener("input",e=>{
   const t=e.target;
+  if(t.dataset.inventoryControl==="query"){
+    inventoryQuery=t.value;
+    renderInventoryPanel();
+    const input=$('[data-inventory-control="query"]',pageRoot);
+    if(input){input.focus();try{input.setSelectionRange(input.value.length,input.value.length)}catch{}}
+    return;
+  }
   if(t.dataset.characterControl==="query"){
     characterQuery=t.value;
     renderCharacters();
@@ -172,6 +183,12 @@ pageRoot.addEventListener("input",e=>{
 });
 pageRoot.addEventListener("change",e=>{
   const t=e.target;
+  if(t.dataset.inventoryControl){
+    if(t.dataset.inventoryControl==="category")inventoryCategory=t.value;
+    if(t.dataset.inventoryControl==="preference")inventoryPreference=t.value;
+    renderInventoryPanel();
+    return;
+  }
   if(t.dataset.characterControl){
     if(t.dataset.characterControl==="realm")characterRealmFilter=t.value;
     renderCharacters();
