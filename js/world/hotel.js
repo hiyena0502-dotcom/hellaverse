@@ -401,7 +401,7 @@
     });
     if(completed.length){
       saveHotelSettings(settings);
-      saveState();
+      saveProgressState();
     }
     return completed;
   }
@@ -597,7 +597,7 @@
           if(!discovered){
             state.discoveredThoughtIds.push(thought.id);
             state.discoveredThoughtIds=[...new Set(state.discoveredThoughtIds)];
-            saveState();
+            saveProgressState();
           }
           showWorldThought(selected.actor,thought,discovered);
         }
