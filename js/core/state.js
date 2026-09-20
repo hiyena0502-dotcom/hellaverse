@@ -8,7 +8,7 @@ const STORAGE_META_KEY = "hellaverse-storage-meta-v1";
 const STORAGE_DB_NAME = "hellaverse-studio-db";
 const STORAGE_DB_VERSION = 1;
 const STORAGE_DB_STORE = "kv";
-const CURRENT_SCHEMA_VERSION = 3;
+const CURRENT_SCHEMA_VERSION = 4;
 const AUX_STORAGE_KEYS = [
   "hellaverse-world-settings-v1",
   "hellaverse-world-region-v1",
@@ -194,11 +194,16 @@ function normalizeEntry(entry={}){
 }
 
 function normalizeEvent(e={}){
+  const id=e.id||uid("event");
+  const rawContinuation=Array.isArray(e.continuationEventIds)
+    ? e.continuationEventIds
+    : e.nextEventId ? [e.nextEventId] : [];
+  const continuationEventIds=[...new Set(rawContinuation.map(String).filter(Boolean))].filter(x=>x!==id);
   return {
-    id:e.id||uid("event"),
+    id,
     name:e.name||"새 이벤트",
     characterId:e.characterId||"",
-    nextEventId:e.nextEventId||"",
+    continuationEventIds,
     emotionExitMode:e.emotionExitMode==="reset"?"reset":"keep",
     entries:Array.isArray(e.entries)?e.entries.map(normalizeEntry):[]
   };
@@ -598,7 +603,7 @@ function migrateLegacyBackup(raw){
         id:String(dialogue.id),
         name:String((dialogue.kind||"TALK")+" · "+(dialogue.title||dialogue.id)),
         characterId:String(dialogue.characterId),
-        nextEventId:"",
+        continuationEventIds:[],
         emotionExitMode:"keep",
         entries
       });
@@ -923,11 +928,28 @@ function migrateStateV2ToV3(source){
   s.schemaVersion=3;
   return s;
 }
+function migrateStateV3ToV4(source){
+  const s={...source};
+  if(Array.isArray(s.events)){
+    s.events=s.events.map(event=>{
+      const next=event&&typeof event==="object"?event:{};
+      const continuationEventIds=Array.isArray(next.continuationEventIds)
+        ? next.continuationEventIds
+        : next.nextEventId ? [next.nextEventId] : [];
+      const migrated={...next,continuationEventIds};
+      delete migrated.nextEventId;
+      return migrated;
+    });
+  }
+  s.schemaVersion=4;
+  return s;
+}
 function migrateStateSchema(raw){
   let s=raw&&typeof raw==="object"?raw:{};
   let version=Math.max(1,Number(s.schemaVersion)||1);
   if(version<2){s=migrateStateV1ToV2(s);version=2}
   if(version<3){s=migrateStateV2ToV3(s);version=3}
+  if(version<4){s=migrateStateV3ToV4(s);version=4}
   if(version>CURRENT_SCHEMA_VERSION){
     console.warn("Hellaverse data schema is newer than this build",{version,current:CURRENT_SCHEMA_VERSION});
   }
@@ -1036,7 +1058,9 @@ function compactEventForStorage(event={}){
     characterId:event.characterId,
     entries:(event.entries||[]).map(compactEntryForStorage)
   };
-  if(event.nextEventId)out.nextEventId=event.nextEventId;
+  if(Array.isArray(event.continuationEventIds)&&event.continuationEventIds.length){
+    out.continuationEventIds=[...event.continuationEventIds];
+  }
   if(event.emotionExitMode==="reset")out.emotionExitMode="reset";
   return out;
 }
