@@ -36,7 +36,7 @@ IndexedDB를 사용할 수 없는 환경에서는 localStorage fallback을 유�
 
 ### Schema migration
 
-현재 `CURRENT_SCHEMA_VERSION`은 3입니다. `normalizeState()` 전에 `migrateStateSchema()`가 v1 → v2 → v3 순서로 적용됩니다. 새 구조 변경은 기존 migration을 수정하지 말고 다음 버전 migration을 추가합니다.
+현재 `CURRENT_SCHEMA_VERSION`은 4입니다. `normalizeState()` 전에 `migrateStateSchema()`가 v1 → v2 → v3 → v4 순서로 적용됩니다. v4에서는 기존 EVENT의 `nextEventId`를 `continuationEventIds` 배열로 옮깁니다. 새 구조 변경은 기존 migration을 수정하지 말고 다음 버전 migration을 추가합니다.
 
 ### localStorage 유지 항목
 
@@ -67,6 +67,10 @@ IndexedDB를 사용할 수 없는 환경에서는 localStorage fallback을 유�
 - EDITOR: `editor-ui.js`, `editor-events.js`
 
 WORLD는 이미 별도 모듈로 활성화되어 있으므로 같은 기능을 app-shell에 중복 구현하지 않습니다.
+
+## 연속 EVENT 재생
+
+EVENT는 `continuationEventIds`에 후속 EVENT ID를 순서대로 보관합니다. `startDialogue()`는 시작 EVENT의 목록을 `playback.continuationQueue`로 복사하고, `finishEvent()`가 하나씩 소비합니다. 큐 안에서 이동할 때는 남은 큐를 유지하고, 선택지의 `targetEventId`로 분기하면 새 EVENT의 continuation 목록으로 교체합니다. 따라서 한 EVENT의 명시적 시리즈와 선택지 분기가 충돌하지 않습니다.
 
 ## IMPORT / 오류 격리
 
