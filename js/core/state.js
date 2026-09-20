@@ -195,17 +195,25 @@ function normalizeEntry(entry={}){
   return {...base,speaker:entry.speaker||"",speakerCharacterId:entry.speakerCharacterId||"",text:entry.text||""};
 }
 
+function eventRoleOf(event={}){
+  const explicit=String(event.eventRole||event.role||"").trim().toLowerCase();
+  if(explicit==="exit")return"exit";
+  return /^\s*EXIT(?:\s*[·:|\-]|\s|$)/i.test(String(event.name||""))?"exit":"talk";
+}
+function isExitEvent(event){return eventRoleOf(event)==="exit"}
 function normalizeEvent(e={}){
   const id=e.id||uid("event");
   const rawContinuation=Array.isArray(e.continuationEventIds)
     ? e.continuationEventIds
     : e.nextEventId ? [e.nextEventId] : [];
   const continuationEventIds=[...new Set(rawContinuation.map(String).filter(Boolean))].filter(x=>x!==id);
+  const eventRole=eventRoleOf(e);
   return {
     id,
     name:e.name||"새 이벤트",
     characterId:e.characterId||"",
-    menuVisible:e.menuVisible!==false,
+    eventRole,
+    menuVisible:eventRole==="exit"?false:e.menuVisible!==false,
     continuationEventIds,
     emotionExitMode:e.emotionExitMode==="reset"?"reset":"keep",
     entries:Array.isArray(e.entries)?e.entries.map(normalizeEntry):[]
@@ -602,10 +610,13 @@ function migrateLegacyBackup(raw){
       }
       asks.push(ask);
     }else{
+      const legacyKind=String(dialogue.kind||"TALK").toUpperCase();
       events.push({
         id:String(dialogue.id),
         name:String((dialogue.kind||"TALK")+" · "+(dialogue.title||dialogue.id)),
         characterId:String(dialogue.characterId),
+        eventRole:legacyKind==="EXIT"?"exit":"talk",
+        menuVisible:legacyKind!=="EXIT",
         continuationEventIds:[],
         emotionExitMode:"keep",
         entries
@@ -1099,6 +1110,7 @@ function compactEventForStorage(event={}){
   if(Array.isArray(event.continuationEventIds)&&event.continuationEventIds.length){
     out.continuationEventIds=[...event.continuationEventIds];
   }
+  if(event.eventRole==="exit")out.eventRole="exit";
   if(event.menuVisible===false)out.menuVisible=false;
   if(event.emotionExitMode==="reset")out.emotionExitMode="reset";
   return out;
