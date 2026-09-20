@@ -342,7 +342,7 @@ function beginInteractionReaction(kind,source,entries,label="",meta={}){
     name:(kind==="ask"?"ASK · ":"ITEM · ")+(label||"INTERACTION"),
     interactionMeta:{kind,characterId:ch.id,label:label||"",...meta},
     characterId:ch.id,
-    nextEventId:"",
+    continuationEventIds:[],
     emotionExitMode:"keep",
     entries:Array.isArray(entries)&&entries.length?entries:[normalizeEntry({
       type:"narration",
