@@ -310,7 +310,9 @@ async function resetPlayProgress(){
   state.newItemIds=[];
   state.itemHistory=[];
   state.discoveredGiftReactionKeys=[];
+  state.discoveredSpecialGiftKeys=[];
   state.giftInteractionCounts={};
+  state.discoveredTalkIds=[];
   state.askedAskIds=[];
   state.unlockedAskIds=[];
   state.interactionHistory=[];
