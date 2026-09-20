@@ -56,7 +56,7 @@ startForm.addEventListener("submit",event=>{
   event.preventDefault();
   enterGame();
 });
-$("#changeProfileButton").addEventListener("click",renderStart);
+$("#changeProfileButton").addEventListener("click",()=>currentPage==="room"?beginRoomExit("profile"):renderStart());
 $("#brandButton").addEventListener("click",()=>currentPage==="room"?beginRoomExit("home"):setPage("home"));
 $("#dataButton").addEventListener("click",showDataManager);
 $("#editorButton").addEventListener("click",openEditor);
