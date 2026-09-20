@@ -122,7 +122,7 @@ pageRoot.addEventListener("click",e=>{
   else if(a==="home-next"){const n=enabledCharacters().length;homeIndex=(homeIndex+1)%n;renderHome()}
   else if(a==="talk")startDialogue(selectedCharacterId);
   else if(a==="room-mode"){
-    if(activeInteractionReaction||interactionContext?.followupActive)return;
+    if(activeInteractionReaction||interactionContext?.followupActive||interactionCompleteMenu)return;
     roomMode=b.dataset.mode||"talk";
     roomToolsOpen=false;
     autoMode=false;clearAuto();
@@ -210,7 +210,7 @@ pageRoot.addEventListener("change",e=>{
   }
 });
 pageRoot.addEventListener("click",e=>{
-  if(currentPage!=="room"||roomMode!=="talk"||!prefs.stageClick)return;
+  if(currentPage!=="room"||roomMode!=="talk"||!prefs.stageClick||interactionCompleteMenu)return;
   if(e.target.closest("button,input,select,textarea"))return;
   const frame=playback?.frames?.at(-1),entry=frame?frameEntries(frame)[frame.index]:null;
   if(entry&&entry.type!=="choice")advanceDialogue(false);
@@ -300,6 +300,7 @@ editorBody.addEventListener("click",e=>{
   }
   if(a==="delete-event"){
     const id=selectedEditorEventId;editorDraft.events=editorDraft.events.filter(x=>x.id!==id);
+    editorDraft.discoveredTalkIds=(editorDraft.discoveredTalkIds||[]).filter(x=>x!==id);
     editorDraft.events.forEach(x=>{
       x.continuationEventIds=(x.continuationEventIds||[]).filter(nextId=>nextId!==id);
     });
@@ -454,6 +455,7 @@ editorBody.addEventListener("click",e=>{
     editorDraft.newItemIds=(editorDraft.newItemIds||[]).filter(x=>x!==id);
     editorDraft.itemHistory=(editorDraft.itemHistory||[]).filter(h=>h.itemId!==id);
     editorDraft.discoveredGiftReactionKeys=(editorDraft.discoveredGiftReactionKeys||[]).filter(k=>!k.startsWith(id+"::"));
+    editorDraft.discoveredSpecialGiftKeys=(editorDraft.discoveredSpecialGiftKeys||[]).filter(k=>!k.startsWith(id+"::"));
     editorDraft.giftInteractionCounts=Object.fromEntries(Object.entries(editorDraft.giftInteractionCounts||{}).filter(([k])=>!k.startsWith(id+"::")));
     editorDraft.interactionHistory=(editorDraft.interactionHistory||[]).filter(h=>h.itemId!==id);
     selectedItemId=editorDraft.items[0]?.id||"";
@@ -746,7 +748,7 @@ document.addEventListener("keydown",e=>{
     if(modalRoot.innerHTML){closeModal();return}
     if(!editorOverlay.hidden){closeEditor();return}
   }
-  if(currentPage==="room"&&roomMode==="talk"&&editorOverlay.hidden&&modalRoot.innerHTML===""){
+  if(currentPage==="room"&&roomMode==="talk"&&!interactionCompleteMenu&&editorOverlay.hidden&&modalRoot.innerHTML===""){
     if((e.key===" "||e.key==="Enter")&&!e.target.matches("input,textarea,select,button")){
       const frame=playback?.frames?.at(-1),entry=frame?frameEntries(frame)[frame.index]:null;
       if(entry&&entry.type!=="choice"){e.preventDefault();advanceDialogue(false)}
