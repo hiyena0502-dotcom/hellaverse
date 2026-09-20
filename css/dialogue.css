@@ -7,7 +7,10 @@
   overflow:hidden;
   padding-bottom:0
 }
+.site-shell.room-active>.game-hud{grid-row:1}
+.site-shell.room-active>.update-banner{grid-row:2}
 .site-shell.room-active>.page-root{
+  grid-row:3;
   height:100%;
   min-height:0;
   overflow:hidden
