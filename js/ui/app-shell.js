@@ -1,4 +1,53 @@
 "use strict";
+let pendingImportPreview=null;
+let uiRecoveryActive=false;
+
+function projectImportStats(source){
+  const s=normalizeState(source);
+  const issues=typeof validateDraft==="function"?validateDraft(s):[];
+  return{
+    state:s,
+    characters:s.characters.length,
+    events:s.events.length,
+    asks:s.asks.length,
+    items:s.items.length,
+    thoughts:s.thoughts.length,
+    variables:s.variables.length,
+    errors:issues.filter(x=>x.level==="error").length,
+    warnings:issues.filter(x=>x.level==="warning").length,
+    infos:issues.filter(x=>x.level==="info").length,
+    issues
+  };
+}
+function recoverUiFromError(error,source="UI"){
+  if(uiRecoveryActive)return;
+  uiRecoveryActive=true;
+  console.error("HELLAVERSE UI RECOVERY",source,error);
+  try{
+    if(typeof editorOverlay!=="undefined"&&!editorOverlay.hidden){
+      editorOverlay.hidden=true;
+      document.body.style.overflow="";
+      editorDraft=null;
+    }
+    if(typeof modalRoot!=="undefined")closeModal();
+    if(typeof gameShell!=="undefined"&&!gameShell.hidden){
+      currentPage="home";
+      renderNav();
+      renderPage();
+    }
+    openModal("RECOVERY",
+      '<div class="data-manager"><p class="muted">일부 화면에서 오류가 발생해 안전하게 빠져나왔습니다. 저장된 데이터는 그대로 유지됩니다.</p>'+
+      '<div class="status-card"><strong>'+esc(source)+'</strong><p>'+esc(error?.message||String(error||"알 수 없는 오류"))+'</p></div>'+
+      '<div class="data-actions"><button class="gold-button" type="button" data-close-modal>계속 사용</button></div></div>'
+    );
+  }catch(recoveryError){
+    console.error("HELLAVERSE UI RECOVERY FAILED",recoveryError);
+  }finally{
+    setTimeout(()=>{uiRecoveryActive=false},0);
+  }
+}
+window.addEventListener("error",event=>recoverUiFromError(event.error||new Error(event.message||"Script error"),"SCRIPT"));
+window.addEventListener("unhandledrejection",event=>recoverUiFromError(event.reason instanceof Error?event.reason:new Error(String(event.reason||"Promise error")),"PROMISE"));
 function showToast(text){
   clearTimeout(toastTimer);
   toastEl.textContent=text;toastEl.hidden=false;
@@ -11,6 +60,7 @@ function closeModal(){modalRoot.innerHTML=""}
 function backupDate(snapshot){return snapshot?.at?new Date(snapshot.at).toLocaleString("ko-KR"):"EMPTY"}
 function showDataManager(){
   const store=readBackupStore();
+  const ss=storageStatus();
   const slots=store.slots.map((snap,i)=>
     '<article class="save-slot"><div><small>SLOT '+(i+1)+'</small><strong>'+(snap?esc(snap.label):"EMPTY")+'</strong><span>'+esc(backupDate(snap))+'</span></div>'+
     '<div class="save-slot-actions"><button class="small-button" type="button" data-data-action="save-slot" data-slot="'+i+'">SAVE</button>'+
@@ -18,6 +68,7 @@ function showDataManager(){
   ).join("");
   openModal("DATA & SAVE",
     '<div class="data-manager"><p class="muted">플레이와 편집 데이터는 이 브라우저에 자동 저장됩니다. 중요한 변경 전에는 슬롯이나 JSON 백업도 함께 사용하세요.</p>'+
+    '<div class="data-storage-status"><span>STORAGE</span><strong>'+esc(ss.mode==="indexedDB"?"INDEXEDDB":ss.mode.toUpperCase())+'</strong><small>SCHEMA '+ss.schemaVersion+' · '+Math.round(ss.stateChars/1024).toLocaleString()+' KB</small></div>'+
     '<div class="save-slot-list">'+slots+'</div>'+
     '<section class="safety-snapshot"><div><small>AUTO SAFETY</small><strong>'+(store.safety?esc(store.safety.label):"아직 없음")+'</strong><span>'+esc(backupDate(store.safety))+'</span></div>'+
     '<button class="small-button" type="button" data-data-action="restore-safety" '+(!store.safety?"disabled":"")+'>RESTORE</button></section>'+
@@ -42,10 +93,10 @@ function saveBackupSlot(index){
     alert("브라우저 저장 공간이 부족해 저장 슬롯을 만들지 못했습니다. JSON EXPORT를 사용해 백업해 주세요.");
   }
 }
-function applyDataSnapshot(snapshot,label="백업",confirmMessage=""){
+function applyDataSnapshot(snapshot,label="백업",confirmMessage="",skipConfirm=false){
   if(!snapshot?.state)return;
   const message=confirmMessage||label+"을(를) 불러올까요? 현재 상태는 자동 안전 백업으로 보관됩니다.";
-  if(!confirm(message))return;
+  if(!skipConfirm&&!confirm(message))return;
 
   const previousState=clone(state);
   const previousPrefs=clone(prefs);
@@ -142,38 +193,87 @@ function exportData(){
     alert("브라우저 저장 공간 문제로 현재 상태를 먼저 정리하지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.");
   }
 }
+function showImportPreview(prepared){
+  pendingImportPreview=prepared;
+  const r=prepared.stats;
+  const canImport=r.errors===0;
+  const sourceLabel=prepared.legacy
+    ? "LEGACY · "+esc(String(prepared.sourceVersion||"UNKNOWN"))
+    : "SCHEMA · "+esc(String(prepared.sourceVersion||"UNKNOWN"));
+  const issuePreview=r.issues.slice(0,8).map(issue=>
+    '<div class="import-issue '+esc(issue.level)+'"><b>'+esc(issue.level.toUpperCase())+'</b><span>'+esc(issue.area)+'</span><p>'+esc(issue.text)+'</p></div>'
+  ).join("");
+  openModal("IMPORT PREVIEW",
+    '<div class="import-preview">'+
+      '<div class="import-preview-head"><div><small>'+sourceLabel+'</small><strong>'+esc(prepared.label)+'</strong></div>'+
+      '<div class="import-health '+(canImport?"ok":"bad")+'"><b>'+r.errors+'</b><span>ERROR</span><b>'+r.warnings+'</b><span>WARNING</span></div></div>'+
+      '<div class="import-count-grid">'+
+        '<div><b>'+r.characters+'</b><span>CHARACTER</span></div>'+
+        '<div><b>'+r.events+'</b><span>EVENT</span></div>'+
+        '<div><b>'+r.asks+'</b><span>ASK</span></div>'+
+        '<div><b>'+r.items+'</b><span>ITEM</span></div>'+
+        '<div><b>'+r.thoughts+'</b><span>THOUGHT</span></div>'+
+        '<div><b>'+r.variables+'</b><span>VARIABLE</span></div>'+
+      '</div>'+
+      (r.issues.length?'<div class="import-issue-list">'+issuePreview+(r.issues.length>8?'<p class="muted">외 '+(r.issues.length-8)+'개 검사 항목</p>':'')+'</div>':'<div class="validation-clean"><strong>구조 검사 통과</strong><p>삭제된 참조나 비어 있는 필수 연결을 찾지 못했습니다.</p></div>')+
+      (!canImport?'<p class="import-block-note">ERROR가 있는 백업은 현재 데이터에 바로 적용하지 않습니다. 원본 파일은 변경되지 않았습니다.</p>':'')+
+      '<div class="data-actions"><button class="ghost-button" type="button" data-close-modal>취소</button>'+
+      '<button class="gold-button" type="button" data-data-action="confirm-import" '+(!canImport?"disabled":"")+'>검사 통과본 IMPORT</button></div>'+
+    '</div>'
+  );
+}
+function confirmPendingImport(){
+  const prepared=pendingImportPreview;
+  if(!prepared||prepared.stats.errors)return;
+  pendingImportPreview=null;
+  closeModal();
+  applyDataSnapshot(
+    prepared.snapshot,
+    prepared.label,
+    "",
+    true
+  );
+}
+function prepareImportPreview(raw){
+  const legacy=migrateLegacyBackup(raw);
+  if(legacy){
+    const snapshot={
+      version:3,
+      schemaVersion:CURRENT_SCHEMA_VERSION,
+      label:"MIGRATED LEGACY BACKUP",
+      at:Date.now(),
+      state:legacy.state,
+      prefs:{}
+    };
+    return{
+      snapshot,
+      stats:projectImportStats(snapshot.state),
+      legacy:true,
+      sourceVersion:raw?.version||raw?.backupFormat||"legacy",
+      label:"구형 백업 자동 변환본"
+    };
+  }
+  const snapshot=raw?.state
+    ? {...raw,state:normalizeState(raw.state)}
+    : {version:3,schemaVersion:CURRENT_SCHEMA_VERSION,label:"IMPORTED",at:Date.now(),state:normalizeState(raw),prefs:{}};
+  return{
+    snapshot,
+    stats:projectImportStats(snapshot.state),
+    legacy:false,
+    sourceVersion:raw?.schemaVersion||raw?.state?.schemaVersion||raw?.version||1,
+    label:"가져온 JSON"
+  };
+}
 function importDataFile(file){
   if(!file)return;
   const reader=new FileReader();
   reader.onload=()=>{
     try{
       const raw=JSON.parse(String(reader.result||"{}"));
-      const legacy=migrateLegacyBackup(raw);
-      if(legacy){
-        const r=legacy.report;
-        const snapshot={
-          version:2,
-          label:"MIGRATED LEGACY BACKUP",
-          at:Date.now(),
-          state:legacy.state,
-          prefs:{}
-        };
-        const message=
-          "구형 Hellaverse 백업을 새 형식으로 변환해 불러옵니다.\n\n"+
-          "캐릭터 "+r.characters+"명\n"+
-          "대화 EVENT "+r.dialogueEvents+"개\n"+
-          "ASK "+r.asks+"개\n"+
-          "아이템 "+r.items+"개\n"+
-          "THOUGHT "+r.thoughts+"개\n\n"+
-          "기존 브라우저 상태는 자동 안전 백업으로 보관됩니다. 계속할까요?";
-        applyDataSnapshot(snapshot,"구형 백업 변환본",message);
-        return;
-      }
-      const snapshot=raw?.state?raw:{version:2,label:"IMPORTED",at:Date.now(),state:raw,prefs:{}};
-      applyDataSnapshot(snapshot,"가져온 JSON");
+      showImportPreview(prepareImportPreview(raw));
     }catch(error){
       console.error("DATA IMPORT FAILED",error);
-      alert("백업 JSON을 불러오는 중 오류가 발생했습니다. 파일은 변경되지 않았습니다.");
+      alert("백업 JSON을 읽거나 검사하는 중 오류가 발생했습니다. 현재 데이터는 변경되지 않았습니다.");
     }
   };
   reader.readAsText(file);
