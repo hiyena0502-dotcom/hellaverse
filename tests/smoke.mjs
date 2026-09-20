@@ -363,7 +363,7 @@ const recentTalkCheck=vm.runInContext(`
     ],
     playState:{recentTalks:{"char-r":["r1","r2","r3"]}}
   });
-  session=createSession();
+  session={variables:{},affection:{},emotions:{},log:[],recentTalks:clone(state.playState.recentTalks||{})};
   const picked=randomTalkForCharacter("char-r");
   rememberRecentTalk("char-r",picked.id);
   return {picked:picked.id,recent:[...session.recentTalks["char-r"]],saved:[...state.playState.recentTalks["char-r"]]};
