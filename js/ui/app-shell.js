@@ -330,6 +330,7 @@ async function resetPlayProgress(){
 }
 
 function renderStart(){
+  if(typeof gameShell!=="undefined")gameShell.classList.remove("room-active");
   playerNameInput.value=state.profile.name||"";
   pendingOrigin=validOrigin(state.profile.origin)?state.profile.origin:(validOrigin(pendingOrigin)?pendingOrigin:"");
   $$("[data-origin]",originChoice).forEach(b=>b.classList.toggle("active",b.dataset.origin===pendingOrigin));
