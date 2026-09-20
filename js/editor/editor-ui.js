@@ -298,6 +298,7 @@ function eventProperties(ev){
 
   return '<label class="field"><span>이벤트 이름</span><input data-bind="event-name" value="'+esc(ev.name)+'"></label>'+
     '<label class="field" style="margin-top:9px"><span>캐릭터</span><select data-bind="event-character">'+charOptions(ev.characterId,"캐릭터 선택")+'</select></label>'+
+    '<label class="checkline" style="margin-top:9px"><input type="checkbox" data-bind="event-menu-visible" '+(ev.menuVisible!==false?"checked":"")+'> TALK 목록에 표시</label>'+
     '<label class="field" style="margin-top:9px"><span>종료 시 감정</span><select data-bind="event-emotion-exit"><option value="keep" '+(ev.emotionExitMode==="keep"?"selected":"")+'>현재 감정 유지</option><option value="reset" '+(ev.emotionExitMode==="reset"?"selected":"")+'>기본 감정으로 초기화</option></select></label>'+
     '<section class="event-continuation-editor"><div class="continuation-head"><div><strong>CONTINUATION</strong><small>이 EVENT가 끝난 뒤 위에서부터 자동 재생</small></div><b>'+chain.length+'</b></div>'+
       '<div class="continuation-list">'+(chainRows||'<div class="editor-note">이어지는 대화가 없습니다. 아래에서 EVENT를 검색해 추가하세요.</div>')+'</div>'+
@@ -327,7 +328,7 @@ function renderInspector(){
   if(!ctx)return'<div class="inspector-empty">FLOW에서 항목을 선택하세요.</div>';
   const e=ctx.entry;
   return '<div class="inspector-head"><div><p class="label">'+esc(e.type.toUpperCase())+'</p><h3>'+esc(e.type==="choice"?"선택지 편집":e.type==="narration"?"지문 편집":"대사 편집")+'</h3></div><div class="icon-actions"><button class="icon-button" data-action="move-entry" data-dir="-1" '+(ctx.index===0?"disabled":"")+'>↑</button><button class="icon-button" data-action="move-entry" data-dir="1" '+(ctx.index===ctx.list.length-1?"disabled":"")+'>↓</button><button class="icon-button" data-action="duplicate-entry">⧉</button><button class="icon-button" data-action="delete-entry">×</button></div></div><div class="inspector-content">'+
-  (e.type==="dialogue"?'<label class="field"><span>화자</span><input data-entry-field="speaker" value="'+esc(e.speaker)+'"></label><label class="field"><span>대사</span><textarea data-entry-field="text">'+esc(e.text)+'</textarea></label>':
+  (e.type==="dialogue"?'<label class="field"><span>화자 이미지</span><select data-entry-field="speakerCharacterId">'+charOptions(e.speakerCharacterId,"이벤트 캐릭터 / 이미지 유지")+'</select></label><label class="field"><span>표시할 화자 이름</span><input data-entry-field="speaker" value="'+esc(e.speaker)+'" placeholder="비우면 선택한 캐릭터 이름"></label><label class="field"><span>대사</span><textarea data-entry-field="text">'+esc(e.text)+'</textarea></label>':
    e.type==="narration"?'<label class="field"><span>지문</span><textarea data-entry-field="text">'+esc(e.text)+'</textarea></label>':
    renderChoiceEditor(e))+
   renderAdvanced(e,"entry")+'</div>';
@@ -489,7 +490,7 @@ function renderInteractionFlow(entries,scope,ownerId,itemId="",depth=0,flowKey="
   const list=entries.length?entries.map((entry,index)=>{
     let body="";
     if(entry.type==="dialogue"){
-      body='<div class="mini-flow-fields"><input '+attrs+' data-mini-entry-id="'+esc(entry.id)+'" data-mini-entry-field="speaker" value="'+esc(entry.speaker||"")+'" placeholder="화자 (비우면 현재 캐릭터)"><textarea '+attrs+' data-mini-entry-id="'+esc(entry.id)+'" data-mini-entry-field="text" placeholder="대사">'+esc(entry.text||"")+'</textarea></div>'+
+      body='<div class="mini-flow-fields"><select '+attrs+' data-mini-entry-id="'+esc(entry.id)+'" data-mini-entry-field="speakerCharacterId">'+charOptions(entry.speakerCharacterId,"이미지 유지")+'</select><input '+attrs+' data-mini-entry-id="'+esc(entry.id)+'" data-mini-entry-field="speaker" value="'+esc(entry.speaker||"")+'" placeholder="화자 이름"><textarea '+attrs+' data-mini-entry-id="'+esc(entry.id)+'" data-mini-entry-field="text" placeholder="대사">'+esc(entry.text||"")+'</textarea></div>'+
         renderMiniAdvanced(entry,scope,ownerId,itemId,flowKey,"entry",entry.id);
     }else if(entry.type==="narration"){
       body='<div class="mini-flow-fields"><textarea '+attrs+' data-mini-entry-id="'+esc(entry.id)+'" data-mini-entry-field="text" placeholder="지문">'+esc(entry.text||"")+'</textarea></div>'+
@@ -760,6 +761,7 @@ function cleanCharacterReference(id){
   walkProjectOwners(editorDraft,owner=>{
     if(owner.affectionCondition?.characterId===id)owner.affectionCondition=null;
     if(owner.emotionCondition?.characterId===id)owner.emotionCondition=null;
+    if(owner.type==="dialogue"&&owner.speakerCharacterId===id)owner.speakerCharacterId="";
     owner.affectionEffects=(owner.affectionEffects||[]).filter(f=>f.characterId!==id);
     owner.emotionEffects=(owner.emotionEffects||[]).filter(f=>f.characterId!==id);
   });
@@ -832,6 +834,7 @@ function validateDraft(source=editorDraft){
     for(const fx of owner.affectionEffects||[])if(fx.characterId&&!charIds.has(fx.characterId))push("error",area,"삭제된 캐릭터를 호감도 효과로 참조합니다.");
     for(const fx of owner.emotionEffects||[])if(fx.characterId&&!charIds.has(fx.characterId))push("error",area,"삭제된 캐릭터를 감정 효과로 참조합니다.");
     if(type==="entry"){
+      if(owner.type==="dialogue"&&owner.speakerCharacterId&&!charIds.has(owner.speakerCharacterId))push("error",area,"대사 화자 이미지 캐릭터가 삭제되었습니다.");
       if(owner.type==="choice"&&!owner.options.length)push("warning",area,"선택지 항목이 0개인 CHOICE가 있습니다.");
       if(owner.type==="dialogue"&&!String(owner.text||"").trim())push("info",area,"빈 대사가 있습니다.");
       if(owner.type==="narration"&&!String(owner.text||"").trim())push("info",area,"빈 지문이 있습니다.");

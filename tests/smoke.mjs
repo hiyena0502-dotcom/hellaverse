@@ -6,6 +6,7 @@ const root=new URL("../",import.meta.url);
 const read=path=>fs.readFileSync(new URL(path,root),"utf8");
 
 const jsFiles=[
+  "data/story-packs.js",
   "js/core/state.js",
   "js/core/game-state.js",
   "js/ui/app-shell.js",
@@ -37,6 +38,8 @@ const stateCode=read("js/core/state.js");
 const appShell=read("js/ui/app-shell.js");
 const editorUi=read("js/editor/editor-ui.js");
 const dialogueCode=read("js/game/dialogue.js");
+const gameStateCode=read("js/core/game-state.js");
+const storyPackCode=read("data/story-packs.js");
 
 assert.ok(!editorEvents.includes('$(".nav-button").forEach'),"nav must use querySelectorAll/$$, not single $ helper");
 assert.match(editorEvents,/document\.querySelectorAll\("\.nav-button"\)\.forEach/,"nav click delegation missing");
@@ -56,6 +59,10 @@ assert.match(editorUi,/data-action="add-continuation"/,"continuation add action 
 assert.match(editorUi,/data-action="move-continuation"/,"continuation move action missing");
 assert.match(editorEvents,/a==="remove-continuation"/,"continuation remove action missing");
 assert.match(stateCode,/function migrateStateV3ToV4\(/,"schema v4 continuation migration missing");
+assert.match(stateCode,/function installStoryPacks\(/,"one-time story pack installer missing");
+assert.match(gameStateCode,/e\.menuVisible!==false/,"hidden continuation events must stay out of TALK menus");
+assert.match(dialogueCode,/function updateRoomSpeakerVisual\(/,"per-line speaker art switching missing");
+assert.match(editorUi,/data-entry-field="speakerCharacterId"/,"speaker image selector missing from event editor");
 assert.match(editorEvents,/data-action="validation-jump"/,"validation issue navigation missing");
 assert.match(read("js/world/regions.js"),/currentPage!=="world"\|\|activeRegion!==regionId/,"WORLD timer must stop outside WORLD");
 
@@ -94,7 +101,43 @@ const context={
 };
 context.window.window=context.window;
 vm.createContext(context);
+vm.runInContext(storyPackCode,context,{filename:"data/story-packs.js"});
 vm.runInContext(stateCode,context,{filename:"js/core/state.js"});
+
+const storyPackInstall=vm.runInContext(`
+(()=>{
+  const required=["lucifer-morningstar","charlie-morningstar","vaggie","alastor","angel-dust","husk","niffty","baxter"];
+  const source=normalizeState({
+    schemaVersion:4,
+    characters:required.map(id=>({id,name:id,origin:"hellborn",image:"https://example.test/"+id+".png"}))
+  });
+  const first=installStoryPacks(source);
+  const compact=compactStateForStorage(first.state);
+  const second=installStoryPacks(first.state);
+  const opening=first.state.events.find(event=>event.id==="hotel-welcome-01-emergency-meeting");
+  const hidden=first.state.events.find(event=>event.id==="hotel-welcome-02-duck-choir");
+  const luciferLine=hidden.entries.find(entry=>entry.speakerCharacterId==="lucifer-morningstar");
+  const packedLine=compact.events.find(event=>event.id===hidden.id).entries.find(entry=>entry.id===luciferLine.id);
+  return{
+    changed:first.changed,
+    eventCount:first.state.events.length,
+    variableCount:first.state.variables.length,
+    packVersion:first.state.storyPackVersions["hotel-ensemble-comedy"],
+    openingVisible:opening.menuVisible,
+    hiddenVisible:hidden.menuVisible,
+    speakerCharacterId:packedLine.speakerCharacterId,
+    secondChanged:second.changed
+  };
+})()
+`,context);
+assert.equal(storyPackInstall.changed,true,"eligible project must receive story pack");
+assert.equal(storyPackInstall.eventCount,11,"story pack event count changed");
+assert.equal(storyPackInstall.variableCount,7,"story pack variable count changed");
+assert.equal(storyPackInstall.packVersion,1,"story pack version marker missing");
+assert.equal(storyPackInstall.openingVisible,true,"opening event must be visible");
+assert.equal(storyPackInstall.hiddenVisible,false,"continuation event must be hidden");
+assert.equal(storyPackInstall.speakerCharacterId,"lucifer-morningstar","speaker image id must survive compaction");
+assert.equal(storyPackInstall.secondChanged,false,"story pack must install only once");
 
 const result=vm.runInContext(`
 (()=>{

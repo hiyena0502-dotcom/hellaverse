@@ -41,6 +41,13 @@
   filter:drop-shadow(0 34px 46px rgba(0,0,0,.55))
 }
 .room-art .silhouette{opacity:.7}
+.room-art.speaker-shift img,.room-art.speaker-shift .silhouette{
+  animation:room-speaker-shift .28s ease-out
+}
+@keyframes room-speaker-shift{
+  from{opacity:.2;transform:translateY(10px) scale(.985)}
+  to{opacity:.82;transform:none}
+}
 .dialogue-box,.choice-box,.room-empty{
   position:relative;
   z-index:2;

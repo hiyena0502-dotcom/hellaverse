@@ -126,7 +126,7 @@ async function applyDataSnapshot(snapshot,label="백업",confirmMessage="",skipC
   }
 
   try{
-    state=normalizeState(snapshot.state);
+    state=installStoryPacks(normalizeState(snapshot.state)).state;
     prefs={
       textSpeed:clamp(snapshot.prefs?.textSpeed,0,80,24),
       autoDelay:clamp(snapshot.prefs?.autoDelay,250,3000,900),
@@ -155,7 +155,7 @@ async function applyDataSnapshot(snapshot,label="백업",confirmMessage="",skipC
     showToast(label+"을(를) 불러왔습니다.");
   }catch(error){
     console.error("APPLY DATA SNAPSHOT FAILED",error);
-    state=normalizeState(previousState);
+    state=installStoryPacks(normalizeState(previousState)).state;
     prefs=previousPrefs;
     session=createSession();
     playback=null;

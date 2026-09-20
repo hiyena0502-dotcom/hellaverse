@@ -589,6 +589,7 @@ function handleEditorField(e){
   if(t.dataset.bind&&ev){
     if(t.dataset.bind==="event-name"){ev.name=t.value;return}
     if(t.dataset.bind==="event-character"){ev.characterId=t.value;return}
+    if(t.dataset.bind==="event-menu-visible"){ev.menuVisible=t.checked;return}
     if(t.dataset.bind==="event-emotion-exit"){ev.emotionExitMode=t.value==="reset"?"reset":"keep";return}
   }
   const vr=t.closest("[data-var-id]");

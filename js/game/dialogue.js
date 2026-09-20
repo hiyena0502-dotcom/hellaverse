@@ -136,22 +136,50 @@ function startTyping(text,token){
     if(typing.index>=typing.full.length){clearTyping();typing.done=true;scheduleAuto()}
   },prefs.textSpeed);
 }
+function roomCharacterArt(character){
+  if(!character)return'<div class="silhouette">??</div>';
+  return character.image
+    ? '<img src="'+esc(character.image)+'" alt="'+esc(character.name)+'" />'
+    : '<div class="silhouette">'+esc(character.name.slice(0,2).toUpperCase())+'</div>';
+}
+function entrySpeakerCharacter(entry){
+  if(entry?.type!=="dialogue")return null;
+  if(entry.speakerCharacterId)return getCharacter(entry.speakerCharacterId);
+  const speaker=String(entry.speaker||"").trim().toLowerCase();
+  if(!speaker)return getCharacter(playback?.characterId||selectedCharacterId);
+  return state.characters.find(character=>character.name.trim().toLowerCase()===speaker)||null;
+}
+function updateRoomSpeakerVisual(entry){
+  if(entry?.type!=="dialogue")return null;
+  const character=entrySpeakerCharacter(entry);
+  if(!character)return null;
+  const art=$("#roomArt"),name=$("#roomSpeakerName");
+  if(name)name.textContent=character.name;
+  if(!art||art.dataset.characterId===character.id)return character;
+  art.dataset.characterId=character.id;
+  art.innerHTML=roomCharacterArt(character);
+  art.classList.remove("speaker-shift");
+  void art.offsetWidth;
+  art.classList.add("speaker-shift");
+  return character;
+}
 function renderRoom(){
   const ch=getCharacter(selectedCharacterId);
   if(!ch){setPage("home");return}
   const ev=currentEvent();
-  const art=ch.image?'<img src="'+esc(ch.image)+'" alt="'+esc(ch.name)+'" />':'<div class="silhouette">'+esc(ch.name.slice(0,2).toUpperCase())+'</div>';
+  const art=roomCharacterArt(ch);
   const eventOptions=eventsForCharacter(ch.id);
   const interactionLocked=Boolean(activeInteractionReaction||interactionContext?.followupActive);
+  const eventPickerVisible=!ev||ev.menuVisible!==false;
 
   pageRoot.innerHTML=
-    '<section class="room-page"><div class="room-hud"><button class="text-link" type="button" data-action="back-home">← HOME</button><strong>'+esc(ch.name)+'</strong>'+
+    '<section class="room-page"><div class="room-hud"><button class="text-link" type="button" data-action="back-home">← HOME</button><strong id="roomSpeakerName">'+esc(ch.name)+'</strong>'+
     '<div class="room-mode-bar"><button class="room-mode-button '+(roomMode==="talk"?"active":"")+'" type="button" data-action="room-mode" data-mode="talk" '+(interactionLocked?"disabled":"")+'>TALK</button>'+
     '<button class="room-mode-button '+(roomMode==="ask"?"active":"")+'" type="button" data-action="room-mode" data-mode="ask" '+(interactionLocked?"disabled":"")+'>ASK</button>'+
     '<button class="room-mode-button '+(roomMode==="inventory"?"active":"")+'" type="button" data-action="room-mode" data-mode="inventory" '+(interactionLocked?"disabled":"")+'>INVENTORY</button></div>'+
-    (roomMode==="talk"&&eventOptions.length&&!interactionLocked?'<select id="roomEventSelect" style="width:auto;min-width:190px">'+eventOptions.map(e=>'<option value="'+esc(e.id)+'" '+(ev?.id===e.id?"selected":"")+'>'+esc(e.name)+'</option>').join("")+'</select>':'')+
+    (roomMode==="talk"&&eventOptions.length&&eventPickerVisible&&!interactionLocked?'<select id="roomEventSelect" style="width:auto;min-width:190px">'+eventOptions.map(e=>'<option value="'+esc(e.id)+'" '+(ev?.id===e.id?"selected":"")+'>'+esc(e.name)+'</option>').join("")+'</select>':'')+
     '<button class="room-more-button" type="button" data-action="toggle-room-tools" aria-label="추가 메뉴">•••</button><div class="room-actions '+(roomToolsOpen?"open":"")+'"><button class="text-link" type="button" data-action="show-log">LOG</button><button class="text-link" type="button" data-action="show-history">HISTORY</button><button class="text-link" type="button" data-action="show-affection">AFFECTION</button><button class="text-link" type="button" data-action="show-emotion">EMOTION</button><button class="text-link mobile-set" type="button" data-action="open-play-settings">SET</button></div></div>'+
-    '<div class="room-stage"><div class="room-art">'+art+'</div><div id="roomDynamic"></div>'+
+    '<div class="room-stage"><div id="roomArt" class="room-art" data-character-id="'+esc(ch.id)+'">'+art+'</div><div id="roomDynamic"></div>'+
     (roomMode==="talk"&&!activeInteractionReaction?'<div class="room-control-bar"><button type="button" data-action="toggle-auto" class="'+(autoMode?"active":"")+'">AUTO</button><button type="button" data-action="open-play-settings">SET</button></div>':'')+
     '</div></section>';
 
@@ -181,8 +209,9 @@ function renderRoomBeat(){
     dynamic.innerHTML='<div class="choice-box"><p class="page-kicker">CHOICE</p><h2>'+esc(entry.prompt||"무엇을 선택할까?")+'</h2><div class="choice-list">'+opts.map(o=>'<button class="choice-option" type="button" data-action="choose-option" data-id="'+esc(o.id)+'">'+esc(o.label||"이름 없는 선택지")+'</button>').join("")+'</div></div>';
     return;
   }
+  const speakerCharacter=updateRoomSpeakerVisual(entry);
   const token=playback.eventId+"|"+playback.frames.map(f=>f.sourceId+":"+f.index).join("|")+"|"+entry.id;
-  const speaker=entry.type==="narration"?"":(entry.speaker||chName(playback.characterId));
+  const speaker=entry.type==="narration"?"":(entry.speaker||speakerCharacter?.name||chName(playback.characterId));
   const series=continuationStatusLabel();
   dynamic.innerHTML='<div class="dialogue-box"><p class="speaker">'+esc(entry.type==="narration"?"NARRATION":speaker)+'</p><p id="dialogueText" class="dialogue-text"></p><div class="dialogue-meta"><span>'+esc(frame.label)+' · '+(frame.index+1)+' / '+frameEntries(frame).length+(series?' · '+esc(series):'')+'</span><button type="button" data-action="advance-dialogue">NEXT</button></div></div>';
   if(typing.token!==token){

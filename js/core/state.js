@@ -49,11 +49,13 @@ const originRealm = id => ORIGINS.find(x=>x[0]===id)?.[2] || "hell";
 const validOrigin = id => ORIGINS.some(x=>x[0]===id);
 const normalizeOrigin = id => id==="heaven" ? "angel" : validOrigin(id) ? id : "hellborn";
 const DEFAULT_CONTENT = window.HV_DEFAULT_CONTENT || {};
+const STORY_PACKS = Array.isArray(window.HV_STORY_PACKS) ? window.HV_STORY_PACKS : [];
 const defaultContentList = key => clone(Array.isArray(DEFAULT_CONTENT[key]) ? DEFAULT_CONTENT[key] : []);
 
 function defaultState(){
   return {
     schemaVersion:CURRENT_SCHEMA_VERSION,
+    storyPackVersions:{},
     profile:{name:"",origin:""},
     favoriteCharacterIds:[],
     playState:{variables:{},affection:{},emotions:{},log:[]},
@@ -190,7 +192,7 @@ function normalizeEntry(entry={}){
       })):[]
     };
   }
-  return {...base,speaker:entry.speaker||"",text:entry.text||""};
+  return {...base,speaker:entry.speaker||"",speakerCharacterId:entry.speakerCharacterId||"",text:entry.text||""};
 }
 
 function normalizeEvent(e={}){
@@ -203,6 +205,7 @@ function normalizeEvent(e={}){
     id,
     name:e.name||"새 이벤트",
     characterId:e.characterId||"",
+    menuVisible:e.menuVisible!==false,
     continuationEventIds,
     emotionExitMode:e.emotionExitMode==="reset"?"reset":"keep",
     entries:Array.isArray(e.entries)?e.entries.map(normalizeEntry):[]
@@ -972,6 +975,9 @@ function normalizeState(raw){
   const rawOrigin=s.profile?.origin;
   return {
     schemaVersion:CURRENT_SCHEMA_VERSION,
+    storyPackVersions:s.storyPackVersions&&typeof s.storyPackVersions==="object"
+      ? Object.fromEntries(Object.entries(s.storyPackVersions).map(([id,version])=>[String(id),Math.max(0,Number(version)||0)]))
+      : {},
     profile:{
       name:String(s.profile?.name||""),
       origin:rawOrigin ? normalizeOrigin(rawOrigin) : ""
@@ -1022,6 +1028,37 @@ function normalizeState(raw){
     discoveredThoughtIds:Array.isArray(s.discoveredThoughtIds)?[...new Set(s.discoveredThoughtIds)]:[]
   };
 }
+function installStoryPacks(source){
+  const installed=[];
+  let changed=false;
+  source.storyPackVersions ||= {};
+  STORY_PACKS.forEach(pack=>{
+    if(!pack?.id)return;
+    const version=Math.max(1,Number(pack.version)||1);
+    if((Number(source.storyPackVersions[pack.id])||0)>=version)return;
+    const characterIds=new Set((source.characters||[]).map(character=>character.id));
+    const required=Array.isArray(pack.requiredCharacterIds)?pack.requiredCharacterIds:[];
+    if(required.some(id=>!characterIds.has(id)))return;
+    const variableIds=new Set((source.variables||[]).map(variable=>variable.id));
+    (pack.variables||[]).forEach(variable=>{
+      if(variableIds.has(variable.id))return;
+      source.variables.push(normalizeVariable(variable));
+      variableIds.add(variable.id);
+      changed=true;
+    });
+    const eventIds=new Set((source.events||[]).map(event=>event.id));
+    (pack.events||[]).forEach(event=>{
+      if(eventIds.has(event.id))return;
+      source.events.push(normalizeEvent(event));
+      eventIds.add(event.id);
+      changed=true;
+    });
+    source.storyPackVersions[pack.id]=version;
+    installed.push(pack.id);
+    changed=true;
+  });
+  return{state:source,changed,installed};
+}
 function compactOwnerForStorage(source,target){
   for(const key of ["condition","itemCondition","askCondition","affectionCondition","emotionCondition"]){
     if(source?.[key])target[key]=source[key];
@@ -1035,6 +1072,7 @@ function compactEntryForStorage(entry={}){
   const out={id:entry.id,type:entry.type};
   if(entry.type==="dialogue"){
     if(entry.speaker)out.speaker=entry.speaker;
+    if(entry.speakerCharacterId)out.speakerCharacterId=entry.speakerCharacterId;
     if(entry.text)out.text=entry.text;
   }else if(entry.type==="narration"){
     if(entry.text)out.text=entry.text;
@@ -1061,6 +1099,7 @@ function compactEventForStorage(event={}){
   if(Array.isArray(event.continuationEventIds)&&event.continuationEventIds.length){
     out.continuationEventIds=[...event.continuationEventIds];
   }
+  if(event.menuVisible===false)out.menuVisible=false;
   if(event.emotionExitMode==="reset")out.emotionExitMode="reset";
   return out;
 }
@@ -1241,7 +1280,7 @@ async function flushStorageWrites(){
 }
 function readState(){
   const legacy=legacyLocalState();
-  return normalizeState(legacy||null);
+  return installStoryPacks(normalizeState(legacy||null)).state;
 }
 function syncPlayStateFromSession(){
   if(typeof session==="undefined"||!session)return;
@@ -1479,12 +1518,13 @@ async function bootstrapStorage(){
     ]);
 
     const chosenState=dbState||legacyState||defaultState();
-    state=normalizeState(mergeProgressState(chosenState,dbProgress));
+    const storyInstall=installStoryPacks(normalizeState(mergeProgressState(chosenState,dbProgress)));
+    state=storyInstall.state;
     backupStoreCache=normalizeBackupStore(dbBackups||legacyBackups);
     editorSnapshotCache=dbEditor||legacyEditor||null;
     storageMode="indexedDB";
 
-    if(!dbState)await idbSet("state",compactStateForStorage(state));
+    if(!dbState||storyInstall.changed)await idbSet("state",compactStateForStorage(state));
     if(!dbProgress)await idbSet("progress",progressStateFrom(state));
     if(!dbBackups&&legacyBackups)await idbSet("backups",backupStoreCache);
     if(!dbEditor&&legacyEditor)await idbSet("editorSnapshot",editorSnapshotCache);
@@ -1502,9 +1542,13 @@ async function bootstrapStorage(){
   }catch(error){
     console.warn("IndexedDB unavailable; using localStorage fallback",error);
     storageMode="localStorage-fallback";
-    state=normalizeState(legacyState||defaultState());
+    const storyInstall=installStoryPacks(normalizeState(legacyState||defaultState()));
+    state=storyInstall.state;
     backupStoreCache=normalizeBackupStore(legacyBackups);
     editorSnapshotCache=legacyEditor||null;
+    if(storyInstall.changed){
+      try{localStorage.setItem(STATE_KEY,JSON.stringify(compactStateForStorage(state)))}catch{}
+    }
   }
 
   pendingOrigin=state.profile.origin||"";

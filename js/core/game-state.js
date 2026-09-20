@@ -41,7 +41,7 @@ function getEvent(id, source=state){
   if(activeInteractionEvent&&activeInteractionEvent.id===id)return activeInteractionEvent;
   return source.events.find(e=>e.id===id)||null;
 }
-function eventsForCharacter(charId, source=state){return source.events.filter(e=>e.characterId===charId)}
+function eventsForCharacter(charId, source=state){return source.events.filter(e=>e.characterId===charId&&e.menuVisible!==false)}
 function variableById(id,source=state){return source.variables.find(v=>v.id===id)||null}
 function itemById(id,source=state){return source.items.find(i=>i.id===id)||null}
 function itemCount(id,source=state){return Math.max(0,Number(source.inventoryCounts?.[id])||0)}
@@ -433,7 +433,7 @@ function makeEntry(type){
   const common={id:uid("entry"),condition:null,effects:[],itemCondition:null,askCondition:null,itemEffects:[],affectionCondition:null,affectionEffects:[],emotionCondition:null,emotionEffects:[]};
   if(type==="narration")return{...common,type,text:""};
   if(type==="choice")return{...common,type,prompt:"",options:[makeOption("선택지 1"),makeOption("선택지 2")]};
-  return{...common,type:"dialogue",speaker:"",text:""};
+  return{...common,type:"dialogue",speaker:"",speakerCharacterId:"",text:""};
 }
 function makeOption(label){
   return{id:uid("option"),label,entries:[],condition:null,effects:[],itemCondition:null,askCondition:null,itemEffects:[],affectionCondition:null,affectionEffects:[],emotionCondition:null,emotionEffects:[],exitMode:"continue",targetEventId:""};
