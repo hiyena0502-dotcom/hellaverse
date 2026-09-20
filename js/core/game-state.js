@@ -108,7 +108,7 @@ function acquireItem(id,count=1,sourceType="BASIC",source=state,{notify=true}={}
     });
     source.itemHistory=source.itemHistory.slice(-500);
     if(source===state){
-      saveState();
+      saveProgressState();
       if(notify)showItemAcquired(item,after,String(sourceType||"BASIC").toUpperCase(),isNew);
     }
   }
@@ -220,7 +220,7 @@ function syncAskUnlocks(characterId){
     }
   });
   if(newly.length){
-    saveState();
+    saveProgressState();
     showToast(newly.length===1?"새 ASK가 해금되었습니다.":"새 ASK "+newly.length+"개가 해금되었습니다.");
   }
   return newly;
@@ -238,7 +238,7 @@ function completeInteraction(meta){
     recordInteraction({kind:"ask",characterId:meta.characterId||"",askId:meta.askId,label:meta.label||""});
     syncAskUnlocks(meta.characterId);
   }
-  saveState();
+  saveProgressState();
 }
 function affectionConditionPasses(c){
   if(!c?.characterId)return true;
@@ -303,7 +303,7 @@ function applyOwnerEffects(o){
   applyItemEffects(o.itemEffects);
   applyAffectionEffects(o.affectionEffects);
   applyEmotionEffects(o.emotionEffects);
-  saveState();
+  saveProgressState();
 }
 function applyInteractionEffects(source){
   const ch=getCharacter(source.characterId);if(!ch)return;
@@ -322,7 +322,7 @@ function applyInteractionEffects(source){
     messages.push(ch.name+" 감정 → "+emotionLabel(source.emotionState)+" "+intensity);
   }
   if(messages.length)showToast(messages.join(" · "));
-  saveState();
+  saveProgressState();
 }
 function beginInteractionReaction(kind,source,entries,label="",meta={}){
   const ch=getCharacter(source.characterId);if(!ch)return;
@@ -423,7 +423,7 @@ function resetEventEmotion(event){
   const ch=getCharacter(event.characterId);
   if(ch){
     session.emotions[ch.id]={state:ch.emotionDefault,intensity:ch.emotionIntensity};
-    saveState();
+    saveProgressState();
   }
 }
 
