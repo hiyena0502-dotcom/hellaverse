@@ -393,6 +393,7 @@ function setPage(page){
   renderPage();
 }
 function renderPage(){
+  if(typeof gameShell!=="undefined")gameShell.classList.toggle("room-active",currentPage==="room");
   if(currentPage==="home")renderHome();
   else if(currentPage==="world")renderWorld();
   else if(currentPage==="characters")renderCharacters();
