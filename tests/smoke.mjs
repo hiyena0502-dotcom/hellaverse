@@ -65,6 +65,11 @@ assert.match(dialogueCode,/function updateRoomSpeakerVisual\(/,"per-line speaker
 assert.match(dialogueCode,/function nextContinuousEvent\(/,"continuous TALK fallback missing");
 assert.match(dialogueCode,/function randomTalkEvent\(/,"random TALK picker missing");
 assert.match(dialogueCode,/randomTalkEvent\(playableTalkEventsForCharacter\(ch\.id\)\)/,"room entry must start from a random TALK");
+assert.match(dialogueCode,/const candidates=playableTalkEventsForCharacter\(roomCharacterId\)/,"continuous random TALK must stay inside the selected character room");
+assert.match(dialogueCode,/function beginRoomExit\(/,"room EXIT flow missing");
+assert.match(editorEvents,/a==="back-home"\)\{beginRoomExit\("home"\)\}/,"HOME exit must play room EXIT dialogue");
+assert.match(gameStateCode,/function exitEventsForCharacter\(/,"EXIT events must be separated from TALK menus");
+assert.match(stateCode,/function isExitEvent\(/,"EXIT event role compatibility missing");
 assert.ok(!dialogueCode.includes("이벤트가 끝났습니다."),"terminal event-ended screen must be removed");
 assert.match(editorUi,/data-entry-field="speakerCharacterId"/,"speaker image selector missing from event editor");
 assert.match(editorEvents,/data-action="validation-jump"/,"validation issue navigation missing");
@@ -238,12 +243,16 @@ assert.equal(editorMerge.explicitBalance,777,"explicit editor balance change mus
 vm.runInContext(`
 function getEvent(id){return state.events.find(e=>e.id===id)||null}
 function getCharacter(id){return state.characters.find(c=>c.id===id)||null}
+function eventsForCharacter(charId,source=state){return source.events.filter(e=>e.characterId===charId&&e.menuVisible!==false&&!isExitEvent(e))}
+function exitEventsForCharacter(charId,source=state){return source.events.filter(e=>e.characterId===charId&&isExitEvent(e))}
 function ownerPasses(){return true}
 function resetEventEmotion(){}
 function clearTyping(){}
 function clearAuto(){}
 function restoreInterruptedDialogue(){return false}
 function completeInteraction(){}
+function setPage(page){currentPage=page}
+function renderRoom(){}
 `,context);
 vm.runInContext(dialogueCode,context,{filename:"js/game/dialogue.js"});
 const continuationOrder=vm.runInContext(`
@@ -294,8 +303,10 @@ const continuousFlow=vm.runInContext(`
       {id:"talk-b1",name:"B1",characterId:"char-b",entries:[{id:"b1",type:"dialogue",text:"b1"}]}
     ]
   });
+  selectedCharacterId="char-a";
   playback={
     characterId:"char-a",
+    roomCharacterId:"char-a",
     eventId:"talk-a1",
     continuationQueue:[],
     continuationTotal:0,
@@ -314,14 +325,39 @@ const continuousFlow=vm.runInContext(`
   return order;
 })()
 `,context);
-assert.equal(new Set(continuousFlow.slice(0,3)).size,3,
-  "shuffle-bag TALK must visit each visible root before repeating");
-assert.deepEqual([...new Set(continuousFlow.slice(0,3))].sort(),["talk-a1","talk-a2","talk-b1"],
-  "shuffle-bag TALK must include all visible roots regardless of random order");
-assert.notEqual(continuousFlow[2],continuousFlow[3],
-  "shuffle-bag TALK must avoid an immediate repeat when multiple roots exist");
-assert.ok(["talk-a1","talk-a2","talk-b1"].includes(continuousFlow[3]),
-  "shuffle-bag TALK must restart from a visible root after a full cycle");
+assert.equal(continuousFlow[0],"talk-a1","fixture must begin in char-a room");
+assert.equal(continuousFlow[1],"talk-a2","the only unvisited char-a TALK must play next");
+assert.ok(continuousFlow.every(id=>id.startsWith("talk-a")),
+  "random TALK must never jump to another character");
+assert.ok(!continuousFlow.includes("talk-b1"),"char-b TALK must never enter char-a room shuffle");
 assert.ok(!continuousFlow.includes("hidden-a"),"hidden continuation events must not be auto-picked as TALK roots");
+assert.notEqual(continuousFlow[0],continuousFlow[1],
+  "same-character shuffle must avoid an immediate repeat when another TALK exists");
 
-console.log("Hellaverse smoke OK",result,{editorMerge,continuationOrder,continuousFlow});
+const exitRoleCheck=vm.runInContext(`
+(()=>{
+  const normalized=normalizeState({
+    schemaVersion:4,
+    characters:[{id:"char-exit",name:"Exit",origin:"hellborn"}],
+    events:[
+      {id:"talk",name:"Talk",characterId:"char-exit",entries:[{id:"t",type:"dialogue",text:"talk"}]},
+      {id:"bye",name:"EXIT · Bye",characterId:"char-exit",entries:[{id:"b",type:"dialogue",text:"bye"}]}
+    ]
+  });
+  const talk=normalized.events.find(e=>e.id==="talk");
+  const bye=normalized.events.find(e=>e.id==="bye");
+  const compact=compactStateForStorage(normalized);
+  return{
+    talkRole:talk.eventRole,
+    exitRole:bye.eventRole,
+    exitVisible:bye.menuVisible,
+    packedRole:compact.events.find(e=>e.id==="bye").eventRole
+  };
+})()
+`,context);
+assert.equal(exitRoleCheck.talkRole,"talk","normal events must remain TALK");
+assert.equal(exitRoleCheck.exitRole,"exit","legacy EXIT names must normalize to EXIT role");
+assert.equal(exitRoleCheck.exitVisible,false,"EXIT events must be hidden from TALK menu");
+assert.equal(exitRoleCheck.packedRole,"exit","EXIT role must survive compact storage");
+
+console.log("Hellaverse smoke OK",result,{editorMerge,continuationOrder,continuousFlow,exitRoleCheck});
