@@ -434,7 +434,7 @@ function renderRoom(){
   const ev=currentEvent();
   const art=roomCharacterArt(ch);
   const eventOptions=eventsForCharacter(ch.id);
-  const interactionLocked=Boolean(activeInteractionReaction||interactionContext?.followupActive);
+  const interactionLocked=Boolean(activeInteractionReaction||interactionContext?.followupActive||interactionCompleteMenu);
   const eventPickerVisible=!ev||ev.menuVisible!==false;
   const eventPicker=roomMode==="talk"&&eventOptions.length&&eventPickerVisible&&!interactionLocked
     ? '<details class="room-event-details"><summary>TALK 선택</summary><select id="roomEventSelect">'+eventOptions.map(e=>'<option value="'+esc(e.id)+'" '+(ev?.id===e.id?"selected":"")+'>'+esc(e.name)+'</option>').join("")+'</select></details>'
