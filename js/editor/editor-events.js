@@ -42,6 +42,7 @@ modalRoot.addEventListener("click",e=>{
   else if(a==="load-slot")loadBackupSlot(Number(b.dataset.slot)||0);
   else if(a==="restore-safety")restoreSafetySnapshot();
   else if(a==="export")exportData();
+  else if(a==="confirm-import")confirmPendingImport();
   else if(a==="reset-progress")resetPlayProgress();
 });
 modalRoot.addEventListener("input",e=>{
