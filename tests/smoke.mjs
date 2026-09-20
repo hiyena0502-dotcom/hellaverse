@@ -62,6 +62,8 @@ assert.match(stateCode,/function migrateStateV3ToV4\(/,"schema v4 continuation m
 assert.match(stateCode,/function installStoryPacks\(/,"one-time story pack installer missing");
 assert.match(gameStateCode,/e\.menuVisible!==false/,"hidden continuation events must stay out of TALK menus");
 assert.match(dialogueCode,/function updateRoomSpeakerVisual\(/,"per-line speaker art switching missing");
+assert.match(dialogueCode,/function nextContinuousEvent\(/,"continuous TALK fallback missing");
+assert.ok(!dialogueCode.includes("이벤트가 끝났습니다."),"terminal event-ended screen must be removed");
 assert.match(editorUi,/data-entry-field="speakerCharacterId"/,"speaker image selector missing from event editor");
 assert.match(editorEvents,/data-action="validation-jump"/,"validation issue navigation missing");
 assert.match(read("js/world/regions.js"),/currentPage!=="world"\|\|activeRegion!==regionId/,"WORLD timer must stop outside WORLD");
@@ -131,9 +133,9 @@ const storyPackInstall=vm.runInContext(`
 })()
 `,context);
 assert.equal(storyPackInstall.changed,true,"eligible project must receive story pack");
-assert.equal(storyPackInstall.eventCount,20,"story pack event count changed");
-assert.equal(storyPackInstall.variableCount,10,"story pack variable count changed");
-assert.equal(storyPackInstall.packVersion,2,"story pack version marker missing");
+assert.equal(storyPackInstall.eventCount,23,"story pack event count changed");
+assert.equal(storyPackInstall.variableCount,11,"story pack variable count changed");
+assert.equal(storyPackInstall.packVersion,3,"story pack version marker missing");
 assert.equal(storyPackInstall.openingVisible,true,"opening event must be visible");
 assert.equal(storyPackInstall.hiddenVisible,false,"continuation event must be hidden");
 assert.equal(storyPackInstall.speakerCharacterId,"lucifer-morningstar","speaker image id must survive compaction");
@@ -234,6 +236,7 @@ assert.equal(editorMerge.explicitBalance,777,"explicit editor balance change mus
 vm.runInContext(`
 function getEvent(id){return state.events.find(e=>e.id===id)||null}
 function getCharacter(id){return state.characters.find(c=>c.id===id)||null}
+function ownerPasses(){return true}
 function resetEventEmotion(){}
 function clearTyping(){}
 function clearAuto(){}
@@ -274,4 +277,43 @@ const continuationOrder=vm.runInContext(`
 `,context);
 assert.deepEqual([...continuationOrder],["A","B","C","D"],"continuation runtime order must be A -> B -> C -> D");
 
-console.log("Hellaverse smoke OK",result,{editorMerge,continuationOrder});
+const continuousFlow=vm.runInContext(`
+(()=>{
+  state=normalizeState({
+    schemaVersion:4,
+    characters:[
+      {id:"char-a",name:"A",origin:"hellborn"},
+      {id:"char-b",name:"B",origin:"hellborn"}
+    ],
+    events:[
+      {id:"talk-a1",name:"A1",characterId:"char-a",entries:[{id:"a1",type:"dialogue",text:"a1"}]},
+      {id:"talk-a2",name:"A2",characterId:"char-a",entries:[{id:"a2",type:"dialogue",text:"a2"}]},
+      {id:"hidden-a",name:"Hidden",characterId:"char-a",menuVisible:false,entries:[{id:"ha",type:"dialogue",text:"hidden"}]},
+      {id:"talk-b1",name:"B1",characterId:"char-b",entries:[{id:"b1",type:"dialogue",text:"b1"}]}
+    ]
+  });
+  playback={
+    characterId:"char-a",
+    eventId:"talk-a1",
+    continuationQueue:[],
+    continuationTotal:0,
+    autoVisitedEventIds:["talk-a1"],
+    frames:[{sourceType:"event",sourceId:"talk-a1",index:1,label:"본편",exitMode:"continue",targetEventId:""}],
+    ended:false
+  };
+  activeInteractionEvent=null;
+  interactionContext=null;
+  typing={token:"",full:"",index:0,done:true,timer:null};
+  const order=[playback.eventId];
+  for(let i=0;i<3;i++){
+    if(!finishEvent())throw new Error("continuous TALK stopped early");
+    order.push(playback.eventId);
+  }
+  return order;
+})()
+`,context);
+assert.deepEqual([...continuousFlow],["talk-a1","talk-a2","talk-b1","talk-a1"],
+  "continuous TALK must prefer same-character roots, then other characters, then loop");
+assert.ok(!continuousFlow.includes("hidden-a"),"hidden continuation events must not be auto-picked as TALK roots");
+
+console.log("Hellaverse smoke OK",result,{editorMerge,continuationOrder,continuousFlow});
