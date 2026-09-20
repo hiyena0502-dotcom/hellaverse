@@ -232,7 +232,26 @@ function recordInteraction(entry){
   state.interactionHistory=state.interactionHistory.slice(-500);
 }
 function completeInteraction(meta){
-  if(!meta)return;
+  if(!meta)return{};
+  if(meta.interactionEffects)applyInteractionEffects(meta.interactionEffects);
+  const result={newGiftPreference:false,newSpecialGift:false};
+  if(meta.kind==="gift"&&meta.itemId&&meta.characterId){
+    const key=giftReactionKey(meta.itemId,meta.characterId);
+    const wasDiscovered=isGiftPreferenceDiscovered(meta.itemId,meta.characterId);
+    state.discoveredSpecialGiftKeys ||= [];
+    const wasSpecial=state.discoveredSpecialGiftKeys.includes(key);
+    discoverGiftPreference(meta.itemId,meta.characterId);
+    state.giftInteractionCounts ||= {};
+    state.giftInteractionCounts[key]=giftInteractionCount(meta.itemId,meta.characterId)+1;
+    if(meta.consume)consumeInventoryItem(meta.itemId,1,state);
+    if(meta.flowType==="SPECIAL"&&!wasSpecial)state.discoveredSpecialGiftKeys.push(key);
+    recordInteraction({
+      kind:"gift",characterId:meta.characterId,itemId:meta.itemId,label:meta.label||"",
+      preference:meta.preference||"NEUTRAL",flowType:meta.flowType||"REPEAT"
+    });
+    result.newGiftPreference=!wasDiscovered;
+    result.newSpecialGift=meta.flowType==="SPECIAL"&&!wasSpecial;
+  }
   if(meta.kind==="ask"&&meta.askId){
     state.askedAskIds ||= [];
     if(!state.askedAskIds.includes(meta.askId))state.askedAskIds.push(meta.askId);
@@ -240,6 +259,7 @@ function completeInteraction(meta){
     syncAskUnlocks(meta.characterId);
   }
   saveProgressState();
+  return result;
 }
 function affectionConditionPasses(c){
   if(!c?.characterId)return true;
@@ -327,21 +347,31 @@ function applyInteractionEffects(source){
 }
 function beginInteractionReaction(kind,source,entries,label="",meta={}){
   const ch=getCharacter(source.characterId);if(!ch)return;
+  const interactionMeta={
+    kind,characterId:ch.id,label:label||"",
+    interactionEffects:{
+      characterId:ch.id,
+      affectionDelta:clamp(source.affectionDelta,-100,100,0),
+      emotionState:source.emotionState||"",
+      emotionIntensity:clamp(source.emotionIntensity,0,100,0)
+    },
+    ...meta
+  };
   if(!interactionContext){
     interactionContext={
       playback:playback ? clone(playback) : null,
       selectedCharacterId,
       typing:{token:typing.token||"",full:typing.full||"",index:(typing.full||"").length,done:true,timer:null},
-      followupActive:true
+      followupActive:true,
+      completionMeta:interactionMeta
     };
-  }
+  }else interactionContext.completionMeta=interactionMeta;
   clearTyping();clearAuto();autoMode=false;
-  applyInteractionEffects(source);
   activeInteractionReaction=null;
   activeInteractionEvent={
     id:"__interaction__"+uid("flow"),
     name:(kind==="ask"?"ASK · ":"ITEM · ")+(label||"INTERACTION"),
-    interactionMeta:{kind,characterId:ch.id,label:label||"",...meta},
+    interactionMeta,
     characterId:ch.id,
     continuationEventIds:[],
     emotionExitMode:"keep",
@@ -355,6 +385,7 @@ function beginInteractionReaction(kind,source,entries,label="",meta={}){
   roomMode="talk";
   playback={
     characterId:ch.id,
+    roomCharacterId:ch.id,
     eventId:activeInteractionEvent.id,
     frames:[{sourceType:"event",sourceId:activeInteractionEvent.id,index:0,label:kind.toUpperCase(),exitMode:"continue",targetEventId:""}],
     ended:false
