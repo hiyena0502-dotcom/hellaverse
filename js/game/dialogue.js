@@ -23,6 +23,7 @@ function startDialogue(characterId,eventId){
   }:null;
   typing.token="";
   autoMode=false;clearTimeout(autoTimer);
+  if(ev)saveProgressState();
   currentPage="room";renderNav();renderRoom();
 }
 function currentEvent(){return playback?getEvent(playback.eventId):null}
