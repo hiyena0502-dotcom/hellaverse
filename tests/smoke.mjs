@@ -65,8 +65,15 @@ assert.match(gameStateCode,/e\.menuVisible!==false/,"hidden continuation events 
 assert.match(dialogueCode,/function updateRoomSpeakerVisual\(/,"per-line speaker art switching missing");
 assert.match(dialogueCode,/function nextContinuousEvent\(/,"continuous TALK fallback missing");
 assert.match(dialogueCode,/function randomTalkEvent\(/,"random TALK picker missing");
-assert.match(dialogueCode,/randomTalkEvent\(playableTalkEventsForCharacter\(ch\.id\)\)/,"room entry must start from a random TALK");
+assert.match(dialogueCode,/randomTalkForCharacter\(ch\.id\)/,"room entry must use character-scoped recent-aware random TALK");
 assert.match(dialogueCode,/const candidates=playableTalkEventsForCharacter\(roomCharacterId\)/,"continuous random TALK must stay inside the selected character room");
+assert.match(dialogueCode,/function rememberRecentTalk\(/,"recent TALK memory missing");
+assert.match(dialogueCode,/function dialogueTextNeedsScroll\(/,"long dialogue overflow guard missing");
+assert.match(dialogueCode,/ASK\/선물 반응을 끝까지 본 뒤 이동할 수 있습니다/,"interaction exit guard missing");
+assert.match(dialogueCode,/FALLBACK_EXIT_LINES/,"character-specific fallback EXIT lines missing");
+assert.match(dialogueCode,/class="room-event-details"/,"TALK picker must be tucked into a collapsible control");
+assert.match(appShell,/classList\.toggle\("room-active",currentPage==="room"\)/,"room viewport lock class missing");
+assert.match(editorEvents,/beginRoomExit\("profile"\)/,"PROFILE must leave through EXIT dialogue");
 assert.match(dialogueCode,/function beginRoomExit\(/,"room EXIT flow missing");
 assert.match(editorEvents,/a==="back-home"\)\{beginRoomExit\("home"\)\}/,"HOME exit must play room EXIT dialogue");
 assert.match(gameStateCode,/function exitEventsForCharacter\(/,"EXIT events must be separated from TALK menus");
@@ -77,6 +84,9 @@ assert.match(editorEvents,/data-action="validation-jump"/,"validation issue navi
 assert.match(read("js/world/regions.js"),/currentPage!=="world"\|\|activeRegion!==regionId/,"WORLD timer must stop outside WORLD");
 assert.match(dialogueCss,/#roomDynamic\{[\s\S]*?position:absolute;[\s\S]*?left:50%;[\s\S]*?bottom:54px;/,"room dialogue anchor must stay pinned to lower center");
 assert.match(dialogueCss,/\.dialogue-box\{[\s\S]*?height:190px;[\s\S]*?grid-template-rows:/,"desktop dialogue box height must stay stable");
+assert.match(dialogueCss,/\.site-shell\.room-active\{[\s\S]*?height:100dvh;[\s\S]*?overflow:hidden/,"room shell must stay inside the viewport");
+assert.match(dialogueCss,/\.dialogue-text\.is-compact/,"long dialogue compact typography missing");
+assert.match(dialogueCss,/\.room-event-details select\{[\s\S]*?position:absolute/,"desktop TALK picker should not shift the HUD");
 
 const storage=new Map();
 const dummy=()=>({
@@ -255,7 +265,9 @@ function clearAuto(){}
 function restoreInterruptedDialogue(){return false}
 function completeInteraction(){}
 function setPage(page){currentPage=page}
+function renderStart(){currentPage="profile"}
 function renderRoom(){}
+function showToast(text){lastToast=text}
 `,context);
 vm.runInContext(dialogueCode,context,{filename:"js/game/dialogue.js"});
 const continuationOrder=vm.runInContext(`
@@ -307,6 +319,7 @@ const continuousFlow=vm.runInContext(`
     ]
   });
   selectedCharacterId="char-a";
+  session={variables:{},affection:{},emotions:{},log:[],recentTalks:{"char-a":["talk-a1"]}};
   playback={
     characterId:"char-a",
     roomCharacterId:"char-a",
@@ -337,6 +350,29 @@ assert.ok(!continuousFlow.includes("hidden-a"),"hidden continuation events must 
 assert.notEqual(continuousFlow[0],continuousFlow[1],
   "same-character shuffle must avoid an immediate repeat when another TALK exists");
 
+const recentTalkCheck=vm.runInContext(`
+(()=>{
+  state=normalizeState({
+    schemaVersion:4,
+    characters:[{id:"char-r",name:"R",origin:"hellborn"}],
+    events:[
+      {id:"r1",name:"R1",characterId:"char-r",entries:[{id:"r1e",type:"dialogue",text:"1"}]},
+      {id:"r2",name:"R2",characterId:"char-r",entries:[{id:"r2e",type:"dialogue",text:"2"}]},
+      {id:"r3",name:"R3",characterId:"char-r",entries:[{id:"r3e",type:"dialogue",text:"3"}]},
+      {id:"r4",name:"R4",characterId:"char-r",entries:[{id:"r4e",type:"dialogue",text:"4"}]}
+    ],
+    playState:{recentTalks:{"char-r":["r1","r2","r3"]}}
+  });
+  session=createSession();
+  const picked=randomTalkForCharacter("char-r");
+  rememberRecentTalk("char-r",picked.id);
+  return {picked:picked.id,recent:[...session.recentTalks["char-r"]],saved:[...state.playState.recentTalks["char-r"]]};
+})()
+`,context);
+assert.equal(recentTalkCheck.picked,"r4","room re-entry should avoid the three most recent TALK roots when another exists");
+assert.equal(recentTalkCheck.recent.at(-1),"r4","new TALK must enter recent history");
+assert.deepEqual([...recentTalkCheck.saved],[...recentTalkCheck.recent],"recent TALK history must persist into playState");
+
 const exitRoleCheck=vm.runInContext(`
 (()=>{
   const normalized=normalizeState({
@@ -363,4 +399,21 @@ assert.equal(exitRoleCheck.exitRole,"exit","legacy EXIT names must normalize to 
 assert.equal(exitRoleCheck.exitVisible,false,"EXIT events must be hidden from TALK menu");
 assert.equal(exitRoleCheck.packedRole,"exit","EXIT role must survive compact storage");
 
-console.log("Hellaverse smoke OK",result,{editorMerge,continuationOrder,continuousFlow,exitRoleCheck});
+const blockedExit=vm.runInContext(`
+(()=>{
+  state=normalizeState({schemaVersion:4,characters:[{id:"char-lock",name:"Lock",origin:"hellborn"}]});
+  currentPage="room";
+  selectedCharacterId="char-lock";
+  activeInteractionReaction={kind:"gift"};
+  interactionContext=null;
+  roomExitActive=false;
+  lastToast="";
+  const result=beginRoomExit("home");
+  return {result,page:currentPage,toast:lastToast};
+})()
+`,context);
+assert.equal(blockedExit.result,false,"ASK/gift reaction must block room navigation");
+assert.equal(blockedExit.page,"room","blocked room navigation must keep the player in the room");
+assert.match(blockedExit.toast,/반응을 끝까지/,"blocked room navigation needs player feedback");
+
+console.log("Hellaverse smoke OK",result,{editorMerge,continuationOrder,continuousFlow,recentTalkCheck,exitRoleCheck,blockedExit});
