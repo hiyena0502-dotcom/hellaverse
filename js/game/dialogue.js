@@ -12,6 +12,7 @@ function startDialogue(characterId,eventId){
   const ev=eventId?getEvent(eventId):randomTalkEvent(playableTalkEventsForCharacter(ch.id));
   playback=ev?{
     characterId:ch.id,
+    roomCharacterId:ch.id,
     eventId:ev.id,
     continuationQueue:[...(ev.continuationEventIds||[])],
     continuationTotal:(ev.continuationEventIds||[]).length,
@@ -112,7 +113,8 @@ function nextContinuousEvent(){
   if(!playback)return null;
   const current=currentEvent();
   const currentId=current?.id||"";
-  const candidates=continuousTalkEvents();
+  const roomCharacterId=playback.roomCharacterId||selectedCharacterId||playback.characterId||current?.characterId||"";
+  const candidates=playableTalkEventsForCharacter(roomCharacterId);
   if(!candidates.length)return null;
 
   const visited=new Set(Array.isArray(playback.autoVisitedEventIds)?playback.autoVisitedEventIds:[]);
@@ -167,6 +169,7 @@ function beginRoomExit(targetPage="home"){
   roomExitActive=true;
   playback={
     characterId:ch.id,
+    roomCharacterId:ch.id,
     eventId:ev.id,
     continuationQueue:[],
     continuationTotal:0,
@@ -301,8 +304,9 @@ function renderRoom(){
 }
 function renderRoomBeat(){
   if(roomMode!=="talk")return;
-  if(playback?.characterId && playback.characterId!==selectedCharacterId){
-    selectedCharacterId=playback.characterId;
+  const roomCharacterId=playback?.roomCharacterId||playback?.characterId||selectedCharacterId;
+  if(roomCharacterId && roomCharacterId!==selectedCharacterId){
+    selectedCharacterId=roomCharacterId;
     renderRoom();
     return;
   }
