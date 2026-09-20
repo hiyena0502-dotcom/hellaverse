@@ -360,6 +360,7 @@ function updateRoomSpeakerVisual(entry){
   return character;
 }
 function renderRoom(){
+  if(typeof gameShell!=="undefined")gameShell.classList.add("room-active");
   const ch=getCharacter(selectedCharacterId);
   if(!ch){setPage("home");return}
   const ev=currentEvent();
