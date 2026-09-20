@@ -524,6 +524,7 @@ function renderAskUnlockEditor(a){
   const status=asked?"ASKED":unlocked?"UNLOCKED":"LOCKED";
   return '<details class="ask-unlock-editor"><summary>해금 조건 · '+status+'</summary><div class="ask-unlock-grid">'+
     '<label class="checkline"><input type="checkbox" data-ask-bind="startLocked" '+(a.startLocked?"checked":"")+'> 처음에는 LOCKED</label>'+
+    '<label class="field"><span>해금 힌트</span><input data-ask-bind="unlockHint" value="'+esc(a.unlockHint||"")+'" placeholder="예: 조금 더 친해져야 할 것 같다"></label>'+
     '<label class="field"><span>해금 최소 호감도</span><input type="number" min="0" max="100" data-ask-bind="unlockMinAffection" value="'+a.unlockMinAffection+'"></label>'+
     '<label class="field"><span>변수</span><select data-ask-unlock-var-field="variableId">'+variableOptions(vc.variableId)+'</select></label>'+
     '<label class="field"><span>변수 비교</span><select data-ask-unlock-var-field="operator">'+conditionOperatorOptions(vc.operator)+'</select></label>'+
@@ -566,6 +567,8 @@ function renderAskEditor(){
           '<button class="danger-button" data-action="delete-ask">현재 ASK 삭제</button>'+
           '<div class="full-row interaction-response-editor">'+
             renderAskUnlockEditor(a)+
+            '<label class="checkline"><input type="checkbox" data-ask-bind="repeatable" '+(a.repeatable?"checked":"")+'> ASKED 이후에도 다시 물을 수 있게 허용</label>'+
+            '<p class="editor-note">반복을 켜지 않으면 한 번 확인한 ASK는 플레이 화면에서 완료 처리됩니다.</p>'+
             '<div class="interaction-effect-grid">'+
               '<label class="field"><span>질문 실행 시 호감도 변화</span><input type="number" min="-100" max="100" data-ask-bind="affectionDelta" value="'+a.affectionDelta+'"></label>'+
               '<label class="field"><span>감정 변화</span><select data-ask-bind="emotionState"><option value="">변경 없음</option>'+EMOTIONS.map(x=>'<option value="'+x[0]+'" '+(a.emotionState===x[0]?"selected":"")+'> '+x[1]+'</option>').join("")+'</select></label>'+
