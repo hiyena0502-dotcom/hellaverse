@@ -183,7 +183,7 @@ function nextContinuousEvent(){
 }
 function shuffleTalk(){
   if(!playback||activeInteractionEvent||interactionContext?.followupActive)return false;
-  if((playback.continuationQueue||[]).length){
+  if(Number(playback.continuationTotal)||0){
     showToast("연속 이야기 중에는 다음 TALK로 건너뛸 수 없습니다.");
     return false;
   }
@@ -266,6 +266,7 @@ function completeRoomExit(){
   }
   roomExitActive=false;
   roomExitTargetPage="home";
+  interactionCompleteMenu=null;
   activeInteractionReaction=null;
   activeInteractionEvent=null;
   interactionContext=null;
@@ -293,6 +294,7 @@ function beginRoomExit(targetPage="home"){
   const exits=playableExitEventsForCharacter(ch?.id||"");
   const ev=randomTalkEvent(exits)||fallbackExitEvent(ch);
   roomExitTargetPage=targetPage||"home";
+  interactionCompleteMenu=null;
   activeInteractionReaction=null;
   activeInteractionEvent=null;
   interactionContext=null;
