@@ -9,7 +9,10 @@ function startDialogue(characterId,eventId){
   interactionContext=null;
   const ev=eventId?getEvent(eventId):eventsForCharacter(ch.id)[0];
   playback=ev?{
-    characterId:ch.id,eventId:ev.id,
+    characterId:ch.id,
+    eventId:ev.id,
+    continuationQueue:[...(ev.continuationEventIds||[])],
+    continuationTotal:(ev.continuationEventIds||[]).length,
     frames:[{sourceType:"event",sourceId:ev.id,index:0,label:"본편",exitMode:"continue",targetEventId:""}],
     ended:false
   }:null;
@@ -42,13 +45,35 @@ function frameEntries(frame){
   return getEvent(frame.sourceId)?.entries||[];
 }
 function visibleOptions(entry){return entry.options.filter(ownerPasses)}
-function jumpEvent(id){
+function jumpEvent(id,{preserveContinuation=false,label="본편"}={}){
   const departing=currentEvent();const ev=getEvent(id);
-  if(!ev){if(playback)playback.ended=true;return}
+  if(!ev){if(playback)playback.ended=true;return false}
   resetEventEmotion(departing);
-  playback.eventId=ev.id;playback.characterId=ev.characterId||playback.characterId;
-  playback.frames=[{sourceType:"event",sourceId:ev.id,index:0,label:"본편",exitMode:"continue",targetEventId:""}];
+  playback.eventId=ev.id;
+  playback.characterId=ev.characterId||playback.characterId;
+  if(!preserveContinuation){
+    playback.continuationQueue=[...(ev.continuationEventIds||[])];
+    playback.continuationTotal=playback.continuationQueue.length;
+  }
+  playback.frames=[{sourceType:"event",sourceId:ev.id,index:0,label,exitMode:"continue",targetEventId:""}];
   playback.ended=false;typing.token="";
+  return true;
+}
+function nextQueuedEvent(){
+  if(!playback)return null;
+  playback.continuationQueue=Array.isArray(playback.continuationQueue)?playback.continuationQueue:[];
+  while(playback.continuationQueue.length){
+    const id=playback.continuationQueue.shift();
+    if(id&&getEvent(id))return id;
+  }
+  return null;
+}
+function continuationStatusLabel(){
+  const total=Math.max(0,Number(playback?.continuationTotal)||0);
+  if(!total)return"";
+  const remaining=Array.isArray(playback?.continuationQueue)?playback.continuationQueue.length:0;
+  const current=Math.max(1,total+1-remaining);
+  return "SERIES "+current+" / "+(total+1);
 }
 function finishEvent(){
   const ev=currentEvent();
@@ -57,7 +82,8 @@ function finishEvent(){
     restoreInterruptedDialogue();
     return true;
   }
-  if(ev?.nextEventId&&getEvent(ev.nextEventId)){jumpEvent(ev.nextEventId);return true}
+  const nextId=nextQueuedEvent();
+  if(nextId&&jumpEvent(nextId,{preserveContinuation:true,label:"연속"}))return true;
   resetEventEmotion(ev);
   if(interactionContext?.followupActive){
     restoreInterruptedDialogue();
@@ -157,7 +183,8 @@ function renderRoomBeat(){
   }
   const token=playback.eventId+"|"+playback.frames.map(f=>f.sourceId+":"+f.index).join("|")+"|"+entry.id;
   const speaker=entry.type==="narration"?"":(entry.speaker||chName(playback.characterId));
-  dynamic.innerHTML='<div class="dialogue-box"><p class="speaker">'+esc(entry.type==="narration"?"NARRATION":speaker)+'</p><p id="dialogueText" class="dialogue-text"></p><div class="dialogue-meta"><span>'+esc(frame.label)+' · '+(frame.index+1)+' / '+frameEntries(frame).length+'</span><button type="button" data-action="advance-dialogue">NEXT</button></div></div>';
+  const series=continuationStatusLabel();
+  dynamic.innerHTML='<div class="dialogue-box"><p class="speaker">'+esc(entry.type==="narration"?"NARRATION":speaker)+'</p><p id="dialogueText" class="dialogue-text"></p><div class="dialogue-meta"><span>'+esc(frame.label)+' · '+(frame.index+1)+' / '+frameEntries(frame).length+(series?' · '+esc(series):'')+'</span><button type="button" data-action="advance-dialogue">NEXT</button></div></div>';
   if(typing.token!==token){
     session.log.push({kind:entry.type,speaker,text:entry.text||"",eventName:currentEvent()?.name||""});
     if(session.log.length>200)session.log.splice(0,session.log.length-200);

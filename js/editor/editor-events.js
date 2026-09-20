@@ -232,14 +232,43 @@ editorBody.addEventListener("click",e=>{
     editorEventPage=Math.max(0,Math.ceil(editorDraft.events.length/EDITOR_EVENT_PAGE_SIZE)-1);
     renderEventManager();return;
   }
-  if(a==="select-event"){selectedEditorEventId=b.dataset.id;selectedEntryId="";renderEventManager();return}
+  if(a==="select-event"){
+    selectedEditorEventId=b.dataset.id;
+    selectedEntryId="";
+    editorContinuationQuery="";
+    renderEventManager();return
+  }
   if(a==="delete-event"){
     const id=selectedEditorEventId;editorDraft.events=editorDraft.events.filter(x=>x.id!==id);
-    editorDraft.events.forEach(x=>{if(x.nextEventId===id)x.nextEventId=""});
+    editorDraft.events.forEach(x=>{
+      x.continuationEventIds=(x.continuationEventIds||[]).filter(nextId=>nextId!==id);
+    });
     editorDraft.asks.forEach(a=>{if(a.eventId===id)a.eventId=""});
     editorDraft.items.forEach(i=>{if(i.inventoryEventId===id)i.inventoryEventId=""});
     sanitizeOptionTargets(editorDraft.events,id);
     selectedEditorEventId=editorDraft.events[0]?.id||"";selectedEntryId="";renderEventManager();return;
+  }
+  if(a==="add-continuation"){
+    const ev=editorDraft.events.find(x=>x.id===selectedEditorEventId);
+    const id=b.dataset.id;
+    if(!ev||!id||id===ev.id||!editorDraft.events.some(x=>x.id===id))return;
+    ev.continuationEventIds ||= [];
+    if(!ev.continuationEventIds.includes(id))ev.continuationEventIds.push(id);
+    editorContinuationQuery="";
+    renderEventManager();return;
+  }
+  if(a==="move-continuation"){
+    const ev=editorDraft.events.find(x=>x.id===selectedEditorEventId);if(!ev)return;
+    const list=ev.continuationEventIds||[];
+    const i=list.indexOf(b.dataset.id),ni=i+Number(b.dataset.dir);
+    if(i<0||ni<0||ni>=list.length)return;
+    [list[i],list[ni]]=[list[ni],list[i]];
+    renderEventManager();return;
+  }
+  if(a==="remove-continuation"){
+    const ev=editorDraft.events.find(x=>x.id===selectedEditorEventId);if(!ev)return;
+    ev.continuationEventIds=(ev.continuationEventIds||[]).filter(id=>id!==b.dataset.id);
+    renderEventManager();return;
   }
   if(a==="add-entry"){
     const ev=editorDraft.events.find(x=>x.id===selectedEditorEventId);if(!ev)return;
@@ -399,13 +428,14 @@ editorBody.addEventListener("focusin",e=>{
     !editorLargeProject&&
     e.target.matches("input,textarea,select")&&
     !e.target.dataset.itemEditorFilter&&
-    !e.target.dataset.editorSearch
+    !e.target.dataset.editorSearch&&
+    !e.target.hasAttribute("data-continuation-search")
   ){
     e.target.dataset.undoStart=serializeEditorDraft();
   }
 });
 editorBody.addEventListener("input",e=>{
-  if(!e.target.dataset.itemEditorFilter&&!e.target.dataset.editorSearch)markEditorDirty();
+  if(!e.target.dataset.itemEditorFilter&&!e.target.dataset.editorSearch&&!e.target.hasAttribute("data-continuation-search"))markEditorDirty();
   handleEditorField(e);
 });
 editorBody.addEventListener("change",e=>{
@@ -419,11 +449,21 @@ editorBody.addEventListener("change",e=>{
       updateEditorHistoryButtons();
     }
   }
-  if(!e.target.dataset.itemEditorFilter&&!e.target.dataset.editorSearch)markEditorDirty();
+  if(!e.target.dataset.itemEditorFilter&&!e.target.dataset.editorSearch&&!e.target.hasAttribute("data-continuation-search"))markEditorDirty();
   handleEditorField(e);
 });
 function handleEditorField(e){
   const t=e.target;
+
+  if(t.hasAttribute("data-continuation-search")){
+    editorContinuationQuery=t.value;
+    const pos=editorBody.scrollTop;
+    renderEventManager();
+    editorBody.scrollTop=pos;
+    const input=$("[data-continuation-search]",editorBody);
+    if(input){input.focus();try{input.setSelectionRange(input.value.length,input.value.length)}catch{}}
+    return;
+  }
 
   if(t.dataset.editorSearch){
     const kind=t.dataset.editorSearch;
@@ -506,7 +546,6 @@ function handleEditorField(e){
   if(t.dataset.bind&&ev){
     if(t.dataset.bind==="event-name"){ev.name=t.value;return}
     if(t.dataset.bind==="event-character"){ev.characterId=t.value;return}
-    if(t.dataset.bind==="event-next"){ev.nextEventId=t.value;return}
     if(t.dataset.bind==="event-emotion-exit"){ev.emotionExitMode=t.value==="reset"?"reset":"keep";return}
   }
   const vr=t.closest("[data-var-id]");

@@ -24,6 +24,8 @@ characters: [
 
 ## 대화 이벤트
 
+EVENT가 끝난 뒤 여러 EVENT를 이어서 재생하려면 `continuationEventIds`에 ID를 순서대로 넣습니다. 예: `['event-b','event-c']`. EDITOR에서는 CONTINUATION 패널에서 검색·추가·순서 변경이 가능합니다. 기존 `nextEventId` 데이터는 자동 migration됩니다.
+
 ```js
 events: [
   {
@@ -49,7 +51,7 @@ events: [
         ]
       }
     ],
-    nextEventId: "",
+    continuationEventIds: [],
     emotionExitMode: "keep"
   }
 ]

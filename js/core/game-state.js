@@ -342,7 +342,7 @@ function beginInteractionReaction(kind,source,entries,label="",meta={}){
     name:(kind==="ask"?"ASK · ":"ITEM · ")+(label||"INTERACTION"),
     interactionMeta:{kind,characterId:ch.id,label:label||"",...meta},
     characterId:ch.id,
-    nextEventId:"",
+    continuationEventIds:[],
     emotionExitMode:"keep",
     entries:Array.isArray(entries)&&entries.length?entries:[normalizeEntry({
       type:"narration",
@@ -393,6 +393,8 @@ function startInteractionFollowEvent(eventId){
   playback={
     characterId:selectedCharacterId,
     eventId:ev.id,
+    continuationQueue:[...(ev.continuationEventIds||[])],
+    continuationTotal:(ev.continuationEventIds||[]).length,
     frames:[{sourceType:"event",sourceId:ev.id,index:0,label:"상호작용",exitMode:"continue",targetEventId:""}],
     ended:false
   };

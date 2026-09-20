@@ -26,13 +26,14 @@ for(const id of ["brandButton","dataButton","editorButton","changeProfileButton"
   assert.match(index,new RegExp('id="'+id+'"'),"missing #"+id);
 }
 assert.match(index,/class="nav-button[^"]*"[^>]*data-page="home"/,"HOME nav missing");
-assert.match(index,/js\/core\/state\.js\?v=16/,"v16 state asset cache bust missing");
-assert.match(index,/js\/editor\/editor-events\.js\?v=16/,"v16 editor asset cache bust missing");
+assert.match(index,/js\/core\/state\.js\?v=17/,"v17 state asset cache bust missing");
+assert.match(index,/js\/editor\/editor-events\.js\?v=17/,"v17 editor asset cache bust missing");
 
 const editorEvents=read("js/editor/editor-events.js");
 const stateCode=read("js/core/state.js");
 const appShell=read("js/ui/app-shell.js");
 const editorUi=read("js/editor/editor-ui.js");
+const dialogueCode=read("js/game/dialogue.js");
 
 assert.ok(!editorEvents.includes('$(".nav-button").forEach'),"nav must use querySelectorAll/$$, not single $ helper");
 assert.match(editorEvents,/document\.querySelectorAll\("\.nav-button"\)\.forEach/,"nav click delegation missing");
@@ -44,6 +45,11 @@ assert.match(appShell,/function recoverUiFromError\(/,"UI recovery boundary miss
 assert.match(editorUi,/function renderSelectedItemEditor\(/,"single-detail ITEM editor missing");
 assert.match(editorUi,/data-action="select-ask"/,"single-detail ASK selection missing");
 assert.match(editorUi,/data-action="select-thought"/,"single-detail THOUGHT selection missing");
+assert.match(editorUi,/CONTINUATION/,"continuation editor missing");
+assert.match(editorUi,/data-action="add-continuation"/,"continuation add action missing");
+assert.match(editorUi,/data-action="move-continuation"/,"continuation move action missing");
+assert.match(editorEvents,/a==="remove-continuation"/,"continuation remove action missing");
+assert.match(stateCode,/function migrateStateV3ToV4\(/,"schema v4 continuation migration missing");
 
 const storage=new Map();
 const dummy=()=>({
@@ -111,20 +117,75 @@ const result=vm.runInContext(`
   const migrated=normalizeState({schemaVersion:2,characters:source.characters,items:[{
     id:"old-item",name:"Old",collectionCharacterId:"char-0",rarity:"COMMON",category:"기타"
   }]});
+  const legacyNext=normalizeState({
+    schemaVersion:3,
+    characters:[{id:"char-x",name:"X",origin:"hellborn"}],
+    events:[
+      {id:"event-a",name:"A",characterId:"char-x",nextEventId:"event-b",entries:[]},
+      {id:"event-b",name:"B",characterId:"char-x",entries:[]}
+    ]
+  });
   return{
     schema:normalized.schemaVersion,
     counts:[normalized.events.length,normalized.asks.length,normalized.items.length,normalized.thoughts.length],
     fullChars:JSON.stringify(compact).length,
     progressChars:JSON.stringify(progress).length,
-    migratedGiftable:migrated.items[0].giftable
+    migratedGiftable:migrated.items[0].giftable,
+    migratedContinuation:legacyNext.events[0].continuationEventIds
   };
 })()
 `,context);
 
-assert.equal(result.schema,3,"current schema must be 3");
+assert.equal(result.schema,4,"current schema must be 4");
 assert.deepEqual([...result.counts],[1000,500,300,500],"large fixture counts changed during normalization");
 assert.equal(result.migratedGiftable,true,"v2 -> v3 item migration must default giftable=true");
+assert.deepEqual([...result.migratedContinuation],["event-b"],"v3 nextEventId must migrate to v4 continuationEventIds");
 assert.ok(result.progressChars<result.fullChars*0.1,
   `progress payload should be <10% of project payload (full=${result.fullChars}, progress=${result.progressChars})`);
 
-console.log("Hellaverse smoke OK",result);
+
+vm.runInContext(`
+function getEvent(id){return state.events.find(e=>e.id===id)||null}
+function getCharacter(id){return state.characters.find(c=>c.id===id)||null}
+function resetEventEmotion(){}
+function clearTyping(){}
+function clearAuto(){}
+function restoreInterruptedDialogue(){return false}
+function completeInteraction(){}
+`,context);
+vm.runInContext(dialogueCode,context,{filename:"js/game/dialogue.js"});
+const continuationOrder=vm.runInContext(`
+(()=>{
+  state=normalizeState({
+    schemaVersion:4,
+    characters:[{id:"char-series",name:"Series",origin:"hellborn"}],
+    events:[
+      {id:"A",name:"A",characterId:"char-series",continuationEventIds:["B","C","D"],entries:[]},
+      {id:"B",name:"B",characterId:"char-series",entries:[]},
+      {id:"C",name:"C",characterId:"char-series",entries:[]},
+      {id:"D",name:"D",characterId:"char-series",entries:[]}
+    ]
+  });
+  playback={
+    characterId:"char-series",
+    eventId:"A",
+    continuationQueue:["B","C","D"],
+    continuationTotal:3,
+    frames:[{sourceType:"event",sourceId:"A",index:0,label:"본편",exitMode:"continue",targetEventId:""}],
+    ended:false
+  };
+  activeInteractionEvent=null;
+  interactionContext=null;
+  typing={token:"",full:"",index:0,done:true,timer:null};
+  const order=[playback.eventId];
+  while(finishEvent()){
+    order.push(playback.eventId);
+    if(order.length>10)throw new Error("continuation loop");
+  }
+  return order;
+})()
+`,context);
+assert.deepEqual([...continuationOrder],["A","B","C","D"],"continuation runtime order must be A -> B -> C -> D");
+
+console.log("Hellaverse smoke OK",result,{continuationOrder});
+
