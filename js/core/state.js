@@ -1210,12 +1210,70 @@ function syncPlayStateFromSession(){
     log:Array.isArray(session.log)?session.log.slice(-200):[]
   };
 }
+function progressStateFrom(source=state){
+  return{
+    profile:clone(source.profile||{name:"",origin:""}),
+    favoriteCharacterIds:[...(source.favoriteCharacterIds||[])],
+    playState:clone(source.playState||{}),
+    inventoryCounts:clone(source.inventoryCounts||{}),
+    newItemIds:[...(source.newItemIds||[])],
+    itemHistory:clone(source.itemHistory||[]),
+    discoveredGiftReactionKeys:[...(source.discoveredGiftReactionKeys||[])],
+    giftInteractionCounts:clone(source.giftInteractionCounts||{}),
+    askedAskIds:[...(source.askedAskIds||[])],
+    unlockedAskIds:[...(source.unlockedAskIds||[])],
+    interactionHistory:clone(source.interactionHistory||[]),
+    collectionSettings:clone(source.collectionSettings||{}),
+    discoveredThoughtIds:[...(source.discoveredThoughtIds||[])],
+    gacha:{
+      balance:Math.max(0,Number(source.gacha?.balance)||0),
+      history:clone(source.gacha?.history||[])
+    }
+  };
+}
+function mergeProgressState(base,progress){
+  if(!progress||typeof progress!=="object")return base;
+  const merged={...base};
+  for(const key of [
+    "profile","favoriteCharacterIds","playState","inventoryCounts","newItemIds",
+    "itemHistory","discoveredGiftReactionKeys","giftInteractionCounts","askedAskIds",
+    "unlockedAskIds","interactionHistory","collectionSettings","discoveredThoughtIds"
+  ]){
+    if(progress[key]!==undefined)merged[key]=clone(progress[key]);
+  }
+  if(progress.gacha&&typeof progress.gacha==="object"){
+    merged.gacha={
+      ...merged.gacha,
+      balance:Math.max(0,Number(progress.gacha.balance ?? merged.gacha?.balance)||0),
+      history:Array.isArray(progress.gacha.history)?clone(progress.gacha.history):merged.gacha?.history||[]
+    };
+  }
+  return merged;
+}
+function saveProgressState(){
+  syncPlayStateFromSession();
+  const progress=progressStateFrom(state);
+  if(storageMode==="indexedDB"){
+    queueStorageWrite("progress",progress);
+    return true;
+  }
+  if(storageMode==="booting")return true;
+  try{
+    localStorage.setItem(STATE_KEY,JSON.stringify(compactStateForStorage(state)));
+    return true;
+  }catch(error){
+    storageLastError=error;
+    console.warn("HELLAVERSE PROGRESS FALLBACK SAVE FAILED",error);
+    return false;
+  }
+}
 function saveState(){
   syncPlayStateFromSession();
   const packed=compactStateForStorage(state);
   packed.schemaVersion=CURRENT_SCHEMA_VERSION;
   if(storageMode==="indexedDB"){
     queueStorageWrite("state",packed);
+    queueStorageWrite("progress",progressStateFrom(state));
     return true;
   }
   if(storageMode==="booting"){
@@ -1295,19 +1353,21 @@ async function bootstrapStorage(){
 
   try{
     await getStorageDb();
-    const [dbState,dbBackups,dbEditor]=await Promise.all([
+    const [dbState,dbBackups,dbEditor,dbProgress]=await Promise.all([
       idbGet("state"),
       idbGet("backups"),
-      idbGet("editorSnapshot")
+      idbGet("editorSnapshot"),
+      idbGet("progress")
     ]);
 
     const chosenState=dbState||legacyState||defaultState();
-    state=normalizeState(chosenState);
+    state=normalizeState(mergeProgressState(chosenState,dbProgress));
     backupStoreCache=normalizeBackupStore(dbBackups||legacyBackups);
     editorSnapshotCache=dbEditor||legacyEditor||null;
     storageMode="indexedDB";
 
     if(!dbState)await idbSet("state",compactStateForStorage(state));
+    if(!dbProgress)await idbSet("progress",progressStateFrom(state));
     if(!dbBackups&&legacyBackups)await idbSet("backups",backupStoreCache);
     if(!dbEditor&&legacyEditor)await idbSet("editorSnapshot",editorSnapshotCache);
 
