@@ -72,7 +72,7 @@ pageRoot.addEventListener("click",e=>{
     state.favoriteCharacterIds=state.favoriteCharacterIds.includes(id)
       ? state.favoriteCharacterIds.filter(x=>x!==id)
       : [...state.favoriteCharacterIds,id];
-    saveState();renderCharacters();
+    saveProgressState();renderCharacters();
   }
   else if(a==="character-favorites"){characterFavoritesOnly=!characterFavoritesOnly;renderCharacters()}
   else if(a==="toggle-room-tools"){roomToolsOpen=!roomToolsOpen;renderRoom()}
@@ -105,7 +105,7 @@ pageRoot.addEventListener("click",e=>{
   else if(a==="collection-filter"){collectionFilter=b.dataset.id;renderCollection()}
   else if(a==="collection-view"){
     state.collectionSettings.view=b.dataset.view==="all"?"all":"grouped";
-    saveState();
+    saveProgressState();
     renderCollection();
   }
   else if(a==="collection-detail")collectionDetail(b.dataset.id);
