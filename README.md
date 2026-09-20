@@ -21,7 +21,7 @@
 
 큰 프로젝트 데이터는 **IndexedDB**에 저장합니다. 기존 `localStorage`의 state / 백업 / EDITOR 복구본이 있으면 첫 실행 때 자동으로 IndexedDB로 옮기고, 대화 중에는 전체 프로젝트가 아니라 진행도만 별도 `progress` 레코드로 저장합니다. 작은 사용자 설정과 WORLD 보조 키는 계속 localStorage를 사용합니다.
 
-현재 데이터 schema는 `schemaVersion: 3`이며, 이전 schema는 시작/IMPORT 시 단계별 migration을 거칩니다.
+현재 데이터 schema는 `schemaVersion: 4`이며, 이전 schema는 시작/IMPORT 시 단계별 migration을 거칩니다.
 
 상단 **DATA**에서 다음을 사용할 수 있습니다.
 
@@ -48,6 +48,7 @@ EDITOR에는 CHECK 외에 다음 보호 기능이 있습니다.
 - 미저장 변경이 있을 때 닫기 확인
 - 저장 직전 자동 안전 백업
 - EVENT / ASK / ITEM / THOUGHT 검색·페이지 분할
+- EVENT 종료 후 여러 대화를 순서대로 재생하는 CONTINUATION 큐 편집
 - ASK / ITEM / THOUGHT는 선택한 항목 1개만 상세 렌더링
 - 화면 오류 발생 시 EDITOR/모달을 닫고 HOME으로 복구하는 UI recovery boundary
 
@@ -67,3 +68,8 @@ EDITOR에는 CHECK 외에 다음 보호 기능이 있습니다.
 - IndexedDB / schema migration / IMPORT preview / recovery boundary 존재 확인
 - EVENT 1,000 / ASK 500 / ITEM 300 / THOUGHT 500 대형 fixture 정규화
 - 전체 프로젝트와 progress 저장 크기 분리 검증
+
+
+## 연속 대화
+
+EVENT는 `continuationEventIds` 배열로 여러 후속 EVENT를 순서대로 가질 수 있습니다. EDITOR의 **CONTINUATION** 패널에서 EVENT를 검색해 추가하고 ↑ / ↓로 순서를 바꿀 수 있습니다. 실행 중에는 `A → B → C → D` 순서로 자동 재생되며, 다른 캐릭터 EVENT가 포함되어도 해당 캐릭터로 자동 전환됩니다. 기존 `nextEventId`는 schema v4 migration에서 첫 번째 CONTINUATION 항목으로 자동 변환됩니다.
