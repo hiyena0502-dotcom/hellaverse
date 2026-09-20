@@ -75,6 +75,12 @@ function jumpEvent(id,{preserveContinuation=false,label="본편"}={}){
   }
   playback.frames=[{sourceType:"event",sourceId:ev.id,index:0,label,exitMode:"continue",targetEventId:""}];
   rememberContinuousEvent(ev.id);
+  const isTalkRoot=(state.events||[]).some(event=>event.id===ev.id)&&ev.menuVisible!==false&&!isExitEvent(ev);
+  if(isTalkRoot){
+    const wasNew=!isTalkDiscovered(ev.id);
+    if(markTalkDiscovered(ev.id))saveProgressState();
+    playback.newTalkEventId=wasNew?ev.id:"";
+  }
   playback.ended=false;typing.token="";
   return true;
 }
@@ -325,16 +331,21 @@ function finishEvent(){
     return false;
   }
   if(activeInteractionEvent&&ev?.id===activeInteractionEvent.id){
-    completeInteraction(activeInteractionEvent.interactionMeta);
+    const meta=activeInteractionEvent.interactionMeta||interactionContext?.completionMeta||{};
+    const result=completeInteraction(meta);
     restoreInterruptedDialogue();
-    return true;
+    interactionCompleteMenu={...meta,...result};
+    return false;
   }
   const nextId=nextQueuedEvent();
   if(nextId&&jumpEvent(nextId,{preserveContinuation:true,label:"연속"}))return true;
   if(interactionContext?.followupActive){
+    const meta=interactionContext.completionMeta||{};
     resetEventEmotion(ev);
+    const result=completeInteraction(meta);
     restoreInterruptedDialogue();
-    return true;
+    interactionCompleteMenu={...meta,...result};
+    return false;
   }
   const continuousId=nextContinuousEvent();
   if(continuousId&&jumpEvent(continuousId,{label:"랜덤 TALK"}))return true;
@@ -407,8 +418,7 @@ function updateRoomSpeakerVisual(entry){
   if(entry?.type!=="dialogue")return null;
   const character=entrySpeakerCharacter(entry);
   if(!character)return null;
-  const art=$("#roomArt"),name=$("#roomSpeakerName");
-  if(name)name.textContent=character.name;
+  const art=$("#roomArt");
   if(!art||art.dataset.characterId===character.id)return character;
   art.dataset.characterId=character.id;
   art.innerHTML=roomCharacterArt(character);
@@ -437,10 +447,11 @@ function renderRoom(){
     '<button class="room-mode-button '+(roomMode==="inventory"?"active":"")+'" type="button" data-action="room-mode" data-mode="inventory" '+(interactionLocked?"disabled":"")+'>INVENTORY</button></div>'+
     '<button class="room-more-button" type="button" data-action="toggle-room-tools" aria-label="추가 메뉴">•••</button><div class="room-actions '+(roomToolsOpen?"open":"")+'">'+eventPicker+'<button class="text-link" type="button" data-action="show-log">LOG</button><button class="text-link" type="button" data-action="show-history">HISTORY</button><button class="text-link" type="button" data-action="show-affection">AFFECTION</button><button class="text-link" type="button" data-action="show-emotion">EMOTION</button><button class="text-link mobile-set" type="button" data-action="open-play-settings">SET</button></div></div>'+
     '<div class="room-stage"><div id="roomArt" class="room-art" data-character-id="'+esc(ch.id)+'">'+art+'</div><div id="roomDynamic"></div>'+
-    (roomMode==="talk"&&!activeInteractionReaction?'<div class="room-control-bar"><button type="button" data-action="toggle-auto" class="'+(autoMode?"active":"")+'">AUTO</button><button type="button" data-action="open-play-settings">SET</button></div>':'')+
+    (roomMode==="talk"&&!activeInteractionReaction&&!interactionCompleteMenu?'<div class="room-control-bar"><button type="button" data-action="shuffle-talk">NEW TALK</button><button type="button" data-action="toggle-auto" class="'+(autoMode?"active":"")+'">AUTO</button><button type="button" data-action="open-play-settings">SET</button></div>':'')+
     '</div></section>';
 
-  if(activeInteractionReaction)renderInteractionReaction();
+  if(interactionCompleteMenu)renderInteractionCompleteMenu();
+  else if(activeInteractionReaction)renderInteractionReaction();
   else if(roomMode==="ask")renderAskPanel();
   else if(roomMode==="inventory")renderInventoryPanel();
   else renderRoomBeat();
@@ -458,6 +469,7 @@ function renderRoomBeat(){
     dynamic.innerHTML='<div class="room-empty"><h2>등록된 이벤트가 없습니다.</h2><p>편집기에서 이 캐릭터의 이벤트를 추가하세요.</p></div>';return;
   }
   if(!settlePlayback()){
+    if(interactionCompleteMenu){renderInteractionCompleteMenu();return}
     dynamic.innerHTML='<div class="room-empty"><h2>이어갈 TALK를 찾지 못했습니다.</h2><p>현재 조건에서 재생 가능한 TALK가 없습니다. TALK 선택이나 ASK / INVENTORY를 이용할 수 있습니다.</p></div>';clearTyping();clearAuto();return;
   }
   const select=$("#roomEventSelect");
@@ -476,7 +488,9 @@ function renderRoomBeat(){
   const series=continuationStatusLabel();
   const length=String(entry.text||"").length;
   const density=length>210?" is-very-compact":length>130?" is-compact":"";
-  dynamic.innerHTML='<div class="dialogue-box"><p class="speaker">'+esc(entry.type==="narration"?"NARRATION":speaker)+'</p><p id="dialogueText" class="dialogue-text'+density+'"></p><div class="dialogue-meta"><span>'+esc(frame.label)+' · '+(frame.index+1)+' / '+frameEntries(frame).length+(series?' · '+esc(series):'')+'</span><button type="button" data-action="advance-dialogue">NEXT</button></div></div>';
+  const newTalk=current?.id===playback.newTalkEventId&&frame.index===0;
+  const progressLabel=series||("SCENE "+(frame.index+1)+" / "+frameEntries(frame).length);
+  dynamic.innerHTML='<div class="dialogue-box">'+(newTalk?'<span class="new-talk-badge">NEW TALK</span>':'')+'<p class="speaker">'+esc(entry.type==="narration"?"NARRATION":speaker)+'</p><p id="dialogueText" class="dialogue-text'+density+'"></p><div class="dialogue-meta"><span>'+esc(progressLabel)+'</span><button type="button" data-action="advance-dialogue">NEXT</button></div></div>';
   if(typing.token!==token){
     session.log.push({kind:entry.type,speaker,text:entry.text||"",eventName:currentEvent()?.name||""});
     if(session.log.length>200)session.log.splice(0,session.log.length-200);
@@ -486,6 +500,27 @@ function renderRoomBeat(){
     $("#dialogueText").textContent=typing.done?typing.full:typing.full.slice(0,typing.index);
     scheduleAuto();
   }
+}
+
+function renderInteractionCompleteMenu(){
+  const dynamic=$("#roomDynamic");if(!dynamic||!interactionCompleteMenu)return;
+  const meta=interactionCompleteMenu;
+  const isGift=meta.kind==="gift";
+  const discoveries=[
+    meta.newGiftPreference?'<span>NEW GIFT REACTION</span>':"",
+    meta.newSpecialGift?'<span>NEW SPECIAL</span>':""
+  ].filter(Boolean).join("");
+  dynamic.innerHTML='<section class="interaction-complete-panel"><p class="page-kicker">'+(isGift?'GIFT COMPLETE':'ASK COMPLETE')+'</p><h2>'+esc(meta.label||"반응을 확인했습니다.")+'</h2>'+
+    (discoveries?'<div class="interaction-discovery">'+discoveries+'</div>':'')+
+    '<div class="interaction-next-actions">'+
+      '<button class="gold-button" type="button" data-action="interaction-after" data-mode="'+(isGift?'inventory':'ask')+'">'+(isGift?'선물 더 주기':'다른 질문')+'</button>'+
+      '<button class="ghost-button" type="button" data-action="interaction-after" data-mode="talk">TALK로 돌아가기</button>'+
+    '</div></section>';
+}
+function finishInteractionChoice(mode){
+  interactionCompleteMenu=null;
+  roomMode=mode==="inventory"?"inventory":mode==="ask"?"ask":"talk";
+  renderRoom();
 }
 
 function renderAskPanel(){
