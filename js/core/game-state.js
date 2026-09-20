@@ -393,6 +393,8 @@ function startInteractionFollowEvent(eventId){
   playback={
     characterId:selectedCharacterId,
     eventId:ev.id,
+    continuationQueue:[...(ev.continuationEventIds||[])],
+    continuationTotal:(ev.continuationEventIds||[]).length,
     frames:[{sourceType:"event",sourceId:ev.id,index:0,label:"상호작용",exitMode:"continue",targetEventId:""}],
     ended:false
   };
