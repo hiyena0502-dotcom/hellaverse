@@ -112,7 +112,7 @@ const allSoloChoicePrompts=[];
 for(const pack of soloTalkPacks){
   const characterId=pack.requiredCharacterIds?.[0]||"";
   assert.equal((pack.events||[]).length,7,pack.id+" must contain seven curated theme scenes");
-  assert.equal(pack.version,9,pack.id+" must use character- and scene-specific solo TALK content");
+  assert.equal(pack.version,10,pack.id+" must use character- and scene-specific solo TALK content");
   const characterLines=[];
   const choicePrompts=[];
   const choiceLabels=[];
@@ -756,7 +756,7 @@ assert.equal(legacyDialogueLocalizationCheck.giftLine,"좋아! 그렇지!","lega
 assert.equal(legacyDialogueLocalizationCheck.logLine,"아담은 죽었어.","saved dialogue history must be localized");
 assert.match(legacyDialogueLocalizationCheck.luciferOpening,/호텔 업무 메모/,"contextless Lucifer legacy opening must be rewritten with a visible situation");
 assert.ok(!legacyDialogueLocalizationCheck.luciferOpening.includes("이라는 말에"),"rewritten Lucifer opening must not depend on missing prior dialogue");
-assert.equal(legacyDialogueLocalizationCheck.version,16,"dialogue tuning migration version missing");
+assert.equal(legacyDialogueLocalizationCheck.version,17,"dialogue tuning migration version missing");
 
 const characterEventPackSnapshot=vm.runInContext(`
 (window.HV_STORY_PACKS||[])
@@ -791,7 +791,7 @@ const fullLegacyRefRepairCheck=vm.runInContext(`
   }
   const source=normalizeState({
     schemaVersion:4,
-    dialoguePresetVersion:15,
+    dialoguePresetVersion:16,
     characters:characterRows,
     events
   });
@@ -815,7 +815,7 @@ const fullLegacyRefRepairCheck=vm.runInContext(`
 `,context);
 assert.equal(fullLegacyRefRepairCheck.total,48,"all legacy voice events must be included in the repair fixture");
 assert.equal(fullLegacyRefRepairCheck.bad.length,0,"all legacy voice event character references must be repaired");
-assert.equal(fullLegacyRefRepairCheck.version,16,"full character-ref repair must advance dialogue preset version");
+assert.equal(fullLegacyRefRepairCheck.version,17,"full character-ref repair must advance dialogue preset version");
 
 const storyPackCountBeforeTuning=context.window.HV_STORY_PACKS.length;
 context.window.HV_STORY_PACKS.push(...structuredClone(relationshipPacks));
@@ -841,7 +841,7 @@ const tunedDialogueSyncCheck=vm.runInContext(`
 `,context);
 assert.match(tunedDialogueSyncCheck.eventText,/알고리즘|피드/,"existing saves must receive tuned relationship TALK");
 assert.ok(!/예전 질문/.test(tunedDialogueSyncCheck.askText),"existing saves must receive tuned relationship ASK");
-assert.equal(tunedDialogueSyncCheck.version,16,"tuned dialogue sync must advance preset version");
+assert.equal(tunedDialogueSyncCheck.version,17,"tuned dialogue sync must advance preset version");
 context.window.HV_STORY_PACKS.length=storyPackCountBeforeTuning;
 
 context.window.HV_STORY_PACKS.push(...structuredClone(soloTalkPacks));
@@ -851,7 +851,7 @@ const soloDialogueSyncCheck=vm.runInContext(`
   const eventId=fresh.events[0].id;
   const source=normalizeState({
     schemaVersion:4,
-    dialoguePresetVersion:15,
+    dialoguePresetVersion:16,
     characters:[{id:"asmodeus",name:"Asmodeus",origin:"hellborn"}],
     events:[
       {id:eventId,name:"OLD",characterId:"asmodeus",eventRole:"talk",menuVisible:true,entries:[{id:"old",type:"dialogue",speakerCharacterId:"asmodeus",speaker:"ASMODEUS",text:"분위기를 읽는 눈은 있네, 베이비."}]},
@@ -871,7 +871,7 @@ const soloDialogueSyncCheck=vm.runInContext(`
 assert.equal(soloDialogueSyncCheck.choiceCount,1,"existing saves must receive the choice-driven solo TALK rewrite");
 assert.equal(soloDialogueSyncCheck.retiredLine,false,"existing saves must remove the repeated Asmodeus line");
 assert.equal(soloDialogueSyncCheck.retiredEventExists,false,"existing saves must remove retired solo TALK filler events");
-assert.equal(soloDialogueSyncCheck.version,16,"solo TALK sync must advance preset version");
+assert.equal(soloDialogueSyncCheck.version,17,"solo TALK sync must advance preset version");
 context.window.HV_STORY_PACKS.length=storyPackCountBeforeTuning;
 
 assert.match(characterEventCode,/id:"angel".*?threshold:60.*?유료 서비스/s,"Angel base TALK tuning missing");
