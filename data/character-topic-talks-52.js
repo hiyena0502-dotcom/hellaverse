@@ -1765,23 +1765,11 @@
         if(r==="archaic")return d+" 내가 먼저 화제를 꺼냈다 하여 어디까지 이어갈지까지 넘긴 것은 아니오. 그 선을 지켜준다면 다음에도 먼저 말하기 편하겠구려.";
         return d+" 내가 먼저 얘기했어도 어디까지 이어갈지는 내가 정하고 싶어. 그 선만 지켜주면 다음에도 먼저 말 꺼내기 훨씬 편하겠지.";
       }
-      if(r==="formal")return "그렇다면 한마디만 더 하죠. 결국 저는 "+x+" 쪽을 보게 됩니다. 다만 실제 상황은 늘 예외가 생기니, 지금 말한 걸 규칙처럼 받아들이진 마세요.";
-      if(r==="archaic")return "그렇다면 한마디만 더 하지. 결국 나는 "+x+" 쪽을 보게 되오. 다만 실제 일에는 늘 예외가 있으니 규칙처럼 받아들이진 마시오.";
-      return "그럼 한마디만 더 할게. 결국 난 "+x+" 쪽을 보게 돼. 근데 실제로 일이 생기면 예외는 늘 있으니까, 지금 말을 규칙처럼 외우진 마.";
+      return voiceGeneral(c,"probe",high,x,key+"follow-push");
     }
-    if(nextKind==="backoff"){
-      if(r==="formal")return "네, 그 정도면 충분합니다. 대화를 멈출 지점을 서로 알아두는 것도 나쁘지 않군요. 다음 이야기는 조금 더 편한 걸로 하죠.";
-      if(r==="archaic")return "좋소. 그 정도면 충분하오. 대화를 멈출 자리를 서로 아는 것도 나쁘지 않구려. 다음 화제는 조금 더 가벼운 것으로 하지.";
-      return "응, 그 정도면 충분해. 어디서 멈출지 서로 아는 것도 나쁘지 않네. 다음 얘기는 좀 더 편한 걸로 하자.";
-    }
-    if(nextKind==="joke"){
-      if(r==="formal")return "좋습니다. 이 정도라면 굳이 더 무겁게 만들 이유가 없겠군요. 다음에 실제 상황이 생기면 그때 다시 웃든 고민하든 하죠.";
-      if(r==="archaic")return "좋소. 이 정도라면 더 무겁게 만들 까닭은 없겠군. 실제 일이 생기면 그때 다시 웃든 고민하든 하지.";
-      return "좋아. 이 정도면 더 무겁게 만들 필요 없지. 진짜 상황 생기면 그때 다시 웃든 고민하든 하자.";
-    }
-    if(r==="formal")return "좋습니다. 여기서 정리하죠. 짧게 끝낼 수 있는 대화를 억지로 길게 만드는 것도 피곤한 일이니까요.";
-    if(r==="archaic")return "좋소. 여기서 정리하지. 짧게 끝낼 수 있는 이야기를 억지로 늘리는 것도 피곤한 법이오.";
-    return "좋아. 여기서 끝내자. 짧게 끝낼 수 있는 얘기를 억지로 늘리는 것도 피곤하잖아.";
+    if(nextKind==="backoff")return voiceGeneral(c,"shift",high,x,key+"follow-backoff");
+    if(nextKind==="joke")return voiceGeneral(c,"joke",high,x,key+"follow-joke");
+    return voiceGeneral(c,"shift",high,x,key+"follow-shift");
   };
 
   const followChoice=(c,t,id,firstKind)=>{
@@ -1874,6 +1862,6 @@
   window.HV_STORY_PACKS ||= [];
   for(const c of PFS){
     const list=chosen(c);
-    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:29,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
+    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:30,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
   }
 })();
