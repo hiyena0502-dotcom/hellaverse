@@ -74,6 +74,7 @@ function defaultState(){
     discoveredSpecialGiftKeys:[],
     giftInteractionCounts:{},
     discoveredTalkIds:[],
+    seenOriginIntroCharacterIds:[],
     askedAskIds:[],
     unlockedAskIds:[],
     interactionHistory:[],
@@ -1053,6 +1054,7 @@ function normalizeState(raw){
       ? Object.fromEntries(Object.entries(s.giftInteractionCounts).map(([k,v])=>[k,Math.max(0,Number(v)||0)]))
       : {},
     discoveredTalkIds:Array.isArray(s.discoveredTalkIds)?[...new Set(s.discoveredTalkIds.map(String))]:[],
+    seenOriginIntroCharacterIds:Array.isArray(s.seenOriginIntroCharacterIds)?[...new Set(s.seenOriginIntroCharacterIds.map(String))]:[],
     askedAskIds:Array.isArray(s.askedAskIds)?[...new Set(s.askedAskIds.map(String))]:[],
     unlockedAskIds:Array.isArray(s.unlockedAskIds)?[...new Set(s.unlockedAskIds.map(String))]:[],
     interactionHistory:Array.isArray(s.interactionHistory)?s.interactionHistory.slice(-500):[],
@@ -1411,6 +1413,7 @@ function progressStateFrom(source=state){
     discoveredSpecialGiftKeys:[...(source.discoveredSpecialGiftKeys||[])],
     giftInteractionCounts:clone(source.giftInteractionCounts||{}),
     discoveredTalkIds:[...(source.discoveredTalkIds||[])],
+    seenOriginIntroCharacterIds:[...(source.seenOriginIntroCharacterIds||[])],
     askedAskIds:[...(source.askedAskIds||[])],
     unlockedAskIds:[...(source.unlockedAskIds||[])],
     interactionHistory:clone(source.interactionHistory||[]),
@@ -1428,7 +1431,7 @@ function mergeProgressState(base,progress){
   const merged={...base};
   for(const key of [
     "profile","favoriteCharacterIds","playState","inventoryCounts","newItemIds",
-    "itemHistory","discoveredGiftReactionKeys","discoveredSpecialGiftKeys","giftInteractionCounts","discoveredTalkIds","askedAskIds",
+    "itemHistory","discoveredGiftReactionKeys","discoveredSpecialGiftKeys","giftInteractionCounts","discoveredTalkIds","seenOriginIntroCharacterIds","askedAskIds",
     "unlockedAskIds","interactionHistory","claimedItemEffectIds","collectionSettings","discoveredThoughtIds"
   ]){
     if(progress[key]!==undefined)merged[key]=clone(progress[key]);
@@ -1490,6 +1493,7 @@ function sanitizeProgressReferences(source){
     return itemIds.has(itemId)&&characterIds.has(characterId);
   });
   result.discoveredTalkIds=result.discoveredTalkIds.filter(id=>eventIds.has(id));
+  result.seenOriginIntroCharacterIds=(result.seenOriginIntroCharacterIds||[]).filter(id=>characterIds.has(id));
   result.giftInteractionCounts=Object.fromEntries(Object.entries(result.giftInteractionCounts||{}).filter(([key])=>{
     const [itemId,characterId]=String(key).split("::");
     return itemIds.has(itemId)&&characterIds.has(characterId);
@@ -1510,7 +1514,7 @@ function mergeEditorDraftIntoLiveState(live,draft,baseline){
   const merged=clone(draft);
   for(const key of [
     "profile","favoriteCharacterIds","playState","inventoryCounts","newItemIds",
-    "itemHistory","discoveredGiftReactionKeys","discoveredSpecialGiftKeys","giftInteractionCounts","discoveredTalkIds","askedAskIds",
+    "itemHistory","discoveredGiftReactionKeys","discoveredSpecialGiftKeys","giftInteractionCounts","discoveredTalkIds","seenOriginIntroCharacterIds","askedAskIds",
     "unlockedAskIds","interactionHistory","claimedItemEffectIds","discoveredThoughtIds"
   ])merged[key]=clone(liveProgress[key]);
   merged.collectionSettings={
@@ -1741,6 +1745,7 @@ let pendingOrigin=state.profile.origin || "";
 let roomMode="talk";
 let activeInteractionReaction=null;
 let activeInteractionEvent=null;
+let activeRoomIntroEvent=null;
 let interactionContext=null;
 let editorDraft=null;
 let editorUndoStack=[];
