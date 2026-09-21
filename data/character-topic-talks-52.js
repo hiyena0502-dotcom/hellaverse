@@ -1127,14 +1127,14 @@
   };
 
   const followPlayer=(c,t,firstKind,nextKind,key)=>{
-    if(nextKind==="backoff")return pick(["알겠어요.","그럼 여기까지요.","더 안 물어볼게요."],key);
+    if(nextKind==="backoff")return pick(["네, 여기까지만 들을게요.","그럼 더는 안 물어볼게요.","이쯤에서 멈출게요."],key);
     if(nextKind==="push"){
-      if(c.id==="alastor")return pick(["그래도 궁금한데요.","그럼 왜 꺼냈어요?","조금만 더요."],key);
-      if(c.id==="lucifer-morningstar")return pick(["그래도 궁금한데요.","그럼 왜 말했어요?","조금만 더요."],key);
-      return pick(["조금만 더요.","그래도 궁금해요.","한 가지만 더요."],key);
+      if(c.id==="alastor")return pick(["그래도 조금 궁금해요.","왜 먼저 꺼낸 건지는 궁금한데요.","딱 하나만 더 물어볼게요."],key);
+      if(c.id==="lucifer-morningstar")return pick(["그래도 조금 궁금해요.","왜 먼저 말한 건지는 궁금해요.","딱 하나만 더 물어볼게요."],key);
+      return pick(["조금만 더 들을래요.","그 부분은 조금 궁금해요.","딱 하나만 더 물어볼게요."],key);
     }
-    if(nextKind==="joke")return pick(["그러게요.","하긴요.","그렇네요."],key);
-    return pick(["알겠어요.","그럼 넘어가요.","좋아요."],key);
+    if(nextKind==="joke")return pick(["그럼 가볍게 넘겨요.","네, 그 정도로 해요.","그럼 웃고 끝내죠."],key);
+    return pick(["그 얘기는 여기까지만 해요.","이제 다른 얘기로 가요.","그럼 이쯤에서 끝내요."],key);
   };
 
   const followResponse=(c,t,firstKind,nextKind,high,key)=>{
@@ -1268,6 +1268,6 @@
   window.HV_STORY_PACKS ||= [];
   for(const c of PFS){
     const list=chosen(c);
-    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:23,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
+    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:24,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
   }
 })();
