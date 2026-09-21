@@ -320,7 +320,7 @@
     "stolas":{low:["아, 이 정도라면 편하게 이야기할 수 있겠군요.","좋아요. 이건 훨씬 가벼운 주제네요."],high:["당신과 이런 잡담을 하는 것도 꽤 좋군요.","네, 오늘은 이런 얘기가 딱 좋겠습니다."]},
     "loona":{low:["그 정도면 답해줄 수 있어.","응. 이런 건 별거 아니지."],high:["이런 얘긴 너랑 해도 안 피곤해.","그래, 이 정도 잡담이면 괜찮아."]},
     "moxxie":{low:["그 정도라면 간단히 답할 수 있습니다.","좋습니다. 이건 복잡하게 볼 필요 없겠군요."],high:["당신과 이런 이야기를 하는 건 편하군요.","이 정도 주제라면 저도 가볍게 말할 수 있습니다."]},
-    "millie":{low:["오, 이건 재밌겠네!","좋아! 이런 얘기면 얼마든지!"],high:["너랑 이런 잡담하면 진짜 편하다!","응! 오늘은 이런 거나 잔뜩 얘기하자!"]},
+    "millie":{low:["오, 이건 재밌겠네!","좋아! 이런 얘기라면 잔뜩 해도 돼!"],high:["너랑 이런 잡담하면 진짜 편하다!","응! 오늘은 이런 거나 잔뜩 얘기하자!"]},
     "fizzarolli":{low:["오, 드디어 펀치라인 있는 주제네.","좋아, 이런 건 무대 뒤에서도 말할 수 있지."],high:["너랑 이런 잡담하면 쉬는 느낌이라 좋아.","좋아, 오늘은 이런 편한 얘기가 딱이다."]},
     "octavia":{low:["그 정도면 괜찮아.","응, 이런 얘기면 편해."],high:["이런 건 너랑 얘기해도 안 피곤해.","그래, 오늘은 이런 잡담이 낫다."]}
   };
@@ -659,6 +659,6 @@
   window.HV_STORY_PACKS ||= [];
   for(const c of PFS){
     const list=chosen(c);
-    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:7,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
+    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:8,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
   }
 })();
