@@ -406,7 +406,7 @@
     const midId="rel-ask-"+slug(char.id)+"-mid";
     window.HV_STORY_PACKS.push({
       id:"relationship-"+slug(char.id),
-      version:5,
+      version:6,
       requiredCharacterIds:[char.id],
       events:(char.scenes||[]).map((scene,index)=>makeTalk(char,index,scene)),
       asks:[
