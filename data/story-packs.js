@@ -25,7 +25,7 @@
 
   window.HV_STORY_PACKS=[{
     id:"hotel-ensemble-comedy",
-    version:3,
+    version:4,
     requiredCharacterIds:Object.values(C),
     variables:[
       {id:"hotel_welcome_started",name:"호텔 환영회 시작",type:"boolean",defaultValue:"false"},
