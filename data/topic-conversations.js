@@ -366,7 +366,7 @@
   for(const c of profiles){
     window.HV_STORY_PACKS.push({
       id:"topic-conversations-"+slug(c.id),
-      version:1,
+      version:2,
       requiredCharacterIds:[c.id],
       events:c.talks.map((row,index)=>makeTalk(c,index,row)),
       asks:c.asks.map((row,index)=>makeAsk(c,index,row))
