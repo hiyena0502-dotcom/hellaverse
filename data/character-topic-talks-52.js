@@ -474,8 +474,20 @@
     return pick(high?d.high:d.low,key);
   };
 
+  const NO_HOTEL_TALK=new Set([
+    "blitzo","paimon","satan","mammon","asmodeus","beelzebub",
+    "stolas","loona","moxxie","millie","fizzarolli","octavia"
+  ]);
+  const isHotelTalk=t=>{
+    const title=String(t?.title||"");
+    const id=String(t?.id||"");
+    if(id==="HB-118")return false;
+    return /호텔|투숙객|객실|로비|재활 프로그램|재활 시설|호텔 멤버|호텔 직원|호텔 운영비/.test(title)||
+      tags(t).includes("hotel");
+  };
+
   const chosen=c=>{
-    const all=SOURCE.filter(t=>eligible(c,t)).map(t=>({t:t,s:score(c,t)})).sort((x,y)=>y.s-x.s||hash(c.id+x.t.id)-hash(c.id+y.t.id));
+    const all=SOURCE.filter(t=>eligible(c,t)&&!(NO_HOTEL_TALK.has(c.id)&&isHotelTalk(t))).map(t=>({t:t,s:score(c,t)})).sort((x,y)=>y.s-x.s||hash(c.id+x.t.id)-hash(c.id+y.t.id));
     const preferred=all.filter(x=>tags(x.t).some(z=>c.interests.includes(z)));
     const ordered=preferred.concat(all.filter(x=>!preferred.includes(x)));
     const cap=SENSITIVE_CAP[c.id]??6;
@@ -2759,6 +2771,6 @@
   window.HV_STORY_PACKS ||= [];
   for(const c of PFS){
     const list=chosen(c);
-    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:39,requiredCharacterIds:[c.id],events:list.map((t,n)=>uniqueDialogueEvent(c,t,make(c,t,n)))});
+    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:40,requiredCharacterIds:[c.id],events:list.map((t,n)=>uniqueDialogueEvent(c,t,make(c,t,n)))});
   }
 })();
