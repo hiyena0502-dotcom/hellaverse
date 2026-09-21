@@ -95,21 +95,57 @@ const soloTalkContext={window:{HV_STORY_PACKS:[]}};
 vm.runInNewContext(soloTalkCode,soloTalkContext);
 const soloTalkPacks=soloTalkContext.window.HV_STORY_PACKS||[];
 assert.equal(soloTalkPacks.length,35,"solo TALK packs must cover all 35 characters");
-assert.equal(soloTalkPacks.reduce((sum,pack)=>sum+(pack.events||[]).length,0),1820,"solo TALK must add 52 events per character");
+assert.equal(soloTalkPacks.reduce((sum,pack)=>sum+(pack.events||[]).length,0),1952,"solo TALK count must keep Belphegor/Leviathan at 52 and expand the other 33 characters to 56");
+const walkEntries=(entries,visit)=>{
+  for(const entry of entries||[]){
+    visit(entry);
+    if(entry.type==="choice")for(const option of entry.options||[]){visit(option);walkEntries(option.entries,visit)}
+  }
+};
 const soloEventIds=new Set();
+const allSoloCharacterLines=[];
 for(const pack of soloTalkPacks){
   const characterId=pack.requiredCharacterIds?.[0]||"";
-  assert.equal((pack.events||[]).length,52,pack.id+" must provide more than 50 solo TALK events");
+  const expected=["belphegor","leviathan"].includes(characterId)?52:56;
+  assert.equal((pack.events||[]).length,expected,pack.id+" solo TALK expansion count mismatch");
+  assert.equal(pack.version,2,pack.id+" must replace version 1 repeated dialogue in existing saves");
+  const characterLines=[];
+  const choicePrompts=[];
+  const choiceLabels=[];
   for(const event of pack.events||[]){
     assert.equal(event.characterId,characterId,event.id+" must stay in its selected character room");
     assert.ok(!soloEventIds.has(event.id),event.id+" must be globally unique");
     soloEventIds.add(event.id);
-    for(const entry of event.entries||[]){
-      if(entry.type!=="dialogue"||!entry.speakerCharacterId)continue;
-      assert.equal(entry.speakerCharacterId,characterId,event.id+" must not switch to another character speaker");
+    assert.equal(event.entries.filter(entry=>entry.type==="choice").length,1,event.id+" must present interaction as a choice");
+    const playerLines=[];
+    walkEntries(event.entries,entry=>{if(entry.type==="dialogue"&&entry.speaker==="PLAYER")playerLines.push(entry)});
+    assert.equal(playerLines.length,0,event.id+" must not play direct PLAYER dialogue pages");
+    const rootChoice=event.entries.find(entry=>entry.type==="choice");
+    assert.equal(rootChoice?.options?.length,2,event.id+" must provide two distinct approaches");
+    choicePrompts.push(rootChoice.prompt);
+    for(const option of rootChoice?.options||[]){
+      choiceLabels.push(option.label);
+      const branchLines=[];
+      walkEntries(option.entries,entry=>{if(entry.type==="dialogue")branchLines.push(entry)});
+      assert.equal(branchLines.length,4,event.id+" each choice must continue through low/high reaction and follow-up dialogue");
+      assert.equal(option.affectionEffects?.[0]?.characterId,characterId,event.id+" choice must preserve TALK affection progression");
+      assert.equal(option.exitMode,"continue",event.id+" choice must return to the event flow after its reaction");
     }
+    walkEntries(event.entries,entry=>{
+      if(entry.type!=="dialogue"||!entry.speakerCharacterId)return;
+      assert.equal(entry.speakerCharacterId,characterId,event.id+" must not switch to another character speaker");
+      const line=String(entry.text||"").replace(/\s+/g," ").trim();
+      characterLines.push(line);
+      allSoloCharacterLines.push(line);
+    });
   }
+  const duplicates=characterLines.filter((line,index)=>line&&characterLines.indexOf(line)!==index);
+  assert.deepEqual(duplicates,[],pack.id+" must not repeat exact character dialogue lines");
+  assert.equal(new Set(choicePrompts).size,choicePrompts.length,pack.id+" must not repeat choice prompts");
+  assert.equal(new Set(choiceLabels).size,choiceLabels.length,pack.id+" must not repeat player choice wording");
 }
+assert.equal(new Set(allSoloCharacterLines).size,allSoloCharacterLines.length,"solo TALK dialogue must not be duplicated across different characters");
+assert.ok(!allSoloCharacterLines.some(line=>line.includes("분위기를 읽는 눈은 있네, 베이비")),"retired Asmodeus repeat line must not return");
 
 const relationshipContext={window:{}};
 vm.runInNewContext(relationshipCode,relationshipContext);
@@ -126,7 +162,11 @@ for(const pack of relationshipPacks){
   assert.equal(deep.unlockAskCondition?.askId,mid.id,pack.id+" deep ASK must require the mid ASK");
 }
 const relationPack=id=>relationshipPacks.find(pack=>pack.id==="relationship-"+id);
-const dialogueTexts=event=>(event?.entries||[]).filter(entry=>entry.type==="dialogue").map(entry=>entry.text||"");
+const dialogueTexts=event=>{
+  const texts=[];
+  walkEntries(event?.entries,entry=>{if(entry.type==="dialogue")texts.push(entry.text||"")});
+  return texts;
+};
 assert.ok(dialogueTexts(relationPack("velvette")?.events?.[0]).some(text=>/알고리즘|피드/.test(text)),"Velvette needs influencer/SNS queen diction");
 assert.ok(dialogueTexts(relationPack("valentino")?.events?.[0]).some(text=>/플로리다|병신|씨발/.test(text)),"Valentino needs rough Florida-rooted diction");
 assert.ok(dialogueTexts(relationPack("cherri-bomb")?.events?.[2]).some(text=>/엔젤|숨기고 싶지/.test(text)),"Cherri high-affection TALK must reveal personal feelings");
@@ -615,7 +655,7 @@ assert.equal(legacyDialogueLocalizationCheck.eventLines[1],"찰리. 멈춰. 숨 
 assert.equal(legacyDialogueLocalizationCheck.askLine,"먼저 물어봐!","legacy ASK English text must be localized");
 assert.equal(legacyDialogueLocalizationCheck.giftLine,"좋아! 그렇지!","legacy gift English text must be localized");
 assert.equal(legacyDialogueLocalizationCheck.logLine,"아담은 죽었어.","saved dialogue history must be localized");
-assert.equal(legacyDialogueLocalizationCheck.version,8,"dialogue tuning migration version missing");
+assert.equal(legacyDialogueLocalizationCheck.version,9,"dialogue tuning migration version missing");
 
 const storyPackCountBeforeTuning=context.window.HV_STORY_PACKS.length;
 context.window.HV_STORY_PACKS.push(...structuredClone(relationshipPacks));
@@ -641,7 +681,32 @@ const tunedDialogueSyncCheck=vm.runInContext(`
 `,context);
 assert.match(tunedDialogueSyncCheck.eventText,/알고리즘|피드/,"existing saves must receive tuned relationship TALK");
 assert.ok(!/예전 질문/.test(tunedDialogueSyncCheck.askText),"existing saves must receive tuned relationship ASK");
-assert.equal(tunedDialogueSyncCheck.version,8,"tuned dialogue sync must advance preset version");
+assert.equal(tunedDialogueSyncCheck.version,9,"tuned dialogue sync must advance preset version");
+context.window.HV_STORY_PACKS.length=storyPackCountBeforeTuning;
+
+context.window.HV_STORY_PACKS.push(...structuredClone(soloTalkPacks));
+const soloDialogueSyncCheck=vm.runInContext(`
+(()=>{
+  const fresh=(window.HV_STORY_PACKS||[]).find(pack=>pack.id==="solo-talks-asmodeus");
+  const eventId=fresh.events[0].id;
+  const source=normalizeState({
+    schemaVersion:4,
+    dialoguePresetVersion:8,
+    characters:[{id:"asmodeus",name:"Asmodeus",origin:"hellborn"}],
+    events:[{id:eventId,name:"OLD",characterId:"asmodeus",eventRole:"talk",menuVisible:true,entries:[{id:"old",type:"dialogue",speakerCharacterId:"asmodeus",speaker:"ASMODEUS",text:"분위기를 읽는 눈은 있네, 베이비."}]}]
+  });
+  const result=window.HV_APPLY_DIALOGUE_PRESETS(source,{normalizeEntry,normalizeEvent,normalizeVariable,normalizeItemEffects}).state;
+  const event=result.events[0];
+  return{
+    choiceCount:event.entries.filter(entry=>entry.type==="choice").length,
+    retiredLine:JSON.stringify(event.entries).includes("분위기를 읽는 눈은 있네, 베이비"),
+    version:result.dialoguePresetVersion
+  };
+})()
+`,context);
+assert.equal(soloDialogueSyncCheck.choiceCount,1,"existing saves must receive the choice-driven solo TALK rewrite");
+assert.equal(soloDialogueSyncCheck.retiredLine,false,"existing saves must remove the repeated Asmodeus line");
+assert.equal(soloDialogueSyncCheck.version,9,"solo TALK sync must advance preset version");
 context.window.HV_STORY_PACKS.length=storyPackCountBeforeTuning;
 
 assert.match(characterEventCode,/id:"angel".*?threshold:60.*?유료 서비스/s,"Angel base TALK tuning missing");

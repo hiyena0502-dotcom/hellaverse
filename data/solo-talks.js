@@ -2,21 +2,20 @@
 
 (()=>{
   const D=(id,who,speaker,text,extra={})=>({id,type:"dialogue",speakerCharacterId:who,speaker,text,...extra});
-  const P=(id,text)=>D(id,"","PLAYER",text);
   const N=(id,text)=>({id,type:"narration",text});
+  const Q=(id,prompt,options)=>({id,type:"choice",prompt,options});
   const A=(who,operator,value)=>({characterId:who,operator,value});
   const slug=value=>String(value).toLowerCase().replace(/[^a-z0-9가-힣]+/g,"-").replace(/^-|-$/g,"");
-
-  const LEGACY_MOMENTS=[
-    {suffix:"아침",setup:(c,t)=>`조용한 아침, ${c.display} 앞에 ${t[1]} 하나가 놓여 있다. 손길이 평소보다 신중하다.`,first:"아침부터 그걸 보고 있었어요?",follow:"생각보다 중요한 일이네요.",after:(c,t)=>`${c.display}가 ${t[1]}을(를) 다시 제자리에 둔다.`},
-    {suffix:"잠깐의 틈",setup:(c,t)=>`${c.display} 곁에 ${t[1]} 하나가 남아 있다. 하던 일을 멈춘 시선이 잠시 그 위에 머문다.`,first:"잠깐 쉬는 중이에요?",follow:"그럴 때는 무슨 생각을 해요?",after:(c,t)=>`짧은 정적 뒤에 ${c.display}가 다시 손을 움직인다.`},
-    {suffix:"손에 든 것",setup:(c,t)=>`${c.display} 손에 ${t[1]} 하나가 들려 있다. 네 시선을 알아차리고도 바로 내려놓지 않는다.`,first:"그걸 자주 들여다봐요?",follow:"조금 더 얘기해 줘도 돼요?",after:(c,t)=>`${t[1]}이(가) 손안에서 천천히 방향을 바꾼다.`},
-    {suffix:"정리 시간",setup:(c,t)=>`${c.display} 앞에서 ${t[1]} 하나가 제자리를 찾지 못한 채 몇 번이나 옮겨진다.`,first:"왜 그렇게까지 신경 써요?",follow:"그런 이유가 있었군요.",after:(c,t)=>`결국 ${t[1]}의 자리가 정해진다.`},
-    {suffix:"남은 흔적",setup:(c,t)=>`${t[1]} 하나가 방 한쪽에 남아 있다. ${c.display} 시선이 네가 들어온 뒤에야 떨어진다.`,first:"버리지는 않을 거예요?",follow:"그럼 지금은 어떻게 하고 싶어요?",after:(c,t)=>`${c.display}가 대답 대신 ${t[1]} 쪽을 한 번 더 바라본다.`},
-    {suffix:"선택",setup:(c,t)=>`${c.display} 앞에 놓인 ${t[1]} 하나가 아직 선택을 기다리고 있다.`,first:"결정하기 어려워 보여요.",follow:"혼자 정하지 않아도 괜찮아요.",after:(c,t)=>`${c.display}가 마침내 한쪽으로 손을 뻗는다.`},
-    {suffix:"침묵",setup:(c,t)=>`${c.display} 방은 드물게 조용하다. ${t[1]} 하나만이 오래된 생각을 붙잡고 있는 듯하다.`,first:"오늘은 평소보다 조용하네요.",follow:"제가 옆에 있어도 돼요?",after:(c,t)=>`방 안의 침묵이 조금 덜 무겁게 가라앉는다.`},
-    {suffix:"늦은 밤",setup:(c,t)=>`늦은 밤에도 ${c.display} 앞의 ${t[1]} 하나는 치워지지 않았다.`,first:"아직 안 자고 있었어요?",follow:"지금은 괜찮아요?",after:(c,t)=>`${c.display}가 시간을 확인하고도 ${t[1]}을(를) 치우지 않는다.`}
-  ];
+  const hasBatchim=value=>{
+    const code=String(value).trim().codePointAt(String(value).trim().length-1);
+    return code>=0xac00&&code<=0xd7a3?(code-0xac00)%28!==0:false;
+  };
+  const J=(value,batchim,noBatchim)=>`${value}${hasBatchim(value)?batchim:noBatchim}`;
+  const naturalize=(value,theme)=>String(value)
+    .split(`${theme[1]}을(를)`).join(J(theme[1],"을","를"))
+    .split(`${theme[1]}이(가)`).join(J(theme[1],"이","가"))
+    .split(`${theme[1]}은(는)`).join(J(theme[1],"은","는"))
+    .split(`${theme[1]}과(와)`).join(J(theme[1],"과","와"));
 
   const MOMENTS=[
     {suffix:"꺼내 본 순간",setup:(c,t)=>`${c.display}가 서랍 깊숙이 있던 ${t[1]}을(를) 꺼내 먼지를 턴다.`,first:"그건 오랜만에 꺼낸 것 같네요.",follow:"다시 꺼낸 이유가 있어요?",after:(c,t)=>`${t[1]}은(는) 이번에는 서랍 안으로 돌아가지 않는다.`},
@@ -72,7 +71,9 @@
     {suffix:"다음으로 미루기",setup:(c,t)=>`${c.display}가 ${t[1]}을(를) 처리하려다 메모 하나만 남기고 손을 뗀다.`,first:"오늘은 여기까지만 해요?",follow:"미뤄도 괜찮은 일이군요.",after:(c,t)=>`해야 할 일 목록의 한 줄이 내일로 넘어간다.`},
     {suffix:"예상 밖의 방문",setup:(c,t)=>`네가 예상보다 일찍 들어오자 ${c.display}가 ${t[1]}을(를) 다루던 자세 그대로 멈춘다.`,first:"제가 너무 일찍 왔어요?",follow:"계속해도 돼요. 방해 안 할게요.",after:(c,t)=>`멈췄던 동작이 조금 천천히 다시 이어진다.`},
     {suffix:"바꿔 놓은 흔적",setup:(c,t)=>`${c.display}가 ${t[1]}에 누군가 손댄 흔적을 발견하고 바로 알아차린다.`,first:"누가 건드렸나 봐요.",follow:"그렇게 바로 알아요?",after:(c,t)=>`바뀐 부분이 하나씩 원래대로 돌아간다.`},
-    {suffix:"작은 축하",setup:(c,t)=>`${c.display}가 별일 아닌 듯 ${t[1]} 옆에 작은 표시를 하나 더해둔다.`,first:"이건 무슨 표시예요?",follow:"축하할 일이었군요.",after:(c,t)=>`과하지 않은 표시 하나가 조용히 남는다.`}
+    {suffix:"작은 축하",setup:(c,t)=>`${c.display}가 별일 아닌 듯 ${t[1]} 옆에 작은 표시를 하나 더해둔다.`,first:"이건 무슨 표시예요?",follow:"축하할 일이었군요.",after:(c,t)=>`과하지 않은 표시 하나가 조용히 남는다.`},
+    {suffix:"덧붙인 메모",setup:(c,t)=>`${c.display}가 ${t[1]} 옆에 짧은 문장을 적었다가 마지막 한 줄을 더 보탠다.`,first:"마지막 줄은 방금 생각난 거예요?",follow:"다 쓸 때까지 기다릴게요.",after:(c,t)=>`새로 적힌 문장이 이전 기록과 나란히 남는다.`},
+    {suffix:"문턱의 망설임",setup:(c,t)=>`${c.display}가 ${t[1]}을(를) 든 채 문밖으로 나가려다 문턱에서 걸음을 멈춘다.`,first:"가져갈지 고민되는 거예요?",follow:"결정할 때까지 문을 잡아둘게요.",after:(c,t)=>`열린 문 사이로 들어온 바람에 망설이던 손끝이 조금 움직인다.`}
   ];
 
   const C=[
@@ -196,7 +197,7 @@
       ["계약 펜","금빛 계약 펜","좋은 거래는 첫 서명부터 분위기가 달라.","네가 사인하지 않아도 곁에 남는다는 게 아직 이해가 안 돼."],
       ["깨진 간판","꺼진 네온 조각","고장 난 브랜드는 더 크게 고치면 돼.","내 이름이 안 보일 때도 네가 나를 알아보는지 궁금해."],
       ["동전","오래된 동전","작은 돈도 쌓이면 힘이 되지.","처음 번 돈이라 쓸 수 없었어. 시작을 잊으면 전부 불안해지거든."]]},
-    {id:"asmodeus",name:"Asmodeus",display:"아스모데우스",threshold:52,guard:"분위기를 읽는 눈은 있네, 베이비.",warm:"좋아, 네 앞에서는 화려한 조명 없이 말해볼게.",endLow:["서로 원하는 걸 묻는 게 언제나 먼저야.","분위기는 강요가 아니라 초대지."],endHigh:["네가 선택해서 남아 있는 순간이 제일 매력적이야.","이런 진심도 받아줄 줄 아는 네가 꽤 마음에 들어."],themes:[
+    {id:"asmodeus",name:"Asmodeus",display:"아스모데우스",threshold:52,guard:"서두르지 않는 태도라면 꽤 마음에 드는걸, 베이비.",warm:"좋아, 네 앞에서는 화려한 조명 없이 말해볼게.",endLow:["서로 원하는 걸 묻는 게 언제나 먼저야.","분위기는 강요가 아니라 초대지."],endHigh:["네가 선택해서 남아 있는 순간이 제일 매력적이야.","이런 진심도 받아줄 줄 아는 네가 꽤 마음에 들어."],themes:[
       ["무대 조명","보랏빛 조명 필터","빛은 숨기는 게 아니라 보고 싶은 걸 선택하게 해.","피즈가 편안해 보이는 각도를 찾을 때 가장 오래 손이 가."],
       ["재즈 레코드","오래된 재즈 레코드","좋은 리듬은 몸보다 먼저 마음을 풀어줘.","사랑하는 사람과 같은 곡을 다시 듣는 건 기억을 새로 쓰는 일이야."],
       ["향수 병","짙은 향수 병","향은 가까이 와도 된다는 신호가 될 수 있어.","네가 좋아한 향을 기억해두는 건 내 방식의 다정함이지."],
@@ -358,40 +359,109 @@
       ["방 문패","검은 방 문패","문을 닫았다는 건 미워한다는 뜻이 아니야.","네가 노크하고 기다려줘서 열어도 내 공간이 사라지지 않는 걸 알았어."]]}
   ];
 
-  const FROZEN_VOICE_IDS=new Set(["blitzo","angel-dust","fizzarolli","valentino","adam"]);
-  const lineWithVoice=(char,theme,momentIndex,high)=>{
-    const core=high?theme[3]:theme[2];
-    const lead=high?char.warm:char.guard;
-    const mode=momentIndex%4;
-    if(mode===0)return core;
-    if(mode===1)return `${lead} ${core}`;
-    if(mode===2)return core;
-    return `${core} ${lead}`;
+  const STYLE_GROUPS={
+    formal:new Set(["sera","vaggie","carmilla-carmine","moxxie"]),
+    clipped:new Set(["lute","satan","loona"]),
+    archaic:new Set(["paimon","zestial"]),
+    excited:new Set(["charlie-morningstar","emily","niffty","beelzebub","millie"]),
+    crude:new Set(["adam","blitzo","angel-dust","cherri-bomb","valentino","fizzarolli"]),
+    showman:new Set(["alastor","mammon","sir-pentious"]),
+    tech:new Set(["vox","baxter"]),
+    elegant:new Set(["lucifer-morningstar","asmodeus","rosie","stolas"]),
+    dry:new Set(["husk","belphegor","leviathan","octavia"]),
+    gentle:new Set(["abel"])
   };
+  const styleOf=id=>Object.entries(STYLE_GROUPS).find(([,ids])=>ids.has(id))?.[0]||"casual";
+  const ACTIVE_LEADS=[
+    "아침부터 붙잡고 있던 이유라면, ",
+    "잠깐 손을 멈춘 건, ",
+    "내려놓지 못하고 있던 건, ",
+    "자리를 몇 번이나 바꾼 건, ",
+    "아직 버리지 않은 까닭은, ",
+    "결정을 미뤄둔 건, ",
+    "오늘 유난히 조용했던 건, ",
+    "밤이 깊도록 끝내지 못한 건, "
+  ];
+  const SOFT_FIRST=[
+    (t,high)=>high?`${t[1]}보다 네가 조용히 자리를 내준 게 먼저 눈에 들어왔어.`:`${t[1]}만 보고 있어도 돼. 아직 설명까지 필요한 건 아니니까.`,
+    (t,high)=>high?`${J(t[0],"을","를")} 사이에 둔 이런 틈을 불편하게 채우지 않는 사람은 드물어.`:`${t[0]} 때문에 잠깐 멈춘 걸 지켜본다고 답이 달라지진 않아.`,
+    (t,high)=>high?`${t[1]}에 손대지 않고 기다려 준 건 기억해둘게.`:`${t[1]} 앞에서 허락을 기다린 선택은 나쁘지 않았어.`,
+    (t,high)=>high?`정답 대신 시간을 준 덕분에 ${J(t[0],"을","를")} 어디에 둘지 알 것 같아.`:`${t[0]}의 자리는 서두르지 않아도 내가 정할 수 있어.`,
+    (t,high)=>high?`치우라는 말이 없으니 ${J(t[0],"을","를")} 남겨둔 이유도 숨기고 싶지 않네.`:`${J(t[1],"을","를")} 그대로 두겠다는 선택도 있는 법이야.`,
+    (t,high)=>high?`${J(t[0],"을","를")} 대신 고르지 않은 태도가 오히려 결정을 쉽게 해줬어.`:`${t[0]}에 대한 결정을 존중한다는 말은 그 뒤에도 지켜봐야 알 수 있지.`,
+    (t,high)=>high?`${t[1]} 앞에서 대답을 요구하지 않는 침묵이라면 조금 더 머물러도 괜찮아.`:`${J(t[0],"을","를")} 두고 말이 없다고 반드시 가까워진 건 아니야. 그래도 방해는 안 되네.`,
+    (t,high)=>high?`${t[0]}의 끝을 재촉하지 않는 사람이 있으니 오늘 밤은 덜 길게 느껴져.`:`${J(t[1],"이","가")} 정리되길 기다리는 건 네 선택이야. 나는 하던 일을 마칠 거고.`
+  ];
+  const CLOSE_BY_STYLE={
+    formal:{active:(t,h)=>h?`${t[0]}에 관한 다음 판단도 당신에게는 숨기지 않겠습니다.`:`설명은 여기까지지만, 질문 자체는 타당했습니다.`,soft:(t,h)=>h?`함께 머문 시간까지 ${t[0]}의 기록에 남겨두고 싶군요.`:`선을 지켜준 점은 분명히 기억하겠습니다.`},
+    clipped:{active:(t,h)=>h?`${t[0]} 얘기는 다음에도 네게 먼저 하겠다.`:`답은 줬다. 나머지는 행동으로 봐.`,soft:(t,h)=>h?`남아 있어. 지금은 그게 도움이 된다.`:`위치는 그대로. 방해만 하지 마.`},
+    archaic:{active:(t,h)=>h?`${t[0]}의 뒷이야기 또한 때가 오면 그대에게 들려주리다.`:`물음에는 답하였으니 성급히 결론짓지는 말거라.`,soft:(t,h)=>h?`말 없는 동행 또한 귀한 예를 갖춘 대화임을 알겠구려.`:`그대가 지킨 거리를 나 또한 존중하리다.`},
+    excited:{active:(t,h)=>h?`좋아!! 다음 ${t[0]} 이야기도 제일 먼저 들려줄게!!!`:`이제 이유도 알았으니까 같이 다음 걸 해보자!!`,soft:(t,h)=>h?`말하지 않아도 같이 있는 방법이 있다는 게 정말 좋아!!!`:`기다려 줬으니까 이번엔 내가 먼저 움직일게!!`},
+    crude:{active:(t,h)=>h?`${t[0]} 얘기까지 들었으면 이제 꽤 깊이 들어온 거야. 도망가진 마.`:`됐지? 더 캐면 이번엔 내가 질문한다.`,soft:(t,h)=>h?`말없이 버티는 것도 재주네. 그 재주, 다음에도 가져와.`:`눈치껏 있는 건 허락할게. 괜히 감동적인 표정은 짓지 마.`},
+    showman:{active:(t,h)=>h?`다음 ${t[0]} 막이 오르면 당신 자리는 앞줄로 비워두지요!`:`훌륭한 질문이었으나 해설은 이 정도가 가장 아름답습니다!`,soft:(t,h)=>h?`침묵까지 즐길 줄 아는 관객은 오래 곁에 두고 싶은 법이지요.`:`막이 다시 오를 때까지 그 자리에서 조용히 기다리시지요.`},
+    tech:{active:(t,h)=>h?`${t[0]} 관련 다음 로그는 네 접근 권한으로 먼저 열어두지.`:`필요한 데이터는 줬어. 해석은 네 처리 능력에 맡긴다.`,soft:(t,h)=>h?`개입하지 않은 선택도 유효한 입력이야. 예상보다 마음에 드네.`:`대기 상태 유지. 내가 다음 단계로 넘길 때까지 건드리지 마.`},
+    elegant:{active:(t,h)=>h?`${t[0]}에 얽힌 다음 장면도 당신에게라면 제대로 들려주고 싶군요.`:`이 정도 설명이면 호기심은 잠시 달랠 수 있겠지요.`,soft:(t,h)=>h?`말보다 오래 남는 동행도 있다는 걸 오늘 다시 알았어요.`:`서두르지 않는 태도에는 그에 맞는 예의를 돌려드리죠.`},
+    dry:{active:(t,h)=>h?`${t[0]} 얘기를 여기까지 했으니 다음엔 네 쪽 이야기도 들어야겠네.`:`설명은 끝. 생각은 알아서 해.`,soft:(t,h)=>h?`그냥 있어. 조용한 사람 하나쯤은 나쁘지 않으니까.`:`가만히 있을 거면 상관없어. 그 이상은 기대하지 말고.`},
+    gentle:{active:(t,h)=>h?`다음 ${t[0]} 이야기도 함께 정리해주면 좋겠어요.`:`물어봐 줘서 오히려 제 생각이 조금 선명해졌어요.`,soft:(t,h)=>h?`기다려 주는 마음도 대답이라는 걸 이제 알 것 같아요.`:`부담을 주지 않아서 고마워요. 천천히 해볼게요.`},
+    casual:{active:(t,h)=>h?`${t[0]} 얘기는 다음에도 네게 먼저 해줄게.`:`궁금한 건 풀렸지? 나머지는 다음에 보자.`,soft:(t,h)=>h?`같이 조용히 있는 것도 생각보다 괜찮네.`:`기다려 준 건 고마워. 이제 내가 알아서 할게.`}
+  };
+  const ACTIVE_CONTEXT=[
+    t=>`오늘 아침의 ${J(t[1],"은","는")} 이 상태로 남겨두자.`,
+    t=>`짧은 틈이 끝나기 전에 ${t[0]}부터 정리하면 돼.`,
+    t=>`${J(t[1],"을","를")} 다시 꺼낼 때는 지금보다 말을 덜 고르겠지.`,
+    t=>`적어도 ${J(t[0],"이","가")} 머물 자리는 이번에 정해졌어.`,
+    t=>`남겨둔 ${J(t[1],"은","는")} 오늘 답의 증거로 충분해.`,
+    t=>`결정한 뒤에도 ${t[0]}에 관한 생각은 네게 알려줄게.`,
+    t=>`이 침묵이 끝나면 ${t[1]}부터 천천히 움직일 거야.`,
+    t=>`밤이 지나기 전 ${t[0]}만큼은 내 방식으로 마무리하겠어.`
+  ];
+  const SOFT_CONTEXT=[
+    t=>`${t[1]} 사이로 들어온 아침빛이 조금 전보다 편안해 보인다.`,
+    t=>`${J(t[0],"을","를")} 사이에 둔 휴식이 어색하지 않게 이어진다.`,
+    t=>`${J(t[1],"을","를")} 쥔 손에서 더는 경계하는 힘이 느껴지지 않는다.`,
+    t=>`${t[0]}의 자리를 정하는 일이 더 이상 급해 보이지 않는다.`,
+    t=>`방 한쪽의 ${J(t[1],"이","가")} 치워야 할 흔적이 아닌 기억으로 남는다.`,
+    t=>`${t[0]}에 관한 선택이 강요가 아닌 약속에 가까워진다.`,
+    t=>`${t[1]} 곁의 침묵이 이번에는 대화를 피하는 방식으로 느껴지지 않는다.`,
+    t=>`늦은 밤의 ${J(t[0],"이","가")} 둘 사이에 무겁지 않은 여운을 남긴다.`
+  ];
+  const SOFT_SPOKEN_CONTEXT=[
+    t=>`오늘 아침엔 ${J(t[0],"을","를")} 서둘러 끝내지 않아도 되겠네.`,
+    t=>`이 짧은 틈만큼은 ${t[1]}도 잠시 그대로 두지.`,
+    t=>`${J(t[1],"을","를")} 다시 보여줄지는 내가 먼저 정해서 말할게.`,
+    t=>`${t[0]}의 자리는 생각이 정리된 뒤 옮기면 돼.`,
+    t=>`남아 있는 ${t[1]}도 오늘은 흔적이 아니라 기억으로 보이는군.`,
+    t=>`${t[0]}에 대한 선택은 내일 바뀌어도 괜찮다고 생각해.`,
+    t=>`이 침묵 뒤에는 ${t[1]} 이야기를 내가 먼저 꺼낼 수도 있겠어.`,
+    t=>`밤이 끝날 때까지 ${J(t[0],"과","와")} 여기 있어도 괜찮겠네.`
+  ];
+  const activeFirst=(theme,momentIndex,high)=>`${ACTIVE_LEADS[momentIndex%ACTIVE_LEADS.length]}${high?theme[3]:theme[2]}`;
+  const softFirst=(theme,momentIndex,high)=>`${SOFT_FIRST[momentIndex%SOFT_FIRST.length](theme,high)} ${high?theme[3]:theme[2]}`;
+  const closeLine=(char,theme,branch,high,momentIndex)=>{
+    const spoken=CLOSE_BY_STYLE[styleOf(char.id)][branch](theme,high);
+    return branch==="active"
+      ?`${spoken} ${ACTIVE_CONTEXT[momentIndex%ACTIVE_CONTEXT.length](theme)}`
+      :`${spoken} ${SOFT_SPOKEN_CONTEXT[momentIndex%SOFT_SPOKEN_CONTEXT.length](theme)}`;
+  };
+
   const makeEvent=(char,theme,themeIndex,moment,momentIndex,eventIndex)=>{
     const base=`solo-talk-${slug(char.id)}-${String(eventIndex+1).padStart(2,"0")}`;
     const low={affectionCondition:A(char.id,"<",char.threshold)};
     const high={affectionCondition:A(char.id,">=",char.threshold)};
-    const lowText=lineWithVoice(char,theme,momentIndex,false);
-    const highText=lineWithVoice(char,theme,momentIndex,true);
-    const lowEnd=char.endLow[(themeIndex+momentIndex)%char.endLow.length];
-    const highEnd=char.endHigh[(themeIndex+momentIndex)%char.endHigh.length];
-    const after=N(base+"-after",moment.after(char,theme));
-    const mode=momentIndex%6;
-    let entries;
-    if(mode===0){
-      entries=[N(base+"-n",moment.setup(char,theme)),P(base+"-p1",moment.first),D(base+"-low1",char.id,char.name,lowText,low),D(base+"-high1",char.id,char.name,highText,high),P(base+"-p2",moment.follow),D(base+"-low2",char.id,char.name,lowEnd,low),D(base+"-high2",char.id,char.name,highEnd,high)];
-    }else if(mode===1){
-      entries=[N(base+"-n",moment.setup(char,theme)),D(base+"-low0",char.id,char.name,char.guard,low),D(base+"-high0",char.id,char.name,char.warm,high),P(base+"-p1",moment.first),D(base+"-low1",char.id,char.name,theme[2],low),D(base+"-high1",char.id,char.name,theme[3],high),after];
-    }else if(mode===2){
-      entries=[N(base+"-n",moment.setup(char,theme)),P(base+"-p1",moment.first),D(base+"-low1",char.id,char.name,theme[2],low),D(base+"-high1",char.id,char.name,theme[3],high),after];
-    }else if(mode===3){
-      entries=[N(base+"-n",moment.setup(char,theme)),P(base+"-p1",moment.first),D(base+"-low1",char.id,char.name,lowText,low),D(base+"-high1",char.id,char.name,highText,high),after,P(base+"-p2",moment.follow),D(base+"-low2",char.id,char.name,lowEnd,low),D(base+"-high2",char.id,char.name,highEnd,high)];
-    }else if(mode===4){
-      entries=[N(base+"-n",moment.setup(char,theme)),D(base+"-low1",char.id,char.name,theme[2],low),D(base+"-high1",char.id,char.name,theme[3],high),P(base+"-p1",moment.first),after];
-    }else{
-      entries=[N(base+"-n",moment.setup(char,theme)),P(base+"-p1",moment.first),D(base+"-low1",char.id,char.name,lowText,low),D(base+"-high1",char.id,char.name,highText,high),P(base+"-p2",moment.follow),after];
-    }
+    const branch=(kind,label,beat)=>({
+      id:`${base}-${kind}`,
+      label,
+      entries:[
+        D(`${base}-${kind}-low1`,char.id,char.name,kind==="active"?activeFirst(theme,momentIndex,false):softFirst(theme,momentIndex,false),low),
+        D(`${base}-${kind}-high1`,char.id,char.name,kind==="active"?activeFirst(theme,momentIndex,true):softFirst(theme,momentIndex,true),high),
+        N(`${base}-${kind}-n`,naturalize(beat(char,theme),theme)),
+        D(`${base}-${kind}-low2`,char.id,char.name,closeLine(char,theme,kind,false,momentIndex),low),
+        D(`${base}-${kind}-high2`,char.id,char.name,closeLine(char,theme,kind,true,momentIndex),high),
+        ...(kind==="soft"?[N(`${base}-${kind}-after`,SOFT_CONTEXT[momentIndex%SOFT_CONTEXT.length](theme))]:[])
+      ],
+      affectionEffects:[{id:`${base}-${kind}-affection`,characterId:char.id,amount:1}],
+      exitMode:"continue"
+    });
     return{
       id:base,
       name:`SOLO TALK · ${theme[0]} · ${moment.suffix}`,
@@ -399,22 +469,28 @@
       eventRole:"talk",
       menuVisible:true,
       randomEligible:true,
-      entries
+      entries:[
+        N(base+"-n",naturalize(moment.setup(char,theme),theme)),
+        Q(base+"-choice",`${moment.suffix} 상황에서 어떻게 반응할까?`,[
+          branch("active",moment.first,moment.after),
+          branch("soft",moment.follow,(c,t)=>`${moment.suffix}의 긴장을 재촉하지 않자 ${c.display}가 ${t[1]} 곁에서 천천히 호흡을 고른다.`)
+        ])
+      ]
     };
   };
 
   window.HV_STORY_PACKS ||= [];
   for(const char of C){
     const events=[];
-    const moments=FROZEN_VOICE_IDS.has(char.id)?LEGACY_MOMENTS:MOMENTS;
-    for(let themeIndex=0;themeIndex<char.themes.length&&events.length<52;themeIndex++){
-      for(let momentIndex=0;momentIndex<moments.length&&events.length<52;momentIndex++){
-        events.push(makeEvent(char,char.themes[themeIndex],themeIndex,moments[momentIndex],momentIndex,events.length));
-      }
+    const targetCount=["belphegor","leviathan"].includes(char.id)?52:56;
+    for(let eventIndex=0;eventIndex<targetCount;eventIndex++){
+      const themeIndex=eventIndex%char.themes.length;
+      const momentIndex=eventIndex%MOMENTS.length;
+      events.push(makeEvent(char,char.themes[themeIndex],themeIndex,MOMENTS[momentIndex],eventIndex,eventIndex));
     }
     window.HV_STORY_PACKS.push({
       id:"solo-talks-"+slug(char.id),
-      version:FROZEN_VOICE_IDS.has(char.id)?1:2,
+      version:2,
       requiredCharacterIds:[char.id],
       events
     });
