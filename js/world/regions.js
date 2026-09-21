@@ -207,12 +207,28 @@
   }
 
   function readHotelCharacterSettings(){
+    if(window.HV_WORLD_SETTINGS?.read)return window.HV_WORLD_SETTINGS.read();
     try{
       const raw=JSON.parse(localStorage.getItem(HOTEL_SETTINGS_KEY)||"{}");
       return raw&&typeof raw==="object"?raw:{};
     }catch{
       return {};
     }
+  }
+
+  function activeRegionSettings(regionId){
+    const settings=readHotelCharacterSettings();
+    if(window.HV_WORLD_SETTINGS?.region)return window.HV_WORLD_SETTINGS.region(settings,regionId);
+    return {
+      brightness:1,
+      saturation:1,
+      motion:true,
+      showBadge:true,
+      showCharacters:true,
+      showWork:true,
+      maxActors:Math.max(1,Math.min(12,Number(settings.maxActors)||8)),
+      actorLabels:["hover","always","hidden"].includes(settings.actorLabels)?settings.actorLabels:"hover"
+    };
   }
 
   function hash(value){
@@ -280,15 +296,16 @@
     };
   }
 
-  function sceneResidents(){
+  function sceneResidents(regionId){
     const hotel=readHotelCharacterSettings();
-    const max=Math.max(1,Math.min(12,Number(hotel.maxActors)||8));
+    const scene=activeRegionSettings(regionId);
+    if(!scene.showCharacters)return [];
     const manual=hotel.autoResidents===false;
     const residentIds=Array.isArray(hotel.residentIds)?hotel.residentIds:[];
     return enabledCharacters()
       .filter(character=>characterSceneConfig(character).visible)
       .filter(character=>!manual||residentIds.includes(character.id))
-      .slice(0,max);
+      .slice(0,scene.maxActors);
   }
 
   function placementFor(regionId,character,index){
@@ -560,17 +577,25 @@
 
   function renderSceneRegion(){
     const region=regionById(activeRegion);
+    const sceneSettings=activeRegionSettings(region.id);
     settleSceneTasks(region.id);
-    const residents=sceneResidents();
+    const residents=sceneResidents(region.id);
     const actors=residents.map((character,index)=>sceneActorMarkup(region.id,character,index)).join("");
+    const classes=[
+      "world-scene-page",
+      "region-"+region.id,
+      sceneSettings.motion?"":"scene-motion-off",
+      "scene-actor-labels-"+sceneSettings.actorLabels,
+      sceneSettings.showBadge?"":"world-badge-off"
+    ].join(" ");
     pageRoot.innerHTML=
-      '<section class="world-scene-page region-'+esc(region.id)+'">'+
+      '<section class="'+esc(classes)+'" style="--scene-brightness:'+sceneSettings.brightness+';--scene-saturation:'+sceneSettings.saturation+'">'+
         '<header class="world-scene-head world-page-head">'+
           '<div><p class="page-kicker">WORLD · '+esc(String(regions().indexOf(region)+1).padStart(2,"0"))+'</p><h1>'+esc(region.name)+'</h1><p>'+esc(region.subtitle||"")+'</p></div>'+
-          '<div class="world-scene-status"><i></i><span>'+esc(region.status||"OPEN")+'</span><small>'+residents.length+' CHARACTERS</small></div>'+
+          '<div class="world-scene-head-actions"><div class="world-scene-status"><i></i><span>'+esc(region.status||"OPEN")+'</span><small>'+residents.length+' CHARACTERS</small></div><button class="ghost-button" type="button" data-action="world-settings" data-world-settings-region="'+esc(region.id)+'">WORLD SETTINGS</button></div>'+
         '</header>'+
         regionNavMarkup()+
-        sceneWorkDock(region)+
+        (sceneSettings.showWork?sceneWorkDock(region):"")+
         '<div class="world-map-viewport" tabindex="0" aria-label="'+esc(region.name)+' 인터랙티브 지도 · 좌우로 이동 가능">'+
           '<div class="world-scene-shell scene-'+esc(region.id)+'" data-scene-region="'+esc(region.id)+'">'+
             '<div class="world-map-badge"><span>INTERACTIVE MAP</span><strong>'+esc(region.name)+'</strong></div>'+

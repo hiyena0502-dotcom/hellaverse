@@ -2,6 +2,7 @@
 
 (() => {
   const WORLD_STORAGE_KEY = "hellaverse-world-settings-v1";
+  const WORLD_SCENE_STORAGE_KEY = "hellaverse-world-scene-placement-v1";
   const WORLD_CONFIG = window.HV_WORLD_CONFIG || {regions:[]};
   let focusedHotelFloor = "lobby";
   let worldThoughtTimer = null;
@@ -137,6 +138,50 @@
     };
   }
 
+  function worldRegionDefaults(){
+    return {
+      brightness:1,
+      saturation:1,
+      motion:true,
+      showBadge:true,
+      showCharacters:true,
+      showWork:true,
+      maxActors:8,
+      actorLabels:"hover"
+    };
+  }
+
+  function normalizeWorldRegion(raw){
+    const d=worldRegionDefaults();
+    const s=raw&&typeof raw==="object"?raw:{};
+    return {
+      brightness:Math.max(.72,Math.min(1.28,Number(s.brightness)||d.brightness)),
+      saturation:Math.max(.55,Math.min(1.45,Number(s.saturation)||d.saturation)),
+      motion:s.motion!==false,
+      showBadge:s.showBadge!==false,
+      showCharacters:s.showCharacters!==false,
+      showWork:s.showWork!==false,
+      maxActors:Math.max(1,Math.min(12,Number(s.maxActors)||d.maxActors)),
+      actorLabels:["hover","always","hidden"].includes(s.actorLabels)?s.actorLabels:d.actorLabels
+    };
+  }
+
+  function worldRegionSettings(settings,regionId){
+    const source=settings?.regionSettings?.[regionId];
+    if(source)return normalizeWorldRegion(source);
+    if(regionId==="hotel"){
+      return normalizeWorldRegion({
+        brightness:settings?.sceneBrightness,
+        motion:settings?.animation,
+        showCharacters:true,
+        showWork:settings?.showWorkDock,
+        maxActors:settings?.maxActors,
+        actorLabels:settings?.actorLabels
+      });
+    }
+    return worldRegionDefaults();
+  }
+
   function normalizeCharacterWorld(raw){
     const d=characterWorldDefaults();
     const s=raw&&typeof raw==="object"?raw:{};
@@ -162,6 +207,8 @@
   }
 
   function hotelDefaults(){
+    const regionSettings={};
+    WORLD_CONFIG.regions.forEach(region=>{regionSettings[region.id]=worldRegionDefaults()});
     return {
       animation:true,
       neon:true,
@@ -183,7 +230,8 @@
       workStats:defaultWorkStats(),
       residentIds:[],
       floorNames:{},
-      characterWorld:{}
+      characterWorld:{},
+      regionSettings
     };
   }
 
@@ -196,6 +244,17 @@
         characterWorld[id]=normalizeCharacterWorld(value);
       });
     }
+    const regionSettings={};
+    WORLD_CONFIG.regions.forEach(region=>{
+      const legacy=region.id==="hotel"?{
+        brightness:s.sceneBrightness,
+        motion:s.animation,
+        showWork:s.showWorkDock,
+        maxActors:s.maxActors,
+        actorLabels:s.actorLabels
+      }:{};
+      regionSettings[region.id]=normalizeWorldRegion(s.regionSettings?.[region.id]||legacy);
+    });
     return {
       animation:s.animation!==false,
       neon:s.neon!==false,
@@ -217,7 +276,8 @@
       workStats:normalizeWorkStats(s.workStats),
       residentIds:Array.isArray(s.residentIds)?[...new Set(s.residentIds.map(String))]:[],
       floorNames:s.floorNames&&typeof s.floorNames==="object"?{...s.floorNames}:{},
-      characterWorld
+      characterWorld,
+      regionSettings
     };
   }
 
@@ -236,6 +296,19 @@
     localStorage.setItem(WORLD_STORAGE_KEY,JSON.stringify(normalizeHotelSettings(settings)));
   }
 
+  function readScenePlacements(){
+    try{
+      const value=JSON.parse(localStorage.getItem(WORLD_SCENE_STORAGE_KEY)||"{}");
+      return value&&typeof value==="object"?value:{};
+    }catch{
+      return {};
+    }
+  }
+
+  function saveScenePlacements(value){
+    localStorage.setItem(WORLD_SCENE_STORAGE_KEY,JSON.stringify(value&&typeof value==="object"?value:{}));
+  }
+
   function stableNumber(value){
     const text=String(value||"");
     let n=0;
@@ -244,11 +317,13 @@
   }
 
   function currentHotelResidents(settings){
+    const regionSettings=worldRegionSettings(settings,"hotel");
+    if(!regionSettings.showCharacters)return [];
     const chars=enabledCharacters().filter(c=>characterWorldSettings(c,settings).visible);
     const chosen=settings.autoResidents
       ? chars
       : chars.filter(c=>settings.residentIds.includes(c.id));
-    return chosen.slice(0,settings.maxActors);
+    return chosen.slice(0,regionSettings.maxActors);
   }
 
   function actorFloorIndex(character,settings){
@@ -384,7 +459,7 @@
   }
 
   function hotelWorkDock(settings){
-    if(!settings.showWorkDock)return "";
+    if(!worldRegionSettings(settings,"hotel").showWork)return "";
     const workFloors=hotelRegion().floors.slice().reverse().filter(floor=>hotelActivitiesForFloor(floor.id).length);
     const cards=workFloors.map(floor=>{
       return '<div class="hotel-work-slot" data-work-floor="'+esc(floor.id)+'">'+
@@ -527,15 +602,17 @@
   window.renderWorld=function renderWorld(){
     const region=hotelRegion();
     const settings=readHotelSettings();
+    const sceneSettings=worldRegionSettings(settings,"hotel");
     settleHotelActivities(settings);
     const residents=currentHotelResidents(settings);
     const classes=[
       "world-hotel-page",
-      settings.animation?"":"motion-off",
+      sceneSettings.motion?"":"motion-off",
       settings.neon?"":"neon-off",
       settings.particles?"":"particles-off",
       settings.showFloorLabels?"":"floor-labels-off",
-      "actor-labels-"+settings.actorLabels,
+      "actor-labels-"+sceneSettings.actorLabels,
+      sceneSettings.showBadge?"":"world-badge-off",
       settings.compactWorkDock?"work-dock-compact":""
     ].join(" ");
     const floors=region.floors.map((floor,index)=>renderHotelFloor(floor,index,residents,settings)).join("");
@@ -544,13 +621,13 @@
       : "SELECTED · "+residents.length+" VISIBLE";
 
     pageRoot.innerHTML=
-      '<section class="'+classes+'" style="--hotel-ambient-duration:'+(7/settings.motionSpeed)+'s;--hotel-scene-brightness:'+settings.sceneBrightness+'">'+
+      '<section class="'+classes+'" style="--hotel-ambient-duration:'+(7/settings.motionSpeed)+'s;--hotel-scene-brightness:'+sceneSettings.brightness+';--hotel-scene-saturation:'+sceneSettings.saturation+'">'+
         '<header class="world-hotel-head world-page-head">'+
           '<div><p class="page-kicker">WORLD · 01</p><h1>'+esc(region.name)+'</h1><p>'+esc(region.subtitle)+'</p></div>'+
           '<div class="world-hotel-actions">'+
             '<div class="hotel-economy"><small>'+esc(state.gacha.currencyName||"SOUL")+'</small><strong>'+state.gacha.balance+'</strong><span>TODAY +'+settings.workStats.dayEarned+'</span></div>'+
             '<div class="hotel-status"><i></i><span>HOTEL OPEN</span><small>'+esc(residentsText)+'</small></div>'+
-            '<button class="ghost-button" type="button" data-action="hotel-settings">HOTEL SETTINGS</button>'+
+            '<button class="ghost-button" type="button" data-action="world-settings">WORLD SETTINGS</button>'+
           '</div>'+
         '</header>'+
         hotelWorkDock(settings)+
@@ -670,7 +747,7 @@
           '<small>WORLD 전용 이미지. 비어 있으면 기존 캐릭터 이미지를 사용합니다.</small>'+
         '</div>'+
         '<div class="hotel-world-fields">'+
-          '<label class="checkline"><input type="checkbox" data-world-field="visible" '+(cfg.visible?"checked":"")+' /> 호텔에서 표시</label>'+
+          '<label class="checkline"><input type="checkbox" data-world-field="visible" '+(cfg.visible?"checked":"")+' /> 모든 WORLD 지역에서 표시</label>'+
           '<label class="checkline"><input type="checkbox" data-hotel-resident="'+esc(character.id)+'" '+(settings.residentIds.includes(character.id)?"checked":"")+' /> AUTO OFF일 때 수동 목록에 포함</label>'+
           '<label class="field full"><span>WORLD 전용 이미지 URL</span><input type="url" data-world-field="image" data-world-image value="'+esc(cfg.image)+'" placeholder="https://.../character.png" /></label>'+
           '<label class="field"><span>기본 층</span><select data-world-field="floor">'+floorOptions+'</select></label>'+
@@ -716,7 +793,70 @@
     '</label>';
   }
 
-  function openHotelSettings(draftSettings=null,notice=""){
+  function worldRegionEditor(region,settings,focusedRegion){
+    const cfg=worldRegionSettings(settings,region.id);
+    const toggle=(field,label,checked)=>'<label class="world-region-mini-toggle"><input type="checkbox" data-world-region-field="'+field+'" '+(checked?"checked":"")+' /><span></span><b>'+esc(label)+'</b></label>';
+    return '<details class="world-region-setting-card" data-world-region-settings="'+esc(region.id)+'" '+(region.id===focusedRegion?'open':'')+'>'+
+      '<summary><div><span>'+String(WORLD_CONFIG.regions.indexOf(region)+1).padStart(2,"0")+'</span><strong>'+esc(region.name)+'</strong><small>'+esc(region.subtitle||"")+'</small></div><em>'+Math.round(cfg.brightness*100)+'% · '+cfg.maxActors+'명</em></summary>'+
+      '<div class="world-region-setting-body">'+
+        '<div class="world-region-toggle-row">'+
+          toggle("motion","배경 움직임",cfg.motion)+toggle("showBadge","지도 배지",cfg.showBadge)+toggle("showCharacters","캐릭터",cfg.showCharacters)+toggle("showWork","업무 패널",cfg.showWork)+
+        '</div>'+
+        '<div class="world-region-control-grid">'+
+          '<label><span><b>밝기</b><output data-world-region-output="brightness">'+Math.round(cfg.brightness*100)+'%</output></span><input type="range" min=".72" max="1.28" step=".02" value="'+cfg.brightness+'" data-world-region-field="brightness" /></label>'+
+          '<label><span><b>채도</b><output data-world-region-output="saturation">'+Math.round(cfg.saturation*100)+'%</output></span><input type="range" min=".55" max="1.45" step=".05" value="'+cfg.saturation+'" data-world-region-field="saturation" /></label>'+
+          '<label><span><b>최대 등장 인원</b><output data-world-region-output="maxActors">'+cfg.maxActors+'명</output></span><input type="range" min="1" max="12" step="1" value="'+cfg.maxActors+'" data-world-region-field="maxActors" /></label>'+
+          '<label><span><b>이름표</b></span><select data-world-region-field="actorLabels"><option value="hover" '+(cfg.actorLabels==="hover"?"selected":"")+'>가리킬 때만</option><option value="always" '+(cfg.actorLabels==="always"?"selected":"")+'>항상 표시</option><option value="hidden" '+(cfg.actorLabels==="hidden"?"selected":"")+'>표시 안 함</option></select></label>'+
+        '</div>'+
+      '</div>'+
+    '</details>';
+  }
+
+  function defaultWorldPosition(regionId,character,index){
+    if(regionId==="hotel"){
+      const floors=hotelRegion().floors;
+      return {floor:floors[stableNumber(character.id)%Math.max(1,floors.length)]?.id||"lobby",x:8+(stableNumber(character.id)%72)};
+    }
+    const seed=stableNumber(regionId+"|"+character.id);
+    return {x:10+((seed+index*17)%76),y:7+((seed>>4)%10)};
+  }
+
+  function worldPositionCard(region,character,index,settings,placements){
+    const defaults=defaultWorldPosition(region.id,character,index);
+    const cfg=characterWorldSettings(character,settings);
+    const saved=region.id==="hotel"?cfg.placement:placements[region.id]?.[character.id];
+    const x=Math.max(4,Math.min(92,Number(saved?.left??saved?.x??defaults.x)));
+    const y=Math.max(5,Math.min(38,Number(saved?.y??defaults.y??7)));
+    const initials=(character.name||"?").slice(0,2).toUpperCase();
+    const image=cfg.image||character.image||"";
+    const thumb=image?'<img src="'+esc(image)+'" alt="" />':'<span>'+esc(initials)+'</span>';
+    const controls=region.id==="hotel"
+      ? '<label><span>층</span><select data-world-position-floor>'+hotelRegion().floors.map(f=>'<option value="'+esc(f.id)+'" '+((saved?.floor||defaults.floor)===f.id?'selected':'')+'>'+esc(f.number+' · '+floorDisplayName(f,settings))+'</option>').join("")+'</select></label>'+
+        '<label><span>가로 <output data-world-position-output="x">'+Math.round(x)+'%</output></span><input type="range" min="2" max="92" step="1" value="'+x+'" data-world-position-axis="x" /></label>'
+      : '<label><span>가로 <output data-world-position-output="x">'+Math.round(x)+'%</output></span><input type="range" min="4" max="92" step="1" value="'+x+'" data-world-position-axis="x" /></label>'+
+        '<label><span>높이 <output data-world-position-output="y">'+Math.round(y)+'%</output></span><input type="range" min="5" max="38" step="1" value="'+y+'" data-world-position-axis="y" /></label>';
+    return '<article class="world-position-card" data-world-position-card="'+esc(character.id)+'" data-world-position-region="'+esc(region.id)+'" data-default-x="'+defaults.x+'" data-default-y="'+(defaults.y||"")+'" data-default-floor="'+esc(defaults.floor||"")+'">'+
+      '<div class="world-position-character">'+thumb+'<span><strong>'+esc(character.name)+'</strong><small>'+esc(originLabel(character.origin))+'</small></span></div>'+
+      '<div class="world-position-controls">'+controls+'</div>'+
+      '<button type="button" class="ghost-button" data-action="world-position-reset-character" aria-label="'+esc(character.name)+' 위치 기본값">초기화</button>'+
+    '</article>';
+  }
+
+  function worldPositionPanels(chars,settings,focusedRegion){
+    const placements=readScenePlacements();
+    if(!chars.length)return '<p class="editor-note">캐릭터를 등록하면 지역별 위치를 여기서 조절할 수 있습니다.</p>';
+    return '<nav class="world-position-region-nav" aria-label="위치를 설정할 지역">'+WORLD_CONFIG.regions.map(region=>
+      '<button type="button" class="'+(region.id===focusedRegion?'active':'')+'" data-world-position-region-button="'+esc(region.id)+'">'+esc(region.name)+'</button>'
+    ).join("")+'</nav>'+
+    WORLD_CONFIG.regions.map(region=>
+      '<section class="world-position-panel" data-world-position-panel="'+esc(region.id)+'" '+(region.id===focusedRegion?'':'hidden')+'>'+
+        '<div class="world-position-panel-head"><p><strong>'+esc(region.name)+'</strong><span>'+(region.id==="hotel"?'층과 가로 위치를 지정합니다.':'지도 안의 가로·높이 위치를 지정합니다.')+'</span></p><button type="button" class="ghost-button" data-action="world-position-reset-region" data-region="'+esc(region.id)+'">이 지역 모두 초기화</button></div>'+
+        '<div class="world-position-list">'+chars.map((character,index)=>worldPositionCard(region,character,index,settings,placements)).join("")+'</div>'+
+      '</section>'
+    ).join("");
+  }
+
+  function openLegacyHotelSettings(draftSettings=null,notice=""){
     const settings=draftSettings?normalizeHotelSettings(draftSettings):readHotelSettings();
     const chars=enabledCharacters();
     const visibleCount=currentHotelResidents(settings).length;
@@ -806,24 +946,95 @@
       '</section></div>';
     requestAnimationFrame(()=>$(".hotel-settings-modal",modalRoot)?.focus());
   }
+
+  function openWorldSettings(draftSettings=null,notice="",focusedRegion="hotel"){
+    const settings=draftSettings?normalizeHotelSettings(draftSettings):readHotelSettings();
+    const chars=enabledCharacters();
+    const selectedRegion=WORLD_CONFIG.regions.some(region=>region.id===focusedRegion)?focusedRegion:"hotel";
+    const floorInputs=hotelRegion().floors.map(f=>
+      '<label class="hotel-floor-name-card"><span><b>'+esc(f.number)+'</b>'+esc(f.name)+'</span><input type="text" data-hotel-floor-name="'+esc(f.id)+'" value="'+esc(floorDisplayName(f,settings))+'" maxlength="28" /></label>'
+    ).join("");
+    const characterEditors=chars.length
+      ? '<div class="hotel-world-character-list">'+chars.map(c=>characterWorldEditor(c,settings)).join("")+'</div>'
+      : '<p class="editor-note">아직 등록된 캐릭터가 없습니다. 캐릭터를 추가하면 WORLD 전용 모습과 행동을 설정할 수 있습니다.</p>';
+    const regionEditors=WORLD_CONFIG.regions.map(region=>worldRegionEditor(region,settings,selectedRegion)).join("");
+
+    modalRoot.innerHTML=
+      '<div class="modal-backdrop hotel-settings-backdrop" data-close-modal><section class="modal-card hotel-settings-modal" role="dialog" aria-modal="true" aria-labelledby="hotelSettingsTitle" tabindex="-1">'+
+        '<button class="modal-close" type="button" data-close-modal aria-label="닫기" title="닫기">×</button>'+
+        '<header class="hotel-settings-hero">'+
+          '<div><p class="label">WORLD MANAGEMENT</p><h2 id="hotelSettingsTitle">WORLD MAP SETTINGS</h2><p>모든 배경의 연출과 캐릭터 위치를 한곳에서 관리합니다.</p></div>'+
+          '<div class="hotel-settings-summary"><span><b>'+WORLD_CONFIG.regions.length+'</b>배경</span><span><b>'+chars.length+'</b>캐릭터</span><span><b>'+hotelRegion().floors.length+'</b>호텔 층</span></div>'+
+        '</header>'+
+        '<form id="hotelSettingsForm" data-focused-region="'+esc(selectedRegion)+'">'+
+          '<div class="hotel-settings-workspace">'+
+            '<nav class="hotel-settings-tabs" role="tablist" aria-label="WORLD MAP SETTINGS 항목">'+
+              '<button type="button" class="active" role="tab" aria-selected="true" aria-controls="worldSettingsBackground" data-hotel-settings-tab="background"><span>01</span><strong>배경</strong><small>지역별 연출</small></button>'+
+              '<button type="button" role="tab" aria-selected="false" aria-controls="worldSettingsCharacters" data-hotel-settings-tab="characters"><span>02</span><strong>캐릭터</strong><small>모습 · 행동</small></button>'+
+              '<button type="button" role="tab" aria-selected="false" aria-controls="worldSettingsPositions" data-hotel-settings-tab="positions"><span>03</span><strong>위치</strong><small>지역별 배치</small></button>'+
+              '<button type="button" role="tab" aria-selected="false" aria-controls="worldSettingsHotel" data-hotel-settings-tab="hotel"><span>04</span><strong>호텔</strong><small>전용 기능</small></button>'+
+            '</nav>'+
+            '<div class="hotel-settings-content">'+
+              (notice?'<div class="hotel-settings-notice" role="status">'+esc(notice)+'</div>':"")+
+              '<section class="hotel-settings-panel active" id="worldSettingsBackground" role="tabpanel" data-hotel-settings-panel="background">'+
+                '<div class="hotel-settings-panel-head"><div><span>REGION APPEARANCE</span><h3>배경별 설정</h3></div><p>지역마다 밝기, 채도, 움직임과 등장 인원을 따로 저장합니다.</p></div>'+
+                '<div class="world-region-settings-list">'+regionEditors+'</div>'+
+              '</section>'+
+              '<section class="hotel-settings-panel" id="worldSettingsCharacters" role="tabpanel" data-hotel-settings-panel="characters" hidden>'+
+                '<div class="hotel-settings-panel-head"><div><span>CHARACTERS & THOUGHTS</span><h3>캐릭터 공통 설정</h3></div><p>WORLD 전체에서 사용할 모습과 움직임, 말풍선을 설정합니다.</p></div>'+
+                '<div class="hotel-setting-card-grid">'+
+                  hotelToggle("autoResidents","등록 캐릭터 자동 표시","켜면 표시 가능한 캐릭터를 지역별 최대 인원까지 배치합니다.",settings.autoResidents)+
+                  hotelToggle("globalThoughts","THOUGHT 말풍선","캐릭터별 설정과 함께 적용되는 전체 스위치입니다.",settings.globalThoughts)+
+                '</div>'+
+                '<div class="hotel-range-grid">'+
+                  hotelRange("motionSpeed","전체 움직임 속도","캐릭터와 호텔 배경 애니메이션 속도",.5,1.8,.05,settings.motionSpeed)+
+                  hotelRange("thoughtRate","전체 THOUGHT 빈도","캐릭터 말풍선이 나타나는 전체 간격",.5,2,.1,settings.thoughtRate)+
+                '</div>'+
+                '<div class="hotel-settings-subhead"><div><span>CHARACTER WORLD SETTINGS</span><strong>캐릭터별 모습과 행동</strong></div><small>이미지 · 움직임 · 크기 · THOUGHT</small></div>'+
+                '<p class="hotel-settings-help">WORLD 전용 설정만 바뀌며 HOME과 대화 화면의 원본 이미지는 유지됩니다.</p>'+
+                characterEditors+
+              '</section>'+
+              '<section class="hotel-settings-panel" id="worldSettingsPositions" role="tabpanel" data-hotel-settings-panel="positions" hidden>'+
+                '<div class="hotel-settings-panel-head"><div><span>CHARACTER PLACEMENT</span><h3>지역별 캐릭터 위치</h3></div><p>배경을 고른 뒤 각 캐릭터의 위치를 숫자로 정확하게 조절할 수 있습니다.</p></div>'+
+                worldPositionPanels(chars,settings,selectedRegion)+
+              '</section>'+
+              '<section class="hotel-settings-panel" id="worldSettingsHotel" role="tabpanel" data-hotel-settings-panel="hotel" hidden>'+
+                '<div class="hotel-settings-panel-head"><div><span>HOTEL EXTRAS</span><h3>호텔 전용 설정</h3></div><p>호텔에만 있는 장식, 업무 밸런스와 층 이름을 관리합니다.</p></div>'+
+                '<div class="hotel-setting-card-grid">'+
+                  hotelToggle("neon","네온 조명","간판과 조명의 빛 번짐을 표시합니다.",settings.neon)+
+                  hotelToggle("particles","공기 입자와 불빛","하늘의 반짝임과 주변 효과를 표시합니다.",settings.particles)+
+                  hotelToggle("decorativeGuests","빈 층 장식 인물","캐릭터가 없는 층을 실루엣으로 채웁니다.",settings.decorativeGuests)+
+                  hotelToggle("showFloorLabels","층 이름표","호텔 안에서 층 번호와 이름을 표시합니다.",settings.showFloorLabels)+
+                  hotelToggle("compactWorkDock","간단한 업무 카드","업무 카드 높이와 부가 정보를 줄입니다.",settings.compactWorkDock)+
+                '</div>'+
+                '<div class="hotel-range-grid">'+
+                  hotelRange("workRewardMultiplier","보상 배율","호텔 업무를 마쳤을 때 받는 SOUL",.25,5,.05,settings.workRewardMultiplier)+
+                  hotelRange("workDurationMultiplier","소요 시간 배율","낮을수록 호텔 업무가 더 빨리 끝납니다.",.25,3,.05,settings.workDurationMultiplier)+
+                '</div>'+
+                '<div class="hotel-settings-subhead"><div><span>FLOOR MANAGEMENT</span><strong>호텔 층 이름</strong></div><small>지도와 배치 설정에 함께 표시됩니다.</small></div>'+
+                '<div class="hotel-floor-name-grid">'+floorInputs+'</div>'+
+                '<div class="hotel-settings-info"><span>✓</span><p><strong>지역별 업무 표시도 배경 탭에서 조절합니다.</strong> 진행 중인 업무는 패널을 숨겨도 계속 저장되고 완료됩니다.</p></div>'+
+              '</section>'+
+            '</div>'+
+          '</div>'+
+          '<footer class="hotel-settings-actions"><button class="ghost-button" type="button" data-action="world-settings-defaults">기본값 불러오기</button><span>저장을 눌러야 WORLD에 적용됩니다.</span><button class="ghost-button" type="button" data-close-modal>취소</button><button class="gold-button" type="button" data-action="world-settings-save">설정 저장</button></footer>'+
+        '</form>'+
+      '</section></div>';
+    requestAnimationFrame(()=>$(".hotel-settings-modal",modalRoot)?.focus());
+  }
   function collectHotelSettings(){
     const form=$("#hotelSettingsForm",modalRoot);
     if(!form)return readHotelSettings();
     const saved=readHotelSettings();
     const next=hotelDefaults();
-    next.animation=form.elements.animation.checked;
     next.neon=form.elements.neon.checked;
     next.particles=form.elements.particles.checked;
     next.decorativeGuests=form.elements.decorativeGuests.checked;
     next.showFloorLabels=form.elements.showFloorLabels.checked;
-    next.sceneBrightness=Number(form.elements.sceneBrightness.value);
     next.autoResidents=form.elements.autoResidents.checked;
-    next.maxActors=Number(form.elements.maxActors.value);
     next.motionSpeed=Number(form.elements.motionSpeed.value);
-    next.actorLabels=form.elements.actorLabels.value;
     next.globalThoughts=form.elements.globalThoughts.checked;
     next.thoughtRate=Number(form.elements.thoughtRate.value);
-    next.showWorkDock=form.elements.showWorkDock.checked;
     next.compactWorkDock=form.elements.compactWorkDock.checked;
     next.workRewardMultiplier=Number(form.elements.workRewardMultiplier.value);
     next.workDurationMultiplier=Number(form.elements.workDurationMultiplier.value);
@@ -847,12 +1058,56 @@
         movement:field("movement")?.value||"wander",
         speed:field("speed")?.value,
         scale:field("scale")?.value,
-        placement:form.dataset.resetPlacements==="true"?null:(floor===previous.floor?previous.placement:null),
+        placement:floor===previous.floor?previous.placement:null,
         thoughts:field("thoughts")?.checked,
         thoughtFrequency:field("thoughtFrequency")?.value||"normal"
       });
     });
+    next.regionSettings={};
+    $$("[data-world-region-settings]",form).forEach(card=>{
+      const field=name=>card.querySelector('[data-world-region-field="'+name+'"]');
+      next.regionSettings[card.dataset.worldRegionSettings]=normalizeWorldRegion({
+        brightness:field("brightness")?.value,
+        saturation:field("saturation")?.value,
+        motion:field("motion")?.checked,
+        showBadge:field("showBadge")?.checked,
+        showCharacters:field("showCharacters")?.checked,
+        showWork:field("showWork")?.checked,
+        maxActors:field("maxActors")?.value,
+        actorLabels:field("actorLabels")?.value
+      });
+    });
+    $$("[data-world-position-card][data-world-position-region=\"hotel\"]",form).forEach(card=>{
+      const id=card.dataset.worldPositionCard;
+      if(!next.characterWorld[id])return;
+      next.characterWorld[id].placement={
+        floor:card.querySelector("[data-world-position-floor]")?.value||card.dataset.defaultFloor,
+        left:Number(card.querySelector('[data-world-position-axis="x"]')?.value)||Number(card.dataset.defaultX)
+      };
+    });
+    const hotelScene=next.regionSettings.hotel||worldRegionDefaults();
+    next.animation=hotelScene.motion;
+    next.sceneBrightness=hotelScene.brightness;
+    next.maxActors=hotelScene.maxActors;
+    next.actorLabels=hotelScene.actorLabels;
+    next.showWorkDock=hotelScene.showWork;
     return normalizeHotelSettings(next);
+  }
+
+  function collectScenePlacements(){
+    const form=$("#hotelSettingsForm",modalRoot);
+    const placements=readScenePlacements();
+    if(!form)return placements;
+    WORLD_CONFIG.regions.filter(region=>region.id!=="hotel").forEach(region=>{
+      placements[region.id]={};
+      $$("[data-world-position-card][data-world-position-region=\""+region.id+"\"]",form).forEach(card=>{
+        placements[region.id][card.dataset.worldPositionCard]={
+          x:Number(card.querySelector('[data-world-position-axis="x"]')?.value)||Number(card.dataset.defaultX),
+          y:Number(card.querySelector('[data-world-position-axis="y"]')?.value)||Number(card.dataset.defaultY)
+        };
+      });
+    });
+    return placements;
   }
 
   function activateHotelSettingsTab(tabId){
@@ -874,6 +1129,40 @@
     if(!input?.name)return;
     const output=$("[data-hotel-output=\""+input.name+"\"]",modalRoot);
     if(output)output.textContent=hotelSettingValue(input.name,Number(input.value));
+  }
+
+  function syncWorldRegionRange(input){
+    const card=input?.closest("[data-world-region-settings]");
+    const field=input?.dataset.worldRegionField;
+    if(!card||!field)return;
+    const output=card.querySelector('[data-world-region-output="'+field+'"]');
+    if(output)output.textContent=field==="maxActors"?Math.round(Number(input.value))+"명":Math.round(Number(input.value)*100)+"%";
+    const summary=card.querySelector("summary em");
+    const brightness=card.querySelector('[data-world-region-field="brightness"]');
+    const maxActors=card.querySelector('[data-world-region-field="maxActors"]');
+    if(summary&&brightness&&maxActors)summary.textContent=Math.round(Number(brightness.value)*100)+"% · "+Math.round(Number(maxActors.value))+"명";
+  }
+
+  function syncWorldPositionRange(input){
+    const card=input?.closest("[data-world-position-card]");
+    const axis=input?.dataset.worldPositionAxis;
+    if(!card||!axis)return;
+    const output=card.querySelector('[data-world-position-output="'+axis+'"]');
+    if(output)output.textContent=Math.round(Number(input.value))+"%";
+  }
+
+  function activateWorldPositionRegion(regionId){
+    $$("[data-world-position-region-button]",modalRoot).forEach(button=>button.classList.toggle("active",button.dataset.worldPositionRegionButton===regionId));
+    $$("[data-world-position-panel]",modalRoot).forEach(panel=>{panel.hidden=panel.dataset.worldPositionPanel!==regionId});
+  }
+
+  function resetWorldPositionCard(card){
+    const x=card.querySelector('[data-world-position-axis="x"]');
+    const y=card.querySelector('[data-world-position-axis="y"]');
+    const floor=card.querySelector("[data-world-position-floor]");
+    if(x){x.value=card.dataset.defaultX;syncWorldPositionRange(x)}
+    if(y){y.value=card.dataset.defaultY;syncWorldPositionRange(y)}
+    if(floor)floor.value=card.dataset.defaultFloor;
   }
 
   function applyHotelPreset(name){
@@ -1050,8 +1339,8 @@
     const button=event.target.closest("[data-action]");
     if(!button)return;
     const action=button.dataset.action;
-    if(action==="hotel-settings"){
-      openHotelSettings();
+    if(action==="world-settings"||action==="hotel-settings"){
+      openWorldSettings(null,"",button.dataset.worldSettingsRegion||"hotel");
     }else if(action==="hotel-floor-info"){
       openHotelFloorInfo(button.dataset.floor);
     }else if(action==="hotel-job-start"){
@@ -1064,6 +1353,10 @@
   modalRoot.addEventListener("input",event=>{
     const range=event.target.closest("[data-hotel-range]");
     if(range)syncHotelRange(range);
+    const regionRange=event.target.closest('[data-world-region-field][type="range"]');
+    if(regionRange)syncWorldRegionRange(regionRange);
+    const positionRange=event.target.closest("[data-world-position-axis]");
+    if(positionRange)syncWorldPositionRange(positionRange);
     const input=event.target.closest("[data-world-image]");
     if(!input)return;
     const card=input.closest("[data-world-character-card]");
@@ -1085,29 +1378,34 @@
       activateHotelSettingsTab(tab.dataset.hotelSettingsTab);
       return;
     }
-    const preset=event.target.closest("[data-hotel-preset]");
-    if(preset){
-      applyHotelPreset(preset.dataset.hotelPreset);
+    const regionButton=event.target.closest("[data-world-position-region-button]");
+    if(regionButton){
+      activateWorldPositionRegion(regionButton.dataset.worldPositionRegionButton);
       return;
     }
     const button=event.target.closest("[data-action]");
     if(!button)return;
-    if(button.dataset.action==="hotel-settings-save"){
+    if(button.dataset.action==="world-settings-save"){
       saveHotelSettings(collectHotelSettings());
+      saveScenePlacements(collectScenePlacements());
       closeModal();
       renderWorld();
-      showToast("HOTEL SETTINGS SAVED");
-    }else if(button.dataset.action==="hotel-settings-defaults"){
-      openHotelSettings(hotelDefaults(),"기본값을 불러왔습니다. 저장하기 전까지는 WORLD에 적용되지 않습니다.");
-    }else if(button.dataset.action==="hotel-placement-reset"){
+      showToast("WORLD MAP SETTINGS SAVED");
+    }else if(button.dataset.action==="world-settings-defaults"){
       const form=$("#hotelSettingsForm",modalRoot);
-      if(!form)return;
-      const active=form.dataset.resetPlacements!=="true";
-      form.dataset.resetPlacements=active?"true":"false";
-      button.classList.toggle("active",active);
-      button.textContent=active?"초기화 예약 취소":"배치 초기화 예약";
-      const state=$("[data-hotel-placement-state]",form);
-      if(state)state.textContent=active?"저장하면 모든 캐릭터가 기본 층과 위치로 돌아갑니다.":"현재 저장된 위치를 유지합니다.";
+      openWorldSettings(hotelDefaults(),"배경과 캐릭터 설정의 기본값을 불러왔습니다. 위치는 그대로 유지됩니다.",form?.dataset.focusedRegion||"hotel");
+    }else if(button.dataset.action==="world-position-reset-character"){
+      const card=button.closest("[data-world-position-card]");
+      if(card)resetWorldPositionCard(card);
+    }else if(button.dataset.action==="world-position-reset-region"){
+      const panel=button.closest("[data-world-position-panel]");
+      $$("[data-world-position-card]",panel).forEach(resetWorldPositionCard);
     }
   });
+
+  window.HV_WORLD_SETTINGS={
+    read:readHotelSettings,
+    region:(settings,regionId)=>worldRegionSettings(settings,regionId),
+    open:openWorldSettings
+  };
 })();

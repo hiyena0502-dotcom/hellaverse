@@ -103,10 +103,14 @@ assert.match(editorUi,/data-entry-field="speakerCharacterId"/,"speaker image sel
 assert.match(editorEvents,/data-action="validation-jump"/,"validation issue navigation missing");
 assert.match(read("js/world/regions.js"),/currentPage!=="world"\|\|activeRegion!==regionId/,"WORLD timer must stop outside WORLD");
 assert.match(read("js/world/hotel.js"),/actorLabels:\["hover","always","hidden"\]/,"hotel actor label modes missing");
-assert.match(read("js/world/hotel.js"),/if\(!settings\.showWorkDock\)return ""/,"hotel work dock visibility setting missing");
+assert.match(read("js/world/hotel.js"),/worldRegionSettings\(settings,"hotel"\)\.showWork/,"hotel work dock must use shared region visibility settings");
 assert.match(read("js/world/hotel.js"),/if\(!currentSettings\.globalThoughts\)return/,"global hotel THOUGHT switch missing");
-assert.match(read("js/world/hotel.js"),/data-hotel-settings-tab="scene"/,"tabbed hotel settings navigation missing");
-assert.match(read("js/world/hotel.js"),/data-action="hotel-placement-reset"/,"non-destructive hotel placement reset missing");
+assert.match(read("js/world/hotel.js"),/WORLD MAP SETTINGS/,"shared WORLD MAP SETTINGS title missing");
+assert.match(read("js/world/hotel.js"),/data-hotel-settings-tab="background"/,"WORLD background settings tab missing");
+assert.match(read("js/world/hotel.js"),/data-hotel-settings-tab="positions"/,"WORLD character position tab missing");
+assert.match(read("js/world/hotel.js"),/data-world-region-settings/,"per-region background settings missing");
+assert.match(read("js/world/hotel.js"),/data-world-position-axis/,"per-region character coordinates missing");
+assert.match(read("js/world/regions.js"),/data-action="world-settings"/,"WORLD settings must be available outside the hotel");
 assert.ok(!read("js/world/hotel.js").includes('data-action="hotel-settings-reset"'),"hotel settings must not expose immediate destructive reset");
 assert.match(read("css/world.css"),/\.hotel-settings-workspace\{[\s\S]*?grid-template-columns:205px minmax\(0,1fr\)/,"desktop hotel settings workspace missing");
 assert.match(read("css/world.css"),/@media\(max-width:820px\)[\s\S]*?\.hotel-settings-tabs\{[\s\S]*?flex-direction:row/ ,"mobile hotel settings tabs missing");
