@@ -585,8 +585,8 @@ assert.ok(!/예전 질문/.test(tunedDialogueSyncCheck.askText),"existing saves 
 assert.equal(tunedDialogueSyncCheck.version,6,"tuned dialogue sync must advance preset version");
 context.window.HV_STORY_PACKS.length=storyPackCountBeforeTuning;
 
-assert.match(characterEventCode,/id:"angel"[sS]*?threshold:60[sS]*?유료 서비스/,"Angel base TALK tuning missing");
-assert.match(characterEventCode,/id:"adam"[sS]*?threshold:62[sS]*?섹스 없는 자랑질/,"Adam base TALK tuning missing");
+assert.match(characterEventCode,/id:"angel".*?threshold:60.*?유료 서비스/s,"Angel base TALK tuning missing");
+assert.match(characterEventCode,/id:"adam".*?threshold:62.*?섹스 없는 자랑질/s,"Adam base TALK tuning missing");
 assert.match(itemPresetCode,/플로리다 관광 기념품/,"Valentino gift voice tuning missing");
 assert.match(itemPresetCode,/알고리즘이 나한테 개인적으로 사과/,"Velvette gift voice tuning missing");
 
