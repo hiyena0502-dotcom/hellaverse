@@ -481,7 +481,7 @@
     });
     if(currentVersion>=VERSION&&!needsReactionRepair)return{state:source,changed:false};
 
-    const applyWeights=currentVersion<VERSION;
+    const applyWeights=currentVersion<3;
     for(const item of source.items){
       if(applyWeights){
         const nextWeight=individualWeight(item);
