@@ -271,7 +271,49 @@ assert.ok(itemPresetCheck.first.some(line=>/최고의 아빠/.test(line)),"FIRST
 assert.ok(itemPresetCheck.repeat.length>0,"REPEAT GIFT flow must be populated");
 assert.ok(itemPresetCheck.special.length>0,"SPECIAL gift flow must be populated");
 assert.ok(itemPresetCheck.specialMinAffection>0,"SPECIAL affection rule must be populated");
-assert.equal(itemPresetCheck.itemPresetVersion,1,"item preset version marker missing");
+assert.equal(itemPresetCheck.itemPresetVersion,2,"item preset version marker missing");
+
+const itemPresetRepairCheck=vm.runInContext(`
+(()=>{
+  const source=normalizeState({
+    schemaVersion:4,
+    itemPresetVersion:2,
+    characters:[{id:"lucifer-morningstar",name:"Lucifer Morningstar",origin:"hellborn"}],
+    items:[{
+      id:"lucifer-letter-test",
+      name:"찰리에게 보내려다 만 편지",
+      rarity:"EPIC",
+      collectionCharacterId:"lucifer-morningstar",
+      giftable:true,
+      gachaEnabled:true,
+      weight:.77,
+      reactions:[{
+        id:"blank-reaction",
+        characterId:"lucifer-morningstar",
+        preference:"LIKED",
+        affectionDelta:3,
+        firstEntries:[],
+        repeatEntries:[],
+        specialEntries:[]
+      }]
+    }]
+  });
+  const installed=installStoryPacks(source);
+  const reaction=installed.state.items[0].reactions[0];
+  return{
+    changed:installed.changed,
+    weight:installed.state.items[0].weight,
+    first:reaction.firstEntries.length,
+    repeat:reaction.repeatEntries.length,
+    special:reaction.specialEntries.length
+  };
+})()
+`,context);
+assert.equal(itemPresetRepairCheck.changed,true,"blank CHARACTER REACTIONS must repair even when preset version is current");
+assert.equal(itemPresetRepairCheck.weight,.77,"repair-only pass must preserve a user-edited current-version gacha weight");
+assert.ok(itemPresetRepairCheck.first>0,"blank FIRST GIFT flow must repair");
+assert.ok(itemPresetRepairCheck.repeat>0,"blank REPEAT GIFT flow must repair");
+assert.ok(itemPresetRepairCheck.special>0,"blank SPECIAL flow must repair");
 
 const aliasPackInstall=vm.runInContext(`
 (()=>{
