@@ -55,3 +55,138 @@
 .collection-gacha-reveal{margin:14px 0;padding:13px 14px;border-left:2px solid var(--gold);background:rgba(201,166,107,.05)}
 .collection-gacha-reveal small{color:var(--gold);font-size:.62rem;letter-spacing:.12em}
 .collection-gacha-reveal p{margin:7px 0 0;white-space:pre-wrap;line-height:1.65}
+
+
+/* v42 · collapsible character archives + Gacha profiles */
+.collection-preview-group{
+  margin:14px 0;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:rgba(21,16,20,.48);
+  overflow:hidden
+}
+.collection-group-toggle{
+  width:100%;
+  min-height:78px;
+  display:grid;
+  grid-template-columns:46px minmax(0,1fr) auto 34px;
+  gap:12px;
+  align-items:center;
+  padding:14px 16px;
+  border:0;
+  background:transparent;
+  color:var(--text);
+  text-align:left
+}
+.collection-group-toggle:hover{background:rgba(255,255,255,.025)}
+.collection-group-profile-icon{
+  display:grid;
+  place-items:center;
+  width:42px;
+  height:42px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:rgba(11,8,10,.62);
+  font-size:1.65rem;
+  line-height:1
+}
+.collection-group-title{display:grid;gap:3px;min-width:0}
+.collection-group-title small{
+  color:var(--gold);
+  font-size:.58rem;
+  letter-spacing:.12em
+}
+.collection-group-title strong{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-family:Georgia,serif;
+  font-size:1.08rem;
+  font-weight:500
+}
+.collection-group-progress{
+  color:var(--muted);
+  font-size:.72rem;
+  white-space:nowrap
+}
+.collection-group-chevron{
+  display:grid;
+  place-items:center;
+  width:30px;
+  height:30px;
+  border:1px solid var(--line);
+  border-radius:50%;
+  color:var(--gold);
+  font-size:1rem
+}
+.collection-group-body{
+  padding:0 16px 18px;
+  border-top:1px solid var(--line)
+}
+.collection-gacha-profile{
+  margin:16px 0 14px;
+  padding:15px;
+  border:1px solid rgba(201,166,107,.2);
+  border-radius:10px;
+  background:rgba(201,166,107,.045)
+}
+.collection-gacha-profile-head{
+  display:grid;
+  grid-template-columns:54px minmax(0,1fr);
+  gap:12px;
+  align-items:start
+}
+.collection-gacha-profile-head small{
+  display:block;
+  margin-bottom:4px;
+  color:var(--gold);
+  font-size:.58rem;
+  letter-spacing:.12em
+}
+.collection-gacha-profile-head strong{
+  display:block;
+  font-family:Georgia,serif;
+  font-size:1.02rem;
+  font-weight:500
+}
+.collection-gacha-profile-head p{
+  margin:6px 0 0;
+  color:var(--muted);
+  font-size:.76rem;
+  line-height:1.55
+}
+.collection-group-body>.collection-progress-track{margin:12px 0 16px}
+.collection-group-body>.collection-grid{padding-bottom:4px}
+.collection-group-empty{
+  padding:24px 4px 8px;
+  color:var(--muted);
+  font-size:.78rem
+}
+.collection-group-static{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:16px
+}
+.collection-group-static h3{margin:0;font-family:Georgia,serif;font-weight:500}
+.collection-group-static span{color:var(--muted);font-size:.7rem}
+
+@media(max-width:700px){
+  .collection-group-toggle{
+    grid-template-columns:42px minmax(0,1fr) 30px;
+    min-height:70px;
+    padding:12px
+  }
+  .collection-group-progress{
+    grid-column:2 / 3;
+    grid-row:2;
+    margin-top:-7px
+  }
+  .collection-group-chevron{
+    grid-column:3;
+    grid-row:1 / span 2
+  }
+  .collection-group-body{padding:0 12px 14px}
+  .collection-gacha-profile-head{grid-template-columns:44px minmax(0,1fr)}
+}
