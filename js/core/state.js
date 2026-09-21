@@ -1189,6 +1189,28 @@ function installStoryPacks(source){
       }
     };
 
+    // Pool TALK packs changed generation structure several times.
+    // Older generated events can have different IDs while sharing the same TALK title,
+    // leaving obsolete PLAYER-first conversations beside the current character-first ones.
+    // On an upgrade, remove every previously generated TALK event for that character
+    // before installing the current pack.
+    if(isUpgrade&&String(pack.id||"").startsWith("pooltalk-52-")){
+      const currentEvents=Array.isArray(pack.events)?pack.events:[];
+      const currentCharacterIds=new Set(currentEvents.map(event=>String(event.characterId||"")).filter(Boolean));
+      const currentNames=new Set(currentEvents.map(event=>String(event.name||"")).filter(Boolean));
+      const beforeCount=(source.events||[]).length;
+      source.events=(source.events||[]).filter(event=>{
+        const name=String(event?.name||"");
+        const id=String(event?.id||"");
+        const characterId=String(event?.characterId||"");
+        if(currentNames.has(name))return false;
+        if(currentCharacterIds.has(characterId)&&name.startsWith("TALK · "))return false;
+        if(currentCharacterIds.has(characterId)&&id.startsWith("pooltalk-"))return false;
+        return true;
+      });
+      if(source.events.length!==beforeCount)changed=true;
+    }
+
     (pack.variables||[]).forEach(variable=>upsertById(source.variables,variable,normalizeVariable));
     (pack.events||[]).forEach(event=>upsertById(source.events,event,normalizeEvent));
     (pack.asks||[]).forEach(ask=>upsertById(source.asks,ask,normalizeAsk));
