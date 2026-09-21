@@ -386,18 +386,40 @@
 
   const closeLow=(c,t,key)=>{
     const r=register(c),n=hash(key)%4;
-    const tail=r==="formal"?" 제 기준은 여전히 "+c.rule+".":r==="archaic"?" 내 기준은 여전히 "+c.rule+".":" 내 기준은 여전히 "+c.rule+".";
-    if(r==="formal")return ["‘"+t+"’에 관해서는 지금 이 정도까지만 말씀드리겠습니다.","‘"+t+"’에 대한 제 답은 여기까지입니다.","지금은 ‘"+t+"’을 더 단순하게 정리하고 싶지 않습니다.","‘"+t+"’에 관해서는 제가 먼저 더 말할 때까지 두는 편이 좋겠습니다."][n]+tail;
-    if(r==="archaic")return ["‘"+t+"’ 이야기는 지금 이 정도로 해두지.","‘"+t+"’에 관한 내 답은 여기까지요.","지금은 ‘"+t+"’을 더 단순히 만들고 싶지 않소.","‘"+t+"’ 이야기는 내가 먼저 더 꺼낼 때까지 두는 것이 좋겠군."][n]+tail;
-    return ["‘"+t+"’ 얘기는 지금 이 정도까지만 하자.","‘"+t+"’에 대한 내 답은 여기까지야.","지금은 ‘"+t+"’을 더 단순하게 만들고 싶지 않아.","‘"+t+"’ 얘기는 내가 먼저 더 꺼낼 때까지 두자."][n]+tail;
+    if(r==="formal")return ["‘"+t+"’ 이야기는 이 정도면 충분하겠습니다.","‘"+t+"’에 관한 제 의견은 여기까지만 하지요.","이제 ‘"+t+"’ 말고 다른 화제로 넘어가죠.","‘"+t+"’은 실제 상황이 생기면 다시 보겠습니다."][n];
+    if(r==="archaic")return ["‘"+t+"’ 이야기는 이 정도면 충분하오.","‘"+t+"’에 관한 내 말은 여기까지만 하지.","이제 ‘"+t+"’ 말고 다른 화제로 돌리세.","‘"+t+"’은 실제 일이 닥치면 다시 보도록 하지."][n];
+    return ["‘"+t+"’ 얘기는 이 정도면 됐어.","‘"+t+"’에 대한 내 말은 여기까지만.","이제 ‘"+t+"’ 말고 다른 얘기 하자.","‘"+t+"’은 실제로 터지면 그때 다시 보지 뭐."][n];
   };
   const closeHigh=(c,t,key)=>{
     const r=register(c),n=hash(key)%4;
-    const tail=r==="formal"?" 그리고 "+c.soft+".":r==="archaic"?" 그리고 "+c.soft+".":" 그리고 "+c.soft+".";
-    if(r==="formal")return ["‘"+t+"’ 이야기를 당신과 여기까지 할 수 있게 된 것도 꽤 큰 변화입니다.","이제는 ‘"+t+"’ 같은 주제를 당신 앞에서 굳이 피하지 않아도 되겠군요.","‘"+t+"’에 관한 생각이 더 달라지면 다음에는 제가 먼저 말할 수도 있겠습니다.","오늘 ‘"+t+"’ 이야기를 이 정도까지 한 것을 후회하지는 않을 것 같습니다."][n]+tail;
-    if(r==="archaic")return ["‘"+t+"’ 이야기를 그대와 여기까지 나누게 된 것도 제법 큰 변화로군.","이제는 ‘"+t+"’ 같은 화두를 그대 앞에서 굳이 피할 까닭은 없겠소.","‘"+t+"’에 관한 생각이 더 달라진다면 다음에는 내가 먼저 꺼낼 수도 있겠구려.","오늘 ‘"+t+"’ 이야기를 이만큼 나눈 것을 후회하진 않을 듯하오."][n]+tail;
-    return ["‘"+t+"’ 얘기를 너랑 여기까지 할 수 있게 된 것도 꽤 큰 변화야.","이제는 ‘"+t+"’ 같은 주제를 네 앞에서 굳이 피할 필요는 없겠네.","‘"+t+"’에 대한 생각이 더 달라지면 다음엔 내가 먼저 말할 수도 있겠어.","오늘 ‘"+t+"’ 얘기를 이 정도까지 한 건 후회하지 않을 것 같아."][n]+tail;
+    if(r==="formal")return ["‘"+t+"’ 이야기는 오늘 꽤 편하게 했군요.","‘"+t+"’은 다음에 상황이 생기면 다시 이야기해도 되겠습니다.","이 정도면 ‘"+t+"’에 관한 제 반응은 충분히 보셨겠지요.","‘"+t+"’은 여기서 마치고 조금 가벼운 화제로 가죠."][n];
+    if(r==="archaic")return ["‘"+t+"’ 이야기는 오늘 제법 편히 나누었구려.","‘"+t+"’은 다음에 일이 생기면 다시 이야기해도 되겠소.","이 정도면 ‘"+t+"’에 관한 내 반응은 충분히 보았겠지.","‘"+t+"’은 여기서 마치고 조금 가벼운 화제로 가지."][n];
+    return ["‘"+t+"’ 얘기는 오늘 꽤 편하게 했네.","‘"+t+"’은 다음에 실제로 생기면 또 얘기해도 되겠어.","이 정도면 ‘"+t+"’에 대한 내 반응은 충분히 봤지?","‘"+t+"’은 여기서 끝내고 좀 가벼운 얘기 하자."][n];
   };
+
+  const PERSONAL_TOPIC_RX={
+    "lucifer-morningstar":/찰리|릴리스|추락|타락|숙청|엑소시스트|아담의 죽음|천국.*(심판|책임|규칙에 이의|죄)|Sera|Lute/,
+    "sera":/숙청|엑소시스트|Sera를|아담의 죽음|천국.*사과|천국.*책임/,
+    "lute":/아담|숙청|엑소시스트|상실|천국.*사과/,
+    "adam":/아담의 죽음|숙청.*책임|엑소시스트.*책임/,
+    "vaggie":/숙청|엑소시스트|전직 엑소시스트|천사 무기/,
+    "alastor":/자신의 영혼|영혼.*계약|계약.*영혼|살아 있을 때|생전|인간 시절|과거/,
+    "vox":/복스와 알래스터|알래스터|전쟁 선동/,
+    "angel-dust":/발렌티노|살아 있을 때|생전|인간 시절|가족|사랑받을 자격|쓸모/,
+    "husk":/영혼.*계약|계약.*영혼|살아 있을 때|생전|인간 시절|과거/,
+    "blitzo":/스톨라스|부모|가족|형제|버림|어린 시절|과거|사랑받을 자격/,
+    "paimon":/스톨라스|자녀|부모|가족|아버지/,
+    "asmodeus":/Fizz|피즈|오지.*피즈/,
+    "cherri-bomb":/펜셔스|Pentious|그리워|상실/,
+    "carmilla-carmine":/딸|가족/,
+    "abel":/아담|아버지|가족/,
+    "stolas":/블리츠|옥타비아|Octavia|이혼|자녀|부모|가족/,
+    "loona":/블리츠|아빠|입양|가족|버려/,
+    "moxxie":/아버지|크림슨|가족/,
+    "fizzarolli":/블리츠|사고|흉터|쓸모|사랑받을 자격/,
+    "octavia":/부모|아빠|이혼|가족|스톨라스/
+  };
+  const isPersonalFor=(c,t)=>Boolean(PERSONAL_TOPIC_RX[c.id]?.test(t.title));
 
   const SENSITIVE_CAP={
     "lucifer-morningstar":7,"charlie-morningstar":7,"sera":7,"lute":6,"adam":5,"vaggie":7,"alastor":6,"vox":5,"niffty":3,
@@ -427,9 +449,9 @@
   };
 
   const make=(c,t,n)=>{
-    const tg=primary(c,t),sen=isSensitive(t),easy=tags(t).some(x=>c.easy.includes(x));
+    const tg=primary(c,t),sen=isSensitive(t),personal=isPersonalFor(c,t),easy=tags(t).some(x=>c.easy.includes(x));
     const lockRate=c.t>=60?45:c.t>=55?40:35;
-    const highOnly=sen&&!easy&&(hash(c.id+"::"+t.id+"::lock")%100<lockRate);
+    const highOnly=(personal||(sen&&!easy))&&(hash(c.id+"::"+t.id+"::lock")%100<lockRate);
     const id="pooltalk-"+slug(c.id)+"-"+String(n+1).padStart(2,"0")+"-"+slug(t.id);
     const st=setup[(hash(id+"s")+n)%setup.length](pick(c.a,id+"a"),t.title);
     const qLow=OPEN_LOW[(hash(id+"ql")+n)%OPEN_LOW.length](t.title);
@@ -438,7 +460,7 @@
     const fHigh=FOLLOW_HIGH[(hash(id+"fh")+n)%FOLLOW_HIGH.length](t.title);
 
     let lo1,hi1,lo2,hi2;
-    if(sen){
+    if(personal){
       lo1=deflectFor(c,false,id+"dl");
       hi1=deflectFor(c,true,id+"dh");
       lo2=deflectFor(c,false,id+"dl2")+" ‘"+t.title+"’ 얘기는 이 정도면 충분해.";
@@ -448,8 +470,10 @@
       const reg=register(c);
       const loSet=reg==="formal"?lowFormal:reg==="archaic"?lowArchaic:lowCasual;
       const hiSet=reg==="formal"?highFormal:reg==="archaic"?highArchaic:highCasual;
-      lo1=loSet[(hash(id+"l")+n)%loSet.length](pick(c.guard,id+"g"),cue,"그냥 복잡하게 만들지 않고 현실적으로 보는 편이야");
-      hi1=hiSet[(hash(id+"h")+n)%hiSet.length](pick(c.warm,id+"w"),cue,"그래도 요즘은 네 반응도 조금 신경 쓰게 돼");
+      const plain=reg==="formal"?"저는 굳이 복잡하게 만들기보다 실제 상황부터 보는 편입니다":reg==="archaic"?"나는 굳이 복잡히 만들기보다 실제 상황부터 보는 편이오":"난 굳이 복잡하게 만들기보다 실제 상황부터 보는 편이야";
+      const friendly=reg==="formal"?"당신과 이야기할 때는 제 반응도 조금 더 편하게 나오는군요":reg==="archaic"?"그대와 이야기할 때는 내 반응도 조금 더 편히 나오는구려":"너랑 얘기할 때는 내 반응도 조금 더 편하게 나오네";
+      lo1=loSet[(hash(id+"l")+n)%loSet.length](pick(c.guard,id+"g"),cue,plain);
+      hi1=hiSet[(hash(id+"h")+n)%hiSet.length](pick(c.warm,id+"w"),cue,friendly);
       lo2=closeLow(c,t.title,id+"lc");
       hi2=closeHigh(c,t.title,id+"hc");
     }
@@ -481,6 +505,6 @@
   window.HV_STORY_PACKS ||= [];
   for(const c of PFS){
     const list=chosen(c);
-    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:2,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
+    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:3,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
   }
 })();
