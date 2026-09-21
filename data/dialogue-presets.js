@@ -1,7 +1,7 @@
 "use strict";
 
 (()=>{
-  const VERSION=1;
+  const VERSION=2;
   const key=value=>String(value||"").normalize("NFKC").trim().toLowerCase().replace(/[^a-z0-9가-힣]+/g,"");
   const hash=value=>{
     let h=2166136261;
@@ -17,9 +17,13 @@
   };
   const roleOf=event=>{
     const explicit=String(event.eventRole||"").toLowerCase();
-    if(["entry","exit","story"].includes(explicit))return explicit;
-    if(/^\s*ENTRY(?:\s*[·:|\-]|\s|$)/i.test(event.name||""))return"entry";
-    if(/^\s*EXIT(?:\s*[·:|\-]|\s|$)/i.test(event.name||""))return"exit";
+    const id=String(event.id||"");
+    const name=String(event.name||"");
+    const legacyActionId=/(?:^|-)act(?:-|\d|$)/i.test(id)||/(?:^|-)action(?:-|\d|$)/i.test(id);
+    if(["entry","exit","story","action"].includes(explicit))return explicit;
+    if(/^\s*ENTRY(?:\s*[·:|\-]|\s|$)/i.test(name))return"entry";
+    if(/^\s*EXIT(?:\s*[·:|\-]|\s|$)/i.test(name))return"exit";
+    if(/^\s*ACTION(?:\s*[·:|\-]|\s|$)/i.test(name)||legacyActionId)return"action";
     if(event.menuVisible===false)return"story";
     return"talk";
   };
@@ -122,7 +126,7 @@
     for(const event of source.events){
       const role=roleOf(event);
       if(event.eventRole!==role){event.eventRole=role;changed=true}
-      const visible=role==="talk"?event.menuVisible!==false:false;
+      const visible=["talk","action"].includes(role)?event.menuVisible!==false:false;
       if(event.menuVisible!==visible){event.menuVisible=visible;changed=true}
       if(current<VERSION&&String(event.id).startsWith("voice-")){
         if(enrichVoiceEvent(source,event,characters.get(event.characterId),helpers))changed=true;
