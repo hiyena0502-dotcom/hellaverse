@@ -192,7 +192,26 @@ pageRoot.addEventListener("click",e=>{
   else if(a==="draw-gacha")drawGacha(Number(b.dataset.count)||1);
   else if(a==="clear-gacha-history")clearGachaHistory();
   else if(a==="thought-filter"){thoughtFilter=b.dataset.id;renderThought()}
-  else if(a==="collection-filter"){collectionFilter=b.dataset.id;renderCollection()}
+  else if(a==="collection-filter"){
+    collectionFilter=b.dataset.id;
+    if(collectionFilter!=="ALL"){
+      state.collectionSettings.expandedCharacterIds ||= [];
+      if(!state.collectionSettings.expandedCharacterIds.includes(collectionFilter)){
+        state.collectionSettings.expandedCharacterIds.push(collectionFilter);
+        saveProgressState();
+      }
+    }
+    renderCollection();
+  }
+  else if(a==="collection-group-toggle"){
+    const id=b.dataset.id;if(!id)return;
+    state.collectionSettings.expandedCharacterIds ||= [];
+    state.collectionSettings.expandedCharacterIds=state.collectionSettings.expandedCharacterIds.includes(id)
+      ? state.collectionSettings.expandedCharacterIds.filter(x=>x!==id)
+      : [...state.collectionSettings.expandedCharacterIds,id];
+    saveProgressState();
+    renderCollection();
+  }
   else if(a==="collection-view"){
     state.collectionSettings.view=b.dataset.view==="all"?"all":"grouped";
     saveProgressState();
@@ -241,11 +260,6 @@ pageRoot.addEventListener("change",e=>{
   if(t.id==="roomEventSelect"){
     roomMode="talk";
     startDialogue(selectedCharacterId,t.value);
-    return;
-  }
-  if(t.dataset.gachaControl==="profile"){
-    gachaProfileCharacterId=t.value;
-    renderGacha();
     return;
   }
   if(t.dataset.collectionControl){
