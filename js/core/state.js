@@ -236,6 +236,7 @@ function normalizeEvent(e={}){
     characterId:e.characterId||"",
     eventRole,
     menuVisible:["talk","action"].includes(eventRole)?e.menuVisible!==false:false,
+    randomEligible:e.randomEligible!==false,
     continuationEventIds,
     emotionExitMode:e.emotionExitMode==="reset"?"reset":"keep",
     entries:Array.isArray(e.entries)?e.entries.map(normalizeEntry):[]
@@ -1208,6 +1209,7 @@ function compactEventForStorage(event={}){
   }
   if(["exit","entry","story","action"].includes(event.eventRole))out.eventRole=event.eventRole;
   if(event.menuVisible===false)out.menuVisible=false;
+  if(event.randomEligible===false)out.randomEligible=false;
   if(event.emotionExitMode==="reset")out.emotionExitMode="reset";
   return out;
 }
