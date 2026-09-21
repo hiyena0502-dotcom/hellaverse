@@ -126,6 +126,10 @@
     for(const event of source.events){
       const role=roleOf(event);
       if(event.eventRole!==role){event.eventRole=role;changed=true}
+      if(role==="action"&&/^\s*TALK\s*[·:|\-]/i.test(event.name||"")){
+        event.name=String(event.name).replace(/^\s*TALK\s*[·:|\-]\s*/i,"ACTION · ");
+        changed=true;
+      }
       const visible=["talk","action"].includes(role)?event.menuVisible!==false:false;
       if(event.menuVisible!==visible){event.menuVisible=visible;changed=true}
       if(current<VERSION&&String(event.id).startsWith("voice-")){
