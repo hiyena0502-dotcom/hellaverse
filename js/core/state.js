@@ -1192,7 +1192,7 @@ function installStoryPacks(source){
         (event?.entries||[]).some(entry=>entry?.type==="dialogue"&&entry?.speaker==="PLAYER");
     });
 
-    if(previousVersion>=version&&!poolTalkNeedsRepair)return;
+    if(previousVersion>=version&&!poolTalkNeedsRepair&&!isPoolTalkPack)return;
     const isUpgrade=previousVersion>0||poolTalkNeedsRepair;
 
     const refs=resolveStoryPackCharacterRefs(rawPack,source);
@@ -1203,6 +1203,44 @@ function installStoryPacks(source){
     const characterIds=new Set((source.characters||[]).map(character=>character.id));
     const required=Array.isArray(pack.requiredCharacterIds)?pack.requiredCharacterIds:[];
     if(required.some(id=>!characterIds.has(id)))return;
+
+    if(isPoolTalkPack){
+      const currentEvents=Array.isArray(pack.events)?pack.events:[];
+      const currentIds=new Set(currentEvents.map(event=>String(event?.id||"")).filter(Boolean));
+      const managedCharacters=new Set(required.map(String));
+      const normalizedCurrent=currentEvents.map(normalizeEvent);
+      const normalizedById=new Map(normalizedCurrent.map(event=>[String(event.id||""),event]));
+
+      const kept=[];
+      let poolChanged=false;
+      for(const event of source.events||[]){
+        const id=String(event?.id||"");
+        const characterId=String(event?.characterId||"");
+        const managed=managedCharacters.has(characterId)&&id.startsWith("pooltalk-");
+        if(!managed){
+          kept.push(event);
+          continue;
+        }
+        if(!currentIds.has(id)){
+          poolChanged=true;
+          continue;
+        }
+        const fresh=normalizedById.get(id);
+        if(JSON.stringify(event)!==JSON.stringify(fresh))poolChanged=true;
+        kept.push(fresh);
+        normalizedById.delete(id);
+      }
+      for(const fresh of normalizedById.values()){
+        kept.push(fresh);
+        poolChanged=true;
+      }
+      source.events=kept;
+      if(poolChanged)changed=true;
+      source.storyPackVersions[pack.id]=version;
+      installed.push(pack.id);
+      if(previousVersion!==version)changed=true;
+      return;
+    }
 
     const upsertById=(list,item,normalizer)=>{
       const index=(list||[]).findIndex(row=>row?.id===item?.id);
@@ -1217,28 +1255,7 @@ function installStoryPacks(source){
       }
     };
 
-    // Pool TALK packs changed generation structure several times.
-    // Older generated events can have different IDs while sharing the same TALK title,
-    // leaving obsolete PLAYER-first conversations beside the current character-first ones.
-    // On an upgrade, remove every previously generated TALK event for that character
-    // before installing the current pack.
-    if(isUpgrade&&String(pack.id||"").startsWith("pooltalk-52-")){
-      const currentEvents=Array.isArray(pack.events)?pack.events:[];
-      const currentCharacterIds=new Set(currentEvents.map(event=>String(event.characterId||"")).filter(Boolean));
-      const currentNames=new Set(currentEvents.map(event=>String(event.name||"")).filter(Boolean));
-      const currentIds=new Set(currentEvents.map(event=>String(event.id||"")).filter(Boolean));
-      const beforeCount=(source.events||[]).length;
-      source.events=(source.events||[]).filter(event=>{
-        const name=String(event?.name||"");
-        const id=String(event?.id||"");
-        const characterId=String(event?.characterId||"");
-        if(currentNames.has(name))return false;
-        if(currentIds.has(id))return false;
-        if(currentCharacterIds.has(characterId)&&id.startsWith("pooltalk-"))return false;
-        return true;
-      });
-      if(source.events.length!==beforeCount)changed=true;
-    }
+
 
     (pack.variables||[]).forEach(variable=>upsertById(source.variables,variable,normalizeVariable));
     (pack.events||[]).forEach(event=>upsertById(source.events,event,normalizeEvent));
