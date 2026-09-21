@@ -8,6 +8,7 @@ const read=path=>fs.readFileSync(new URL(path,root),"utf8");
 const jsFiles=[
   "data/story-packs.js",
   "data/character-events.js",
+  "data/item-presets.js",
   "js/core/state.js",
   "js/core/game-state.js",
   "js/ui/app-shell.js",
@@ -42,6 +43,7 @@ const dialogueCode=read("js/game/dialogue.js");
 const gameStateCode=read("js/core/game-state.js");
 const storyPackCode=read("data/story-packs.js");
 const characterEventCode=read("data/character-events.js");
+const itemPresetCode=read("data/item-presets.js");
 const dialogueCss=read("css/dialogue.css");
 const featuresCss=read("css/features.css");
 
@@ -64,6 +66,10 @@ assert.match(editorUi,/data-action="move-continuation"/,"continuation move actio
 assert.match(editorEvents,/a==="remove-continuation"/,"continuation remove action missing");
 assert.match(stateCode,/function migrateStateV3ToV4\(/,"schema v4 continuation migration missing");
 assert.match(stateCode,/function installStoryPacks\(/,"one-time story pack installer missing");
+assert.match(itemPresetCode,/HV_APPLY_ITEM_PRESETS/,"item preset installer missing");
+assert.match(itemPresetCode,/FIRST|firstEntries/,"gift FIRST preset flow missing");
+assert.match(itemPresetCode,/repeatEntries/,"gift REPEAT preset flow missing");
+assert.match(itemPresetCode,/specialEntries/,"gift SPECIAL preset flow missing");
 assert.match(gameStateCode,/e\.menuVisible!==false/,"hidden continuation events must stay out of TALK menus");
 assert.match(dialogueCode,/function updateRoomSpeakerVisual\(/,"per-line speaker art switching missing");
 assert.match(dialogueCode,/function nextContinuousEvent\(/,"continuous TALK fallback missing");
@@ -179,6 +185,7 @@ context.window.window=context.window;
 vm.createContext(context);
 vm.runInContext(storyPackCode,context,{filename:"data/story-packs.js"});
 vm.runInContext(characterEventCode,context,{filename:"data/character-events.js"});
+vm.runInContext(itemPresetCode,context,{filename:"data/item-presets.js"});
 vm.runInContext(stateCode,context,{filename:"js/core/state.js"});
 
 const storyPackInstall=vm.runInContext(`
@@ -215,6 +222,56 @@ assert.equal(storyPackInstall.openingVisible,true,"opening event must be visible
 assert.equal(storyPackInstall.hiddenVisible,false,"continuation event must be hidden");
 assert.equal(storyPackInstall.speakerCharacterId,"lucifer-morningstar","speaker image id must survive compaction");
 assert.equal(storyPackInstall.secondChanged,false,"story pack must install only once");
+
+const itemPresetCheck=vm.runInContext(`
+(()=>{
+  const source=normalizeState({
+    schemaVersion:4,
+    characters:[{id:"lucifer-morningstar",name:"Lucifer Morningstar",origin:"hellborn"}],
+    items:[{
+      id:"lucifer-mug-test",
+      name:"“최고의 아빠” 머그컵",
+      rarity:"EPIC",
+      collectionCharacterId:"lucifer-morningstar",
+      giftable:true,
+      gachaEnabled:true,
+      weight:1,
+      reactions:[{
+        id:"placeholder",
+        characterId:"lucifer-morningstar",
+        preference:"NEUTRAL",
+        affectionDelta:1,
+        firstEntries:[],
+        repeatEntries:[],
+        specialEntries:[]
+      }]
+    }]
+  });
+  const installed=installStoryPacks(source);
+  const item=installed.state.items[0];
+  const reaction=item.reactions.find(r=>r.characterId==="lucifer-morningstar");
+  return{
+    weight:item.weight,
+    preference:reaction.preference,
+    affectionDelta:reaction.affectionDelta,
+    emotionState:reaction.emotionState,
+    first:reaction.firstEntries.map(e=>e.text),
+    repeat:reaction.repeatEntries.map(e=>e.text),
+    special:reaction.specialEntries.map(e=>e.text),
+    specialMinAffection:reaction.specialMinAffection,
+    itemPresetVersion:installed.state.itemPresetVersion
+  };
+})()
+`,context);
+assert.equal(itemPresetCheck.weight,.78,"explicit per-item gacha weight must be applied");
+assert.equal(itemPresetCheck.preference,"LOVED","Lucifer mug preference must be populated in CHARACTER REACTIONS");
+assert.equal(itemPresetCheck.affectionDelta,5,"gift preference affection value must be populated");
+assert.equal(itemPresetCheck.emotionState,"embarrassed","gift emotion preset must be populated");
+assert.ok(itemPresetCheck.first.some(line=>/최고의 아빠/.test(line)),"FIRST GIFT dialogue must be item-specific");
+assert.ok(itemPresetCheck.repeat.length>0,"REPEAT GIFT flow must be populated");
+assert.ok(itemPresetCheck.special.length>0,"SPECIAL gift flow must be populated");
+assert.ok(itemPresetCheck.specialMinAffection>0,"SPECIAL affection rule must be populated");
+assert.equal(itemPresetCheck.itemPresetVersion,1,"item preset version marker missing");
 
 const aliasPackInstall=vm.runInContext(`
 (()=>{
