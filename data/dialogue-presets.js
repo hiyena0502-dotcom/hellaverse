@@ -20,6 +20,19 @@
     walk(entries,owner=>{if((owner.itemEffects||[]).some(effect=>Number(effect.amount||0)>0))found=true});
     return found;
   };
+  const talkSignature=event=>{
+    const parts=[];
+    walk(event.entries,entry=>{
+      if(entry.type==="dialogue"||entry.type==="narration"){
+        const text=String(entry.text||"").normalize("NFKC").toLowerCase().replace(/\s+/g," ").trim();
+        if(text)parts.push(text);
+      }else if(entry.type==="choice"){
+        const prompt=String(entry.prompt||"").normalize("NFKC").toLowerCase().replace(/\s+/g," ").trim();
+        if(prompt)parts.push(prompt);
+      }
+    });
+    return parts.join(" | ");
+  };
   const roleOf=event=>{
     const explicit=String(event.eventRole||"").toLowerCase();
     const id=String(event.id||"");
@@ -128,6 +141,7 @@
     const current=Math.max(0,Number(source.dialoguePresetVersion)||0);
     let changed=false;
     const characters=new Map((source.characters||[]).map(character=>[character.id,character]));
+    const seenTalkSignatures=new Map();
     for(const event of source.events){
       const role=roleOf(event);
       if(event.eventRole!==role){event.eventRole=role;changed=true}
@@ -139,6 +153,15 @@
       if(event.menuVisible!==visible){event.menuVisible=visible;changed=true}
       if(role==="talk"&&(hasItemGrant(event.entries)||/보관을 맡기다|아이템\s*(?:획득|지급)|수집품을?\s*건네/i.test(String(event.name||"")))){
         if(event.randomEligible!==false){event.randomEligible=false;changed=true}
+      }
+      if(role==="talk"){
+        const signature=talkSignature(event);
+        if(signature){
+          const signatureKey=String(event.characterId||"")+"::"+signature;
+          if(seenTalkSignatures.has(signatureKey)){
+            if(event.randomEligible!==false){event.randomEligible=false;changed=true}
+          }else seenTalkSignatures.set(signatureKey,event.id);
+        }
       }
       if(current<VERSION&&String(event.id).startsWith("voice-")){
         if(enrichVoiceEvent(source,event,characters.get(event.characterId),helpers))changed=true;
