@@ -33,6 +33,7 @@
   const localizeLegacyDialogue=value=>{
     let text=String(value??"");
     for(const [from,to] of LEGACY_DIALOGUE_TRANSLATIONS)text=text.split(from).join(to);
+    text=text.replace(/\bNO\b/g,"안 돼");
     return text;
   };
   const localizeEntryTree=entries=>{
