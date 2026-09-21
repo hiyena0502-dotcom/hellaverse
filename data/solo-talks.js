@@ -748,7 +748,7 @@
     const events=char.themes.map((theme,themeIndex)=>makeEvent(char,theme,themeIndex));
     window.HV_STORY_PACKS.push({
       id:"solo-talks-"+slug(char.id),
-      version:10,
+      version:11,
       requiredCharacterIds:[char.id],
       events
     });
