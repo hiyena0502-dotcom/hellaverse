@@ -9,6 +9,7 @@ const jsFiles=[
   "data/story-packs.js",
   "data/character-events.js",
   "data/relationship-content.js",
+  "data/solo-talks.js",
   "data/item-presets.js",
   "data/dialogue-presets.js",
   "js/core/state.js",
@@ -46,6 +47,7 @@ const gameStateCode=read("js/core/game-state.js");
 const storyPackCode=read("data/story-packs.js");
 const characterEventCode=read("data/character-events.js");
 const relationshipCode=read("data/relationship-content.js");
+const soloTalkCode=read("data/solo-talks.js");
 const itemPresetCode=read("data/item-presets.js");
 const dialoguePresetCode=read("data/dialogue-presets.js");
 const dialogueCss=read("css/dialogue.css");
@@ -69,6 +71,8 @@ assert.match(editorUi,/data-action="add-continuation"/,"continuation add action 
 assert.match(editorUi,/data-action="move-continuation"/,"continuation move action missing");
 assert.match(editorEvents,/a==="remove-continuation"/,"continuation remove action missing");
 assert.match(stateCode,/function migrateStateV3ToV4\(/,"schema v4 continuation migration missing");
+assert.match(editorEvents,/data-action="validation-jump"/,"validation issue navigation missing");
+assert.match(read("js/world/regions.js"),/currentPage!=="world"\|\|activeRegion!==regionId/,"WORLD timer must stop outside WORLD");
 assert.match(stateCode,/function installStoryPacks\(/,"one-time story pack installer missing");
 assert.match(itemPresetCode,/HV_APPLY_ITEM_PRESETS/,"item preset installer missing");
 assert.match(itemPresetCode,/FIRST|firstEntries/,"gift FIRST preset flow missing");
@@ -83,6 +87,27 @@ assert.match(stateCode,/randomEligible:e\.randomEligible!==false/,"random TALK e
 assert.match(dialogueCode,/ev\.randomEligible!==false/,"random TALK eligibility filter missing");
 assert.match(editorUi,/event-random-eligible/,"random TALK eligibility editor control missing");
 assert.match(index,/data\/relationship-content\.js/,"relationship content script missing from build");
+assert.match(index,/data\/solo-talks\.js/,"solo TALK content script missing from build");
+
+const soloTalkContext={window:{HV_STORY_PACKS:[]}};
+vm.runInNewContext(soloTalkCode,soloTalkContext);
+const soloTalkPacks=soloTalkContext.window.HV_STORY_PACKS||[];
+assert.equal(soloTalkPacks.length,35,"solo TALK packs must cover all 35 characters");
+assert.equal(soloTalkPacks.reduce((sum,pack)=>sum+(pack.events||[]).length,0),1820,"solo TALK must add 52 events per character");
+const soloEventIds=new Set();
+for(const pack of soloTalkPacks){
+  const characterId=pack.requiredCharacterIds?.[0]||"";
+  assert.equal((pack.events||[]).length,52,pack.id+" must provide more than 50 solo TALK events");
+  for(const event of pack.events||[]){
+    assert.equal(event.characterId,characterId,event.id+" must stay in its selected character room");
+    assert.ok(!soloEventIds.has(event.id),event.id+" must be globally unique");
+    soloEventIds.add(event.id);
+    for(const entry of event.entries||[]){
+      if(entry.type!=="dialogue"||!entry.speakerCharacterId)continue;
+      assert.equal(entry.speakerCharacterId,characterId,event.id+" must not switch to another character speaker");
+    }
+  }
+}
 
 const relationshipContext={window:{}};
 vm.runInNewContext(relationshipCode,relationshipContext);
