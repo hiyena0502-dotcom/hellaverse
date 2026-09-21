@@ -112,7 +112,7 @@ const allSoloChoicePrompts=[];
 for(const pack of soloTalkPacks){
   const characterId=pack.requiredCharacterIds?.[0]||"";
   assert.equal((pack.events||[]).length,7,pack.id+" must contain seven curated theme scenes");
-  assert.equal(pack.version,10,pack.id+" must use character- and scene-specific solo TALK content");
+  assert.equal(pack.version,11,pack.id+" must use character- and scene-specific solo TALK content");
   const characterLines=[];
   const choicePrompts=[];
   const choiceLabels=[];
@@ -190,7 +190,7 @@ assert.equal(relationshipPacks.reduce((sum,pack)=>sum+(pack.asks||[]).length,0),
 assert.equal(relationshipPacks.reduce((sum,pack)=>sum+(pack.events||[]).length,0),66,"relationship TALK must add three scenes for 22 under-served characters");
 for(const pack of relationshipPacks){
   assert.equal((pack.asks||[]).length,2,pack.id+" must have mid/deep relationship ASK");
-  assert.equal(pack.version,5,pack.id+" relationship voice pack must be on branching version 5");
+  assert.equal(pack.version,6,pack.id+" relationship voice pack must be on branching version 6");
   const [mid,deep]=pack.asks;
   assert.equal(mid.unlockMinAffection,35,pack.id+" mid ASK affection gate mismatch");
   assert.equal(deep.unlockMinAffection,70,pack.id+" deep ASK affection gate mismatch");
@@ -254,7 +254,7 @@ assert.equal(banterPacks.reduce((sum,pack)=>sum+(pack.asks||[]).length,0),66,"ea
 const banterLinesByCharacter=new Map();
 for(const pack of banterPacks){
   const characterId=pack.requiredCharacterIds?.[0]||"";
-  assert.equal(pack.version,2,pack.id+" banter pack must be syncable");
+  assert.equal(pack.version,3,pack.id+" banter pack must be syncable");
   assert.equal((pack.events||[]).length,1,pack.id+" must have one bespoke relationship/humor event");
   assert.equal((pack.asks||[]).length,2,pack.id+" must have two bespoke ASK entries");
   const event=pack.events[0];
