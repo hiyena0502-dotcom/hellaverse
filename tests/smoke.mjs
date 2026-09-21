@@ -383,6 +383,7 @@ function renderNav(){}
 function showToast(text){lastToast=text}
 `,context);
 vm.runInContext(dialogueCode,context,{filename:"js/game/dialogue.js"});
+vm.runInContext(`renderRoom=()=>{};renderNav=()=>{};`,context);
 const entryFlowCheck=vm.runInContext(`
 (()=>{
   state=normalizeState({
