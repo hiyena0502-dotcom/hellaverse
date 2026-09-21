@@ -136,22 +136,54 @@
     (a,t)=>a+". 사소한 계기 하나가 "+t+"에 대한 서로 다른 생각을 건드린다.",
     (a,t)=>a+". 잠시 주변이 조용해지자 "+t+"라는 주제를 피할 이유도 사라진다."
   ];
-  const p1=[
-    t=>"그럼 "+t+"에 대해서는 어떻게 생각해요?",
-    t=>t+", 직접 겪는 입장에선 다르게 보여요?",
-    t=>"아까 얘기 나온 김에 물어볼게요. "+t+"는요?",
-    t=>t+" 같은 일이라면 당신은 어느 쪽을 먼저 봐요?",
-    t=>"당신 기준으로 "+t+"는 어디서부터 문제가 된다고 봐요?",
-    t=>t+" 얘기, 그냥 넘기기엔 좀 걸리죠?",
-    t=>"다른 사람 말고 당신 생각이 궁금해요. "+t+"는 어때요?",
-    t=>t+" 상황이 실제로 닥치면 지금 말한 대로 할 수 있을까요?",
-    t=>"이건 좀 의견이 갈릴 것 같은데, "+t+"는 어떻게 봐요?",
-    t=>t+"를 한 문장으로 정리하라면 뭐라고 할래요?",
-    t=>"당신한테 "+t+"는 단순한 문제는 아닌 것 같네요.",
-    t=>"혹시 "+t+"에 대해 예전이랑 생각이 바뀐 적 있어요?",
-    t=>t+" 이야기가 나오면 제일 먼저 떠오르는 게 뭐예요?"
+  const OPEN_LOW=[
+    (t)=>"이런 얘기 나왔던데, "+t+"는 어때요?",
+    (t)=>t+" 같은 일이 생기면 그냥 뭐부터 할 것 같아요?",
+    (t)=>"다들 "+t+" 가지고 말 많던데, 당신은요?",
+    (t)=>"갑자기 궁금한데 "+t+"라면 어떻게 해요?",
+    (t)=>t+" 얘기 들으면 제일 먼저 뭐가 떠올라요?",
+    (t)=>"이건 가볍게 물어볼게요. "+t+"는 어떻게 봐요?",
+    (t)=>t+" 같은 상황이면 귀찮아도 끼어들어요?",
+    (t)=>"주변에서 "+t+" 얘기가 나왔어요. 한마디만 한다면?",
+    (t)=>t+" 쪽은 취향이나 성격 좀 탈 것 같던데요.",
+    (t)=>"만약 오늘 "+t+" 일이 터지면 반응이 어때요?",
+    (t)=>t+" 정도면 웃고 넘겨요, 아니면 신경 써요?",
+    (t)=>"별건 아닌데 "+t+"에 대해서는 어떤 쪽이에요?",
+    (t)=>t+" 같은 건 직접 보면 생각이 좀 달라질까요?"
   ];
-  const p2=["그 기준은 생각보다 명확하네요.","그렇게 보는 이유가 당신답긴 해요.","그럼 반대 상황이면 답도 달라져요?","말보다 실제 상황이 더 복잡하겠네요.","그 부분은 예전보다 생각이 많이 달라진 것 같아요.","그 얘기까지 들으니까 앞의 말이 좀 다르게 들려요.","결국 누구에게 선택권이 있느냐가 중요하다는 거네요.","그럼 결과보다 과정도 봐야 한다는 뜻이군요.","당신이 그 부분을 신경 쓸 줄은 조금 의외예요.","그 정도면 완전히 닫힌 생각은 아니네요.","듣고 보니 단순히 좋다 나쁘다로 끝낼 문제는 아니군요.","그걸 직접 인정하는 건 생각보다 어려웠겠네요.","그래도 지금은 예전과 같은 답은 아니네요."];
+  const OPEN_HIGH=[
+    (t)=>"전에 비슷한 얘기 했잖아요. "+t+"면 이번엔 뭐라고 할래요?",
+    (t)=>t+" 같은 상황 오면 당신 반응 이제 좀 예상될 것 같은데, 맞혀봐도 돼요?",
+    (t)=>"우리 사이니까 가볍게 묻는데, "+t+"는 여전히 같은 생각이에요?",
+    (t)=>t+" 얘기 나오니까 당신 표정부터 보게 되네요. 또 한마디 할래요?",
+    (t)=>"이건 당신답게 답할 것 같아요. "+t+"면 어떻게 해요?",
+    (t)=>t+" 같은 날이면 제가 먼저 피해야 할까요, 같이 구경해야 할까요?",
+    (t)=>"또 이런 얘기네요. "+t+"는 이번에도 대충 넘길 거예요?",
+    (t)=>t+" 쪽은 이제 당신 취향 조금 알 것 같은데, 제가 틀렸나 확인해봐요.",
+    (t)=>"오늘 분위기 괜찮으니까 묻는 건데, "+t+"는요?",
+    (t)=>t+" 같은 게 생기면 나중에 저한테 뒷얘기 해줄 거죠?",
+    (t)=>"당신이면 "+t+"에서 제일 먼저 뭘 귀찮아할지 궁금하네요.",
+    (t)=>t+" 얘기, 너무 진지하게 말고 그냥 당신식 답으로요.",
+    (t)=>"이건 좀 웃길 수도 있겠는데, "+t+"면 어느 쪽이에요?"
+  ];
+  const FOLLOW_LOW=[
+    (t)=>"그럼 "+t+" 쪽은 그냥 그렇게 처리하는 편이군요.",
+    (t)=>"알겠어요. "+t+" 얘기는 이 정도면 됐네요.",
+    (t)=>"생각보다 단순하게 보네요. "+t+"는 기억해둘게요.",
+    (t)=>"그 반응이면 "+t+" 상황에서 괜히 더 물으면 안 되겠네요.",
+    (t)=>"오케이. "+t+"는 당신한테 그런 쪽이군요.",
+    (t)=>"그럼 "+t+" 얘기는 여기서 다른 걸로 넘어가죠.",
+    (t)=>"대충 감 잡았어요. "+t+"에서 뭘 싫어하는지는 알겠네요."
+  ];
+  const FOLLOW_HIGH=[
+    (t)=>"역시 "+t+"에서도 당신다운 쪽으로 가네요.",
+    (t)=>"이 정도면 "+t+" 얘기는 다음에 또 꺼내도 되겠네요.",
+    (t)=>"알겠어요. "+t+"에서 어디까지 말할지는 대충 알겠어요.",
+    (t)=>"그럼 "+t+" 쪽은 다음에 실제로 생기면 같이 보죠.",
+    (t)=>"좋아요. "+t+" 얘기치고는 꽤 편하게 끝났네요.",
+    (t)=>"그 정도 답이면 충분해요. "+t+"를 더 캐묻진 않을게요.",
+    (t)=>"오케이. "+t+"에서 당신 선이 어디쯤인지는 알겠네요."
+  ];
 
   const TOPIC_ECHO_CASUAL=[
     t=>"그래서 ‘"+t+"’을 같은 말로 묶어버리면 중요한 차이가 사라져.",
@@ -220,6 +252,42 @@
     (c,t)=>"당신답게 답한다면 ‘"+t+"’에서 무엇부터 남길까요? 평소 중요하게 보는 "+playerLens(c)+"도 같이 듣고 싶어요.",
     (c,t)=>"지금까지 보여준 "+playerLens(c)+"에 대한 태도를 생각하면 ‘"+t+"’도 평범한 답은 안 나올 것 같아요."
   ];
+
+  const DEFLECT={
+    "lucifer-morningstar":{low:["와, 오늘 대화 방향 엄청 무겁네. 난 오리 얘기가 더 좋은데?","그건 왕실 비밀이라고 해두자. 훨씬 멋있잖아."],high:["네가 캐묻는 건 아닌 거 알아. 그래도 오늘은 여기까지만.","음, 그 얘기보단 오리 하나 골라줘. 그쪽이 지금 내 정신 건강에 더 유익해."]},
+    "charlie-morningstar":{low:["그건 진짜 큰 얘기다! 오늘은 가볍게 얘기하는 게 좋을 것 같아.","생각은 있는데, 지금 다 꺼내면 회의가 되어버릴 것 같아!"],high:["조금은 말할 수 있는데 오늘은 여기까지만 하자!","이건 나중에 정말 필요할 때 더 길게 얘기하고 싶어."]},
+    "sera":{low:["그 주제는 지금 짧게 다루는 편이 좋겠습니다.","오늘은 원칙적인 답만 드리겠습니다."],high:["조금 더 말씀드릴 수는 있지만 여기서 깊게 들어가진 않겠습니다.","당신에게 숨길 뜻은 없지만 지금은 이 정도가 적당하겠군요."]},
+    "lute":{low:["그 얘긴 패스해. 다음.","거기까지. 다른 주제."],high:["네가 물어서 화난 건 아니야. 그래도 길게 말하진 않아.","한두 마디면 충분해. 그 이상은 필요 없어."]},
+    "adam":{low:["와, 갑자기 상담 방송이냐? 다른 거 해.","씨발, 그건 재미없다. 다음 주제."],high:["야, 친해졌다고 전부 털어놓는 건 아니거든?","그 정도는 알아도 돼. 근데 감동적인 고백 같은 건 기대하지 마."]},
+    "vaggie":{low:["그건 지금 얘기할 필요 없어.","여기까지만. 다른 얘기로 가자."],high:["조금은 괜찮아. 그래도 자세히 들어가진 않을게.","네가 선 지킬 건 아니까 한마디 정도는 할 수 있어."]},
+    "alastor":{low:["하하! 그 문은 오늘도 잠겨 있답니다. 다른 방을 구경하시지요.","아주 흥미로운 질문이지만 답변은 더 흥미롭게 생략하겠습니다."],high:["당신이라 해도 모든 방송을 생방송으로 들을 순 없지요.","조금은 들려드릴 수 있어도 전체 사연까지 제공하진 않겠습니다."]},
+    "vox":{low:["그건 오프 더 레코드. 다음 화면.","아니, 그건 방송 분량 아니야. 다른 거 물어."],high:["편집 안 한 답을 조금 주긴 할게. 조금만.","네가 퍼뜨릴 사람 아닌 건 아는데, 그래도 이건 풀버전 없음."]},
+    "niffty":{low:["어? 그거보다 지금 저기 먼지 봤어?!","그 얘기 길어! 청소 끝나고도 기억나면 하자!"],high:["음! 조금은 얘기할 수 있는데 오래 하면 심심해!","그건 비밀 상자에 조금만 넣어둘래!"]},
+    "angel-dust":{low:["자기야, 갑자기 무료 심리상담은 안 해.","와, 분위기 너무 촉촉하다. 다른 거 하자."],high:["조금은 말해도 되는데 오늘 화장 번질 정도로 깊게는 안 간다?","네가 들어줄 건 알아. 그래도 농담 하나 끼우고 끝낼래."]},
+    "husk":{low:["그 얘긴 술도 없이 못 하겠네. 패스.","굳이 거기까지 갈 필요 있냐."],high:["알아, 네가 조용히 들을 건. 그래도 짧게만.","한 잔 분량 정도는 말하지. 병째로는 안 돼."]},
+    "blitzo":{low:["오, 씨발. 감정 폭탄 해체반은 오늘 휴무다.","그 주제 말고 말 얘기 하자. 말은 배신 안 하거든."],high:["네가 캐묻는 타입 아닌 건 알아. 그래도 풀버전은 없다.","한 조각만 줄게. 나머지는 존나 비공개야."]},
+    "paimon":{low:["그 화제는 오늘의 담소에는 지나치게 사적이오.","다른 주제로 돌리는 편이 좋겠군."],high:["그대에게라면 조금은 말할 수 있겠으나 길게 풀 일은 아니오.","친분과 무례의 경계는 여전히 있으니 이 정도로 하지."]},
+    "satan":{low:["그건 오늘 다룰 주제가 아니다.","다음. 괜히 내 인내심 시험하지 마."],high:["네가 묻는 건 괜찮다. 그래도 오래 붙들진 마.","짧게만 말한다. 그 이상은 필요 없어."]},
+    "mammon":{low:["그 얘기 돈도 안 되는데 왜 하냐? 다음!","감성 코너는 광고 안 붙는다. 넘어가!"],high:["너한텐 한마디쯤 해줄 수 있지. 공짜는 드물다.","조금은 얘기하지. 근데 이걸 다큐로 만들 생각은 마."]},
+    "asmodeus":{low:["베이비, 그건 지금 분위기보다 너무 깊어. 선 바꾸자.","오늘은 가볍게 가자. 그쪽은 굳이 파지 않아도 돼."],high:["네가 선 지키는 건 알아. 그래서 조금만 말할게.","조금 가까워졌다고 모든 문을 열 필요는 없잖아, 베이비."]},
+    "beelzebub":{low:["오, 그건 지금 파티 텐션이랑 안 맞아! 다른 거 하자!","그 얘긴 나중에! 지금은 물이랑 간식부터!"],high:["조금은 괜찮아! 근데 오늘 완전 딥 토크 모드는 아니야!","네가 들어줄 건 아는데, 가볍게 한 바퀴만 돌고 나오자!"]},
+    "sir-pentious":{low:["오! 그 질문은 예상보다 훨씬 위험하오! 일단 다른 발명품을 보겠소?","그건 잠시 보류하겠소! 아주 현명한 전략적 후퇴요!"],high:["그대에게 조금은 말할 수 있소. 하지만 장대한 고백은 다음 기회로 미루겠소!","오늘은 짧게만 하겠소. 대신 새 설계도는 보여드릴 수 있소!"]},
+    "cherri-bomb":{low:["야, 갑자기 폭탄보다 무거운 거 던지지 마.","그 얘긴 지금 재미없어. 다른 거 터뜨리자."],high:["네가 이상한 표정 안 할 건 아는데, 그래도 짧게만.","한마디는 해줄게. 그 다음엔 분위기 바꾼다."]},
+    "velvette":{low:["자기야, 그건 지금 피드에 안 올릴 주제야.","너무 딥해. 스크롤 넘겨."],high:["필터 조금 덜 씌운 답은 줄게. 원본 파일 전체는 아니고.","네가 캡처 안 할 건 알지만 여기까지만 공개."]},
+    "valentino":{low:["베이비, 그 선은 지금 넘지 마.","그 얘긴 오늘 서비스 항목에 없어."],high:["조금은 말할 수 있지. 하지만 네가 원하는 만큼은 아니야.","네가 선을 아니까 한마디만 해주는 거야."]},
+    "carmilla-carmine":{low:["그 문제는 오늘 가볍게 다루기 어렵군요. 다른 이야기를 하죠.","필요 이상으로 개인적인 부분까지 들어갈 이유는 없습니다."],high:["당신에게라면 조금은 답할 수 있습니다. 다만 여기까지만 하지요.","신뢰와 공개는 같은 뜻이 아닙니다. 짧게만 말씀드리겠습니다."]},
+    "rosie":{low:["어머, 차 한 잔에 담기엔 너무 진한 이야기군요. 다른 화제로 갈까요?","그건 오늘 식탁에는 올리지 않는 편이 좋겠어요."],high:["당신이라면 조금은 들려드려도 되겠지요. 그래도 디저트 전에 끝낼게요.","이 정도만 알고 계셔도 충분하답니다. 나머지는 다음 차 시간에."]},
+    "abel":{low:["음… 그건 제가 아직 잘 모르겠어요. 다른 얘기 해도 될까요?","그건 생각이 너무 많아질 것 같아요. 오늘은 조금 가볍게요."],high:["당신한테는 조금 말해도 될 것 같아요. 그래도 정리될 만큼만요.","조금은 괜찮아요. 대신 제가 멈추면 다른 주제로 가주세요."]},
+    "emily":{low:["우와, 그건 생각보다 엄청 깊다! 오늘은 가볍게 가자!","나 궁금한 건 많지만 이건 지금 다 파면 밤새겠다!"],high:["조금은 얘기할 수 있어! 그래도 오늘은 질문 세 개짜리로 끝내자!","네가 들어줄 건 알아! 근데 나도 가끔은 그냥 가볍게 떠들고 싶어!"]},
+    "baxter":{low:["변수가 너무 많아. 분석 중단. 다음 샘플.","그건 지금 데이터가 부족해. 감정 실험은 보류."],high:["표본이 너라면 조금은 말할 수 있겠네. 그래도 결론은 보류.","한 단계만 공개하지. 전체 로그는 비공개야."]},
+    "zestial":{low:["그 화두는 오늘의 한담에 지나치게 깊구려. 다른 길로 돌지.","모든 문을 한 번에 여는 것이 지혜는 아니니라."],high:["그대에게 조금은 말할 수 있으나 오늘은 여기까지만 하지.","신뢰가 있다 하여 모든 기억을 꺼내놓을 필요는 없도다."]},
+    "stolas":{low:["아… 그건 오늘 조금 무거운 이야기군요. 다른 이야기는 어떨까요?","그 화제는 지금 길게 꺼내고 싶지는 않아요."],high:["당신에게라면 조금은 말할 수 있겠지만 오늘은 가볍게 남겨두고 싶군요.","네, 그 얘기라는 건 압니다. 하지만 오늘은 여기까지만 할게요."]},
+    "loona":{low:["아니. 그건 패스.","그 얘기 할 기분 아냐. 다른 거."],high:["네가 귀찮게 캐지 않을 건 알아. 그래도 길게는 안 해.","한마디는 해줄 수 있어. 그 다음엔 끝."]},
+    "moxxie":{low:["그 주제는 지금 굳이 개인적인 쪽까지 갈 필요는 없겠습니다.","일반적인 이야기만 하고 넘어가죠."],high:["당신에게라면 조금 더 말할 수 있습니다. 다만 오늘은 짧게요.","조금은 괜찮습니다. 그래도 지나치게 파고들 필요는 없겠군요."]},
+    "millie":{low:["오, 그건 오늘 얘기치곤 좀 무겁다! 다른 거 하자!","그 얘긴 나중에 해도 안 도망가! 지금은 가볍게!"],high:["너한텐 조금 말해도 괜찮아. 그래도 길게 울고불고는 안 할래!","조금만 말하고 다음엔 재밌는 거 하자!"]},
+    "fizzarolli":{low:["와, 토크쇼 질문 수위 확 올랐네. 다음 카드!","그건 펀치라인 없는 구간이라 오늘은 패스."],high:["너한텐 조금 말해도 되는데 오늘은 무대 뒤 전부 공개는 없다.","한 조각만. 그 다음엔 다시 웃기는 걸로 가자."]},
+    "octavia":{low:["그건 지금 말하기 싫어. 다른 거.","너무 깊어. 그냥 음악 얘기 하자."],high:["너한텐 조금은 괜찮아. 그래도 길게는 싫어.","한마디만 할게. 그 뒤엔 플레이리스트 얘기로 돌아가자."]}
+  };
 
   const FORMAL=new Set(["sera","alastor","carmilla-carmine","rosie","abel","stolas","moxxie"]);
   const ARCHAIC=new Set(["paimon","sir-pentious","zestial"]);
@@ -331,43 +399,80 @@
     return ["‘"+t+"’ 얘기를 너랑 여기까지 할 수 있게 된 것도 꽤 큰 변화야.","이제는 ‘"+t+"’ 같은 주제를 네 앞에서 굳이 피할 필요는 없겠네.","‘"+t+"’에 대한 생각이 더 달라지면 다음엔 내가 먼저 말할 수도 있겠어.","오늘 ‘"+t+"’ 얘기를 이 정도까지 한 건 후회하지 않을 것 같아."][n]+tail;
   };
 
+  const SENSITIVE_CAP={
+    "lucifer-morningstar":7,"charlie-morningstar":7,"sera":7,"lute":6,"adam":5,"vaggie":7,"alastor":6,"vox":5,"niffty":3,
+    "angel-dust":7,"husk":6,"blitzo":7,"paimon":6,"satan":5,"mammon":4,"asmodeus":6,"beelzebub":4,"sir-pentious":5,
+    "cherri-bomb":5,"velvette":5,"valentino":5,"carmilla-carmine":6,"rosie":5,"abel":6,"emily":5,"baxter":4,"zestial":6,
+    "stolas":9,"loona":6,"moxxie":6,"millie":5,"fizzarolli":8,"octavia":8
+  };
+  const isSensitive=t=>tags(t).some(x=>SENS.has(x));
+  const deflectFor=(c,high,key)=>{
+    const d=DEFLECT[c.id]||{low:["그 얘긴 오늘은 넘어가자."],high:["조금은 괜찮지만 오늘은 여기까지만."]};
+    return pick(high?d.high:d.low,key);
+  };
+
   const chosen=c=>{
     const all=SOURCE.filter(t=>eligible(c,t)).map(t=>({t:t,s:score(c,t)})).sort((x,y)=>y.s-x.s||hash(c.id+x.t.id)-hash(c.id+y.t.id));
-    const best=all.filter(x=>tags(x.t).some(z=>c.interests.includes(z)));
-    const out=[],seen=new Set();
-    for(const x of best.concat(all)){if(seen.has(x.t.id))continue;seen.add(x.t.id);out.push(x.t);if(out.length===52)break}
-    return out;
+    const preferred=all.filter(x=>tags(x.t).some(z=>c.interests.includes(z)));
+    const ordered=preferred.concat(all.filter(x=>!preferred.includes(x)));
+    const cap=SENSITIVE_CAP[c.id]??6;
+    const light=[],deep=[],seen=new Set();
+    for(const x of ordered){
+      if(seen.has(x.t.id))continue;
+      seen.add(x.t.id);
+      (isSensitive(x.t)?deep:light).push(x.t);
+    }
+    const picked=light.slice(0,52-cap).concat(deep.slice(0,cap));
+    return picked.sort((a,b)=>score(c,b)-score(c,a)||hash(c.id+a.id)-hash(c.id+b.id)).slice(0,52);
   };
 
   const make=(c,t,n)=>{
-    const tg=primary(c,t),cue=pick(CUE[tg]||CUE.hellsociety,c.id+t.id+"cue");
-    const sen=tags(t).some(x=>SENS.has(x)),easy=tags(t).some(x=>c.easy.includes(x));
-    const lockRate=c.t>=60?55:c.t>=55?50:45;
+    const tg=primary(c,t),sen=isSensitive(t),easy=tags(t).some(x=>c.easy.includes(x));
+    const lockRate=c.t>=60?45:c.t>=55?40:35;
     const highOnly=sen&&!easy&&(hash(c.id+"::"+t.id+"::lock")%100<lockRate);
     const id="pooltalk-"+slug(c.id)+"-"+String(n+1).padStart(2,"0")+"-"+slug(t.id);
     const st=setup[(hash(id+"s")+n)%setup.length](pick(c.a,id+"a"),t.title);
-    const q=p1[(hash(id+"q")+n)%p1.length](t.title)+" "+PLAYER_ECHO[(hash(id+"qe")+n)%PLAYER_ECHO.length](c,t.title);
-    const follow=p2[(hash(id+"f")+n)%p2.length]+" "+PLAYER_ECHO[(hash(id+"fe")+n+5)%PLAYER_ECHO.length](c,t.title);
-    const reg=register(c);
-    const loSet=reg==="formal"?lowFormal:reg==="archaic"?lowArchaic:lowCasual;
-    const hiSet=reg==="formal"?highFormal:reg==="archaic"?highArchaic:highCasual;
-    const echoSet=reg==="formal"?TOPIC_ECHO_FORMAL:reg==="archaic"?TOPIC_ECHO_ARCHAIC:TOPIC_ECHO_CASUAL;
-    const echo=echoSet[(hash(id+"echo")+n)%echoSet.length](t.title);
-    const lo=loSet[(hash(id+"l")+n)%loSet.length](pick(c.guard,id+"g"),cue,c.rule)+" "+echo;
-    const hi=hiSet[(hash(id+"h")+n)%hiSet.length](pick(c.warm,id+"w"),cue,c.soft)+" "+echo;
-    const lo2=closeLow(c,t.title,id+"lc"),hi2=closeHigh(c,t.title,id+"hc");
+    const qLow=OPEN_LOW[(hash(id+"ql")+n)%OPEN_LOW.length](t.title);
+    const qHigh=OPEN_HIGH[(hash(id+"qh")+n)%OPEN_HIGH.length](t.title);
+    const fLow=FOLLOW_LOW[(hash(id+"fl")+n)%FOLLOW_LOW.length](t.title);
+    const fHigh=FOLLOW_HIGH[(hash(id+"fh")+n)%FOLLOW_HIGH.length](t.title);
+
+    let lo1,hi1,lo2,hi2;
+    if(sen){
+      lo1=deflectFor(c,false,id+"dl");
+      hi1=deflectFor(c,true,id+"dh");
+      lo2=deflectFor(c,false,id+"dl2")+" ‘"+t.title+"’ 얘기는 이 정도면 충분해.";
+      hi2=deflectFor(c,true,id+"dh2")+" ‘"+t.title+"’은 오늘은 가볍게 여기까지만.";
+    }else{
+      const cue=pick(CUE[tg]||CUE.hellsociety,c.id+t.id+"cue");
+      const reg=register(c);
+      const loSet=reg==="formal"?lowFormal:reg==="archaic"?lowArchaic:lowCasual;
+      const hiSet=reg==="formal"?highFormal:reg==="archaic"?highArchaic:highCasual;
+      lo1=loSet[(hash(id+"l")+n)%loSet.length](pick(c.guard,id+"g"),cue,"그냥 복잡하게 만들지 않고 현실적으로 보는 편이야");
+      hi1=hiSet[(hash(id+"h")+n)%hiSet.length](pick(c.warm,id+"w"),cue,"그래도 요즘은 네 반응도 조금 신경 쓰게 돼");
+      lo2=closeLow(c,t.title,id+"lc");
+      hi2=closeHigh(c,t.title,id+"hc");
+    }
+
     const title="TALK · "+c.name+" · "+t.title;
     if(highOnly){
       const cond=A(c.id,">=",c.t);
       return {id:id,name:title,characterId:c.id,eventRole:"talk",menuVisible:true,randomEligible:true,entries:[
-        N(id+"-n",st,{affectionCondition:cond}),P(id+"-p1",q,{affectionCondition:cond}),D(id+"-h1",c.id,c.name,hi,{affectionCondition:cond}),P(id+"-p2",follow,{affectionCondition:cond}),D(id+"-h2",c.id,c.name,hi2,{affectionCondition:cond})
+        N(id+"-n",st,{affectionCondition:cond}),
+        P(id+"-ph",qHigh,{affectionCondition:cond}),
+        D(id+"-h1",c.id,c.name,hi1,{affectionCondition:cond}),
+        P(id+"-fh",fHigh,{affectionCondition:cond}),
+        D(id+"-h2",c.id,c.name,hi2,{affectionCondition:cond})
       ]};
     }
     return {id:id,name:title,characterId:c.id,eventRole:"talk",menuVisible:true,randomEligible:true,entries:[
-      N(id+"-n",st),P(id+"-p1",q),
-      D(id+"-l1",c.id,c.name,lo,{affectionCondition:A(c.id,"<",c.t)}),
-      D(id+"-h1",c.id,c.name,hi,{affectionCondition:A(c.id,">=",c.t)}),
-      P(id+"-p2",follow),
+      N(id+"-n",st),
+      P(id+"-pl",qLow,{affectionCondition:A(c.id,"<",c.t)}),
+      P(id+"-ph",qHigh,{affectionCondition:A(c.id,">=",c.t)}),
+      D(id+"-l1",c.id,c.name,lo1,{affectionCondition:A(c.id,"<",c.t)}),
+      D(id+"-h1",c.id,c.name,hi1,{affectionCondition:A(c.id,">=",c.t)}),
+      P(id+"-fl",fLow,{affectionCondition:A(c.id,"<",c.t)}),
+      P(id+"-fh",fHigh,{affectionCondition:A(c.id,">=",c.t)}),
       D(id+"-l2",c.id,c.name,lo2,{affectionCondition:A(c.id,"<",c.t)}),
       D(id+"-h2",c.id,c.name,hi2,{affectionCondition:A(c.id,">=",c.t)})
     ]};
@@ -376,6 +481,6 @@
   window.HV_STORY_PACKS ||= [];
   for(const c of PFS){
     const list=chosen(c);
-    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:1,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
+    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:2,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
   }
 })();
