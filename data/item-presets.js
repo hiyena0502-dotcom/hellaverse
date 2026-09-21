@@ -12,7 +12,7 @@
     EPIC:[.50,.94],LEGENDARY:[.30,.68],MISTIC:[.15,.44]
   };
   const EXACT_WEIGHT=[
-    [/오버로드.*회의.*초대장/i,1.08],
+    [/오[버베]로드.*회의.*초대장/i,1.08],
     [/사탄.*독촉장/i,.84],
     [/빈\s*액자/i,.66],
     [/최고의\s*아빠.*머그컵/i,.78],
@@ -171,6 +171,7 @@
   function customLucifer(item,phase){
     const name=String(item.name||"");
     const table=[
+      [/오[버베]로드.*회의.*초대장/i,{preference:"NEUTRAL",emotionState:"guarded",emotionIntensity:24,specialMinAffection:54}],
       [/사탄.*독촉장/i,{
         first:"아, 젠장. 사탄이 아직도 이걸 보관하고 있었어? 아니, 잠깐. 왜 네가 가지고 있었는데?",
         repeat:"이 종이만 보면 머리가 아파. 다음엔 사탄한테 그냥 내가 죽었다고 해.",
