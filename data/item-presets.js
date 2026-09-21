@@ -1,7 +1,7 @@
 "use strict";
 
 (()=>{
-  const VERSION=1;
+  const VERSION=2;
   const PREF_DELTA={LOVED:5,LIKED:3,NEUTRAL:1,DISLIKED:-2,HATED:-4};
   const EMOTION_BY_PREF={
     LOVED:["joy",60],LIKED:["joy",38],NEUTRAL:["curious",24],
@@ -270,6 +270,8 @@
       ?helpers.normalizeItemReaction
       :value=>value;
     let changed=false;
+    let eligibleItems=0;
+    let populatedReactions=0;
     const currentVersion=Math.max(0,Number(source.itemPresetVersion)||0);
     if(currentVersion>=VERSION)return{state:source,changed:false};
 
@@ -279,16 +281,22 @@
       const nextWeight=individualWeight(item);
       if(Number(item.weight)!==nextWeight){item.weight=nextWeight;changed=true}
 
-      const owner=byId.get(item.collectionCharacterId);
+      const owner=byId.get(item.collectionCharacterId)||
+        characters.find(character=>
+          charKey(character)===key(item.collectionCharacterId).replace(/[^a-z0-9가-힣]+/g,"")
+        );
       if(!owner||item.giftable===false)continue;
+      eligibleItems+=1;
       item.reactions=Array.isArray(item.reactions)?item.reactions:[];
       const index=item.reactions.findIndex(reaction=>reaction.characterId===owner.id);
       const preset=normalizeReaction(buildReaction(item,owner),owner.id);
       if(index<0){
         item.reactions.push(preset);
+        populatedReactions+=1;
         changed=true;
       }else if(placeholderReaction(item.reactions[index])){
         item.reactions[index]=preset;
+        populatedReactions+=1;
         changed=true;
       }else{
         const old=item.reactions[index];
@@ -298,11 +306,17 @@
         if(!old.specialEntries?.length){old.specialEntries=preset.specialEntries;patched=true}
         if(!old.specialMinAffection){old.specialMinAffection=preset.specialMinAffection;patched=true}
         if(!old.emotionState){old.emotionState=preset.emotionState;old.emotionIntensity=preset.emotionIntensity;patched=true}
-        if(patched)changed=true;
+        if(patched){
+          populatedReactions+=1;
+          changed=true;
+        }
       }
     }
-    source.itemPresetVersion=VERSION;
-    return{state:source,changed:true||changed};
+    if(eligibleItems>0){
+      source.itemPresetVersion=VERSION;
+      changed=true;
+    }
+    return{state:source,changed,eligibleItems,populatedReactions};
   };
   window.HV_ITEM_PRESET_VERSION=VERSION;
 })();
