@@ -2976,7 +2976,7 @@ button.hotel-job-card:hover{
 .work-dock-compact .hotel-work-dock .hotel-job-copy em{display:none}
 
 .hotel-settings-backdrop{padding:clamp(10px,2vw,22px)}
-.hotel-settings-modal{
+.modal-card.hotel-settings-modal{
   width:min(1120px,98vw);
   height:min(820px,94dvh);
   max-height:94dvh;
@@ -3015,7 +3015,7 @@ button.hotel-job-card:hover{
   background:linear-gradient(110deg,rgba(106,24,48,.18),transparent 55%)
 }
 .hotel-settings-hero .label{margin:0;color:#dcae77;font-size:.55rem;letter-spacing:.18em}
-.hotel-settings-hero h2{margin:5px 0 3px;font-size:clamp(1.55rem,3vw,2.35rem);letter-spacing:.04em}
+.hotel-settings-modal .hotel-settings-hero h2{margin:5px 0 3px;font-size:clamp(1.55rem,3vw,2.35rem);letter-spacing:.04em}
 .hotel-settings-hero p:last-child{margin:0;color:#9b858c;font-size:.68rem;line-height:1.45}
 .hotel-settings-summary{display:flex;gap:6px;flex:0 0 auto}
 .hotel-settings-summary span{
