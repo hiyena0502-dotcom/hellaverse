@@ -334,7 +334,7 @@ editorBody.addEventListener("click",e=>{
   }
   if(a==="new-event"){
     const role=DIALOGUE_EVENT_ROLES.has(dialogueSubtab)?dialogueSubtab:"talk";
-    const ev=normalizeEvent({id:uid("event"),name:"새 "+role.toUpperCase()+" 이벤트",eventRole:role,menuVisible:role==="talk",characterId:selectedEditorCharacterId||editorDraft.characters[0]?.id||""});
+    const ev=normalizeEvent({id:uid("event"),name:"새 "+role.toUpperCase()+" 이벤트",eventRole:role,menuVisible:["talk","action"].includes(role),characterId:selectedEditorCharacterId||editorDraft.characters[0]?.id||""});
     editorDraft.events.push(ev);
     selectedEditorEventId=ev.id;
     selectedEntryId="";
@@ -665,13 +665,13 @@ function handleEditorField(e){
     if(t.dataset.bind==="event-role"){
       const role=DIALOGUE_EVENT_ROLES.has(t.value)?t.value:"talk";
       ev.eventRole=role;
-      ev.menuVisible=role==="talk"?ev.menuVisible!==false:false;
+      ev.menuVisible=["talk","action"].includes(role)?ev.menuVisible!==false:false;
       dialogueSubtab=role;
       editorEventPage=0;
       renderDialogueEditor();
       return;
     }
-    if(t.dataset.bind==="event-menu-visible"){ev.menuVisible=editorEventRole(ev)==="talk"&&t.checked;return}
+    if(t.dataset.bind==="event-menu-visible"){ev.menuVisible=["talk","action"].includes(editorEventRole(ev))&&t.checked;return}
     if(t.dataset.bind==="event-emotion-exit"){ev.emotionExitMode=t.value==="reset"?"reset":"keep";return}
   }
   const vr=t.closest("[data-var-id]");
