@@ -367,10 +367,12 @@ async function checkForAppUpdate(){
 }
 function installUpdateCheck(){
   clearTimeout(updateCheckTimer);
-  updateCheckTimer=setTimeout(checkForAppUpdate,5000);
+  clearInterval(updateCheckTimer);
+  checkForAppUpdate();
+  updateCheckTimer=setInterval(checkForAppUpdate,20000);
   document.addEventListener("visibilitychange",()=>{
     if(document.visibilityState==="visible")checkForAppUpdate();
-  });
+  },{passive:true});
 }
 function enterGame(){
   const name=playerNameInput.value.trim();
