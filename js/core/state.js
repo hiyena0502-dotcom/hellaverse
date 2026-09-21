@@ -643,7 +643,7 @@ function migrateLegacyBackup(raw){
       const legacyEventRole=legacyKind==="EXIT"?"exit":legacyKind==="ENTRY"?"entry":legacySceneRole==="ACTION"?"action":"talk";
       events.push({
         id:String(dialogue.id),
-        name:String((legacySceneRole==="ACTION"?"ACTION":(dialogue.kind||"TALK"))+" · "+(dialogue.title||dialogue.id)),
+        name:String((legacySceneRole==="ACTION"?"TALK":(dialogue.kind||"TALK"))+" · "+(dialogue.title||dialogue.id)),
         characterId:String(dialogue.characterId),
         eventRole:legacyEventRole,
         menuVisible:["talk","action"].includes(legacyEventRole),
