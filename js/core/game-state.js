@@ -39,6 +39,7 @@ function getCharacter(id, source=state){return source.characters.find(c=>c.id===
 function enabledCharacters(source=state){return source.characters.filter(c=>c.enabled)}
 function getEvent(id, source=state){
   if(activeInteractionEvent&&activeInteractionEvent.id===id)return activeInteractionEvent;
+  if(activeRoomIntroEvent&&activeRoomIntroEvent.id===id)return activeRoomIntroEvent;
   return source.events.find(e=>e.id===id)||null;
 }
 function eventsForCharacter(charId, source=state){return source.events.filter(e=>e.characterId===charId&&e.menuVisible!==false&&!isExitEvent(e)&&!isEntryEvent(e)&&!isStoryEvent(e))}
@@ -46,6 +47,30 @@ function talkEventsForCharacter(charId, source=state){return source.events.filte
 function actionEventsForCharacter(charId, source=state){return source.events.filter(e=>e.characterId===charId&&e.menuVisible!==false&&isActionEvent(e))}
 function entryEventsForCharacter(charId, source=state){return source.events.filter(e=>e.characterId===charId&&isEntryEvent(e))}
 function exitEventsForCharacter(charId, source=state){return source.events.filter(e=>e.characterId===charId&&isExitEvent(e))}
+function originIntroTextForCharacter(characterId,source=state){
+  const origin=String(source.profile?.origin||"");
+  if(!["sinner","hellborn","angel","winner"].includes(origin))return"";
+  const direct=window.HV_ORIGIN_INTROS?.[characterId];
+  if(direct?.[origin])return String(direct[origin]);
+  const character=getCharacter(characterId,source);
+  if(!character)return"";
+  const wanted=String(character.name||"").toLowerCase().replace(/[^a-z0-9가-힣]+/g,"");
+  const key=Object.keys(window.HV_ORIGIN_INTROS||{}).find(id=>{
+    const known=getCharacter(id,source);
+    return known&&String(known.name||"").toLowerCase().replace(/[^a-z0-9가-힣]+/g,"")===wanted;
+  });
+  return key&&window.HV_ORIGIN_INTROS[key]?.[origin]?String(window.HV_ORIGIN_INTROS[key][origin]):"";
+}
+function hasSeenOriginIntro(characterId,source=state){
+  return (source.seenOriginIntroCharacterIds||[]).includes(characterId);
+}
+function markOriginIntroSeen(characterId,source=state){
+  if(!characterId)return false;
+  source.seenOriginIntroCharacterIds ||= [];
+  if(source.seenOriginIntroCharacterIds.includes(characterId))return false;
+  source.seenOriginIntroCharacterIds.push(characterId);
+  return true;
+}
 function variableById(id,source=state){return source.variables.find(v=>v.id===id)||null}
 function itemById(id,source=state){return source.items.find(i=>i.id===id)||null}
 function itemEmoji(item){
