@@ -865,7 +865,7 @@
         .replace(/될까\?/g,"되겠소?")
         .replace(/같지 않아\?/g,"같지 않겠소?")
         .replace(/않아\?/g,"않겠소?")
-        .replace(/겠지\?/g,"그러하지 않겠소?")
+        .replace(/겠지\?/g,"겠소?")
         .replace(/하지\?/g,"하지 않소?")
         .replace(/잖아\?/g,"잖소?");
     }
@@ -1268,6 +1268,6 @@
   window.HV_STORY_PACKS ||= [];
   for(const c of PFS){
     const list=chosen(c);
-    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:20,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
+    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:21,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
   }
 })();
