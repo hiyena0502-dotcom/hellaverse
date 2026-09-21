@@ -11,11 +11,29 @@
     return code>=0xac00&&code<=0xd7a3?(code-0xac00)%28!==0:false;
   };
   const J=(value,batchim,noBatchim)=>`${value}${hasBatchim(value)?batchim:noBatchim}`;
-  const naturalize=(value,theme)=>String(value)
-    .split(`${theme[1]}을(를)`).join(J(theme[1],"을","를"))
-    .split(`${theme[1]}이(가)`).join(J(theme[1],"이","가"))
-    .split(`${theme[1]}은(는)`).join(J(theme[1],"은","는"))
-    .split(`${theme[1]}과(와)`).join(J(theme[1],"과","와"));
+  const naturalize=(value,theme,char=null)=>{
+    let text=String(value);
+    const nouns=[theme?.[0],theme?.[1]].filter(Boolean);
+    for(const noun of nouns){
+      text=text
+        .split(`${noun}을(를)`).join(J(noun,"을","를"))
+        .split(`${noun}이(가)`).join(J(noun,"이","가"))
+        .split(`${noun}은(는)`).join(J(noun,"은","는"))
+        .split(`${noun}과(와)`).join(J(noun,"과","와"))
+        .split(`${noun}을`).join(J(noun,"을","를"))
+        .split(`${noun}은`).join(J(noun,"은","는"))
+        .split(`${noun}이`).join(J(noun,"이","가"))
+        .split(`${noun}과`).join(J(noun,"과","와"));
+    }
+    if(char?.display){
+      const name=char.display;
+      text=text
+        .split(`${name}가`).join(J(name,"이","가"))
+        .split(`${name}는`).join(J(name,"은","는"))
+        .split(`${name}를`).join(J(name,"을","를"));
+    }
+    return text;
+  };
 
   const C=[
     {id:"lucifer-morningstar",name:"Lucifer Morningstar",display:"루시퍼",threshold:58,guard:"하! 그걸 눈치챘네.",warm:"네가 물었으니 특별히 말해주지.",endLow:["왕에게도 사소한 취미 정도는 필요하다고.","너무 의미를 붙이진 마. 아직은 말이야."],endHigh:["네 앞에서는 굳이 멋진 결론으로 포장하지 않아도 되겠네.","이 얘기를 찰리보다 먼저 들었다고 자랑하진 말고."],themes:[
@@ -437,7 +455,7 @@
       `${char.display} 앞의 ${object}에는 손본 흔적이 남아 있다. 아직 마무리할 부분이 조금 보인다.`,
       `${char.display}가 ${object}을(를) 가까이에 남겨둔 채 다른 일을 하고 있다. 치울 생각은 없어 보인다.`
     ];
-    return naturalize(lines[index%lines.length],theme);
+    return naturalize(lines[index%lines.length],theme,char);
   };
   const choiceLabels=(char,theme,index)=>{
     const labels=[
@@ -449,7 +467,7 @@
       [`${theme[1]}을(를) 건네받을 준비를 한다`,`설명 없이 기다린다`],
       [`${theme[0]}을(를) 왜 간직하는지 묻는다`,`말 대신 고개만 끄덕인다`]
     ];
-    return labels[index%labels.length].map(line=>naturalize(line,theme));
+    return labels[index%labels.length].map(line=>naturalize(line,theme,char));
   };
 
   const makeEvent=(char,theme,themeIndex)=>{
@@ -482,8 +500,8 @@
             id:base+"-soft",
             label:labels[1],
             entries:[
-              D(base+"-soft-low",char.id,char.name,naturalize(softLine(char,theme,themeIndex,false),theme),low),
-              D(base+"-soft-high",char.id,char.name,naturalize(softLine(char,theme,themeIndex,true),theme),high),
+              D(base+"-soft-low",char.id,char.name,naturalize(softLine(char,theme,themeIndex,false),theme,char),low),
+              D(base+"-soft-high",char.id,char.name,naturalize(softLine(char,theme,themeIndex,true),theme,char),high),
               N(base+"-soft-n",`${char.display}가 재촉받지 않은 채 ${theme[1]}을(를) 천천히 정리한다.`)
             ],
             affectionEffects:[{id:base+"-soft-affection",characterId:char.id,amount:1}],
