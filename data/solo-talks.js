@@ -657,25 +657,46 @@
   };
   const choicePrompt=(char,theme,index)=>{
     const prompts=[
-      `${theme[0]}을(를) 보고 어떻게 반응할까?`,
-      `${theme[0]}을(를) 살피는 ${char.display}에게 어떻게 할까?`,
-      `${theme[0]} 이야기를 꺼내볼까?`,
-      `지금은 돕는 편이 좋을까?`,
-      `${theme[0]}에 다시 시선이 간 이유를 물을까?`,
-      `${theme[0]}을(를) 확인하는 일을 도울까?`,
-      `${theme[0]}을(를) 그대로 둔 이유를 물을까?`
+      `${char.display}가 ${theme[0]}을(를) 꺼낸 이유를 물어볼까?`,
+      `${char.display}와 ${theme[1]}을(를) 같이 살펴볼까?`,
+      `${char.display}에게 ${theme[0]} 이야기를 더 물어볼까?`,
+      `지금 ${char.display}에게 손을 보태는 게 좋을까?`,
+      `${char.display}가 ${theme[0]}을(를) 다시 본 이유를 물을까?`,
+      `${char.display}의 ${theme[0]} 확인을 도와줄까?`,
+      `${char.display}가 ${theme[0]}을(를) 남겨둔 이유를 물어볼까?`
     ];
     return naturalize(prompts[index%prompts.length],theme,char);
   };
   const choiceLabels=(char,theme,index)=>{
     const labels=[
-      [`${theme[0]}을(를) 보며 이유를 묻는다`,`${char.display}가 먼저 말할 때까지 기다린다`],
-      [`${theme[1]} 상태를 같이 살핀다`,`손대지 않고 옆에 선다`],
-      [`${theme[0]}에 얽힌 이야기를 물어본다`,`관심만 보이고 재촉하지 않는다`],
-      [`필요하면 돕겠다는 뜻으로 손을 내민다`,`${char.display}의 다음 행동을 지켜본다`],
-      [`${theme[0]}에 대해 솔직한 반응을 보인다`,`조용히 자리를 지켜준다`],
-      [`${theme[1]}을(를) 건네받을 준비를 한다`,`설명 없이 기다린다`],
-      [`${theme[0]}을(를) 왜 간직하는지 묻는다`,`말 대신 고개만 끄덕인다`]
+      [
+        `${char.display}에게 ${theme[0]}을(를) 왜 꺼냈는지 묻는다`,
+        `${char.display}가 먼저 입을 열 때까지 ${theme[1]}에 손대지 않는다`
+      ],
+      [
+        `${char.display}와 함께 ${theme[1]} 상태를 살핀다`,
+        `${theme[1]}에서 한 걸음 물러나 ${char.display}를 기다린다`
+      ],
+      [
+        `${char.display}에게 ${theme[0]} 이야기를 물어본다`,
+        `질문 대신 ${theme[1]}을(를) 조용히 바라본다`
+      ],
+      [
+        `${char.display}에게 필요한 일이 있는지 묻는다`,
+        `손을 거두고 ${char.display}가 다음 행동을 정하게 둔다`
+      ],
+      [
+        `${theme[0]}을(를) 보고 느낀 점을 솔직하게 전한다`,
+        `${theme[1]}을(를) 그대로 두고 ${char.display} 곁을 지킨다`
+      ],
+      [
+        `${char.display}가 허락하면 ${theme[1]}을(를) 받아 든다`,
+        `${char.display}가 설명할 때까지 ${theme[1]}을(를) 건드리지 않는다`
+      ],
+      [
+        `${char.display}에게 ${theme[0]}을(를) 남겨둔 이유를 묻는다`,
+        `${theme[0]}에는 말 대신 ${char.display}에게 짧게 고개를 끄덕인다`
+      ]
     ];
     return labels[index%labels.length].map(line=>naturalize(line,theme,char));
   };
@@ -727,7 +748,7 @@
     const events=char.themes.map((theme,themeIndex)=>makeEvent(char,theme,themeIndex));
     window.HV_STORY_PACKS.push({
       id:"solo-talks-"+slug(char.id),
-      version:7,
+      version:8,
       requiredCharacterIds:[char.id],
       events
     });
