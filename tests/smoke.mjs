@@ -107,10 +107,12 @@ const walkEntries=(entries,visit)=>{
 };
 const soloEventIds=new Set();
 const allSoloCharacterLines=[];
+const allSoloChoiceLabels=[];
+const allSoloChoicePrompts=[];
 for(const pack of soloTalkPacks){
   const characterId=pack.requiredCharacterIds?.[0]||"";
   assert.equal((pack.events||[]).length,7,pack.id+" must contain seven curated theme scenes");
-  assert.equal(pack.version,7,pack.id+" must use character-specific solo TALK responses");
+  assert.equal(pack.version,8,pack.id+" must use character- and scene-specific solo TALK content");
   const characterLines=[];
   const choicePrompts=[];
   const choiceLabels=[];
@@ -129,8 +131,10 @@ for(const pack of soloTalkPacks){
     const rootChoice=event.entries.find(entry=>entry.type==="choice");
     assert.equal(rootChoice?.options?.length,2,event.id+" must provide two distinct approaches");
     choicePrompts.push(rootChoice.prompt);
+    allSoloChoicePrompts.push(rootChoice.prompt);
     for(const option of rootChoice?.options||[]){
       choiceLabels.push(option.label);
+      allSoloChoiceLabels.push(option.label);
       const branchLines=[];
       walkEntries(option.entries,entry=>{if(entry.type==="dialogue")branchLines.push(entry)});
       assert.equal(branchLines.length,2,event.id+" each choice must continue through distinct low/high character reactions");
@@ -165,6 +169,8 @@ for(const pack of soloTalkPacks){
   assert.equal(new Set(choiceLabels).size,choiceLabels.length,pack.id+" must not repeat player choice wording");
 }
 assert.equal(new Set(allSoloCharacterLines).size,allSoloCharacterLines.length,"different characters must not share exact SOLO TALK dialogue lines");
+assert.equal(new Set(allSoloChoiceLabels).size,allSoloChoiceLabels.length,"SOLO TALK player choices must not be reused across characters");
+assert.equal(new Set(allSoloChoicePrompts).size,allSoloChoicePrompts.length,"SOLO TALK choice prompts must not be reused across characters");
 assert.ok(!allSoloCharacterLines.some(line=>line.includes("분위기를 읽는 눈은 있네, 베이비")),"retired Asmodeus repeat line must not return");
 assert.ok(!allSoloCharacterLines.some(line=>line.includes("이 정도 설명이면 호기심은 잠시 달랠 수 있겠지요")),"shared elegant closer must not return");
 assert.ok(!allSoloCharacterLines.some(line=>line.includes("밤이 지나기 전")&&line.includes("내 방식으로 마무리")),"shared night closer must not return");
@@ -750,7 +756,7 @@ assert.equal(legacyDialogueLocalizationCheck.giftLine,"좋아! 그렇지!","lega
 assert.equal(legacyDialogueLocalizationCheck.logLine,"아담은 죽었어.","saved dialogue history must be localized");
 assert.match(legacyDialogueLocalizationCheck.luciferOpening,/호텔 업무 메모/,"contextless Lucifer legacy opening must be rewritten with a visible situation");
 assert.ok(!legacyDialogueLocalizationCheck.luciferOpening.includes("이라는 말에"),"rewritten Lucifer opening must not depend on missing prior dialogue");
-assert.equal(legacyDialogueLocalizationCheck.version,14,"dialogue tuning migration version missing");
+assert.equal(legacyDialogueLocalizationCheck.version,15,"dialogue tuning migration version missing");
 
 const characterEventPackSnapshot=vm.runInContext(`
 (window.HV_STORY_PACKS||[])
@@ -785,7 +791,7 @@ const fullLegacyRefRepairCheck=vm.runInContext(`
   }
   const source=normalizeState({
     schemaVersion:4,
-    dialoguePresetVersion:13,
+    dialoguePresetVersion:14,
     characters:characterRows,
     events
   });
@@ -809,7 +815,7 @@ const fullLegacyRefRepairCheck=vm.runInContext(`
 `,context);
 assert.equal(fullLegacyRefRepairCheck.total,48,"all legacy voice events must be included in the repair fixture");
 assert.equal(fullLegacyRefRepairCheck.bad.length,0,"all legacy voice event character references must be repaired");
-assert.equal(fullLegacyRefRepairCheck.version,14,"full character-ref repair must advance dialogue preset version");
+assert.equal(fullLegacyRefRepairCheck.version,15,"full character-ref repair must advance dialogue preset version");
 
 const storyPackCountBeforeTuning=context.window.HV_STORY_PACKS.length;
 context.window.HV_STORY_PACKS.push(...structuredClone(relationshipPacks));
@@ -835,7 +841,7 @@ const tunedDialogueSyncCheck=vm.runInContext(`
 `,context);
 assert.match(tunedDialogueSyncCheck.eventText,/알고리즘|피드/,"existing saves must receive tuned relationship TALK");
 assert.ok(!/예전 질문/.test(tunedDialogueSyncCheck.askText),"existing saves must receive tuned relationship ASK");
-assert.equal(tunedDialogueSyncCheck.version,14,"tuned dialogue sync must advance preset version");
+assert.equal(tunedDialogueSyncCheck.version,15,"tuned dialogue sync must advance preset version");
 context.window.HV_STORY_PACKS.length=storyPackCountBeforeTuning;
 
 context.window.HV_STORY_PACKS.push(...structuredClone(soloTalkPacks));
@@ -845,7 +851,7 @@ const soloDialogueSyncCheck=vm.runInContext(`
   const eventId=fresh.events[0].id;
   const source=normalizeState({
     schemaVersion:4,
-    dialoguePresetVersion:13,
+    dialoguePresetVersion:14,
     characters:[{id:"asmodeus",name:"Asmodeus",origin:"hellborn"}],
     events:[
       {id:eventId,name:"OLD",characterId:"asmodeus",eventRole:"talk",menuVisible:true,entries:[{id:"old",type:"dialogue",speakerCharacterId:"asmodeus",speaker:"ASMODEUS",text:"분위기를 읽는 눈은 있네, 베이비."}]},
@@ -865,7 +871,7 @@ const soloDialogueSyncCheck=vm.runInContext(`
 assert.equal(soloDialogueSyncCheck.choiceCount,1,"existing saves must receive the choice-driven solo TALK rewrite");
 assert.equal(soloDialogueSyncCheck.retiredLine,false,"existing saves must remove the repeated Asmodeus line");
 assert.equal(soloDialogueSyncCheck.retiredEventExists,false,"existing saves must remove retired solo TALK filler events");
-assert.equal(soloDialogueSyncCheck.version,14,"solo TALK sync must advance preset version");
+assert.equal(soloDialogueSyncCheck.version,15,"solo TALK sync must advance preset version");
 context.window.HV_STORY_PACKS.length=storyPackCountBeforeTuning;
 
 assert.match(characterEventCode,/id:"angel".*?threshold:60.*?유료 서비스/s,"Angel base TALK tuning missing");
