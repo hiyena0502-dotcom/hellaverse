@@ -202,8 +202,8 @@
       ["재즈 레코드","오래된 재즈 레코드","좋은 리듬은 몸보다 먼저 마음을 풀어줘.","사랑하는 사람과 같은 곡을 다시 듣는 건 기억을 새로 쓰는 일이야."],
       ["향수 병","짙은 향수 병","향은 가까이 와도 된다는 신호가 될 수 있어.","네가 좋아한 향을 기억해두는 건 내 방식의 다정함이지."],
       ["예약 장부","검은 예약 장부","즐거움에도 안전한 시간과 공간이 필요해.","누구도 원치 않는 역할을 연기하지 않게 지키는 게 내 자존심이야."],
-      ["피즈의 공구","작은 보철 공구","도와주는 것과 대신 결정하는 건 다르지.","할 수 있다는 걸 알면서도 곁에서 기다려주는 사랑을 배웠어."],
-      ["꺼진 촛불","검은 촛대","끝난 밤을 제대로 닫아야 다음 즐거움도 선명해져.","네가 돌아간 뒤에도 오늘 대화를 오래 떠올릴 것 같네."],
+      ["피즈의 공구","작은 보철 공구","도와주는 것과 대신 해주는 건 달라.","피즈가 원할 때 손 내미는 게 내가 할 일이야."],
+      ["꺼진 촛불","검은 촛대","끝난 밤은 깔끔하게 정리해야 다음도 재밌지.","네가 간 뒤에도 오늘은 좀 오래 남겠네."],
       ["열린 문","붉은 문패","들어오는 것도 나가는 것도 자유로워야 진짜 초대야.","네가 매번 스스로 돌아오는 게 어떤 맹세보다 달콤해."]]},
     {id:"beelzebub",name:"Beelzebub",display:"비엘제붑",threshold:45,guard:"오, 그거 알아봤어? 감각 좋은데!",warm:"너랑은 맛도 기분도 솔직하게 나눌 수 있지!",endLow:["재밌으면 된 거야! 너무 복잡하게 생각하지 마!", "좋아, 다음엔 더 크게 놀자!"],endHigh:["네 기분이 바뀌는 건 맛처럼 바로 알아챌 수 있어.","신나는 척 안 해도 여기 있을 자리는 늘 남겨둘게."],themes:[
       ["매운 꿀","매운 꿀 병","달고 뜨거운 맛이 같이 와야 제대로 살아 있는 기분이야!","네가 힘든 날엔 덜 맵게 섞어서 천천히 먹게 하고 싶어."],
@@ -415,47 +415,31 @@
     (c,t)=>`누가 손댔는진 몰라도 흔적은 남아. 원래대로 돌리는 건 어렵지 않아.`,
     (c,t)=>`거창하게 축하할 일은 아니어도 작은 표시 하나쯤은 남겨도 되잖아.`
   ];
-  const SOFT_TAILS=ACTIVE_TAILS.map((fn,index)=>(c,t)=>{
-    const base=fn(c,t);
-    const turns=[
-      "네가 먼저 손대지 않은 건 마음에 드네.",
-      "보고만 있어도 되는 순간을 아는 건 꽤 드문 재주야.",
-      "재촉하지 않으니 내가 생각할 틈이 생겼어.",
-      "말보다 거리를 지켜준 쪽이 더 정확한 반응이었어.",
-      "굳이 대신 결정하지 않은 건 잘했어.",
-      "이건 내가 먼저 움직일 때까지 두는 편이 낫겠어.",
-      "질문보다 기다림이 더 맞는 순간도 있으니까.",
-      "지금은 설명보다 네가 가만히 있는 쪽이 편하네."
-    ];
-    return `${base} ${turns[index%turns.length]}`;
-  });
-  const ASMODEUS_LOW=[
-    "손부터 뻗기 전에 눈으로 물어보는 건 합격이야, 베이비. 욕망에도 매너는 있거든.",
-    "그렇게 궁금해도 멋대로 만지진 마. 천박한 건 좋아하지만 무례한 건 질색이라서.",
-    "피즈 물건은 특히 조심해. 애인 물건 함부로 휘젓는 건 침대에서도 무대에서도 촌스러운 짓이야.",
-    "가까이 와도 돼. 다만 허락은 분위기로 때우는 게 아니라 확실히 받는 거야."
-  ];
-  const ASMODEUS_HIGH=[
-    "좋아, 네가 기다리는 방식은 꽤 섹시하네. 서두르지 않는 사람이 오래 즐기는 법이지.",
-    "피즈가 이걸 아끼는 이유까지 네게 말해도 되겠다. 입 무겁게 굴면 다음 얘기도 있고.",
-    "네 앞에선 야한 농담이랑 진짜 걱정을 같은 문장에 넣어도 안 어색하네. 그게 꽤 마음에 들어.",
-    "젠틀하게 말하면 신뢰고, 천박하게 말하면 내 사람 물건엔 손버릇 조심하라는 뜻이야. 둘 다 맞아."
-  ];
-  const responseLine=(char,theme,momentIndex,kind,high)=>{
-    const core=high?theme[3]:theme[2];
-    const tail=(kind==="active"?ACTIVE_TAILS:SOFT_TAILS)[momentIndex%(kind==="active"?ACTIVE_TAILS.length:SOFT_TAILS.length)](char,theme);
+  const TALK_OPEN={
+    activeLow:["","흠. ","좋아. ","그래. ","잠깐. ","됐어. ","보자. "],
+    activeHigh:["응. ","좋아. ","그래. ","그건 괜찮네. ","알겠어. ","좋지. ","말해줄게. "],
+    softLow:["알겠어. ","그대로 둬. ","응. ","됐어. ","그래. ","그 정도면 돼. ","좋아. "],
+    softHigh:["고마워. ","응, 좋아. ","그대로 있어. ","그게 낫네. ","좋아. ","편하네. ","알겠어. "]
+  };
+  const ASMODEUS_OPEN_LOW=["베이비, ","천천히. ","젠틀하게 가자. ","서두르진 마. ","좋아. ","그 손은 잠깐. ","선은 지켜. "];
+  const ASMODEUS_OPEN_HIGH=["좋아, 베이비. ","센스 있네. ","천천히 가자. ","그게 더 섹시하지. ","좋아. ","젠틀하네. ","그 정도면 믿을 만해. "];
+  const compactTail=(char,theme,momentIndex,kind,high,eventIndex)=>{
+    const shift=(kind==="soft"?17:0)+(high?29:0);
+    const index=(momentIndex+shift)%ACTIVE_TAILS.length;
+    let line=ACTIVE_TAILS[index](char,theme);
+    if(eventIndex>=ACTIVE_TAILS.length)line+=` 이번엔 ${theme[0]} 쪽을 따로 보자.`;
     if(char.id==="asmodeus"){
-      const spice=(high?ASMODEUS_HIGH:ASMODEUS_LOW)[momentIndex%4];
-      return `${core} ${spice} ${tail}`;
+      const openings=high?ASMODEUS_OPEN_HIGH:ASMODEUS_OPEN_LOW;
+      return openings[eventIndex%openings.length]+line;
     }
-    if(char.id==="alastor")return `${core} 하하, ${tail}`;
-    if(char.id==="vox")return `${core} 화면에 띄우면 단순해 보이겠지만, ${tail}`;
-    if(char.id==="baxter")return `${core} 관찰 결과를 덧붙이자면, ${tail}`;
-    if(char.id==="charlie-morningstar"||char.id==="emily")return `${core} 그리고 있잖아! ${tail}`;
-    if(char.id==="lute")return `${core} ${tail}`;
-    if(char.id==="velvette")return `${core} 이건 피드용 멘트 아니고 진짜로, ${tail}`;
-    if(char.id==="sir-pentious")return `${core} 그리고 명심하게! ${tail}`;
-    return `${core} ${tail}`;
+    const key=kind+(high?"High":"Low");
+    return TALK_OPEN[key][eventIndex%TALK_OPEN[key].length]+line;
+  };
+  const responseLine=(char,theme,momentIndex,kind,high,eventIndex)=>{
+    // The first pass through each character's themes gets one concise theme-specific line.
+    // Later events use a unique situation line instead of stacking shared style templates.
+    if(kind==="active"&&eventIndex<char.themes.length)return high?theme[3]:theme[2];
+    return compactTail(char,theme,momentIndex,kind,high,eventIndex);
   };
 
   const makeEvent=(char,theme,themeIndex,moment,momentIndex,eventIndex)=>{
@@ -466,8 +450,8 @@
       id:`${base}-${kind}`,
       label,
       entries:[
-        D(`${base}-${kind}-low`,char.id,char.name,responseLine(char,theme,momentIndex,kind,false),low),
-        D(`${base}-${kind}-high`,char.id,char.name,responseLine(char,theme,momentIndex,kind,true),high),
+        D(`${base}-${kind}-low`,char.id,char.name,responseLine(char,theme,momentIndex,kind,false,eventIndex),low),
+        D(`${base}-${kind}-high`,char.id,char.name,responseLine(char,theme,momentIndex,kind,true,eventIndex),high),
         N(`${base}-${kind}-n`,naturalize(beat(char,theme),theme))
       ],
       affectionEffects:[{id:`${base}-${kind}-affection`,characterId:char.id,amount:1}],
@@ -501,7 +485,7 @@
     }
     window.HV_STORY_PACKS.push({
       id:"solo-talks-"+slug(char.id),
-      version:3,
+      version:4,
       requiredCharacterIds:[char.id],
       events
     });
