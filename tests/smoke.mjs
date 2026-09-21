@@ -558,6 +558,8 @@ assert.equal(legacyDialogueLocalizationCheck.giftLine,"좋아! 그렇지!","lega
 assert.equal(legacyDialogueLocalizationCheck.logLine,"아담은 죽었어.","saved dialogue history must be localized");
 assert.equal(legacyDialogueLocalizationCheck.version,6,"dialogue tuning migration version missing");
 
+const storyPackCountBeforeTuning=context.window.HV_STORY_PACKS.length;
+context.window.HV_STORY_PACKS.push(...structuredClone(relationshipPacks));
 const tunedDialogueSyncCheck=vm.runInContext(`
 (()=>{
   const fresh=(window.HV_STORY_PACKS||[]).find(pack=>pack.id==="relationship-velvette");
@@ -581,6 +583,7 @@ const tunedDialogueSyncCheck=vm.runInContext(`
 assert.match(tunedDialogueSyncCheck.eventText,/알고리즘|피드/,"existing saves must receive tuned relationship TALK");
 assert.ok(!/예전 질문/.test(tunedDialogueSyncCheck.askText),"existing saves must receive tuned relationship ASK");
 assert.equal(tunedDialogueSyncCheck.version,6,"tuned dialogue sync must advance preset version");
+context.window.HV_STORY_PACKS.length=storyPackCountBeforeTuning;
 
 assert.match(characterEventCode,/id:"angel"[sS]*?threshold:60[sS]*?유료 서비스/,"Angel base TALK tuning missing");
 assert.match(characterEventCode,/id:"adam"[sS]*?threshold:62[sS]*?섹스 없는 자랑질/,"Adam base TALK tuning missing");
