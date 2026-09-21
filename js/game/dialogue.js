@@ -7,6 +7,29 @@ let inventoryQuery="";
 let inventoryCategory="ALL";
 let inventoryPreference="ALL";
 let inventoryUnknownOnly=false;
+function buildOriginIntroEvent(character){
+  if(!character)return null;
+  const text=originIntroTextForCharacter(character.id);
+  if(!text)return null;
+  const origin=String(state.profile?.origin||"").toUpperCase();
+  const eventId="__origin-intro__"+character.id;
+  return {
+    id:eventId,
+    name:"FIRST INTRO · "+origin,
+    characterId:character.id,
+    eventRole:"entry",
+    menuVisible:false,
+    continuationEventIds:[],
+    emotionExitMode:"keep",
+    entries:[normalizeEntry({
+      id:eventId+"-line",
+      type:"dialogue",
+      speakerCharacterId:character.id,
+      speaker:character.name,
+      text
+    })]
+  };
+}
 function startDialogue(characterId,eventId){
   const ch=getCharacter(characterId);if(!ch)return;
   const enteringRoom=currentPage!=="room";
@@ -17,8 +40,15 @@ function startDialogue(characterId,eventId){
   activeInteractionEvent=null;
   interactionContext=null;
   interactionCompleteMenu=null;
-  const entry=enteringRoom&&!eventId?randomTalkEvent(playableEntryEventsForCharacter(ch.id)):null;
-  const ev=eventId?getEvent(eventId):(entry||randomTalkForCharacter(ch.id));
+  activeRoomIntroEvent=null;
+  const hasCustomOriginIntro=Boolean(window.HV_ORIGIN_INTROS?.[ch.id]);
+  const intro=enteringRoom&&!eventId&&hasCustomOriginIntro&&!hasSeenOriginIntro(ch.id)?buildOriginIntroEvent(ch):null;
+  if(intro){
+    activeRoomIntroEvent=intro;
+    if(markOriginIntroSeen(ch.id))saveProgressState();
+  }
+  const entry=enteringRoom&&!eventId&&!hasCustomOriginIntro?randomTalkEvent(playableEntryEventsForCharacter(ch.id)):null;
+  const ev=eventId?getEvent(eventId):(intro||entry||randomTalkForCharacter(ch.id));
   const entryActive=Boolean(ev&&isEntryEvent(ev));
   const actionActive=Boolean(ev&&isActionEvent(ev));
   const wasNew=Boolean(ev&&!entryActive&&!isTalkDiscovered(ev.id));
@@ -72,6 +102,7 @@ function jumpEvent(id,{preserveContinuation=false,label="본편"}={}){
   const departing=currentEvent();const ev=getEvent(id);
   if(!ev){if(playback)playback.ended=true;return false}
   resetEventEmotion(departing);
+  if(activeRoomIntroEvent&&departing?.id===activeRoomIntroEvent.id)activeRoomIntroEvent=null;
   playback.eventId=ev.id;
   playback.characterId=ev.characterId||playback.characterId;
   if(!preserveContinuation){
@@ -274,6 +305,7 @@ function completeRoomExit(){
   interactionCompleteMenu=null;
   activeInteractionReaction=null;
   activeInteractionEvent=null;
+  activeRoomIntroEvent=null;
   interactionContext=null;
   playback=null;
   typing.token="";
