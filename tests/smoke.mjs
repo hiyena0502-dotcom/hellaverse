@@ -104,12 +104,12 @@ assert.match(stateCode,/function isEntryEvent\(/,"ENTRY event role compatibility
 assert.match(gameStateCode,/function entryEventsForCharacter\(/,"ENTRY event helper missing");
 assert.match(dialogueCode,/playableEntryEventsForCharacter\(ch\.id\)/,"room entry must prefer ENTRY events once");
 assert.match(dialogueCode,/!isEntryEvent\(ev\)/,"ENTRY events must stay out of continuous TALK");
-assert.match(characterEventCode,/voice-events-baxter/,"Baxter voice event pack missing");
-assert.match(characterEventCode,/voice-events-emily/,"Emily voice event pack missing");
-assert.match(characterEventCode,/voice-events-lute/,"Lute voice event pack missing");
-assert.match(characterEventCode,/voice-events-adam/,"Adam voice event pack missing");
-assert.match(characterEventCode,/voice-events-vox/,"Vox voice event pack missing");
-assert.match(characterEventCode,/voice-events-pentious/,"Sir Pentious voice event pack missing");
+assert.match(characterEventCode,/id:"baxter"/,"Baxter voice event pack missing");
+assert.match(characterEventCode,/id:"emily"/,"Emily voice event pack missing");
+assert.match(characterEventCode,/id:"lute"/,"Lute voice event pack missing");
+assert.match(characterEventCode,/id:"adam"/,"Adam voice event pack missing");
+assert.match(characterEventCode,/id:"vox"/,"Vox voice event pack missing");
+assert.match(characterEventCode,/id:"pentious"/,"Sir Pentious voice event pack missing");
 assert.ok(!dialogueCode.includes("이벤트가 끝났습니다."),"terminal event-ended screen must be removed");
 assert.match(editorUi,/data-entry-field="speakerCharacterId"/,"speaker image selector missing from event editor");
 assert.match(editorEvents,/data-action="validation-jump"/,"validation issue navigation missing");
