@@ -527,7 +527,7 @@
 
     pageRoot.innerHTML=
       '<section class="'+classes+'" style="--hotel-ambient-duration:'+(7/settings.motionSpeed)+'s">'+
-        '<header class="world-hotel-head">'+
+        '<header class="world-hotel-head world-page-head">'+
           '<div><p class="page-kicker">WORLD · 01</p><h1>'+esc(region.name)+'</h1><p>'+esc(region.subtitle)+'</p></div>'+
           '<div class="world-hotel-actions">'+
             '<div class="hotel-economy"><small>'+esc(state.gacha.currencyName||"SOUL")+'</small><strong>'+state.gacha.balance+'</strong><span>TODAY +'+settings.workStats.dayEarned+'</span></div>'+
@@ -536,22 +536,26 @@
           '</div>'+
         '</header>'+
         hotelWorkDock(settings)+
-        '<div class="hotel-scene-shell">'+
-          '<div class="hotel-sky" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span></div>'+
-          '<div class="hotel-city-silhouette" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>'+
-          '<div class="hotel-ground-glow" aria-hidden="true"></div>'+
-          '<div class="hotel-street-foreground" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>'+
-          '<div class="hotel-building">'+
-            hotelCrown()+hotelFacadeDecor()+
-            '<div class="hotel-cutaway">'+
-              '<div class="hotel-lift-shaft" aria-hidden="true">'+
-                '<span class="lift-rail left"></span><span class="lift-rail right"></span><span class="lift-cable"></span>'+
-                '<div class="lift-car"><i></i><b>♥</b><em></em></div>'+
+        '<div class="world-map-viewport world-map-viewport-hotel" tabindex="0" aria-label="HAZBIN HOTEL 인터랙티브 지도 · 좌우로 이동 가능">'+
+          '<div class="hotel-scene-shell">'+
+            '<div class="world-map-badge"><span>INTERACTIVE MAP</span><strong>'+esc(region.name)+'</strong></div>'+
+            '<div class="hotel-sky" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span></div>'+
+            '<div class="hotel-city-silhouette" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>'+
+            '<div class="hotel-ground-glow" aria-hidden="true"></div>'+
+            '<div class="hotel-street-foreground" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>'+
+            '<div class="hotel-building">'+
+              hotelCrown()+hotelFacadeDecor()+
+              '<div class="hotel-cutaway">'+
+                '<div class="hotel-lift-shaft" aria-hidden="true">'+
+                  '<span class="lift-rail left"></span><span class="lift-rail right"></span><span class="lift-cable"></span>'+
+                  '<div class="lift-car"><i></i><b>♥</b><em></em></div>'+
+                '</div>'+
+                floors+
               '</div>'+
-              floors+
             '</div>'+
           '</div>'+
         '</div>'+
+        '<p class="world-map-mobile-hint"><span aria-hidden="true">↔</span> 지도를 좌우로 밀어 둘러보세요</p>'+
         '<aside class="hotel-scene-note hotel-guide-strip hotel-guide-below">'+
           '<span>CUTAWAY VIEW</span>'+
           '<strong>층을 눌러 공간을 확인하고 캐릭터를 드래그해서 직접 배치하세요.</strong>'+

@@ -223,19 +223,49 @@
   }
 
   function regionNavMarkup(){
-    return '<nav class="world-region-nav" aria-label="WORLD 지역 선택">'+
-      regions().map((region,index)=>
-        '<button type="button" class="world-region-tab '+(activeRegion===region.id?"active":"")+'" data-world-region="'+esc(region.id)+'">'+
-          '<span>'+String(index+1).padStart(2,"0")+'</span><strong>'+esc(region.name)+'</strong>'+
-        '</button>'
-      ).join("")+
-    '</nav>';
+    const list=regions();
+    const currentIndex=Math.max(0,list.findIndex(region=>region.id===activeRegion));
+    const current=list[currentIndex]||list[0]||{name:"WORLD"};
+    return '<section class="world-region-switcher" aria-label="WORLD 지도 탐색">'+
+      '<div class="world-region-switcher-head">'+
+        '<div><span>WORLD DIRECTORY</span><strong><b>'+(currentIndex+1)+' / '+list.length+'</b>'+esc(current.name)+'</strong></div>'+
+        '<div class="world-region-stepper">'+
+          '<button type="button" data-world-step="-1" aria-label="이전 지역">←</button>'+
+          '<button type="button" data-world-step="1" aria-label="다음 지역">→</button>'+
+        '</div>'+
+      '</div>'+
+      '<nav class="world-region-nav" aria-label="WORLD 지역 선택">'+
+        list.map((region,index)=>
+          '<button type="button" class="world-region-tab '+(activeRegion===region.id?"active":"")+'" data-world-region="'+esc(region.id)+'"'+(activeRegion===region.id?' aria-current="page"':"")+'>'+
+            '<span>'+String(index+1).padStart(2,"0")+'</span><strong>'+esc(region.name)+'</strong>'+
+          '</button>'
+        ).join("")+
+      '</nav>'+
+    '</section>';
+  }
+
+  function revealActiveRegion(){
+    requestAnimationFrame(()=>{
+      const nav=$(".world-region-nav",pageRoot);
+      if(nav){
+        const active=$(".world-region-tab.active",nav);
+        if(active){
+          const left=active.offsetLeft-(nav.clientWidth-active.clientWidth)/2;
+          nav.scrollTo({left:Math.max(0,left),behavior:"smooth"});
+        }
+      }
+      const viewport=$(".world-map-viewport",pageRoot);
+      if(viewport&&viewport.scrollWidth>viewport.clientWidth){
+        viewport.scrollLeft=(viewport.scrollWidth-viewport.clientWidth)/2;
+      }
+    });
   }
 
   function installRegionNavIntoHotel(){
     const header=$(".world-hotel-head",pageRoot);
     if(!header || $(".world-region-nav",pageRoot))return;
     header.insertAdjacentHTML("afterend",regionNavMarkup());
+    revealActiveRegion();
   }
 
   function characterSceneConfig(character){
@@ -535,18 +565,23 @@
     const actors=residents.map((character,index)=>sceneActorMarkup(region.id,character,index)).join("");
     pageRoot.innerHTML=
       '<section class="world-scene-page region-'+esc(region.id)+'">'+
-        '<header class="world-scene-head">'+
+        '<header class="world-scene-head world-page-head">'+
           '<div><p class="page-kicker">WORLD · '+esc(String(regions().indexOf(region)+1).padStart(2,"0"))+'</p><h1>'+esc(region.name)+'</h1><p>'+esc(region.subtitle||"")+'</p></div>'+
           '<div class="world-scene-status"><i></i><span>'+esc(region.status||"OPEN")+'</span><small>'+residents.length+' CHARACTERS</small></div>'+
         '</header>'+
         regionNavMarkup()+
         sceneWorkDock(region)+
-        '<div class="world-scene-shell scene-'+esc(region.id)+'" data-scene-region="'+esc(region.id)+'">'+
-          '<div class="scene-artwork">'+sceneArtwork(region.id)+'</div>'+
-          '<div class="world-scene-actors">'+actors+'</div>'+
+        '<div class="world-map-viewport" tabindex="0" aria-label="'+esc(region.name)+' 인터랙티브 지도 · 좌우로 이동 가능">'+
+          '<div class="world-scene-shell scene-'+esc(region.id)+'" data-scene-region="'+esc(region.id)+'">'+
+            '<div class="world-map-badge"><span>INTERACTIVE MAP</span><strong>'+esc(region.name)+'</strong></div>'+
+            '<div class="scene-artwork">'+sceneArtwork(region.id)+'</div>'+
+            '<div class="world-scene-actors">'+actors+'</div>'+
+          '</div>'+
         '</div>'+
+        '<p class="world-map-mobile-hint"><span aria-hidden="true">↔</span> 지도를 좌우로 밀어 둘러보세요</p>'+
         '<aside class="world-scene-guide"><span>FREE PLACEMENT</span><strong>캐릭터를 드래그해서 원하는 위치에 놓을 수 있습니다.</strong><small>지역별 위치는 따로 저장됩니다.</small></aside>'+
       '</section>';
+    revealActiveRegion();
     scheduleSceneWork(region.id);
   }
 
@@ -598,6 +633,15 @@
       };
       saveSceneWork(work);
       renderSceneRegion();
+      return;
+    }
+    const step=event.target.closest("[data-world-step]");
+    if(step){
+      const list=regions();
+      const currentIndex=Math.max(0,list.findIndex(region=>region.id===activeRegion));
+      const nextIndex=(currentIndex+Number(step.dataset.worldStep)+list.length)%list.length;
+      saveActiveRegion(list[nextIndex].id);
+      window.renderWorld();
       return;
     }
     const button=event.target.closest("[data-world-region]");

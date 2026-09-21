@@ -2811,6 +2811,341 @@ button.scene-task-card:hover{
 }
 
 
+/* WORLD UI SYSTEM · shared navigation, map viewport and mobile controls */
+.world-page-head{
+  width:min(1180px,100%);
+  margin:0 auto;
+  padding:clamp(22px,3vw,34px) 0 18px;
+  border-bottom:1px solid rgba(231,196,158,.14)
+}
+.world-page-head h1{
+  font-size:clamp(2.05rem,5vw,4.6rem);
+  line-height:.94
+}
+.world-region-switcher{
+  position:relative;
+  z-index:12;
+  width:min(1180px,100%);
+  margin:12px auto 0;
+  display:grid;
+  grid-template-columns:210px minmax(0,1fr);
+  align-items:stretch;
+  overflow:hidden;
+  border:1px solid rgba(231,196,158,.14);
+  border-radius:11px;
+  background:linear-gradient(135deg,rgba(41,18,28,.94),rgba(14,9,13,.9));
+  box-shadow:0 12px 34px rgba(0,0,0,.16)
+}
+.world-region-switcher-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:9px 10px 9px 13px;
+  border-right:1px solid rgba(231,196,158,.12);
+  background:linear-gradient(135deg,rgba(121,31,56,.22),rgba(28,12,19,.24))
+}
+.world-region-switcher-head>div:first-child{min-width:0}
+.world-region-switcher-head span{
+  display:block;
+  color:#a9878f;
+  font-size:.46rem;
+  letter-spacing:.17em
+}
+.world-region-switcher-head strong{
+  display:flex;
+  align-items:baseline;
+  gap:7px;
+  min-width:0;
+  margin-top:3px;
+  overflow:hidden;
+  color:#f0d6c0;
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:.72rem;
+  font-weight:500;
+  letter-spacing:.05em;
+  text-overflow:ellipsis;
+  white-space:nowrap
+}
+.world-region-switcher-head strong b{
+  flex:0 0 auto;
+  color:#dca66e;
+  font-family:inherit;
+  font-size:.5rem;
+  font-weight:500
+}
+.world-region-stepper{display:flex;gap:4px;flex:0 0 auto}
+.world-region-stepper button{
+  width:34px;
+  height:34px;
+  display:grid;
+  place-items:center;
+  padding:0;
+  border:1px solid rgba(231,196,158,.18);
+  border-radius:7px;
+  background:rgba(10,7,9,.32);
+  color:#dcb489;
+  font-size:.9rem
+}
+.world-region-stepper button:hover,
+.world-region-stepper button:focus-visible{
+  border-color:rgba(231,196,158,.48);
+  background:rgba(145,42,68,.22);
+  color:#fff0df
+}
+.world-region-nav{
+  width:100%;
+  margin:0;
+  gap:6px;
+  padding:7px;
+  scroll-padding-inline:7px;
+  scroll-snap-type:x proximity;
+  overscroll-behavior-inline:contain;
+  -webkit-overflow-scrolling:touch
+}
+.world-region-tab{
+  position:relative;
+  min-width:124px;
+  min-height:42px;
+  scroll-snap-align:start;
+  border-color:transparent;
+  border-radius:7px;
+  background:rgba(8,6,8,.24);
+  transition:border-color .18s ease,background .18s ease,color .18s ease,transform .18s ease
+}
+.world-region-tab:after{
+  content:"";
+  position:absolute;
+  left:9px;right:9px;bottom:4px;
+  height:1px;
+  transform:scaleX(0);
+  background:linear-gradient(90deg,#b53b61,#e9bd83);
+  transition:transform .18s ease
+}
+.world-region-tab:hover{transform:translateY(-1px)}
+.world-region-tab.active{
+  border-color:rgba(229,180,113,.34);
+  background:linear-gradient(180deg,rgba(111,31,53,.62),rgba(35,14,22,.74));
+  box-shadow:inset 0 0 18px rgba(219,79,119,.055)
+}
+.world-region-tab.active:after{transform:scaleX(1)}
+.world-region-tab:focus-visible,
+.world-region-stepper button:focus-visible{
+  outline:2px solid #e3b479;
+  outline-offset:2px
+}
+.world-map-viewport{
+  width:min(1180px,100%);
+  margin:12px auto 0;
+  overflow:hidden;
+  border-radius:15px;
+  overscroll-behavior-inline:contain;
+  scrollbar-color:rgba(218,164,111,.6) rgba(17,9,13,.75);
+  scrollbar-width:thin;
+  -webkit-overflow-scrolling:touch
+}
+.world-map-viewport:focus-visible{
+  outline:2px solid rgba(231,181,120,.72);
+  outline-offset:3px
+}
+.world-map-viewport .world-scene-shell,
+.world-map-viewport .hotel-scene-shell{
+  width:100%;
+  margin:0
+}
+.world-map-badge{
+  position:absolute;
+  z-index:45;
+  left:12px;
+  top:12px;
+  display:grid;
+  gap:2px;
+  padding:7px 9px;
+  border:1px solid rgba(255,239,216,.2);
+  border-radius:7px;
+  background:rgba(14,8,12,.66);
+  box-shadow:0 8px 20px rgba(0,0,0,.15);
+  backdrop-filter:blur(8px);
+  pointer-events:none
+}
+.world-map-badge span{
+  color:var(--scene-accent,#ef8ba8);
+  font-size:.39rem;
+  letter-spacing:.16em
+}
+.world-map-badge strong{
+  color:#f4e2d7;
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:.62rem;
+  font-weight:500;
+  letter-spacing:.05em
+}
+.world-map-mobile-hint{
+  display:none;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  margin:8px auto 0;
+  color:#9d858d;
+  font-size:.53rem;
+  letter-spacing:.05em
+}
+.world-map-mobile-hint span{color:#d8a976;font-size:.78rem}
+.scene-work-grid,
+.hotel-work-grid{
+  scroll-snap-type:x proximity;
+  scroll-padding-inline:2px;
+  overscroll-behavior-inline:contain;
+  -webkit-overflow-scrolling:touch
+}
+.scene-task-card,
+.hotel-work-slot{scroll-snap-align:start}
+
+@media(max-width:980px){
+  .world-page-head{align-items:flex-start}
+  .world-region-switcher{grid-template-columns:190px minmax(0,1fr)}
+  .world-region-tab{min-width:118px}
+  .world-map-viewport{overflow-x:auto;overflow-y:hidden}
+  .world-map-viewport .hotel-scene-shell{overflow:visible}
+}
+
+@media(max-width:700px){
+  .world-hotel-page,
+  .world-scene-page{
+    width:100%;
+    min-width:0;
+    overflow:visible
+  }
+  .world-page-head{
+    gap:14px;
+    padding:20px 0 14px
+  }
+  .world-page-head h1{font-size:clamp(2rem,12vw,3.25rem)}
+  .world-hotel-actions{gap:8px}
+  .hotel-economy,
+  .hotel-status,
+  .world-scene-status{
+    min-height:46px;
+    padding:8px 10px;
+    border:1px solid rgba(231,196,158,.13);
+    border-radius:8px;
+    background:rgba(18,9,13,.5)
+  }
+  .world-hotel-actions .ghost-button{min-height:46px}
+  .world-region-switcher{
+    grid-template-columns:1fr;
+    margin-top:10px;
+    border-radius:10px
+  }
+  .world-region-switcher-head{
+    min-height:52px;
+    padding:8px 8px 8px 12px;
+    border-right:0;
+    border-bottom:1px solid rgba(231,196,158,.12)
+  }
+  .world-region-switcher-head strong{font-size:.8rem}
+  .world-region-stepper button{width:42px;height:38px}
+  .world-region-nav{
+    gap:5px;
+    padding:6px;
+    scrollbar-width:none
+  }
+  .world-region-nav::-webkit-scrollbar{display:none}
+  .world-region-tab{
+    min-width:116px;
+    min-height:46px;
+    padding:8px 9px
+  }
+  .world-region-tab strong{font-size:.58rem}
+  .scene-work-dock,
+  .hotel-work-dock{
+    margin-top:10px;
+    padding:10px;
+    border-radius:10px
+  }
+  .scene-work-head,
+  .hotel-work-dock-title{
+    align-items:flex-start;
+    flex-direction:column;
+    gap:3px
+  }
+  .scene-work-grid,
+  .hotel-work-grid{
+    display:flex;
+    gap:7px;
+    overflow-x:auto;
+    padding:1px 1px 5px;
+    scrollbar-width:thin
+  }
+  .scene-task-card{
+    flex:0 0 min(78vw,260px);
+    min-height:66px
+  }
+  .hotel-work-slot{flex:0 0 min(82vw,265px)}
+  .world-map-viewport{
+    max-width:calc(100vw - 28px);
+    margin-top:10px;
+    border:1px solid rgba(231,196,158,.13);
+    border-radius:12px;
+    box-shadow:0 16px 34px rgba(0,0,0,.2)
+  }
+  .world-map-viewport .world-scene-shell{
+    width:720px;
+    min-width:720px;
+    height:560px;
+    border:0;
+    border-radius:0
+  }
+  .world-map-viewport-hotel .hotel-scene-shell{
+    width:900px;
+    min-width:900px;
+    min-height:780px;
+    border:0;
+    border-radius:0
+  }
+  .world-map-viewport-hotel .hotel-building{
+    width:760px;
+    min-width:760px;
+    margin:130px auto 52px
+  }
+  .world-map-badge{left:9px;top:9px}
+  .world-map-mobile-hint{display:flex}
+  .world-scene-guide,
+  .hotel-guide-below{
+    width:100%;
+    margin-top:10px!important;
+    grid-template-columns:1fr;
+    gap:4px;
+    padding:10px 11px;
+    border:1px solid rgba(231,196,158,.1);
+    border-left:2px solid var(--scene-accent,#db5d87);
+    border-radius:8px
+  }
+  .world-scene-guide small,
+  .hotel-guide-below small{
+    grid-column:auto;
+    max-width:none;
+    text-align:left
+  }
+}
+
+@media(max-width:430px){
+  .world-hotel-actions{display:grid;grid-template-columns:1fr 1fr}
+  .world-hotel-actions .ghost-button{grid-column:1/-1;width:100%}
+  .world-scene-head{flex-direction:column;align-items:stretch}
+  .world-scene-status{width:100%}
+  .scene-task-card{flex-basis:84vw}
+  .hotel-work-slot{flex-basis:86vw}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .world-region-tab,
+  .world-region-tab:after{transition:none}
+  .world-region-tab:hover{transform:none}
+  .world-region-nav{scroll-behavior:auto}
+}
+
+
 /* I.M.P OFFICE REWORK · smaller scale, denser detail, grounded layout */
 .scene-imp-office{
   --imp-floor-line:18%;
