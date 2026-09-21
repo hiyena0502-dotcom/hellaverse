@@ -1098,6 +1098,249 @@
     return parts.map((part,i)=>D(id+"-"+(i+1),c.id,c.name,part,affectionCondition?{affectionCondition:affectionCondition}:{}));
   };
 
+  const sceneFor=(c,t,key)=>{
+    const title=String(t.title||"");
+    const tag=surfaceTag(t);
+    const common={
+      media:[
+        "호텔 로비 TV에서 홍보 영상 시안이 무음으로 반복 재생되고 있다.",
+        "게시판 한쪽에 붙은 ‘촬영 협조’ 공지가 반쯤 접혀 있다.",
+        "광고 영상 편집본이 멈춘 화면에 호텔 로비가 어색하게 잡혀 있다.",
+        "누군가 두고 간 인터뷰 질문지가 테이블 위에 펼쳐져 있다.",
+        "로비 화면에 호텔을 다룬 짧은 뉴스 클립이 지나간다.",
+        "촬영팀이 두고 간 출입 스티커 하나가 카운터에 붙어 있다."
+      ],
+      hotel:[
+        "호텔 게시판에 새 공지 초안이 삐뚤게 꽂혀 있다.",
+        "프런트에 쌓인 건의서 사이에서 같은 이야기가 두 번이나 보인다.",
+        "로비 한쪽의 안내판이 새 문구로 바뀌어 있다.",
+        "직원용 체크리스트 한 칸이 비어 있는 채로 남아 있다.",
+        "누군가 프런트 메모지에 큰 글씨로 의견 하나를 적어두고 갔다.",
+        "객실 열쇠 보드 한쪽에 임시 메모가 덧붙어 있다."
+      ],
+      heaven:[
+        "호텔 우편함에 천국 쪽 문양이 찍힌 봉투 하나가 섞여 있다.",
+        "로비 창문 밖으로 금빛 깃털 하나가 천천히 떨어진다.",
+        "천국 관련 안내문 복사본이 다른 서류 밑에서 삐져나와 있다.",
+        "복도 끝에서 천국 얘기가 잠깐 들렸다가 조용해진다.",
+        "호텔 지도 옆에 누군가 천국 쪽 동선을 장난처럼 그려놓았다."
+      ],
+      food:[
+        "주방 냉장고 문에 새 메모가 자석으로 붙어 있다.",
+        "식탁 위에 누군가 먹다 남긴 접시와 짧은 쪽지가 놓여 있다.",
+        "오늘 메뉴판 한 구석에 정체불명의 수정 표시가 생겨 있다.",
+        "주방에서 막 나온 냄새 때문에 지나가던 사람들이 한 번씩 고개를 돌린다."
+      ],
+      leisure:[
+        "공용 공간에 새 게임 상자가 뜯기지 않은 채 놓여 있다.",
+        "누군가 소파 위에 휴가 전단지를 두고 갔다.",
+        "호텔 스피커에서 선곡이 끝난 뒤 잠깐 어색한 정적이 흐른다.",
+        "로비 한편에 즉석 사진 몇 장이 뒤집힌 채 놓여 있다.",
+        "누군가 낙서판에 오늘 할 일을 전부 지우고 ‘놀기’라고 써뒀다."
+      ],
+      tech:[
+        "로비 기기가 짧게 오류음을 내고 다시 켜진다.",
+        "새 장비 상자 옆에 설명서만 덩그러니 펼쳐져 있다.",
+        "호텔 와이파이 안내판에 누군가 비밀번호를 또 고쳐 적었다.",
+        "충전 중이던 기기 화면에 업데이트 알림이 떠 있다."
+      ],
+      work:[
+        "직원용 화이트보드에 역할 분담표가 새로 적혀 있다.",
+        "프런트 장부 한 페이지가 접힌 채 표시되어 있다.",
+        "업무표 아래에 누군가 작은 글씨로 불평을 적어놓았다.",
+        "교대 시간표에 빈칸 하나가 눈에 띈다.",
+        "서류 더미 맨 위에 ‘누가 할 건데?’라는 메모가 붙어 있다."
+      ],
+      power:[
+        "신문 한쪽 면에 오버로드와 권력 관련 기사가 크게 실려 있다.",
+        "로비 라디오에서 누군가의 연설 일부가 흘러나온다.",
+        "게시판에 붙은 정치 풍자 전단 한 장이 눈에 띈다.",
+        "왕실 문양이 찍힌 공문과 호텔 서류가 같은 자리에 놓여 있다."
+      ],
+      travel:[
+        "관광 전단 몇 장이 로비 테이블 위에 부채처럼 펼쳐져 있다.",
+        "호텔 지도에 누군가 가보고 싶은 곳을 동그라미 쳐놨다.",
+        "낡은 여행 포스터 하나가 벽에서 반쯤 떨어져 있다.",
+        "택시 광고 전단 뒷면에 누군가 여행 계획을 낙서해뒀다."
+      ],
+      law:[
+        "규정집 복사본에 형광펜 표시가 여러 줄 겹쳐 있다.",
+        "게시판에 붙은 새 규칙 초안 앞에서 몇 사람이 투덜대다 지나간다.",
+        "로비 테이블에 법정 관련 신문 기사가 접혀 놓여 있다.",
+        "누군가 규정표 옆에 물음표를 크게 그려뒀다."
+      ],
+      family:[
+        "로비 선반에 놓인 오래된 가족사진 액자가 살짝 비뚤어져 있다.",
+        "누군가 가족에게 보내다 만 편지가 쓰레기통 옆에 떨어져 있다.",
+        "호텔 전화기가 한 번 울렸다가 금방 끊긴다.",
+        "가족 방문 일정이 적힌 메모가 달력 옆에 붙어 있다."
+      ],
+      trust:[
+        "프런트 분실물 상자 위에 주인을 기다리는 물건 하나가 놓여 있다.",
+        "누군가 맡겨둔 열쇠가 카운터 안쪽에 따로 보관돼 있다.",
+        "로비 메모판에 이름 없는 부탁 하나가 적혀 있다.",
+        "봉인도 뜯기지 않은 작은 상자가 테이블 위에 남아 있다."
+      ],
+      past:[
+        "낡은 물건 하나가 정리 상자에서 우연히 굴러 나온다.",
+        "오래된 노래가 로비 스피커에서 잠깐 흘러나온다.",
+        "누군가 버리려던 오래된 신문 한 장이 바닥에 떨어져 있다.",
+        "서랍 정리 중 나온 오래된 물건이 테이블 위에 남아 있다."
+      ],
+      romance:[
+        "로비 꽃병에 출처를 알 수 없는 꽃 한 송이가 꽂혀 있다.",
+        "누군가 두고 간 데이트 전단이 소파 아래에서 발견된다.",
+        "익명으로 적힌 짧은 쪽지가 게시판 구석에 꽂혀 있다.",
+        "복도에서 커플이 말다툼하는 소리가 잠깐 들렸다가 멀어진다."
+      ],
+      hellsociety:[
+        "로비 신문 가판대에 오늘자 지옥 지역지가 꽂혀 있다.",
+        "게시판에 서로 다른 지역 행사 전단이 겹쳐 붙어 있다.",
+        "창밖 거리에서 시끄러운 광고 차량이 지나간다.",
+        "호텔 앞을 지나가던 사람들이 같은 소문을 서로 다르게 말하고 있다."
+      ],
+      misc:[
+        "호텔 로비에서 사소한 일이 하나 눈에 걸린다.",
+        "누군가 두고 간 메모 한 장이 대화의 실마리가 된다.",
+        "복도를 지나가던 중 묘하게 신경 쓰이는 장면이 눈에 들어온다.",
+        "호텔 안에서 평소와 조금 다른 일이 생긴다."
+      ]
+    };
+
+    if(/익명의 선물|선물.*두고/.test(title))return pick([
+      "방문객용 테이블에 이름 없는 작은 상자가 놓여 있다. 리본만 지나치게 정성스럽다.",
+      "프런트 아래에서 발신인 없는 선물 봉투 하나가 발견된다.",
+      "호텔 게시판 밑에 누가 둔 건지 모를 포장 상자가 조용히 놓여 있다.",
+      "문 앞에 작은 선물 상자가 하나 놓여 있는데, 카드에는 이름이 없다."
+    ],key);
+    if(/방송에 호텔 내부|호텔 내부.*방송/.test(title))return pick([
+      "로비 TV에는 호텔 홍보 영상 시안이 멈춰 있다. 화면 한쪽에 객실 복도까지 그대로 잡혀 있다.",
+      "게시판에 ‘호텔 내부 촬영 동의 안내’라는 종이가 새로 붙어 있다.",
+      "광고 영상 편집본을 돌려보던 화면에 객실 번호와 투숙객 얼굴이 스쳐 지나간다.",
+      "촬영팀이 두고 간 콘티에는 로비뿐 아니라 객실 안쪽 장면까지 적혀 있다."
+    ],key);
+    if(/운영비/.test(title))return pick([
+      "프런트 장부 옆에 미납 청구서 몇 장이 겹쳐 놓여 있다.",
+      "호텔 예산표 한 칸이 유난히 빨간 숫자로 표시돼 있다.",
+      "구매 영수증 더미 아래에서 이번 달 운영비 계산표가 삐져나와 있다."
+    ],key);
+    if(/천국.*관광|관광.*천국/.test(title))return pick([
+      "관광 전단 사이에 누군가 장난처럼 만든 ‘천국 1일 투어’ 종이가 끼어 있다.",
+      "호텔 지도 한쪽에 금빛 펜으로 ‘천국?’이라고 적힌 화살표가 그려져 있다.",
+      "여행 잡지 한 페이지에 천국을 상상해 그린 삽화가 크게 실려 있다."
+    ],key);
+
+    const bank=common[tag]||common.misc;
+    return pick(bank,key);
+  };
+
+  const choiceProfile=(c,t,key)=>{
+    const tag=surfaceTag(t),personal=shouldDodge(c,t);
+    const plans={
+      media:[
+        ["agree","공개 범위를 먼저 따져본다"],
+        ["probe","편집권이 왜 중요한지 묻는다"],
+        ["joke","카메라부터 치우자고 농담한다"],
+        ["shift","촬영 얘기는 여기까지만 둔다"]
+      ],
+      hotel:[
+        ["agree","실제로 누가 맡을지 짚는다"],
+        ["probe","그 생각이 나온 이유를 묻는다"],
+        ["joke","호텔답게 사고부터 날 거라 농담한다"],
+        ["shift","일단 지켜보자고 한다"]
+      ],
+      heaven:[
+        ["probe","천국 쪽 이야기를 조금 더 묻는다"],
+        ["agree","굳이 단정하지 않겠다고 한다"],
+        ["joke","너무 심각하게 가지 않기로 한다"],
+        ["shift","그 얘기는 더 캐지 않는다"]
+      ],
+      food:[
+        ["agree","직접 해보는 게 낫다고 한다"],
+        ["joke","먹어보고 결정하자고 한다"],
+        ["probe","왜 그렇게 보는지 묻는다"]
+      ],
+      leisure:[
+        ["joke","그냥 재밌으면 된다고 한다"],
+        ["agree","그 정도면 괜찮다고 한다"],
+        ["probe","누가 제일 먼저 사고 칠지 묻는다"]
+      ],
+      work:[
+        ["agree","역할부터 나누자고 한다"],
+        ["probe","누가 맡는 게 나을지 묻는다"],
+        ["shift","굳이 지금 결정하진 않는다"]
+      ],
+      power:[
+        ["probe","누가 실제로 힘을 쥐는지 묻는다"],
+        ["agree","책임 쪽을 먼저 본다고 한다"],
+        ["joke","왕좌부터 치우자고 농담한다"],
+        ["shift","정치 얘기는 여기서 접는다"]
+      ],
+      trust:[
+        ["probe","왜 그렇게 경계하는지 묻는다"],
+        ["agree","굳이 캐묻지 않겠다고 한다"],
+        ["shift","그 선은 넘지 않는다"]
+      ],
+      family:[
+        ["agree","더 캐지 않고 받아들인다"],
+        ["probe","조금만 더 물어본다"],
+        ["shift","가족 얘기는 여기서 멈춘다"]
+      ],
+      romance:[
+        ["joke","가볍게 받아친다"],
+        ["probe","조금 더 궁금해한다"],
+        ["shift","당사자들 일로 남겨둔다"]
+      ],
+      law:[
+        ["agree","실제 적용부터 봐야 한다고 한다"],
+        ["probe","예외가 어디까지인지 묻는다"],
+        ["shift","규칙 얘기는 여기서 접는다"]
+      ],
+      travel:[
+        ["joke","일단 가보고 보자고 한다"],
+        ["probe","어디부터 가고 싶은지 묻는다"],
+        ["agree","계획은 느슨한 게 낫다고 한다"]
+      ],
+      tech:[
+        ["probe","고장 났을 때는 어떻게 할지 묻는다"],
+        ["agree","관리 가능한지가 중요하다고 한다"],
+        ["joke","일단 껐다 켜보자고 한다"]
+      ],
+      hellsociety:[
+        ["agree","지역마다 다를 거라고 한다"],
+        ["probe","어디서 차이가 큰지 묻는다"],
+        ["shift","결론은 서두르지 않는다"]
+      ]
+    };
+    let list=(plans[tag]||[
+      ["agree","그 말에 일단 동의한다"],
+      ["probe","왜 그렇게 보는지 묻는다"],
+      ["joke","가볍게 받아친다"],
+      ["shift","여기서 화제를 접는다"]
+    ]).slice();
+
+    if(personal){
+      list=list.filter(x=>x[0]!=="joke"||hash(key+"pj")%2===0);
+      if(!list.some(x=>x[0]==="shift"))list.push(["shift","굳이 더 캐지 않는다"]);
+    }
+    const wanted=2+(hash(key+"count")%3); // 2~4
+    const offset=hash(key+"order")%list.length;
+    list=[...list.slice(offset),...list.slice(0,offset)];
+    return list.slice(0,Math.min(wanted,list.length));
+  };
+
+  const choicePrompt=(t,key)=>{
+    const tag=surfaceTag(t);
+    const bank={
+      media:["어느 쪽을 먼저 짚을까?","이 얘기를 어떻게 이어갈까?","뭐부터 물어볼까?"],
+      heaven:["여기서 어디까지 묻을까?","어떻게 받아들일까?","이 얘기를 더 이어갈까?"],
+      family:["여기서 더 들어갈까?","어떻게 반응할까?","이 선에서 멈출까?"],
+      leisure:["어떻게 받아칠까?","뭐라고 할까?","이 분위기를 어떻게 이어갈까?"],
+      work:["어느 쪽을 짚을까?","뭐부터 따져볼까?","어떻게 이어갈까?"]
+    };
+    return pick(bank[tag]||["어떻게 반응할까?","어느 쪽으로 말을 이어갈까?","뭐라고 받아칠까?"],key);
+  };
+
   const followScene=(c,t,kind,key)=>{
     if(c.id==="alastor")return pick([
       "미소는 그대로인데, 알래스터의 시선이 아까보다 정확히 네 쪽에 꽂힌다.",
@@ -1200,18 +1443,34 @@
         ...dialogueParts(c,followResponse(c,t,firstKind,nextKind,true,id+suffix+"h"),id+"-follow-r-"+suffix+"-h",A(c.id,">=",c.t))
       ]
     });
-    const options=firstKind==="probe"
-      ?[
-        makeOpt("backoff","여기서 멈춘다","backoff"),
-        makeOpt("push","조금 더 묻는다","push"),
-        makeOpt("shift","다른 얘기로 돌린다","shift")
-      ]
-      :[
-        makeOpt("joke","가볍게 받아친다","joke"),
-        makeOpt("push","조금 더 이어간다","push"),
-        makeOpt("shift","여기서 끝낸다","shift")
+    let defs;
+    if(firstKind==="probe"){
+      defs=[
+        ["backoff","여기서 더 묻지는 않는다","backoff"],
+        ["push","방금 말한 부분만 한 번 더 묻는다","push"],
+        ["shift","다른 얘기로 자연스럽게 넘긴다","shift"]
       ];
-    return CH(id+"-follow-choice","이어서 어떻게 할까?",options);
+      if(c.id==="alastor")defs=[
+        ["backoff","그 말의 뜻을 받아들이고 멈춘다","backoff"],
+        ["push","그래도 먼저 꺼낸 이유는 묻는다","push"],
+        ["shift","괜히 더 말려들기 전에 화제를 바꾼다","shift"]
+      ];
+      if(c.id==="lucifer-morningstar")defs=[
+        ["backoff","오리 얘기로 넘어가준다","backoff"],
+        ["push","왜 먼저 꺼냈는지만 묻는다","push"],
+        ["shift","그만 웃고 다른 화제로 돌린다","shift"]
+      ];
+    }else{
+      defs=[
+        ["joke","한 번 더 가볍게 받아친다","joke"],
+        ["push","방금 말한 쪽을 조금 더 이어간다","push"],
+        ["shift","여기서 자연스럽게 끝낸다","shift"]
+      ];
+    }
+    const wanted=2+(hash(id+"fc")%2); // 2~3
+    const offset=hash(id+"fo")%defs.length;
+    defs=[...defs.slice(offset),...defs.slice(0,offset)].slice(0,wanted);
+    return CH(id+"-follow-choice",pick(["그다음엔?","여기서 어떻게 이어갈까?","이쯤에서 뭘 할까?"],id+"fp"),defs.map(d=>makeOpt(...d)));
   };
 
   const choiceEntry=(c,t,id,highOnly)=>{
@@ -1231,13 +1490,9 @@
       }
       return {id:id+"-opt-"+suffix,label:label,entries:entries};
     };
-    const opts=[
-      option("agree","고개를 끄덕인다","agree"),
-      option("joke","가볍게 받아친다","joke"),
-      option("probe","이유를 묻는다","probe"),
-      option("shift","다른 얘기로 돌린다","shift")
-    ];
-    return CH(id+"-choice","뭐라고 답할까?",opts,cond?{affectionCondition:cond}:{});
+    const defs=choiceProfile(c,t,id);
+    const opts=defs.map(([kind,label],index)=>option(kind+"-"+index,label,kind));
+    return CH(id+"-choice",choicePrompt(t,id+"prompt"),opts,cond?{affectionCondition:cond}:{});
   };
 
   const make=(c,t,n)=>{
@@ -1246,7 +1501,7 @@
     const highOnly=(personal||(sen&&!easy))&&(hash(c.id+"::"+t.id+"::lock")%100<lockRate);
     const id="pooltalk-"+slug(c.id)+"-"+String(n+1).padStart(2,"0")+"-"+slug(t.id);
     const title="TALK · "+c.name+" · "+t.title;
-    const scene=pick(c.a,id+"a")+". 잠시 뒤 먼저 입을 연다.";
+    const scene=sceneFor(c,t,id+"scene");
     const lowStart=startRemark(c,t,false,id+"sl");
     const highStart=startRemark(c,t,true,id+"sh");
     if(highOnly){
@@ -1268,6 +1523,6 @@
   window.HV_STORY_PACKS ||= [];
   for(const c of PFS){
     const list=chosen(c);
-    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:24,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
+    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:25,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
   }
 })();
