@@ -1164,8 +1164,31 @@ function installStoryPacks(source){
     if(!rawPack?.id)return;
     const version=Math.max(1,Number(rawPack.version)||1);
     const previousVersion=Math.max(0,Number(source.storyPackVersions[rawPack.id])||0);
-    if(previousVersion>=version)return;
-    const isUpgrade=previousVersion>0;
+    const isPoolTalkPack=String(rawPack.id||"").startsWith("pooltalk-52-");
+
+    const staleTalkPattern=/(?:오늘은 가볍게요|딱 한마디만요|답게 한마디|직접 보면 생각이 좀 달라질까요|한마디 의견 정도면 충분|우연히 나온 한마디가 .*대화의 시작|네가 .*에 대한 이야기를 꺼내자|그 반응이면 .*상황에서 괜히 더 물으면)/;
+    const entryHasStaleTalk=entries=>{
+      for(const entry of entries||[]){
+        if(staleTalkPattern.test(String(entry?.text||"")))return true;
+        if(entry?.type==="choice"){
+          for(const option of entry.options||[]){
+            if(staleTalkPattern.test(String(option?.label||"")))return true;
+            if(entryHasStaleTalk(option?.entries))return true;
+          }
+        }
+      }
+      return false;
+    };
+    const poolTalkNeedsRepair=isPoolTalkPack&&(source.events||[]).some(event=>
+      String(event?.id||"").startsWith("pooltalk-")&&
+      (
+        entryHasStaleTalk(event?.entries)||
+        (event?.entries||[]).some(entry=>entry?.type==="dialogue"&&entry?.speaker==="PLAYER")
+      )
+    );
+
+    if(previousVersion>=version&&!poolTalkNeedsRepair)return;
+    const isUpgrade=previousVersion>0||poolTalkNeedsRepair;
 
     const refs=resolveStoryPackCharacterRefs(rawPack,source);
     const requiredRefs=Array.isArray(rawPack.requiredCharacterRefs)?rawPack.requiredCharacterRefs:[];
@@ -1198,12 +1221,14 @@ function installStoryPacks(source){
       const currentEvents=Array.isArray(pack.events)?pack.events:[];
       const currentCharacterIds=new Set(currentEvents.map(event=>String(event.characterId||"")).filter(Boolean));
       const currentNames=new Set(currentEvents.map(event=>String(event.name||"")).filter(Boolean));
+      const currentIds=new Set(currentEvents.map(event=>String(event.id||"")).filter(Boolean));
       const beforeCount=(source.events||[]).length;
       source.events=(source.events||[]).filter(event=>{
         const name=String(event?.name||"");
         const id=String(event?.id||"");
         const characterId=String(event?.characterId||"");
         if(currentNames.has(name))return false;
+        if(currentIds.has(id))return false;
         if(currentCharacterIds.has(characterId)&&id.startsWith("pooltalk-"))return false;
         return true;
       });
