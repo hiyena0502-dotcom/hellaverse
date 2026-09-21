@@ -1163,7 +1163,9 @@ function installStoryPacks(source){
   STORY_PACKS.forEach(rawPack=>{
     if(!rawPack?.id)return;
     const version=Math.max(1,Number(rawPack.version)||1);
-    if((Number(source.storyPackVersions[rawPack.id])||0)>=version)return;
+    const previousVersion=Math.max(0,Number(source.storyPackVersions[rawPack.id])||0);
+    if(previousVersion>=version)return;
+    const isUpgrade=previousVersion>0;
 
     const refs=resolveStoryPackCharacterRefs(rawPack,source);
     const requiredRefs=Array.isArray(rawPack.requiredCharacterRefs)?rawPack.requiredCharacterRefs:[];
@@ -1174,27 +1176,23 @@ function installStoryPacks(source){
     const required=Array.isArray(pack.requiredCharacterIds)?pack.requiredCharacterIds:[];
     if(required.some(id=>!characterIds.has(id)))return;
 
-    const variableIds=new Set((source.variables||[]).map(variable=>variable.id));
-    (pack.variables||[]).forEach(variable=>{
-      if(variableIds.has(variable.id))return;
-      source.variables.push(normalizeVariable(variable));
-      variableIds.add(variable.id);
-      changed=true;
-    });
-    const eventIds=new Set((source.events||[]).map(event=>event.id));
-    (pack.events||[]).forEach(event=>{
-      if(eventIds.has(event.id))return;
-      source.events.push(normalizeEvent(event));
-      eventIds.add(event.id);
-      changed=true;
-    });
-    const askIds=new Set((source.asks||[]).map(ask=>ask.id));
-    (pack.asks||[]).forEach(ask=>{
-      if(askIds.has(ask.id))return;
-      source.asks.push(normalizeAsk(ask));
-      askIds.add(ask.id);
-      changed=true;
-    });
+    const upsertById=(list,item,normalizer)=>{
+      const index=(list||[]).findIndex(row=>row?.id===item?.id);
+      if(index<0){
+        list.push(normalizer(item));
+        changed=true;
+        return;
+      }
+      if(isUpgrade){
+        list[index]=normalizer(item);
+        changed=true;
+      }
+    };
+
+    (pack.variables||[]).forEach(variable=>upsertById(source.variables,variable,normalizeVariable));
+    (pack.events||[]).forEach(event=>upsertById(source.events,event,normalizeEvent));
+    (pack.asks||[]).forEach(ask=>upsertById(source.asks,ask,normalizeAsk));
+
     source.storyPackVersions[pack.id]=version;
     installed.push(pack.id);
     changed=true;
