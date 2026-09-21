@@ -8,6 +8,7 @@ const read=path=>fs.readFileSync(new URL(path,root),"utf8");
 const jsFiles=[
   "data/story-packs.js",
   "data/character-events.js",
+  "data/relationship-content.js",
   "data/item-presets.js",
   "data/dialogue-presets.js",
   "js/core/state.js",
@@ -44,6 +45,7 @@ const dialogueCode=read("js/game/dialogue.js");
 const gameStateCode=read("js/core/game-state.js");
 const storyPackCode=read("data/story-packs.js");
 const characterEventCode=read("data/character-events.js");
+const relationshipCode=read("data/relationship-content.js");
 const itemPresetCode=read("data/item-presets.js");
 const dialoguePresetCode=read("data/dialogue-presets.js");
 const dialogueCss=read("css/dialogue.css");
@@ -73,7 +75,41 @@ assert.match(itemPresetCode,/FIRST|firstEntries/,"gift FIRST preset flow missing
 assert.match(itemPresetCode,/repeatEntries/,"gift REPEAT preset flow missing");
 assert.match(itemPresetCode,/specialEntries/,"gift SPECIAL preset flow missing");
 assert.match(itemPresetCode,/HV_BUILD_ITEM_REACTION/,"runtime gift reaction builder missing");
+assert.match(itemPresetCode,/RELATION_TASTES/,"relationship-aware gift preferences missing");
 assert.match(dialoguePresetCode,/HV_APPLY_DIALOGUE_PRESETS/,"dialogue detail preset installer missing");
+assert.match(dialoguePresetCode,/hasItemGrant/,"reward TALK migration missing");
+assert.match(dialoguePresetCode,/seenTalkSignatures/,"duplicate TALK rotation guard missing");
+assert.match(stateCode,/randomEligible:e\.randomEligible!==false/,"random TALK eligibility persistence missing");
+assert.match(dialogueCode,/ev\.randomEligible!==false/,"random TALK eligibility filter missing");
+assert.match(editorUi,/event-random-eligible/,"random TALK eligibility editor control missing");
+assert.match(index,/data\/relationship-content\.js/,"relationship content script missing from build");
+
+const relationshipContext={window:{}};
+vm.runInNewContext(relationshipCode,relationshipContext);
+const relationshipPacks=relationshipContext.window.HV_STORY_PACKS||[];
+assert.equal(relationshipPacks.length,35,"relationship packs must cover all 35 characters");
+assert.equal(relationshipPacks.reduce((sum,pack)=>sum+(pack.asks||[]).length,0),70,"relationship ASK must add two tiers per character");
+assert.equal(relationshipPacks.reduce((sum,pack)=>sum+(pack.events||[]).length,0),66,"relationship TALK must add three scenes for 22 under-served characters");
+for(const pack of relationshipPacks){
+  assert.equal((pack.asks||[]).length,2,pack.id+" must have mid/deep relationship ASK");
+  const [mid,deep]=pack.asks;
+  assert.equal(mid.unlockMinAffection,35,pack.id+" mid ASK affection gate mismatch");
+  assert.equal(deep.unlockMinAffection,70,pack.id+" deep ASK affection gate mismatch");
+  assert.equal(deep.unlockAskCondition?.askId,mid.id,pack.id+" deep ASK must require the mid ASK");
+}
+
+const itemPresetContext={window:{}};
+vm.runInNewContext(itemPresetCode,itemPresetContext);
+for(const pack of relationshipPacks){
+  const characterId=pack.requiredCharacterIds?.[0]||"";
+  const reaction=itemPresetContext.window.HV_BUILD_ITEM_REACTION(
+    {id:"smoke-gift",name:"테스트 선물",rarity:"RARE",collectionCharacterId:characterId},
+    {id:characterId,name:characterId}
+  );
+  assert.ok(reaction.firstEntries?.length,characterId+" gift FIRST flow missing");
+  assert.ok(reaction.repeatEntries?.length,characterId+" gift REPEAT flow missing");
+  assert.ok(reaction.specialEntries?.length,characterId+" gift SPECIAL flow missing");
+}
 assert.match(editorUi,/DIALOGUE_EVENT_GROUPS/,"dialogue event taxonomy missing");
 for(const role of ["talk","entry","exit","story"])assert.match(editorUi,new RegExp('id:"'+role+'"'),role.toUpperCase()+" dialogue category missing");
 assert.match(editorUi,/AUTO REACTIONS/,"automatic gift reaction preview missing");
