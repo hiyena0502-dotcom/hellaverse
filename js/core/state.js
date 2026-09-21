@@ -1248,6 +1248,49 @@ function installStoryPacks(source){
     installed.push(pack.id);
     changed=true;
   });
+  // Remove obsolete generated TALK events that are no longer present in any current story pack.
+  // Older generators could leave choice branches with the same character sentence before
+  // and after the choice, or legacy "괜찮으면 조금 더..." prompts.
+  const managedEventIds=new Set();
+  const managedEventNames=new Set();
+  for(const pack of STORY_PACKS){
+    for(const event of pack?.events||[]){
+      if(event?.id)managedEventIds.add(String(event.id));
+      if(event?.name)managedEventNames.add(String(event.name));
+    }
+  }
+  const legacyGeneratedTalkPattern=/(?:괜찮으면 조금 더 얘기해주세요|괜찮으면 조금 더|웃기게 들려도,\s*그건 내가 꽤 진지하게 신경 쓰는 부분이야|오늘은 가볍게요|딱 한마디만요|답게 한마디|직접 보면 생각이 좀 달라질까요|한마디 의견 정도면 충분|우연히 나온 한마디가 .*대화의 시작|네가 .*에 대한 이야기를 꺼내자|그 반응이면 .*상황에서 괜히 더 물으면)/;
+  const inspectLegacyTalk=(entries,info={texts:[],hasChoice:false,legacy:false})=>{
+    for(const entry of entries||[]){
+      const text=String(entry?.text||"");
+      if(legacyGeneratedTalkPattern.test(text))info.legacy=true;
+      if(entry?.type==="dialogue"&&entry?.speaker!=="PLAYER"&&text)info.texts.push(text);
+      if(entry?.type==="choice"){
+        info.hasChoice=true;
+        if(legacyGeneratedTalkPattern.test(String(entry?.prompt||"")))info.legacy=true;
+        for(const option of entry.options||[]){
+          if(legacyGeneratedTalkPattern.test(String(option?.label||"")))info.legacy=true;
+          inspectLegacyTalk(option?.entries,info);
+        }
+      }
+    }
+    return info;
+  };
+  const beforeLegacyTalkCleanup=(source.events||[]).length;
+  source.events=(source.events||[]).filter(event=>{
+    const id=String(event?.id||"");
+    const name=String(event?.name||"");
+    if(!name.startsWith("TALK · "))return true;
+    if(managedEventIds.has(id)||managedEventNames.has(name))return true;
+    const info=inspectLegacyTalk(event?.entries);
+    const counts=new Map();
+    for(const line of info.texts)counts.set(line,(counts.get(line)||0)+1);
+    const repeatedCharacterLine=[...counts.values()].some(count=>count>1);
+    const obsoleteGenerated=info.legacy||(info.hasChoice&&repeatedCharacterLine);
+    return !obsoleteGenerated;
+  });
+  if(source.events.length!==beforeLegacyTalkCleanup)changed=true;
+
   if(typeof window.HV_APPLY_ITEM_PRESETS==="function"){
     const presetResult=window.HV_APPLY_ITEM_PRESETS(source,{normalizeItemReaction,normalizeEntry});
     if(presetResult?.state)source=presetResult.state;
