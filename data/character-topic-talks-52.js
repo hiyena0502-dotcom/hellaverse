@@ -448,23 +448,65 @@
     return picked.sort((a,b)=>score(c,b)-score(c,a)||hash(c.id+a.id)-hash(c.id+b.id)).slice(0,52);
   };
 
+  const topicTail=(c,t,key)=>{
+    const r=register(c),n=hash(key)%7;
+    if(r==="formal")return [
+      "‘"+t+"’은 굳이 더 복잡하게 만들 필요는 없겠습니다.",
+      "오늘 ‘"+t+"’ 이야기는 이 정도 온도로 두죠.",
+      "‘"+t+"’은 실제 일이 생기면 그때 다시 보겠습니다.",
+      "적어도 ‘"+t+"’ 때문에 분위기까지 무겁게 만들 필요는 없겠군요.",
+      "‘"+t+"’은 한마디 의견 정도로 충분합니다.",
+      "오늘은 ‘"+t+"’을 토론 주제로 만들 생각은 없습니다.",
+      "‘"+t+"’은 이 정도 반응만 알아두셔도 되겠습니다."
+    ][n];
+    if(r==="archaic")return [
+      "‘"+t+"’은 굳이 더 복잡히 만들 필요는 없겠소.",
+      "오늘 ‘"+t+"’ 이야기는 이 정도 온도로 두지.",
+      "‘"+t+"’은 실제 일이 생기면 그때 다시 보겠소.",
+      "적어도 ‘"+t+"’ 때문에 분위기까지 무겁게 만들 필요는 없겠군.",
+      "‘"+t+"’은 한마디 의견 정도면 충분하오.",
+      "오늘은 ‘"+t+"’을 긴 토론거리로 만들 생각은 없소.",
+      "‘"+t+"’은 이 정도 반응만 알아두어도 되겠구려."
+    ][n];
+    return [
+      "‘"+t+"’은 굳이 더 복잡하게 만들 필요 없지.",
+      "오늘 ‘"+t+"’ 얘기는 이 정도 온도로 두자.",
+      "‘"+t+"’은 실제로 터지면 그때 다시 보면 돼.",
+      "적어도 ‘"+t+"’ 때문에 분위기까지 무겁게 만들 필요는 없잖아.",
+      "‘"+t+"’은 한마디 의견 정도면 충분해.",
+      "오늘은 ‘"+t+"’을 토론거리로 만들 생각 없어.",
+      "‘"+t+"’은 이 정도 반응만 알아두면 돼."
+    ][n];
+  };
+  const promptTail=(c,t,key)=>{
+    const n=hash(key)%6,lens=playerLens(c);
+    return [
+      "평소 "+lens+" 얘기할 때처럼 가볍게요.",
+      "그냥 "+lens+" 얘기하듯 한마디만요.",
+      "굳이 진지해지지 말고, "+lens+" 얘기할 때 정도로요.",
+      "평소 "+lens+" 쪽 반응 보는 느낌으로 물어본 거예요.",
+      "딱 "+lens+" 잡담 정도의 답이면 돼요.",
+      "오늘은 "+lens+" 얘기처럼 가볍게 넘겨도 돼요."
+    ][n];
+  };
+
   const make=(c,t,n)=>{
     const tg=primary(c,t),sen=isSensitive(t),personal=isPersonalFor(c,t),easy=tags(t).some(x=>c.easy.includes(x));
     const lockRate=c.t>=60?45:c.t>=55?40:35;
     const highOnly=(personal||(sen&&!easy))&&(hash(c.id+"::"+t.id+"::lock")%100<lockRate);
     const id="pooltalk-"+slug(c.id)+"-"+String(n+1).padStart(2,"0")+"-"+slug(t.id);
     const st=setup[(hash(id+"s")+n)%setup.length](pick(c.a,id+"a"),t.title);
-    const qLow=OPEN_LOW[(hash(id+"ql")+n)%OPEN_LOW.length](t.title);
-    const qHigh=OPEN_HIGH[(hash(id+"qh")+n)%OPEN_HIGH.length](t.title);
-    const fLow=FOLLOW_LOW[(hash(id+"fl")+n)%FOLLOW_LOW.length](t.title);
-    const fHigh=FOLLOW_HIGH[(hash(id+"fh")+n)%FOLLOW_HIGH.length](t.title);
+    const qLow=OPEN_LOW[(hash(id+"ql")+n)%OPEN_LOW.length](t.title)+" "+promptTail(c,t.title,id+"qtl");
+    const qHigh=OPEN_HIGH[(hash(id+"qh")+n)%OPEN_HIGH.length](t.title)+" "+promptTail(c,t.title,id+"qth");
+    const fLow=FOLLOW_LOW[(hash(id+"fl")+n)%FOLLOW_LOW.length](t.title)+" "+promptTail(c,t.title,id+"ftl");
+    const fHigh=FOLLOW_HIGH[(hash(id+"fh")+n)%FOLLOW_HIGH.length](t.title)+" "+promptTail(c,t.title,id+"fth");
 
     let lo1,hi1,lo2,hi2;
     if(personal){
-      lo1=deflectFor(c,false,id+"dl");
-      hi1=deflectFor(c,true,id+"dh");
-      lo2=deflectFor(c,false,id+"dl2")+" ‘"+t.title+"’ 얘기는 이 정도면 충분해.";
-      hi2=deflectFor(c,true,id+"dh2")+" ‘"+t.title+"’은 오늘은 가볍게 여기까지만.";
+      lo1=deflectFor(c,false,id+"dl")+" "+topicTail(c,t.title,id+"dtl");
+      hi1=deflectFor(c,true,id+"dh")+" "+topicTail(c,t.title,id+"dth");
+      lo2=deflectFor(c,false,id+"dl2")+" "+topicTail(c,t.title,id+"dtl2");
+      hi2=deflectFor(c,true,id+"dh2")+" "+topicTail(c,t.title,id+"dth2");
     }else{
       const cue=pick(CUE[tg]||CUE.hellsociety,c.id+t.id+"cue");
       const reg=register(c);
@@ -472,10 +514,10 @@
       const hiSet=reg==="formal"?highFormal:reg==="archaic"?highArchaic:highCasual;
       const plain=reg==="formal"?"저는 굳이 복잡하게 만들기보다 실제 상황부터 보는 편입니다":reg==="archaic"?"나는 굳이 복잡히 만들기보다 실제 상황부터 보는 편이오":"난 굳이 복잡하게 만들기보다 실제 상황부터 보는 편이야";
       const friendly=reg==="formal"?"당신과 이야기할 때는 제 반응도 조금 더 편하게 나오는군요":reg==="archaic"?"그대와 이야기할 때는 내 반응도 조금 더 편히 나오는구려":"너랑 얘기할 때는 내 반응도 조금 더 편하게 나오네";
-      lo1=loSet[(hash(id+"l")+n)%loSet.length](pick(c.guard,id+"g"),cue,plain);
-      hi1=hiSet[(hash(id+"h")+n)%hiSet.length](pick(c.warm,id+"w"),cue,friendly);
-      lo2=closeLow(c,t.title,id+"lc");
-      hi2=closeHigh(c,t.title,id+"hc");
+      lo1=loSet[(hash(id+"l")+n)%loSet.length](pick(c.guard,id+"g"),cue,plain)+" "+topicTail(c,t.title,id+"ntl");
+      hi1=hiSet[(hash(id+"h")+n)%hiSet.length](pick(c.warm,id+"w"),cue,friendly)+" "+topicTail(c,t.title,id+"nth");
+      lo2=closeLow(c,t.title,id+"lc")+" "+pick(c.guard,id+"cg");
+      hi2=closeHigh(c,t.title,id+"hc")+" "+pick(c.warm,id+"cw");
     }
 
     const title="TALK · "+c.name+" · "+t.title;
@@ -505,6 +547,6 @@
   window.HV_STORY_PACKS ||= [];
   for(const c of PFS){
     const list=chosen(c);
-    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:3,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
+    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:4,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
   }
 })();
