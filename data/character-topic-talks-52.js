@@ -341,7 +341,9 @@
 
   const make=(c,t,n)=>{
     const tg=primary(c,t),cue=pick(CUE[tg]||CUE.hellsociety,c.id+t.id+"cue");
-    const sen=tags(t).some(x=>SENS.has(x)),easy=tags(t).some(x=>c.easy.includes(x)),highOnly=sen&&!easy;
+    const sen=tags(t).some(x=>SENS.has(x)),easy=tags(t).some(x=>c.easy.includes(x));
+    const lockRate=c.t>=60?55:c.t>=55?50:45;
+    const highOnly=sen&&!easy&&(hash(c.id+"::"+t.id+"::lock")%100<lockRate);
     const id="pooltalk-"+slug(c.id)+"-"+String(n+1).padStart(2,"0")+"-"+slug(t.id);
     const st=setup[(hash(id+"s")+n)%setup.length](pick(c.a,id+"a"),t.title);
     const q=p1[(hash(id+"q")+n)%p1.length](t.title)+" "+PLAYER_ECHO[(hash(id+"qe")+n)%PLAYER_ECHO.length](c,t.title);
