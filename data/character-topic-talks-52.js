@@ -1974,9 +1974,136 @@
     ]};
   };
 
+  const SEEN_CHARACTER_DIALOGUE=new Set();
+  const dedupeTail=(c,t,kind,key)=>{
+    const focus=voiceFocus(t),r=register(c);
+    const banks={
+      casual:{
+        agree:[
+          "이번 "+focus+" 건은 똑같이 넘기긴 어렵네.",
+          focus+" 쪽은 반응도 조금 달라질 수밖에 없고.",
+          "적어도 "+focus+" 얘기에선 이 정도 차이는 있어.",
+          "이번 건은 "+focus+" 때문에 결이 좀 달라.",
+          focus+" 쪽만 보면 아까 같은 답으로 끝내긴 싫어."
+        ],
+        probe:[
+          focus+" 얘기라 이유도 조금 달라.",
+          "특히 "+focus+" 쪽에선 그 이유가 더 선명해.",
+          "이번엔 "+focus+" 때문에 설명이 조금 달라지고.",
+          focus+" 건은 같은 기준으로만 볼 수 없지.",
+          "적어도 "+focus+" 쪽은 따로 봐야 해."
+        ],
+        joke:[
+          focus+" 건 농담도 조금 다르게 받아야겠네.",
+          "이번 "+focus+" 얘기는 웃는 포인트도 다르지.",
+          focus+" 쪽은 이 정도 장난이 더 어울리고.",
+          "적어도 "+focus+" 얘긴 똑같이 받아치긴 싫네.",
+          "이번엔 "+focus+" 때문에 농담도 좀 달라."
+        ],
+        shift:[
+          "이번 "+focus+" 건은 여기 선에서 접자.",
+          focus+" 얘기는 이쯤에서 따로 묻어두자.",
+          "오늘 "+focus+" 쪽은 이 선이면 됐어.",
+          "이번엔 "+focus+" 얘기라 여기서 끊는 게 낫겠네.",
+          focus+" 건 다음에 필요하면 다시 꺼내자."
+        ]
+      },
+      formal:{
+        agree:[
+          "이번 "+focus+" 건은 같은 답으로 넘기긴 어렵군요.",
+          focus+" 쪽은 반응도 조금 달라질 수밖에 없습니다.",
+          "적어도 "+focus+" 이야기에서는 이 정도 차이가 있습니다.",
+          "이번 건은 "+focus+" 때문에 결이 조금 다릅니다.",
+          focus+" 쪽만 보면 같은 답으로 끝낼 수는 없겠군요."
+        ],
+        probe:[
+          focus+" 이야기라 이유도 조금 다릅니다.",
+          "특히 "+focus+" 쪽에서는 그 이유가 더 분명합니다.",
+          "이번엔 "+focus+" 때문에 설명도 조금 달라집니다.",
+          focus+" 건은 같은 기준으로만 볼 수 없습니다.",
+          "적어도 "+focus+" 쪽은 따로 볼 필요가 있습니다."
+        ],
+        joke:[
+          focus+" 건은 농담도 조금 다르게 받아야겠군요.",
+          "이번 "+focus+" 이야기는 웃을 지점도 조금 다릅니다.",
+          focus+" 쪽은 이 정도 농담이 더 어울리겠군요.",
+          "적어도 "+focus+" 이야기는 같은 식으로 받아치긴 어렵습니다.",
+          "이번엔 "+focus+" 때문에 농담도 조금 달라지겠군요."
+        ],
+        shift:[
+          "이번 "+focus+" 건은 여기 선에서 두죠.",
+          focus+" 이야기는 이쯤에서 따로 두겠습니다.",
+          "오늘 "+focus+" 쪽은 이 선이면 충분합니다.",
+          "이번엔 "+focus+" 이야기라 여기서 끊는 편이 낫겠군요.",
+          focus+" 건은 필요하면 다음에 다시 이야기하죠."
+        ]
+      },
+      archaic:{
+        agree:[
+          "이번 "+focus+" 건은 같은 답으로 넘기기 어렵구려.",
+          focus+" 쪽은 반응도 조금 달라질 수밖에 없소.",
+          "적어도 "+focus+" 이야기에서는 이 정도 차이가 있소.",
+          "이번 건은 "+focus+" 때문에 결이 조금 다르오.",
+          focus+" 쪽만 보면 같은 답으로 끝낼 수는 없겠소."
+        ],
+        probe:[
+          focus+" 이야기라 까닭도 조금 다르오.",
+          "특히 "+focus+" 쪽에서는 그 까닭이 더 분명하오.",
+          "이번엔 "+focus+" 때문에 설명도 조금 달라지오.",
+          focus+" 건은 같은 기준으로만 볼 수 없소.",
+          "적어도 "+focus+" 쪽은 따로 보아야 하오."
+        ],
+        joke:[
+          focus+" 건은 농도 조금 다르게 받아야겠구려.",
+          "이번 "+focus+" 이야기는 웃을 지점도 조금 다르오.",
+          focus+" 쪽은 이 정도 농이 더 어울리겠소.",
+          "적어도 "+focus+" 이야기는 같은 식으로 받아칠 수 없구려.",
+          "이번엔 "+focus+" 때문에 농도 조금 달라지겠소."
+        ],
+        shift:[
+          "이번 "+focus+" 건은 여기 선에서 두지.",
+          focus+" 이야기는 이쯤에서 따로 두겠소.",
+          "오늘 "+focus+" 쪽은 이 선이면 충분하오.",
+          "이번엔 "+focus+" 이야기라 여기서 끊는 편이 낫겠구려.",
+          focus+" 건은 필요하면 다음에 다시 말하지."
+        ]
+      }
+    };
+    const bank=banks[r]?.[kind]||banks.casual[kind]||banks.casual.agree;
+    return pick(bank,c.id+"::"+t.id+"::"+key);
+  };
+
+  const uniqueDialogueEvent=(c,t,event)=>{
+    const walk=entries=>{
+      for(const entry of entries||[]){
+        if(entry?.type==="dialogue"&&entry?.speakerCharacterId===c.id&&entry.text){
+          let text=String(entry.text);
+          if(SEEN_CHARACTER_DIALOGUE.has(text)){
+            const id=String(entry.id||"");
+            const kind=/joke/.test(id)?"joke":/(shift|backoff)/.test(id)?"shift":/(probe|push)/.test(id)?"probe":"agree";
+            let attempt=0;
+            let candidate=text;
+            while(SEEN_CHARACTER_DIALOGUE.has(candidate)&&attempt<12){
+              candidate=text+" "+dedupeTail(c,t,kind,id+"::"+attempt);
+              attempt++;
+            }
+            text=candidate;
+            entry.text=text;
+          }
+          SEEN_CHARACTER_DIALOGUE.add(text);
+        }
+        if(entry?.type==="choice"){
+          for(const option of entry.options||[])walk(option.entries);
+        }
+      }
+    };
+    walk(event.entries);
+    return event;
+  };
+
   window.HV_STORY_PACKS ||= [];
   for(const c of PFS){
     const list=chosen(c);
-    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:33,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
+    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:34,requiredCharacterIds:[c.id],events:list.map((t,n)=>uniqueDialogueEvent(c,t,make(c,t,n)))});
   }
 })();
