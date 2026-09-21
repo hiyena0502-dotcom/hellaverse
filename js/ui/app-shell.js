@@ -313,6 +313,7 @@ async function resetPlayProgress(){
   state.discoveredSpecialGiftKeys=[];
   state.giftInteractionCounts={};
   state.discoveredTalkIds=[];
+  state.seenOriginIntroCharacterIds=[];
   state.askedAskIds=[];
   state.unlockedAskIds=[];
   state.interactionHistory=[];
@@ -428,7 +429,7 @@ function renderHome(){
         '<div class="character-counter">'+String(homeIndex+1).padStart(2,"0")+' / '+String(chars.length).padStart(2,"0")+'</div>'+
       '</div>'+
       '<div class="lobby-dashboard">'+
-        '<button type="button" data-action="talk"><span>01 · ROOM</span><strong>TALK</strong><small>'+talkEventsForCharacter(ch.id).length+' TALK · '+actionEventsForCharacter(ch.id).length+' ACTION</small></button>'+
+        '<button type="button" data-action="talk"><span>01 · ROOM</span><strong>TALK</strong><small>'+eventsForCharacter(ch.id).length+' EVENTS</small></button>'+
         '<button type="button" data-action="random-thought"><span>02 · INNER VOICE</span><strong>THOUGHT</strong><small>'+state.thoughts.filter(t=>t.characterId===ch.id&&t.enabled).length+' LINES</small></button>'+
         '<button type="button" data-action="show-affection"><span>03 · RELATION</span><strong>AFFECTION</strong><small>'+aff+' / 100</small></button>'+
         '<button type="button" data-action="show-emotion"><span>04 · STATUS</span><strong>EMOTION</strong><small>'+esc(emotionLabel(emo.state))+'</small></button>'+
