@@ -768,7 +768,7 @@ const soloDialogueSyncCheck=vm.runInContext(`
 `,context);
 assert.equal(soloDialogueSyncCheck.choiceCount,1,"existing saves must receive the choice-driven solo TALK rewrite");
 assert.equal(soloDialogueSyncCheck.retiredLine,false,"existing saves must remove the repeated Asmodeus line");
-assert.equal(soloDialogueSyncCheck.version,9,"solo TALK sync must advance preset version");
+assert.equal(soloDialogueSyncCheck.version,10,"solo TALK sync must advance preset version");
 context.window.HV_STORY_PACKS.length=storyPackCountBeforeTuning;
 
 assert.match(characterEventCode,/id:"angel".*?threshold:60.*?유료 서비스/s,"Angel base TALK tuning missing");
