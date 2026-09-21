@@ -448,6 +448,69 @@
     return picked.sort((a,b)=>score(c,b)-score(c,a)||hash(c.id+a.id)-hash(c.id+b.id)).slice(0,52);
   };
 
+  const SURFACE_X={
+    hotel:["누가 실제로 맡을지부터 정하는 일","소음이나 뒷정리를 누가 감당할지 보는 일","운영할 사람이 있는지부터 확인하는 일"],
+    redemption:["말보다 일단 한 번 해보는 일","프로그램이 사람마다 맞는지 보는 일","처음부터 너무 거창하게 잡지 않는 일"],
+    heaven:["규칙이 얼마나 붙는지부터 확인하는 일","실제로 허가가 나는지 보는 일","말보다 현실적으로 가능한지 따져보는 일"],
+    extermination:["길게 떠들기보다 필요한 말만 하는 일","누가 안전한지부터 확인하는 일","가볍게 소비하지 않는 일"],
+    soul:["계약 문구부터 제대로 읽는 일","누가 뭘 내놓는지 확인하는 일","말보다 조건부터 보는 일"],
+    media:["누가 편집권을 쥐고 있는지 보는 일","반응보다 원본이 뭔지 확인하는 일","방송에 나간 뒤를 먼저 생각하는 일"],
+    tech:["고장났을 때부터 생각하는 일","실제로 쓸 사람이 편한지 보는 일","기능보다 관리가 가능한지 보는 일"],
+    power:["자리보다 누가 실제로 책임질지 보는 일","명령보다 뒷수습을 누가 하는지 보는 일","힘보다 실제 영향이 어디까지 가는지 보는 일"],
+    family:["밖에서 정답을 대신 정하지 않는 일","당사자들이 말할 만큼만 두는 일","괜히 편부터 가르지 않는 일"],
+    romance:["당사자 둘이 알아서 정하게 두는 일","상대가 싫다는 선부터 지키는 일","주변 사람이 결론을 대신 내리지 않는 일"],
+    trust:["말보다 몇 번 같이 겪어보는 일","작은 약속을 계속 지키는지 보는 일","괜히 비밀부터 캐지 않는 일"],
+    past:["말하고 싶은 만큼만 듣는 일","옛날 얘기를 지금 사람 전체로 보지 않는 일","굳이 다시 꺼내지 않아도 되는 건 두는 일"],
+    human:["일단 정체부터 안 들키는 일","인간 쪽 규칙을 먼저 확인하는 일","괜히 튀지 않고 구경부터 하는 일"],
+    work:["누가 맡을지부터 정하는 일","사고 안 나게 역할을 나누는 일","귀찮아도 기본 절차는 확인하는 일"],
+    imp:["현장에서 계획이 바뀔 걸 감안하는 일","장비랑 퇴로부터 챙기는 일","누가 제일 잘하는지 보고 역할을 나누는 일"],
+    goetia:["예법이 얼마나 붙는지부터 확인하는 일","가문보다 당사자 일정부터 보는 일","마법 쓰기 전에 뒷문제부터 생각하는 일"],
+    sin:["각자 방식이 너무 다르다는 걸 감안하는 일","누가 분위기를 주도하는지 보는 일","이름값보다 실제 행동을 보는 일"],
+    party:["끝나고도 멀쩡히 걸어 나오는 일","각자 놀고 싶은 속도를 존중하는 일","물과 간식부터 충분히 두는 일"],
+    fame:["사람들이 기대하는 이미지와 실제를 구분하는 일","반응이 안 좋은 날도 감안하는 일","카메라 밖 생활이 있는지 챙기는 일"],
+    law:["규칙이 실제로 적용되는지 보는 일","예외가 어디까지 허용되는지 확인하는 일","문서보다 현장에서 어떻게 굴러가는지 보는 일"],
+    hellsociety:["동네마다 분위기가 다르다는 걸 감안하는 일","출신만 듣고 단정하지 않는 일","어디서 사느냐에 따라 상식이 달라지는 걸 보는 일"],
+    violence:["일단 안 다치고 끝내는 일","주변 사람부터 치우는 일","싸울 필요가 있는지 먼저 보는 일"],
+    leisure:["괜히 계획을 빡빡하게 안 잡는 일","편한 사람이랑 대충 즐기는 일","재미없어지기 전에 그만두는 일"],
+    friendship:["굳이 편을 가르지 않는 일","필요할 때 말은 해주는 일","상대 대신 결정하지 않는 일"],
+    selfworth:["성과 하나로 사람 전체를 판단하지 않는 일","못하는 날도 그냥 못하는 날로 두는 일","칭찬 여부로 전부 정하지 않는 일"],
+    money:["계산부터 확실히 하는 일","누가 얼마를 내는지 미리 정하는 일","싸다고 무조건 좋은 거래로 보지 않는 일"],
+    food:["직접 먹어보고 정하는 일","취향 차이는 그냥 취향으로 두는 일","같이 먹을 사람 입맛도 한 번 보는 일"],
+    culture:["직접 겪어보기 전엔 단정하지 않는 일","출신만 듣고 성격까지 정하지 않는 일","낯선 규칙은 이유부터 물어보는 일"]
+  };
+  const SURFACE_PRIORITY=["food","leisure","work","tech","media","party","culture","human","hotel","imp","goetia","sin","law","violence","money","fame","friendship","power","heaven","redemption","trust","family","romance","past","selfworth","soul","extermination","hellsociety"];
+  const surfaceTag=t=>{
+    const ts=tags(t);
+    return SURFACE_PRIORITY.find(x=>ts.includes(x))||ts[0]||"hellsociety";
+  };
+  const LIGHT_CASUAL=[
+    (g,x)=>g+" 난 "+x+"부터 볼 것 같아.",
+    (g,x)=>g+" 뭐, 내 쪽은 "+x+"이지.",
+    (g,x)=>g+" 이건 간단해. "+x+"부터 하면 돼.",
+    (g,x)=>g+" 굳이 길게 말하면 재미없고, "+x+" 정도.",
+    (g,x)=>g+" 난 복잡하게 안 가. "+x+"이면 충분해.",
+    (g,x)=>g+" 일단 "+x+"부터 하고 나머진 그때 보지.",
+    (g,x)=>g+" 내 반응은 뻔해. "+x+"부터 챙겨."
+  ];
+  const LIGHT_FORMAL=[
+    (g,x)=>g+" 저는 "+x+"부터 보겠습니다.",
+    (g,x)=>g+" 제 쪽에서는 "+x+"이 먼저군요.",
+    (g,x)=>g+" 굳이 길게 말할 필요 없이 "+x+"부터 하면 되겠습니다.",
+    (g,x)=>g+" 저는 복잡하게 만들기보다 "+x+"을 먼저 보겠습니다.",
+    (g,x)=>g+" 우선 "+x+"부터 하고 나머지는 그때 판단하죠.",
+    (g,x)=>g+" 제 반응은 단순합니다. "+x+"이 먼저입니다.",
+    (g,x)=>g+" 이 정도라면 "+x+"부터 확인하면 충분하겠습니다."
+  ];
+  const LIGHT_ARCHAIC=[
+    (g,x)=>g+" 나는 "+x+"부터 보겠소.",
+    (g,x)=>g+" 내 쪽에서는 "+x+"이 먼저로군.",
+    (g,x)=>g+" 굳이 길게 말할 것 없이 "+x+"부터 하면 되겠소.",
+    (g,x)=>g+" 나는 복잡히 만들기보다 "+x+"을 먼저 보겠소.",
+    (g,x)=>g+" 우선 "+x+"부터 하고 나머지는 그때 판단하지.",
+    (g,x)=>g+" 내 반응은 단순하오. "+x+"이 먼저요.",
+    (g,x)=>g+" 이 정도라면 "+x+"부터 살피면 충분하겠소."
+  ];
+
   const topicTail=(c,t,key)=>{
     const r=register(c),n=hash(key)%7;
     if(r==="formal")return [
@@ -479,14 +542,15 @@
     ][n];
   };
   const promptTail=(c,t,key)=>{
-    const n=hash(key)%6,lens=playerLens(c);
+    const n=hash(key)%6;
+    const lightTag=LENS[pick(c.easy?.length?c.easy:["leisure"],key)]||"가벼운 잡담";
     return [
-      "평소 "+lens+" 얘기할 때처럼 가볍게요.",
-      "그냥 "+lens+" 얘기하듯 한마디만요.",
-      "굳이 진지해지지 말고, "+lens+" 얘기할 때 정도로요.",
-      "평소 "+lens+" 쪽 반응 보는 느낌으로 물어본 거예요.",
-      "딱 "+lens+" 잡담 정도의 답이면 돼요.",
-      "오늘은 "+lens+" 얘기처럼 가볍게 넘겨도 돼요."
+      "평소 "+lightTag+" 얘기할 때처럼 가볍게요.",
+      "그냥 "+lightTag+" 얘기하듯 한마디만요.",
+      "굳이 진지해지지 말고 "+lightTag+" 잡담 정도로요.",
+      "평소 "+lightTag+" 쪽 반응 보는 느낌으로 물어본 거예요.",
+      "딱 "+lightTag+" 얘기 정도의 답이면 돼요.",
+      "오늘은 "+lightTag+" 얘기처럼 가볍게 넘겨도 돼요."
     ][n];
   };
 
@@ -508,14 +572,10 @@
       lo2=deflectFor(c,false,id+"dl2")+" "+topicTail(c,t.title,id+"dtl2");
       hi2=deflectFor(c,true,id+"dh2")+" "+topicTail(c,t.title,id+"dth2");
     }else{
-      const cue=pick(CUE[tg]||CUE.hellsociety,c.id+t.id+"cue");
-      const reg=register(c);
-      const loSet=reg==="formal"?lowFormal:reg==="archaic"?lowArchaic:lowCasual;
-      const hiSet=reg==="formal"?highFormal:reg==="archaic"?highArchaic:highCasual;
-      const plain=reg==="formal"?"저는 굳이 복잡하게 만들기보다 실제 상황부터 보는 편입니다":reg==="archaic"?"나는 굳이 복잡히 만들기보다 실제 상황부터 보는 편이오":"난 굳이 복잡하게 만들기보다 실제 상황부터 보는 편이야";
-      const friendly=reg==="formal"?"당신과 이야기할 때는 제 반응도 조금 더 편하게 나오는군요":reg==="archaic"?"그대와 이야기할 때는 내 반응도 조금 더 편히 나오는구려":"너랑 얘기할 때는 내 반응도 조금 더 편하게 나오네";
-      lo1=loSet[(hash(id+"l")+n)%loSet.length](pick(c.guard,id+"g"),cue,plain)+" "+topicTail(c,t.title,id+"ntl");
-      hi1=hiSet[(hash(id+"h")+n)%hiSet.length](pick(c.warm,id+"w"),cue,friendly)+" "+topicTail(c,t.title,id+"nth");
+      const reg=register(c),stag=surfaceTag(t),x=pick(SURFACE_X[stag]||SURFACE_X.hellsociety,id+"sx");
+      const set=reg==="formal"?LIGHT_FORMAL:reg==="archaic"?LIGHT_ARCHAIC:LIGHT_CASUAL;
+      lo1=set[(hash(id+"l")+n)%set.length](pick(c.guard,id+"g"),x)+" "+topicTail(c,t.title,id+"ntl");
+      hi1=set[(hash(id+"h")+n+3)%set.length](pick(c.warm,id+"w"),x)+" "+topicTail(c,t.title,id+"nth");
       lo2=closeLow(c,t.title,id+"lc")+" "+pick(c.guard,id+"cg");
       hi2=closeHigh(c,t.title,id+"hc")+" "+pick(c.warm,id+"cw");
     }
@@ -547,6 +607,6 @@
   window.HV_STORY_PACKS ||= [];
   for(const c of PFS){
     const list=chosen(c);
-    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:4,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
+    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:5,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
   }
 })();
