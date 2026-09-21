@@ -298,9 +298,9 @@
     const current=Math.max(0,Number(source.dialoguePresetVersion)||0);
     let changed=false;
     const characters=new Map((source.characters||[]).map(character=>[character.id,character]));
-    if(current<12&&repairLegacyCharacterRefs(source))changed=true;
     if(current<12&&pruneRetiredSoloTalk(source))changed=true;
     if(current<12&&syncTunedStoryPacks(source))changed=true;
+    if(current<12&&repairLegacyCharacterRefs(source))changed=true;
     if(current<12){
       for(const event of source.events||[])if(localizeEntryTree(event.entries))changed=true;
       for(const ask of source.asks||[])if(localizeEntryTree(ask.entries))changed=true;
