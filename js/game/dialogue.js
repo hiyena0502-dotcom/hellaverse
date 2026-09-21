@@ -584,7 +584,7 @@ function renderInventoryPanel(){
     const reaction=giftReactionFor(item,ch);
     const discovered=isGiftPreferenceDiscovered(item.id,ch.id);
     const pref=discovered?(reaction?.preference||"NEUTRAL"):"UNKNOWN";
-    if(inventoryQuery&&![item.name,item.category,item.rarity,item.description].join(" ").toLowerCase().includes(inventoryQuery.toLowerCase()))return false;
+    if(inventoryQuery&&![item.name,item.category,item.rarity,item.description,itemGachaLine(item),itemEmoji(item)].join(" ").toLowerCase().includes(inventoryQuery.toLowerCase()))return false;
     if(inventoryCategory!=="ALL"&&item.category!==inventoryCategory)return false;
     if(inventoryPreference!=="ALL"&&pref!==inventoryPreference)return false;
     if(inventoryUnknownOnly&&discovered)return false;
@@ -596,7 +596,7 @@ function renderInventoryPanel(){
   const selectedPreference=selectedDiscovered?(selectedReaction?.preference||"NO SPECIAL REACTION"):"???";
   const categories=[...new Set(owned.map(item=>item.category))].sort();
   const preview=selected&&itemCount(selected.id)>0
-    ? '<article class="inventory-preview-card"><div><p class="page-kicker">SELECTED GIFT</p><h3>'+esc(selected.name)+'</h3><p>'+esc(selected.description||"설명 없음")+'</p></div>'+
+    ? '<article class="inventory-preview-card"><div><p class="page-kicker">SELECTED GIFT</p><h3>'+esc(itemEmoji(selected))+' '+esc(selected.name)+'</h3><p>'+esc(selected.description||"설명 없음")+'</p>'+(itemGachaLine(selected)?'<p class="inventory-gacha-line"><b>GACHA REVEAL</b>'+esc(itemGachaLine(selected))+'</p>':'')+'</div>'+
       '<div class="inventory-preview-meta"><span>'+esc(selected.rarity)+'</span><span>'+esc(selected.category)+'</span><span>반응 '+esc(selectedPreference)+'</span><span>'+(selected.giftUseMode==="consume"?"소모형":"보존형")+'</span><span>×'+itemCount(selected.id)+'</span></div>'+
       '<button class="gold-button" type="button" data-action="give-item" data-id="'+esc(selected.id)+'">'+esc(ch.name)+'에게 선물하기</button></article>'
     : "";
@@ -613,7 +613,7 @@ function renderInventoryPanel(){
       const discovered=isGiftPreferenceDiscovered(i.id,ch.id);
       const reactionLabel=discovered?(reaction?reaction.preference:"NO SPECIAL REACTION"):"???";
       const times=giftInteractionCount(i.id,ch.id);
-      return '<button class="inventory-entry '+(i.id===selectedInventoryItemId?"selected":"")+'" type="button" data-action="inventory-preview" data-id="'+esc(i.id)+'"><span><b>'+esc(i.name)+'</b><small>'+esc(i.rarity)+' · '+esc(i.category)+' · '+esc(reactionLabel)+(times?' · '+times+'회 선물':'')+'</small></span><span class="count">×'+itemCount(i.id)+'</span></button>';
+      return '<button class="inventory-entry '+(i.id===selectedInventoryItemId?"selected":"")+'" type="button" data-action="inventory-preview" data-id="'+esc(i.id)+'"><span><b>'+esc(itemEmoji(i))+' '+esc(i.name)+'</b><small>'+esc(i.rarity)+' · '+esc(i.category)+' · '+esc(reactionLabel)+(times?' · '+times+'회 선물':'')+'</small></span><span class="count">×'+itemCount(i.id)+'</span></button>';
     }).join(""):'<div class="editor-note">조건에 맞는 선물이 없습니다.</div>')+
     '</div></section>';
 }
@@ -742,10 +742,14 @@ function playGachaAnimation(results){
     stage.classList.add("is-reveal");
     box.innerHTML=results.map((result,index)=>{
       const i=result.item;
+      const line=itemGachaLine(i);
       return '<div class="gacha-result-card gacha-reveal-card rarity-'+esc(i.rarity)+' '+(result.isNew?"is-new":"")+'" style="animation-delay:'+(index*80)+'ms">'+
         (result.isNew?'<span class="gacha-new-badge">NEW</span>':'')+
+        '<div class="gacha-result-icon">'+esc(itemEmoji(i))+'</div>'+
         '<span>'+esc(i.rarity)+'</span><strong>'+esc(i.name)+'</strong>'+
-        '<small>'+esc(getCharacter(i.collectionCharacterId)?.name||"UNASSIGNED")+' · ×'+result.count+'</small></div>';
+        '<small>'+esc(getCharacter(i.collectionCharacterId)?.name||"UNASSIGNED")+' · ×'+result.count+'</small>'+
+        (line?'<p class="gacha-reveal-line"><b>REVEAL LINE</b>'+esc(line)+'</p>':'')+
+        '</div>';
     }).join("");
     setTimeout(()=>{
       gachaAnimating=false;
@@ -808,6 +812,7 @@ function collectionDetail(id){
   }
   const sources=itemSourceTypes(i).join(" + ");
   const recent=state.itemHistory.filter(h=>h.itemId===i.id).slice(-5).reverse();
+  const reveal=itemGachaLine(i);
   const giftArchive=enabledCharacters().map(ch=>{
     const reaction=giftReactionFor(i,ch);
     const discovered=isGiftPreferenceDiscovered(i.id,ch.id);
@@ -815,9 +820,10 @@ function collectionDetail(id){
     const times=giftInteractionCount(i.id,ch.id);
     return '<div class="gift-archive-row"><span>'+esc(ch.name)+'</span><b>'+esc(label)+'</b><small>'+(times?times+' GIFTS':'UNTRIED')+'</small></div>';
   }).join("");
-  openModal(unlocked?i.name:"LOCKED",unlocked?
+  openModal(unlocked?itemEmoji(i)+" "+i.name:"LOCKED",unlocked?
     '<p class="label">'+esc(i.rarity)+' · '+esc(i.category)+(i.secret?' · SECRET':'')+'</p>'+
     '<p style="line-height:1.7">'+esc(i.description||"설명 없음")+'</p>'+
+    (reveal?'<section class="collection-gacha-reveal"><small>GACHA REVEAL</small><p>'+esc(reveal)+'</p></section>':'')+
     '<div class="collection-detail-meta"><span>COLLECTION · '+esc(getCharacter(i.collectionCharacterId)?.name||"미지정")+'</span><span>'+esc(sources)+'</span><span>'+esc(i.acquisitionMode.toUpperCase())+'</span><span>'+esc(i.giftUseMode.toUpperCase())+'</span>'+(state.collectionSettings.showOwnedCount?'<span>INVENTORY ×'+count+'</span>':'')+'</div>'+
     '<section class="gift-archive"><h3>GIFT REACTIONS</h3>'+giftArchive+'</section>'+
     (recent.length?'<div class="collection-history-mini">'+recent.map(h=>'<div><span>'+esc(h.source)+'</span><b>+'+h.amount+'</b></div>').join("")+'</div>':'')
