@@ -1809,6 +1809,99 @@
     return null;
   };
 
+  const GUARD_MARKERS={
+    "lucifer-morningstar":["하, 그건 오늘 비공개.","음, 거긴 더 안 들어갈래.","왕실 기록 열람은 여기까지.","오케이, 그 문은 닫아두자.","그건 한두 마디면 충분해."],
+    "sera":["그 부분은 여기까지 하겠습니다.","오늘은 그 선을 넘지 않죠.","그 사안은 짧게만 말씀드리겠습니다.","그 이상은 지금 다루지 않겠습니다.","여기까지가 적당하군요."],
+    "lute":["거기까지.","한두 마디면 충분해.","그건 길게 안 해.","다음.","그 선은 넘지 마."],
+    "vaggie":["그건 여기까지만 할게.","조금은 말해도 전부는 아니야.","그 부분은 더 안 들어갈래.","오늘은 그 선이면 돼.","거기서 멈추자."],
+    "vox":["그건 풀버전 없음.","원본 공개는 여기까지.","그 화면은 더 안 열어.","그건 비공개 처리.","거기까지만 보여줄게."],
+    "angel-dust":["자기야, 그건 여기까지만.","풀버전은 오늘 없어.","그 정도만 알면 돼, 베이비.","그쪽은 더 벗기지 말자.","오늘 서비스 범위는 여기까지."],
+    "husk":["그 얘긴 여기까지.","짧게만 간다.","거기까지만 캐.","그건 더 안 풀어.","됐어. 그 선이면 돼."],
+    "blitzo":["그건 존나 여기까지.","감정 서류철은 닫아.","그쪽은 풀버전 없어.","야, 거기까지만.","그 화제는 더 안 판다."],
+    "paimon":["그 이야기는 여기까지 두겠소.","그 선은 넘지 않는 편이 좋소.","오늘은 짧게만 말하겠소.","그 이상은 논하지 않겠소.","그 정도면 충분하오."],
+    "stolas":["그 이야기는 오늘 여기까지만 둘게요.","조금은 말해도 전부 풀고 싶진 않아요.","그 부분은 너무 오래 붙잡지 않았으면 해요.","여기서 멈추는 편이 좋겠군요.","오늘은 그 선이면 충분해요."],
+    "loona":["그건 여기까지.","더 캐지 마.","그 얘긴 길게 안 해.","한마디면 됐어.","거기서 멈춰."],
+    "octavia":["그건 여기까지만.","더 길게는 싫어.","그 얘긴 한마디면 돼.","거기서 멈추자.","그건 오늘 안 풀어."]
+  };
+
+  const guardedVoice=(c,t,high,key)=>{
+    const focus=voiceFocus(t),r=register(c);
+    const marker=pick(GUARD_MARKERS[c.id]||["그 이야기는 오늘 여기까지."],c.id+"::"+t.id+"::guard::"+key);
+    const casual=high?[
+      "네가 묻는 건 괜찮아. 그래도 "+focus+" 쪽은 오늘 전부 풀 생각 없어.",
+      "조금은 말할 수 있어도 "+focus+" 전체를 설명할 생각은 없어.",
+      focus+" 얘기는 네가 들어줘도 한두 마디면 충분해.",
+      "질문이 싫은 건 아닌데 "+focus+"은 오늘 여기까지만 갈게.",
+      "내가 먼저 "+focus+"을 꺼냈어도 끝까지 해설할 생각은 없어."
+    ]:[
+      focus+" 얘기는 내가 먼저 꺼냈어도 끝까지 풀 생각 없어.",
+      "오늘 "+focus+"은 한두 마디면 됐어. 나머지는 그냥 두자.",
+      "질문 자체는 괜찮아도 "+focus+"은 여기서 멈출게.",
+      focus+" 쪽은 설명보다 선을 정하는 게 먼저야.",
+      "내가 "+focus+"을 언급했다고 후속 취재까지 허락한 건 아니야."
+    ];
+    const formal=high?[
+      "질문하시는 건 괜찮습니다. 그래도 "+focus+" 쪽을 전부 설명할 생각은 없습니다.",
+      "조금은 말씀드릴 수 있어도 "+focus+" 전체를 풀어놓고 싶진 않습니다.",
+      focus+" 이야기는 당신에게도 한두 마디면 충분하겠습니다.",
+      "질문이 불편한 건 아니지만 "+focus+"은 오늘 여기까지만 하죠.",
+      "제가 먼저 "+focus+"을 꺼냈어도 끝까지 해설할 의무가 생기진 않습니다."
+    ]:[
+      focus+" 이야기는 제가 먼저 꺼냈어도 끝까지 풀 생각은 없습니다.",
+      "오늘 "+focus+"은 한두 마디면 충분합니다. 나머지는 두죠.",
+      "질문 자체는 괜찮아도 "+focus+"은 여기서 멈추겠습니다.",
+      focus+" 쪽은 설명보다 선을 정하는 편이 먼저입니다.",
+      "제가 "+focus+"을 언급했다고 후속 설명까지 허락한 것은 아닙니다."
+    ];
+    const archaic=high?[
+      "그대가 묻는 것은 괜찮소. 그래도 "+focus+"을 전부 풀 생각은 없소.",
+      "조금은 말할 수 있으나 "+focus+" 전체를 설명하고 싶진 않소.",
+      focus+" 이야기는 그대에게도 한두 마디면 충분하오.",
+      "질문이 불편한 것은 아니나 "+focus+"은 오늘 여기까지 하지.",
+      "내가 먼저 "+focus+"을 꺼냈다 하여 끝까지 해설할 의무가 생기진 않소."
+    ]:[
+      focus+" 이야기는 내가 먼저 꺼냈어도 끝까지 풀 생각은 없소.",
+      "오늘 "+focus+"은 한두 마디면 충분하오. 나머지는 두지.",
+      "질문 자체는 괜찮으나 "+focus+"은 여기서 멈추겠소.",
+      focus+" 쪽은 설명보다 선을 정하는 편이 먼저요.",
+      "내가 "+focus+"을 언급했다 하여 후속 설명까지 허락한 것은 아니오."
+    ];
+    const body=pick(r==="formal"?formal:r==="archaic"?archaic:casual,c.id+"::"+t.id+"::guardbody::"+(high?"h":"l")+"::"+key);
+    return hash(c.id+"::"+t.id+"::guardorder::"+key)%2?marker+" "+body:body+" "+marker;
+  };
+
+  const guardedFollow=(c,t,high,key)=>{
+    const focus=voiceFocus(t),r=register(c);
+    const casual=[
+      "먼저 꺼낸 건 맞아. 그래도 "+focus+"을 어디까지 이어갈지는 내가 정할게.",
+      focus+" 얘기를 시작했다고 질문 범위까지 넘긴 건 아니야.",
+      "내가 문을 조금 열었다고 "+focus+" 전부를 보여주겠다는 뜻은 아니야.",
+      "한마디 먼저 꺼낸 것과 "+focus+"을 끝까지 설명하는 건 다른 얘기야.",
+      focus+"은 여기 선까지만. 그 정도면 충분해."
+    ];
+    const formal=[
+      "제가 먼저 꺼낸 것은 맞습니다. 그래도 "+focus+"을 어디까지 이어갈지는 제가 정하겠습니다.",
+      focus+" 이야기를 시작했다고 질문의 범위까지 넘긴 것은 아닙니다.",
+      "문을 조금 열었다고 "+focus+" 전체를 보여드리겠다는 뜻은 아닙니다.",
+      "먼저 한마디 꺼낸 것과 "+focus+"을 끝까지 설명하는 것은 다른 이야기입니다.",
+      focus+"은 여기 선까지만 하죠. 그 정도면 충분합니다."
+    ];
+    const archaic=[
+      "내가 먼저 꺼낸 것은 맞소. 그래도 "+focus+"을 어디까지 이어갈지는 내가 정하겠소.",
+      focus+" 이야기를 시작했다 하여 질문의 범위까지 넘긴 것은 아니오.",
+      "문을 조금 열었다 하여 "+focus+" 전체를 보여주겠다는 뜻은 아니오.",
+      "먼저 한마디 꺼낸 것과 "+focus+"을 끝까지 설명하는 것은 다른 이야기요.",
+      focus+"은 여기 선까지만 하지. 그 정도면 충분하오."
+    ];
+    let line=pick(r==="formal"?formal:r==="archaic"?archaic:casual,c.id+"::"+t.id+"::guardfollow::"+key);
+    if(high&&hash(key+"warm")%2===0){
+      if(r==="formal")line+=" 당신이 묻는 방식 자체는 불편하지 않습니다.";
+      else if(r==="archaic")line+=" 그대가 묻는 방식 자체는 불편하지 않소.";
+      else line+=" 네가 묻는 방식 자체는 불편하지 않아.";
+    }
+    return line;
+  };
+
   const responseFor=(c,t,kind,high,key,label="")=>{
     const personal=isPersonalFor(c,t),r=register(c),tag=surfaceTag(t),x=pick(SURFACE_X[tag]||SURFACE_X.hellsociety,key+"x");
     const specific=specificChoiceResponse(c,t,kind,high,key,label);
@@ -1843,16 +1936,7 @@
     }
 
     if(kind==="probe"){
-      if(shouldDodge(c,t)){
-        const d=deflectFor(c,high,key);
-        if(c.id==="lucifer-morningstar")return (high
-          ? d+" 네가 궁금해서 묻는 건 알아. 그리고 네가 물어서 화난 것도 아니야. 그래도 내가 먼저 한마디 꺼냈다고 과거 보고서까지 제출하는 건 아니거든. 여기까지만 하고 오리 하나 골라줘. 왕관 있는 거랑 없는 거 중에."
-          : d+" 내가 먼저 말 꺼냈다고 바로 취재 모드 들어가면 곤란하지. 궁금한 건 이해하지만 오늘은 거기까지. 자, 다음 주제는 오리냐 호텔 메뉴냐 둘 중 하나.")+" "+voiceTopicNote(c,t,"shift",key+"guard-lucifer");
-        if(c.id==="loona")return d+" 내가 먼저 말했어도 그게 질문권 무제한이라는 뜻은 아니야. 한마디 한 건 한마디 한 거고, 그 뒤는 내 기분 따라 정할 거야. "+voiceTopicNote(c,t,"shift",key+"guard-loona");
-        if(c.id==="blitzo")return d+" 야, 내가 먼저 꺼냈다고 감정 서류철까지 펼치라는 뜻 아니거든. 지금 정도가 딱 적당해. 더 가면 재미없어져. "+voiceTopicNote(c,t,"shift",key+"guard-blitzo");
-        if(c.id==="stolas")return d+" 당신이 묻는 게 불편해서라기보다는, 이걸 길게 풀면 대화 전체가 그 이야기 하나에 잡아먹힐 것 같아서요. 오늘은 여기까지만 두고 싶습니다. "+voiceTopicNote(c,t,"shift",key+"guard-stolas");
-        return d+" 내가 먼저 이야기를 꺼냈더라도 어디까지 말할지는 내가 정하고 싶어. 지금은 한두 마디 정도가 가장 편해. "+voiceTopicNote(c,t,"shift",key+"guard-generic");
-      }
+      if(shouldDodge(c,t))return guardedVoice(c,t,high,key);
       return voiceGeneral(c,t,"probe",high,x,key);
     }
 
@@ -2697,24 +2781,8 @@
       return "그렇지요. 화제를 바꾸는 편이 낫습니다. 모든 호기심을 충족시키는 건 교양이 아니라 탐욕일 때가 있으니까요. "+voiceTopicNote(c,t,"shift",key+"alastor-s");
     }
 
-    if(c.id==="lucifer-morningstar"&&firstKind==="probe"&&shouldDodge(c,t)){
-      if(nextKind==="push")return high
-        ?"오, 그건 맞아. 내가 먼저 얘기했지. 그런데 내가 창문 하나 열었다고 네가 지붕까지 올라가도 된다는 뜻은 아니잖아? 네가 궁금해하는 건 이해해. 그래도 오늘은 여기까지만. "+voiceTopicNote(c,t,"shift",key+"luc-push-h")
-        :"그래, 내가 먼저 말했지. 실수였네. 다음부턴 입 열기 전에 계약서라도 써야겠다. ‘한 문장 언급은 후속 취재를 허용하지 않음.’ "+voiceTopicNote(c,t,"shift",key+"luc-push-l");
-      if(nextKind==="backoff")return high
-        ?"고마워. 아니, 그렇게 거창하게 받을 건 아니고. 그냥 네가 멈출 때 멈춰주는 건 편하다는 뜻이야. "+voiceTopicNote(c,t,"shift",key+"luc-back-h")
-        :"좋은 선택이야. 내 정신 건강과 네 안전 모두에게 아주 이롭지. "+voiceTopicNote(c,t,"shift",key+"luc-back-l");
-      if(nextKind==="joke")return "그래, 그게 훨씬 낫다. 오리는 적어도 심판 같은 건 안 하거든. "+voiceTopicNote(c,t,"joke",key+"luc-joke");
-      return "완벽해. 이건 서랍에 넣고 잠그자. 열쇠는… 음, 없다고 하자. "+voiceTopicNote(c,t,"shift",key+"luc-shift");
-    }
-
     if(nextKind==="push"){
-      if(shouldDodge(c,t)){
-        const d=deflectFor(c,high,key);
-        if(r==="formal")return d+" 제가 먼저 이야기를 꺼냈더라도, 어디까지 이어갈지는 제 쪽에서 정하고 싶습니다. "+voiceTopicNote(c,t,"shift",key+"fg-formal");
-        if(r==="archaic")return d+" 내가 먼저 화제를 꺼냈다 하여 어디까지 이어갈지까지 넘긴 것은 아니오. "+voiceTopicNote(c,t,"shift",key+"fg-archaic");
-        return d+" 내가 먼저 얘기했어도 어디까지 이어갈지는 내가 정하고 싶어. "+voiceTopicNote(c,t,"shift",key+"fg-casual");
-      }
+      if(shouldDodge(c,t))return guardedFollow(c,t,high,key);
       return voiceGeneral(c,t,"probe",high,x,key+"follow-push");
     }
     if(nextKind==="backoff")return voiceGeneral(c,t,"shift",high,x,key+"follow-backoff");
@@ -2939,6 +3007,6 @@
   window.HV_STORY_PACKS ||= [];
   for(const c of PFS){
     const list=chosen(c);
-    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:44,requiredCharacterIds:[c.id],events:list.map((t,n)=>uniqueDialogueEvent(c,t,make(c,t,n)))});
+    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:45,requiredCharacterIds:[c.id],events:list.map((t,n)=>uniqueDialogueEvent(c,t,make(c,t,n)))});
   }
 })();
