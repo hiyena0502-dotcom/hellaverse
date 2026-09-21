@@ -514,8 +514,8 @@
             id:base+"-soft",
             label:moment.follow,
             entries:[
-              D(base+"-soft-low",char.id,char.name,softLine(char,theme,themeIndex,false),low),
-              D(base+"-soft-high",char.id,char.name,softLine(char,theme,themeIndex,true),high),
+              D(base+"-soft-low",char.id,char.name,naturalize(softLine(char,theme,themeIndex,false),theme),low),
+              D(base+"-soft-high",char.id,char.name,naturalize(softLine(char,theme,themeIndex,true),theme),high),
               N(base+"-soft-n",naturalize(`${char.display}가 재촉받지 않은 채 ${theme[1]}을(를) 다시 살핀다.`,theme))
             ],
             affectionEffects:[{id:base+"-soft-affection",characterId:char.id,amount:1}],
