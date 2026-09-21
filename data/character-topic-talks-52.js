@@ -1098,6 +1098,110 @@
     return parts.map((part,i)=>D(id+"-"+(i+1),c.id,c.name,part,affectionCondition?{affectionCondition:affectionCondition}:{}));
   };
 
+  const sceneFocus=title=>{
+    const raw=String(title||"");
+    const special=[
+      [/익명의 선물|선물.*두고/,"익명 선물"],
+      [/방송에 호텔 내부|호텔 내부.*방송/,"호텔 촬영"],
+      [/운영비/,"운영비"],
+      [/천국.*관광|관광.*천국/,"천국 관광"],
+      [/게임룸/,"게임룸"],[/인터넷/,"인터넷"],[/통금/,"통금"],[/조식/,"조식"],[/냉장고/,"냉장고"],
+      [/반려동물/,"반려동물"],[/단체 사진/,"단체 사진"],[/노래방/,"노래방"],[/카드 게임/,"카드 게임"],
+      [/복스텍/,"복스텍"],[/오버로드/,"오버로드"],[/왕실/,"왕실"],[/법정/,"법정"],[/서열/,"서열"],
+      [/재활 시설/,"재활 시설"],[/상담사/,"상담사"],[/천사.*장기 체류/,"천사 장기 체류"],
+      [/Lute|류트/,"류트"],[/Sera|세라/,"세라"],[/Adam|아담/,"아담"],[/에밀리/,"에밀리"],[/펜셔스/,"펜셔스"],
+      [/술/,"술"],[/요리/,"요리"],[/여행|휴가|관광지/,"여행"],[/옷/,"옷"],[/친구/,"친구"],[/가족/,"가족"],
+      [/영혼 계약|영혼.*계약/,"영혼 계약"],[/숙청/,"숙청"],[/천국/,"천국"],[/Hellborn/,"Hellborn"],[/Sinner/,"Sinner"]
+    ];
+    const hit=special.find(([re])=>re.test(raw));
+    if(hit)return hit[1];
+    const stop=new Set(["호텔","지옥","천국","가장","정말","직접","누가","어떤","무엇","어떻게","있는가","할까","문제","상황","의견","사람","사람들","필요한가","해야","하는가","한다면","된다면","것","건","게","정도"]);
+    const tokens=raw.replace(/[?!.,:;()[\]{}'"‘’“”]/g," ").split(/\s+/).map(x=>x.trim()).filter(Boolean)
+      .map(x=>x.replace(/(으로|에서|에게|까지|부터|처럼|보다|와|과|의|은|는|이|가|을|를|도|만)$/,""))
+      .filter(x=>x.length>1&&!stop.has(x));
+    return tokens.slice(0,2).join(" ")||"그 일";
+  };
+
+  const sceneDetail=(t,key)=>{
+    const focus=sceneFocus(t.title),tag=surfaceTag(t);
+    const bank={
+      media:[
+        focus+" 관련 컷에는 아직 임시 자막이 그대로 남아 있다.",
+        "화면 구석에 "+focus+"라는 작업 메모가 작게 붙어 있다.",
+        "누군가 "+focus+" 부분에만 빨간 표시를 해뒀다.",
+        focus+" 장면만 재생 바에서 몇 번이나 되감긴 흔적이 있다.",
+        "편집 목록에서 "+focus+" 항목만 아직 체크되지 않았다.",
+        focus+" 쪽 메모 옆에 물음표가 하나 크게 그려져 있다."
+      ],
+      hotel:[
+        focus+" 항목 옆에 서로 다른 필체로 두세 줄이 덧붙어 있다.",
+        "누군가 "+focus+" 부분에 동그라미를 크게 쳐놨다.",
+        focus+" 옆에는 지워진 메모 자국이 희미하게 남아 있다.",
+        "체크표에서 "+focus+" 칸만 유독 여러 번 수정돼 있다.",
+        focus+" 쪽에 작은 화살표와 물음표가 함께 그려져 있다.",
+        "누군가 "+focus+" 얘기만 다른 색 펜으로 적어놨다."
+      ],
+      heaven:[
+        focus+"와 관련된 문장에만 접힌 자국이 남아 있다.",
+        "종이 가장자리에 "+focus+" 옆으로 작은 표시가 그려져 있다.",
+        focus+" 부분은 누군가 손으로 오래 만진 듯 종이가 조금 구겨져 있다.",
+        "한쪽 여백에 "+focus+"라는 단어만 따로 적혀 있다.",
+        focus+" 쪽 문장 아래에 가느다란 밑줄이 하나 그어져 있다."
+      ],
+      work:[
+        focus+" 칸 옆에 담당자 이름이 아직 비어 있다.",
+        "업무표에서 "+focus+" 부분만 화살표가 두 번이나 바뀌어 있다.",
+        focus+" 항목에 누군가 ‘나중에’라고 써놨다.",
+        "체크리스트의 "+focus+" 줄만 아직 아무도 체크하지 않았다.",
+        focus+" 옆에 작은 불만 표시가 하나 적혀 있다."
+      ],
+      leisure:[
+        focus+" 관련 물건만 누군가 이미 한 번 손댄 흔적이 있다.",
+        "옆에 놓인 쪽지에는 "+focus+"라는 말만 크게 적혀 있다.",
+        focus+" 쪽에 장난스러운 낙서가 하나 더 붙어 있다.",
+        "누군가 "+focus+" 옆에 별표를 세 개나 그려놨다.",
+        focus+" 이야기를 두고 작은 내기표까지 생겨 있다."
+      ],
+      power:[
+        focus+" 부분만 신문이 반듯하게 접혀 있다.",
+        "기사 여백에 "+focus+" 옆으로 짧은 메모가 남아 있다.",
+        focus+" 문단에는 누군가 굵은 펜으로 선을 그어놨다.",
+        "라디오 진행자가 "+focus+" 얘기에서 목소리를 한 톤 높인다.",
+        focus+" 관련 이름 몇 개가 종이 위에 따로 적혀 있다."
+      ],
+      travel:[
+        focus+" 쪽에는 누군가 이미 가고 싶은 곳 표시를 해뒀다.",
+        "전단 귀퉁이에 "+focus+"라고 장난스러운 별표가 붙어 있다.",
+        focus+" 옆에 예상 비용이 대충 계산돼 있다.",
+        "지도에서 "+focus+"와 관련된 곳만 동그라미가 여러 개다.",
+        focus+" 메모 옆에 ‘진짜?’라는 짧은 낙서가 있다."
+      ],
+      law:[
+        focus+" 조항 옆에 서로 다른 의견이 작은 글씨로 적혀 있다.",
+        "규정표의 "+focus+" 줄만 유독 밑줄이 두껍다.",
+        focus+" 항목 옆에 ‘예외?’라는 메모가 붙어 있다.",
+        "누군가 "+focus+" 부분에만 빨간 펜으로 표시해뒀다.",
+        focus+" 쪽 문장이 여러 번 접혔다 펴진 흔적이 있다."
+      ],
+      food:[
+        focus+" 쪽에는 누가 먼저 먹어봤는지 모를 흔적이 남아 있다.",
+        "메뉴판의 "+focus+" 옆에 작은 별점 낙서가 있다.",
+        focus+" 항목만 가격이 두 번이나 고쳐져 있다.",
+        "누군가 "+focus+" 옆에 ‘절대 안 됨’이라고 장난스럽게 적었다.",
+        focus+" 이야기를 두고 주방 쪽에서 한 번 웃음이 터진다."
+      ],
+      misc:[
+        focus+"와 관련된 흔적 하나가 유독 눈에 들어온다.",
+        "그중에서도 "+focus+" 쪽만 누군가 따로 표시해뒀다.",
+        focus+" 이야기가 나오기 딱 좋은 작은 계기가 생긴다.",
+        "지나가던 누군가가 "+focus+" 쪽을 보고 잠깐 고개를 갸웃한다.",
+        focus+"에 관한 짧은 흔적이 하나 남아 있다.",
+        "눈에 띄는 건 결국 "+focus+" 쪽이다."
+      ]
+    };
+    return pick(bank[tag]||bank.misc,key);
+  };
+
   const sceneFor=(c,t,key)=>{
     const title=String(t.title||"");
     const tag=surfaceTag(t);
@@ -1231,7 +1335,7 @@
     ],key);
 
     const bank=common[tag]||common.misc;
-    return pick(bank,key);
+    return pick(bank,key)+" "+sceneDetail(t,key+"detail");
   };
 
   const choiceProfile=(c,t,key)=>{
@@ -1523,6 +1627,6 @@
   window.HV_STORY_PACKS ||= [];
   for(const c of PFS){
     const list=chosen(c);
-    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:25,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
+    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:26,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
   }
 })();
