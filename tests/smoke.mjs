@@ -519,7 +519,7 @@ const storyPackInstall=vm.runInContext(`
 assert.equal(storyPackInstall.changed,true,"eligible project must receive story pack");
 assert.equal(storyPackInstall.eventCount,51,"hotel pack plus seven matching character packs should install 51 events");
 assert.equal(storyPackInstall.variableCount,39,"story and character event variables must install together");
-assert.equal(storyPackInstall.packVersion,3,"story pack version marker missing");
+assert.equal(storyPackInstall.packVersion,4,"story pack version marker missing");
 assert.equal(storyPackInstall.openingVisible,true,"opening event must be visible");
 assert.equal(storyPackInstall.hiddenVisible,false,"continuation event must be hidden");
 assert.equal(storyPackInstall.speakerCharacterId,"lucifer-morningstar","speaker image id must survive compaction");
