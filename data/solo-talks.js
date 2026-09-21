@@ -7,15 +7,72 @@
   const A=(who,operator,value)=>({characterId:who,operator,value});
   const slug=value=>String(value).toLowerCase().replace(/[^a-z0-9가-힣]+/g,"-").replace(/^-|-$/g,"");
 
+  const LEGACY_MOMENTS=[
+    {suffix:"아침",setup:(c,t)=>`조용한 아침, ${c.display} 앞에 ${t[1]} 하나가 놓여 있다. 손길이 평소보다 신중하다.`,first:"아침부터 그걸 보고 있었어요?",follow:"생각보다 중요한 일이네요.",after:(c,t)=>`${c.display}가 ${t[1]}을(를) 다시 제자리에 둔다.`},
+    {suffix:"잠깐의 틈",setup:(c,t)=>`${c.display} 곁에 ${t[1]} 하나가 남아 있다. 하던 일을 멈춘 시선이 잠시 그 위에 머문다.`,first:"잠깐 쉬는 중이에요?",follow:"그럴 때는 무슨 생각을 해요?",after:(c,t)=>`짧은 정적 뒤에 ${c.display}가 다시 손을 움직인다.`},
+    {suffix:"손에 든 것",setup:(c,t)=>`${c.display} 손에 ${t[1]} 하나가 들려 있다. 네 시선을 알아차리고도 바로 내려놓지 않는다.`,first:"그걸 자주 들여다봐요?",follow:"조금 더 얘기해 줘도 돼요?",after:(c,t)=>`${t[1]}이(가) 손안에서 천천히 방향을 바꾼다.`},
+    {suffix:"정리 시간",setup:(c,t)=>`${c.display} 앞에서 ${t[1]} 하나가 제자리를 찾지 못한 채 몇 번이나 옮겨진다.`,first:"왜 그렇게까지 신경 써요?",follow:"그런 이유가 있었군요.",after:(c,t)=>`결국 ${t[1]}의 자리가 정해진다.`},
+    {suffix:"남은 흔적",setup:(c,t)=>`${t[1]} 하나가 방 한쪽에 남아 있다. ${c.display} 시선이 네가 들어온 뒤에야 떨어진다.`,first:"버리지는 않을 거예요?",follow:"그럼 지금은 어떻게 하고 싶어요?",after:(c,t)=>`${c.display}가 대답 대신 ${t[1]} 쪽을 한 번 더 바라본다.`},
+    {suffix:"선택",setup:(c,t)=>`${c.display} 앞에 놓인 ${t[1]} 하나가 아직 선택을 기다리고 있다.`,first:"결정하기 어려워 보여요.",follow:"혼자 정하지 않아도 괜찮아요.",after:(c,t)=>`${c.display}가 마침내 한쪽으로 손을 뻗는다.`},
+    {suffix:"침묵",setup:(c,t)=>`${c.display} 방은 드물게 조용하다. ${t[1]} 하나만이 오래된 생각을 붙잡고 있는 듯하다.`,first:"오늘은 평소보다 조용하네요.",follow:"제가 옆에 있어도 돼요?",after:(c,t)=>`방 안의 침묵이 조금 덜 무겁게 가라앉는다.`},
+    {suffix:"늦은 밤",setup:(c,t)=>`늦은 밤에도 ${c.display} 앞의 ${t[1]} 하나는 치워지지 않았다.`,first:"아직 안 자고 있었어요?",follow:"지금은 괜찮아요?",after:(c,t)=>`${c.display}가 시간을 확인하고도 ${t[1]}을(를) 치우지 않는다.`}
+  ];
+
   const MOMENTS=[
-    {suffix:"아침",setup:(c,t)=>`조용한 아침, ${c.display} 앞에 ${t[1]} 하나가 놓여 있다. 손길이 평소보다 신중하다.`,first:"아침부터 그걸 보고 있었어요?",follow:"생각보다 중요한 일이네요."},
-    {suffix:"잠깐의 틈",setup:(c,t)=>`${c.display} 곁에 ${t[1]} 하나가 남아 있다. 하던 일을 멈춘 시선이 잠시 그 위에 머문다.`,first:"잠깐 쉬는 중이에요?",follow:"그럴 때는 무슨 생각을 해요?"},
-    {suffix:"손에 든 것",setup:(c,t)=>`${c.display} 손에 ${t[1]} 하나가 들려 있다. 네 시선을 알아차리고도 바로 내려놓지 않는다.`,first:"그걸 자주 들여다봐요?",follow:"조금 더 얘기해 줘도 돼요?"},
-    {suffix:"정리 시간",setup:(c,t)=>`${c.display} 앞에서 ${t[1]} 하나가 제자리를 찾지 못한 채 몇 번이나 옮겨진다.`,first:"왜 그렇게까지 신경 써요?",follow:"그런 이유가 있었군요."},
-    {suffix:"남은 흔적",setup:(c,t)=>`${t[1]} 하나가 방 한쪽에 남아 있다. ${c.display} 시선이 네가 들어온 뒤에야 떨어진다.`,first:"버리지는 않을 거예요?",follow:"그럼 지금은 어떻게 하고 싶어요?"},
-    {suffix:"선택",setup:(c,t)=>`${c.display} 앞에 놓인 ${t[1]} 하나가 아직 선택을 기다리고 있다.`,first:"결정하기 어려워 보여요.",follow:"혼자 정하지 않아도 괜찮아요."},
-    {suffix:"침묵",setup:(c,t)=>`${c.display} 방은 드물게 조용하다. ${t[1]} 하나만이 오래된 생각을 붙잡고 있는 듯하다.`,first:"오늘은 평소보다 조용하네요.",follow:"제가 옆에 있어도 돼요?"},
-    {suffix:"늦은 밤",setup:(c,t)=>`늦은 밤에도 ${c.display} 앞의 ${t[1]} 하나는 치워지지 않았다.`,first:"아직 안 자고 있었어요?",follow:"지금은 괜찮아요?"}
+    {suffix:"꺼내 본 순간",setup:(c,t)=>`${c.display}가 서랍 깊숙이 있던 ${t[1]}을(를) 꺼내 먼지를 턴다.`,first:"그건 오랜만에 꺼낸 것 같네요.",follow:"다시 꺼낸 이유가 있어요?",after:(c,t)=>`${t[1]}은(는) 이번에는 서랍 안으로 돌아가지 않는다.`},
+    {suffix:"작동 확인",setup:(c,t)=>`${c.display}가 ${t[1]}을(를) 몇 번 움직여 상태를 확인한다.`,first:"고장 난 건 아니죠?",follow:"직접 확인하는 편이군요.",after:(c,t)=>`확인을 마친 손이 잠시 멈춘다.`},
+    {suffix:"잘못 놓인 자리",setup:(c,t)=>`${t[1]}이(가) 평소와 다른 곳에 놓여 있고, ${c.display}가 그 앞에서 미간을 좁힌다.`,first:"누가 옮겨놨나 봐요.",follow:"원래 자리가 따로 있어요?",after:(c,t)=>`${t[1]}이(가) 익숙한 자리로 돌아간다.`},
+    {suffix:"갑작스러운 소리",setup:(c,t)=>`${t[1]} 쪽에서 갑자기 작은 소리가 나자 ${c.display}가 즉시 고개를 돌린다.`,first:"방금 소리 났죠?",follow:"생각보다 예민하게 반응하네요.",after:(c,t)=>`잠시 귀를 기울인 뒤 긴장이 조금 풀린다.`},
+    {suffix:"택배 상자",setup:(c,t)=>`${c.display} 앞에 막 뜯은 상자가 놓여 있고 그 안에서 ${t[1]}이(가) 드러난다.`,first:"새로 온 거예요?",follow:"기대했던 물건이 맞아요?",after:(c,t)=>`빈 포장지가 한쪽으로 밀려난다.`},
+    {suffix:"라벨 붙이기",setup:(c,t)=>`${c.display}가 ${t[1]}에 새 라벨을 붙였다가 다시 떼려 한다.`,first:"이름을 바꾸는 거예요?",follow:"그 이름이 마음에 안 들어요?",after:(c,t)=>`라벨 모서리가 손끝에서 다시 눌린다.`},
+    {suffix:"빌려온 물건",setup:(c,t)=>`${c.display}가 빌려온 ${t[1]}을(를) 돌려주기 전에 마지막으로 살펴본다.`,first:"이제 돌려주는 거예요?",follow:"아쉬운 것 같기도 한데요.",after:(c,t)=>`${t[1]}은(는) 조심스럽게 포장된다.`},
+    {suffix:"수리 중",setup:(c,t)=>`${t[1]} 옆에 작은 도구들이 늘어서 있고 ${c.display}가 손을 멈추지 않는다.`,first:"제가 도와줄까요?",follow:"어디가 문제였어요?",after:(c,t)=>`마지막 부품이 자리를 잡으며 손길이 느려진다.`},
+    {suffix:"둘 중 하나",setup:(c,t)=>`${c.display}가 ${t[1]}과(와) 다른 물건을 번갈아 보며 비교한다.`,first:"둘 중 하나를 고르는 중이에요?",follow:"무슨 기준으로 골라요?",after:(c,t)=>`비교하던 두 물건 사이의 거리가 조금 벌어진다.`},
+    {suffix:"사용 후 정리",setup:(c,t)=>`${c.display}가 방금 쓴 ${t[1]}을(를) 닦고 접고 정리한다.`,first:"바로 정리하는 편이네요.",follow:"이런 건 습관이에요?",after:(c,t)=>`사용 흔적이 하나씩 사라진다.`},
+    {suffix:"기능 시험",setup:(c,t)=>`${c.display}가 ${t[1]}을(를) 시험하듯 짧게 써보고 결과를 살핀다.`,first:"테스트 중이에요?",follow:"결과는 마음에 들어요?",after:(c,t)=>`한 번 더 확인한 뒤 시험이 끝난다.`},
+    {suffix:"선반 재배치",setup:(c,t)=>`${c.display}가 선반의 물건들을 전부 꺼낸 뒤 ${t[1]}의 위치부터 다시 잡는다.`,first:"방 배치를 바꾸는 거예요?",follow:"그게 제일 먼저네요.",after:(c,t)=>`비어 있던 선반이 새로운 순서로 채워진다.`},
+    {suffix:"가방에 넣기",setup:(c,t)=>`${c.display}가 외출 준비를 하며 ${t[1]}을(를) 가방 안에 넣을지 망설인다.`,first:"그것도 가져가려고요?",follow:"없으면 곤란한 물건이에요?",after:(c,t)=>`가방 지퍼가 아직 닫히지 않는다.`},
+    {suffix:"가방에서 발견",setup:(c,t)=>`${c.display}가 가방 안쪽에서 잊고 있던 ${t[1]}을(를) 찾아낸다.`,first:"그 안에 있었네요.",follow:"잊고 있었던 거예요?",after:(c,t)=>`뜻밖의 발견 때문에 정리가 잠시 멈춘다.`},
+    {suffix:"찾는 중",setup:(c,t)=>`${c.display}가 방 안을 뒤지다가 마침내 ${t[1]}을(를) 찾아낸다.`,first:"그걸 찾고 있었어요?",follow:"없어진 줄 알았나 봐요.",after:(c,t)=>`찾은 물건이 손에서 쉽게 놓이지 않는다.`},
+    {suffix:"시간 재기",setup:(c,t)=>`${c.display}가 시간을 재며 ${t[1]}과(와) 관련된 작업을 반복한다.`,first:"시간까지 재는 거예요?",follow:"기록을 남기는 이유가 있어요?",after:(c,t)=>`기록된 숫자 옆에 짧은 표시가 하나 더해진다.`},
+    {suffix:"예전 것과 비교",setup:(c,t)=>`${c.display}가 오래된 기록과 지금의 ${t[1]}을(를) 나란히 놓는다.`,first:"예전 것과 비교하는 중이에요?",follow:"많이 달라졌어요?",after:(c,t)=>`두 흔적 사이의 차이가 조용히 남는다.`},
+    {suffix:"누군가 오기 전",setup:(c,t)=>`${c.display}가 누군가 오기 전에 ${t[1]}부터 눈에 잘 보이는 곳으로 옮긴다.`,first:"손님이 와요?",follow:"그걸 먼저 준비하는군요.",after:(c,t)=>`준비가 끝난 자리에는 빈 공간이 거의 남지 않는다.`},
+    {suffix:"이동 경로",setup:(c,t)=>`${c.display}가 ${t[1]}을(를) 들고 방 안을 몇 번 오가며 가장 편한 동선을 찾는다.`,first:"왜 계속 왔다 갔다 해요?",follow:"자리를 찾는 중이었군요.",after:(c,t)=>`마침내 걸음이 한곳에서 멈춘다.`},
+    {suffix:"불이 꺼진 뒤",setup:(c,t)=>`순간 조명이 꺼졌다 켜지자 ${c.display}가 가장 먼저 ${t[1]}부터 확인한다.`,first:"그게 제일 먼저 생각났어요?",follow:"괜찮아서 다행이네요.",after:(c,t)=>`다시 들어온 빛 아래에서 긴장이 풀린다.`},
+    {suffix:"메시지 알림",setup:(c,t)=>`알림이 울리자 ${c.display}가 화면과 ${t[1]}을(를) 번갈아 본다.`,first:"무슨 연락이에요?",follow:"그 물건이랑 관련 있어요?",after:(c,t)=>`답장을 보내기 전 잠깐 생각이 길어진다.`},
+    {suffix:"녹음 시도",setup:(c,t)=>`${c.display}가 ${t[1]}에 관한 말을 녹음하다가 중간에 멈춘다.`,first:"왜 녹음을 멈췄어요?",follow:"다시 할 거예요?",after:(c,t)=>`녹음 버튼 위에서 손가락이 한 번 망설인다.`},
+    {suffix:"사진 한 장",setup:(c,t)=>`${c.display}가 ${t[1]}을(를) 찍으려다 각도를 여러 번 바꾼다.`,first:"사진 찍으려고요?",follow:"기록해두고 싶은가 봐요.",after:(c,t)=>`마침내 한 장이 저장되고 화면이 꺼진다.`},
+    {suffix:"포장하기",setup:(c,t)=>`${c.display}가 ${t[1]}을(를) 종이와 끈으로 조심스럽게 감싼다.`,first:"누구한테 주려고요?",follow:"꽤 신경 써서 포장하네요.",after:(c,t)=>`마지막 매듭이 생각보다 천천히 묶인다.`},
+    {suffix:"개수 확인",setup:(c,t)=>`${c.display}가 목록을 보며 ${t[1]}과(와) 주변 물건의 수를 하나씩 센다.`,first:"재고 확인 중이에요?",follow:"하나라도 안 맞으면 신경 쓰이죠?",after:(c,t)=>`마지막 숫자 옆에 체크가 그어진다.`},
+    {suffix:"작은 사고",setup:(c,t)=>`${t[1]}이(가) 예상 밖으로 움직이며 주변이 잠깐 소란스러워지고 ${c.display}가 즉시 손을 뻗는다.`,first:"괜찮아요?",follow:"큰일은 아니었네요.",after:(c,t)=>`어질러진 흔적이 빠르게 정리된다.`},
+    {suffix:"떨어뜨릴 뻔",setup:(c,t)=>`${c.display}가 미끄러진 ${t[1]}을(를) 간신히 받아낸다.`,first:"방금 좀 위험했죠?",follow:"안 깨져서 다행이에요.",after:(c,t)=>`이번에는 훨씬 단단하게 쥔 손이 보인다.`},
+    {suffix:"결과 기다리기",setup:(c,t)=>`${c.display}가 ${t[1]}과(와) 관련된 결과를 기다리며 같은 자리를 맴돈다.`,first:"기다리는 게 더 힘들어 보여요.",follow:"결과가 늦어지면 불안해져요?",after:(c,t)=>`아직 답은 없지만 걸음은 조금 느려진다.`},
+    {suffix:"처음부터 다시",setup:(c,t)=>`${c.display}가 방금 끝낸 작업을 지우거나 풀고 ${t[1]}부터 다시 시작한다.`,first:"다 했는데 다시 하는 거예요?",follow:"마음에 안 들었던 거군요.",after:(c,t)=>`처음보다 더 단순한 방식으로 손이 움직인다.`},
+    {suffix:"취소선",setup:(c,t)=>`${c.display}가 ${t[1]} 옆의 메모에 길게 취소선을 긋는다.`,first:"계획이 바뀌었어요?",follow:"완전히 버리는 건 아니죠?",after:(c,t)=>`취소선 아래에 새 문장이 하나 적힌다.`},
+    {suffix:"숨겨 두기",setup:(c,t)=>`네가 들어오자 ${c.display}가 ${t[1]}을(를) 반사적으로 다른 물건 뒤로 밀어둔다.`,first:"지금 숨긴 거 맞죠?",follow:"보기 싫어서 그런 건 아니죠?",after:(c,t)=>`잠시 뒤 숨겼던 모서리가 다시 밖으로 나온다.`},
+    {suffix:"건네 보기",setup:(c,t)=>`${c.display}가 말없이 ${t[1]}을(를) 네 쪽으로 내민다.`,first:"제가 봐도 돼요?",follow:"생각보다 쉽게 맡겨주네요.",after:(c,t)=>`네 손에 있던 물건이 천천히 다시 돌아간다.`},
+    {suffix:"도움 거절",setup:(c,t)=>`${c.display}가 ${t[1]}을(를) 다루는 동안 네가 다가가자 손짓으로 멈춰 세운다.`,first:"혼자 하려고요?",follow:"그럼 옆에서 보기만 할게요.",after:(c,t)=>`도움을 거절했지만 네가 떠나라는 말은 나오지 않는다.`},
+    {suffix:"도움 요청",setup:(c,t)=>`${c.display}가 잠시 망설이다 ${t[1]}의 한쪽을 네게 맡긴다.`,first:"제가 잡고 있으면 돼요?",follow:"이렇게 하면 되죠?",after:(c,t)=>`둘이 잡은 무게가 한쪽으로 쏠리지 않는다.`},
+    {suffix:"내기",setup:(c,t)=>`${c.display}가 ${t[1]}을(를) 사이에 두고 갑자기 간단한 내기를 제안한다.`,first:"갑자기 내기예요?",follow:"이기면 뭘 얻는데요?",after:(c,t)=>`결과보다 승부 자체가 더 오래 화제가 된다.`},
+    {suffix:"사용 규칙",setup:(c,t)=>`${c.display}가 ${t[1]}을(를) 가리키며 지켜야 할 규칙을 하나씩 설명한다.`,first:"규칙이 꽤 많네요.",follow:"하나라도 어기면 큰일 나요?",after:(c,t)=>`설명 끝에 가장 중요한 항목이 한 번 더 강조된다.`},
+    {suffix:"즉흥 변경",setup:(c,t)=>`${c.display}가 계획과 달리 ${t[1]}을(를) 전혀 다른 방식으로 써보기 시작한다.`,first:"원래 이렇게 하려던 건 아니죠?",follow:"즉흥적으로 바꾼 거예요?",after:(c,t)=>`예상 밖의 방식이 의외로 자연스럽게 이어진다.`},
+    {suffix:"실패 직후",setup:(c,t)=>`${c.display} 앞에서 ${t[1]}과(와) 관련된 시도가 방금 실패한 흔적이 남아 있다.`,first:"잘 안 됐어요?",follow:"다시 해볼 거죠?",after:(c,t)=>`실패 흔적을 치우는 손이 다음 순서를 준비한다.`},
+    {suffix:"성공 직후",setup:(c,t)=>`${c.display}가 방금 제대로 끝낸 ${t[1]}을(를) 보며 짧게 만족한 표정을 짓는다.`,first:"이번엔 잘됐나 봐요.",follow:"기분 좋아 보여요.",after:(c,t)=>`성과를 확인한 뒤 표정이 평소대로 돌아온다.`},
+    {suffix:"끼어 버린 것",setup:(c,t)=>`${t[1]}이(가) 예상치 못한 틈에 끼어 ${c.display}가 여러 각도로 빼보려 한다.`,first:"제가 반대쪽 잡아줄까요?",follow:"생각보다 고집 센 물건이네요.",after:(c,t)=>`마침내 빠져나온 물건 때문에 둘 다 한 박자 늦게 힘을 푼다.`},
+    {suffix:"돌려받기",setup:(c,t)=>`${c.display}가 다른 사람에게 빌려줬던 ${t[1]}을(를) 돌려받아 상태부터 확인한다.`,first:"무사히 돌아왔네요.",follow:"빌려주는 거 싫어해요?",after:(c,t)=>`확인이 끝난 뒤에야 표정이 조금 풀린다.`},
+    {suffix:"빠진 조각",setup:(c,t)=>`${c.display}가 ${t[1]}을(를) 살피다 작은 부분 하나가 없어진 걸 발견한다.`,first:"뭔가 빠졌어요?",follow:"찾을 수 있을까요?",after:(c,t)=>`주변을 훑는 시선이 곧바로 움직인다.`},
+    {suffix:"날짜 표시",setup:(c,t)=>`${c.display}가 ${t[1]} 옆에 오늘 날짜를 작게 적는다.`,first:"날짜까지 남겨요?",follow:"오늘을 기억하고 싶은 이유가 있어요?",after:(c,t)=>`작은 날짜가 지워지지 않은 채 남는다.`},
+    {suffix:"흠집 따라가기",setup:(c,t)=>`${c.display}가 ${t[1]}에 난 오래된 흠집을 손끝으로 따라간다.`,first:"원래 있던 자국이에요?",follow:"고치지 않는 이유가 있나 봐요.",after:(c,t)=>`흠집은 그대로지만 손길은 더 이상 머물지 않는다.`},
+    {suffix:"창가의 빛",setup:(c,t)=>`창문에서 들어온 빛이 ${t[1]}에 닿자 ${c.display}가 위치를 조금 바꾼다.`,first:"빛 때문에 옮기는 거예요?",follow:"그쪽이 더 잘 보이네요.",after:(c,t)=>`빛의 각도에 맞춰 물건의 표정도 달라진다.`},
+    {suffix:"귀 기울이기",setup:(c,t)=>`${c.display}가 ${t[1]} 가까이에 귀를 대거나 주변 소리를 잠시 줄인다.`,first:"뭔가 들려요?",follow:"평소에도 소리로 확인해요?",after:(c,t)=>`잠깐의 정적 끝에 고개가 천천히 들린다.`},
+    {suffix:"냄새 확인",setup:(c,t)=>`${c.display}가 ${t[1]} 가까이에서 냄새를 확인하고 표정을 미묘하게 바꾼다.`,first:"냄새가 이상해요?",follow:"기억나는 향이라도 있어요?",after:(c,t)=>`한 번 더 확인한 뒤 거리를 조금 둔다.`},
+    {suffix:"기억이 튄 순간",setup:(c,t)=>`${c.display}가 ${t[1]}을(를) 만지다 갑자기 멈추고 한동안 다른 곳을 본다.`,first:"무슨 생각났어요?",follow:"말하기 싫으면 안 해도 돼요.",after:(c,t)=>`한참 뒤에야 손이 다시 움직인다.`},
+    {suffix:"자리 만들기",setup:(c,t)=>`${c.display}가 주변을 치워 ${t[1]}을(를) 둘 공간을 새로 만든다.`,first:"그걸 위해 자리를 비우는 거예요?",follow:"꽤 오래 둘 생각인가 봐요.",after:(c,t)=>`비워낸 자리에 물건 하나가 안정적으로 놓인다.`},
+    {suffix:"버릴까 말까",setup:(c,t)=>`${c.display}가 ${t[1]}을(를) 버리는 상자 위에 올려두었다가 다시 집어 든다.`,first:"버리려던 거 아니었어요?",follow:"결국 못 버리겠어요?",after:(c,t)=>`상자는 비어 있고 물건은 다시 손에 남는다.`},
+    {suffix:"다음으로 미루기",setup:(c,t)=>`${c.display}가 ${t[1]}을(를) 처리하려다 메모 하나만 남기고 손을 뗀다.`,first:"오늘은 여기까지만 해요?",follow:"미뤄도 괜찮은 일이군요.",after:(c,t)=>`해야 할 일 목록의 한 줄이 내일로 넘어간다.`},
+    {suffix:"예상 밖의 방문",setup:(c,t)=>`네가 예상보다 일찍 들어오자 ${c.display}가 ${t[1]}을(를) 다루던 자세 그대로 멈춘다.`,first:"제가 너무 일찍 왔어요?",follow:"계속해도 돼요. 방해 안 할게요.",after:(c,t)=>`멈췄던 동작이 조금 천천히 다시 이어진다.`},
+    {suffix:"바꿔 놓은 흔적",setup:(c,t)=>`${c.display}가 ${t[1]}에 누군가 손댄 흔적을 발견하고 바로 알아차린다.`,first:"누가 건드렸나 봐요.",follow:"그렇게 바로 알아요?",after:(c,t)=>`바뀐 부분이 하나씩 원래대로 돌아간다.`},
+    {suffix:"작은 축하",setup:(c,t)=>`${c.display}가 별일 아닌 듯 ${t[1]} 옆에 작은 표시를 하나 더해둔다.`,first:"이건 무슨 표시예요?",follow:"축하할 일이었군요.",after:(c,t)=>`과하지 않은 표시 하나가 조용히 남는다.`}
   ];
 
   const C=[
@@ -301,10 +358,40 @@
       ["방 문패","검은 방 문패","문을 닫았다는 건 미워한다는 뜻이 아니야.","네가 노크하고 기다려줘서 열어도 내 공간이 사라지지 않는 걸 알았어."]]}
   ];
 
+  const FROZEN_VOICE_IDS=new Set(["blitzo","angel-dust","fizzarolli","valentino","adam"]);
+  const lineWithVoice=(char,theme,momentIndex,high)=>{
+    const core=high?theme[3]:theme[2];
+    const lead=high?char.warm:char.guard;
+    const mode=momentIndex%4;
+    if(mode===0)return core;
+    if(mode===1)return `${lead} ${core}`;
+    if(mode===2)return core;
+    return `${core} ${lead}`;
+  };
   const makeEvent=(char,theme,themeIndex,moment,momentIndex,eventIndex)=>{
     const base=`solo-talk-${slug(char.id)}-${String(eventIndex+1).padStart(2,"0")}`;
     const low={affectionCondition:A(char.id,"<",char.threshold)};
     const high={affectionCondition:A(char.id,">=",char.threshold)};
+    const lowText=lineWithVoice(char,theme,momentIndex,false);
+    const highText=lineWithVoice(char,theme,momentIndex,true);
+    const lowEnd=char.endLow[(themeIndex+momentIndex)%char.endLow.length];
+    const highEnd=char.endHigh[(themeIndex+momentIndex)%char.endHigh.length];
+    const after=N(base+"-after",moment.after(char,theme));
+    const mode=momentIndex%6;
+    let entries;
+    if(mode===0){
+      entries=[N(base+"-n",moment.setup(char,theme)),P(base+"-p1",moment.first),D(base+"-low1",char.id,char.name,lowText,low),D(base+"-high1",char.id,char.name,highText,high),P(base+"-p2",moment.follow),D(base+"-low2",char.id,char.name,lowEnd,low),D(base+"-high2",char.id,char.name,highEnd,high)];
+    }else if(mode===1){
+      entries=[N(base+"-n",moment.setup(char,theme)),D(base+"-low0",char.id,char.name,char.guard,low),D(base+"-high0",char.id,char.name,char.warm,high),P(base+"-p1",moment.first),D(base+"-low1",char.id,char.name,theme[2],low),D(base+"-high1",char.id,char.name,theme[3],high),after];
+    }else if(mode===2){
+      entries=[N(base+"-n",moment.setup(char,theme)),P(base+"-p1",moment.first),D(base+"-low1",char.id,char.name,theme[2],low),D(base+"-high1",char.id,char.name,theme[3],high),after];
+    }else if(mode===3){
+      entries=[N(base+"-n",moment.setup(char,theme)),P(base+"-p1",moment.first),D(base+"-low1",char.id,char.name,lowText,low),D(base+"-high1",char.id,char.name,highText,high),after,P(base+"-p2",moment.follow),D(base+"-low2",char.id,char.name,lowEnd,low),D(base+"-high2",char.id,char.name,highEnd,high)];
+    }else if(mode===4){
+      entries=[N(base+"-n",moment.setup(char,theme)),D(base+"-low1",char.id,char.name,theme[2],low),D(base+"-high1",char.id,char.name,theme[3],high),P(base+"-p1",moment.first),after];
+    }else{
+      entries=[N(base+"-n",moment.setup(char,theme)),P(base+"-p1",moment.first),D(base+"-low1",char.id,char.name,lowText,low),D(base+"-high1",char.id,char.name,highText,high),P(base+"-p2",moment.follow),after];
+    }
     return{
       id:base,
       name:`SOLO TALK · ${theme[0]} · ${moment.suffix}`,
@@ -312,29 +399,22 @@
       eventRole:"talk",
       menuVisible:true,
       randomEligible:true,
-      entries:[
-        N(base+"-n",moment.setup(char,theme)),
-        P(base+"-p1",moment.first),
-        D(base+"-low1",char.id,char.name,`${char.guard} ${theme[2]}`,low),
-        D(base+"-high1",char.id,char.name,`${char.warm} ${theme[3]}`,high),
-        P(base+"-p2",moment.follow),
-        D(base+"-low2",char.id,char.name,char.endLow[(themeIndex+momentIndex)%char.endLow.length],low),
-        D(base+"-high2",char.id,char.name,char.endHigh[(themeIndex+momentIndex)%char.endHigh.length],high)
-      ]
+      entries
     };
   };
 
   window.HV_STORY_PACKS ||= [];
   for(const char of C){
     const events=[];
+    const moments=FROZEN_VOICE_IDS.has(char.id)?LEGACY_MOMENTS:MOMENTS;
     for(let themeIndex=0;themeIndex<char.themes.length&&events.length<52;themeIndex++){
-      for(let momentIndex=0;momentIndex<MOMENTS.length&&events.length<52;momentIndex++){
-        events.push(makeEvent(char,char.themes[themeIndex],themeIndex,MOMENTS[momentIndex],momentIndex,events.length));
+      for(let momentIndex=0;momentIndex<moments.length&&events.length<52;momentIndex++){
+        events.push(makeEvent(char,char.themes[themeIndex],themeIndex,moments[momentIndex],momentIndex,events.length));
       }
     }
     window.HV_STORY_PACKS.push({
       id:"solo-talks-"+slug(char.id),
-      version:1,
+      version:FROZEN_VOICE_IDS.has(char.id)?1:2,
       requiredCharacterIds:[char.id],
       events
     });
