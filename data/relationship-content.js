@@ -4,12 +4,41 @@
   const D=(id,who,name,text,extra={})=>({id,type:"dialogue",speakerCharacterId:who,speaker:name,text,...extra});
   const P=(id,text,extra={})=>D(id,"","PLAYER",text,extra);
   const N=(id,text,extra={})=>({id,type:"narration",text,...extra});
+  const Q=(id,prompt,options)=>({id,type:"choice",prompt,options});
   const A=(who,operator,value)=>({characterId:who,operator,value});
   const slug=s=>String(s).toLowerCase().replace(/[^a-z0-9가-힣]+/g,"-").replace(/^-|-$/g,"");
 
+  const ALT_TONE={
+    sera:(title,high)=>high?`${title} 얘기를 굳이 피하지 않아도 되겠군요. 당신은 결론보다 맥락을 먼저 보는 편이니까요.`:`${title}에 손을 보태는 건 허락하겠습니다. 다만 판단까지 대신하려 하진 마세요.`,
+    blitzo:(title,high)=>high?`${title}까지 같이 버텼으면 너도 이제 구경꾼은 아니네. 존나 애매하게 책임 생겼다.`:`${title}에 끼어들 거면 발목만 잡지 마. 사장님 인내심은 유료 서비스야.`,
+    paimon:(title,high)=>high?`${title}에 관해 그대의 손을 빌리는 일을 이제는 실례라 여기지 않게 되었군.`:`${title}에 나서려거든 격식보다 정확함을 먼저 보이거라.`,
+    satan:(title,high)=>high?`${title}까지 맡길 수 있으면 적어도 네 판단은 믿는다는 뜻이다.`:`${title}에 손댈 거면 끝까지 책임져. 중간에 빼는 건 싫다.`,
+    mammon:(title,high)=>high?`${title}에 네 몫도 끼워줄게. 무료는 아니고… 됐다, 오늘은 특별 서비스다!`:`${title} 도와준다고? 좋아! 실패하면 네 탓, 성공하면 내 브랜드 덕이다!`,
+    asmodeus:(title,high)=>high?`${title}에서 네가 먼저 선을 묻는 거, 꽤 섹시한 습관이야. 천박하게 말하면 마음에 쏙 든다는 뜻이고.`:`${title}에 끼어들 순 있어, 베이비. 다만 손보다 허락이 먼저야. 젠틀함은 분위기 안 죽여.`,
+    beelzebub:(title,high)=>high?`${title}도 같이 하면 더 재밌겠다! 네 기분까지 챙기면서 놀면 완벽하지!`:`${title} 도울 거야? 좋아! 근데 힘들면 바로 말해! 억지 텐션은 파티 망치는 지름길이야!`,
+    belphegor:(title,high)=>high?`${title}까지 네가 알아서 맞춰주면… 설명 덜 해도 돼서 좋네.`:`${title}에 손댈 거면 조용히 해. 깨어 있는 시간 아껴야 하니까.`,
+    leviathan:(title,high)=>high?`${title}에서 굳이 나와 경쟁하지 않는 네 태도는 꽤 편해.`:`${title}에 끼어들려면 비교부터 하지 마. 그건 내가 제일 질렸으니까.`,
+    "cherri-bomb":(title,high)=>high?`${title}까지 같이 해도 안 도망가네. 좋아, 다음 사고 칠 때 네 자리도 생각해둘게.`:`${title}에 끼고 싶으면 안전거리부터 외워. 네 눈썹 책임질 생각은 아직 없거든.`,
+    velvette:(title,high)=>high?`${title}에서 네 반응은 편집 안 해도 쓸 만하네. 이건 칭찬이니까 저장해둬.`:`${title} 도와준다고? 자기야, 일단 네 감각부터 업데이트하고 와. 망치면 태그도 못 해줘.`,
+    valentino:(title,high)=>high?`${title}에 네 손을 빌리는 것도 나쁘진 않네, 베이비. 내가 허락했다는 부분은 꼭 기억하고.`:`${title}에 손대고 싶어? 그럼 먼저 물어. 플로리다든 지옥이든 무례한 새끼는 똑같이 재수 없어.`,
+    "carmilla-carmine":(title,high)=>high?`${title}에서 당신 판단을 믿겠습니다. 책임까지 이해하고 움직이는 사람은 드무니까요.`:`${title}를 돕겠다면 지시를 정확히 따라주세요. 호의가 사고를 면제하진 않습니다.`,
+    rosie:(title,high)=>high?`${title}에 자연스럽게 손을 보태는군요. 오래 알고 지낸 손님처럼 보여서 조금 웃겼답니다.`:`${title}를 돕는 건 환영이에요. 다만 남의 찻잔까지 마음대로 정리하면 이모가 손등을 톡 칠지도 몰라요.`,
+    abel:(title,high)=>high?`${title}도 같이 해줄래요? 혼자 끙끙대는 것보다 물어보는 게 낫다는 걸 이제 좀 알 것 같아요.`:`${title} 도와주려고요? 고마워요! 제가 모르는 건 모른다고 말할 테니까 놀리진 마요.`,
+    zestial:(title,high)=>high?`${title}에 그대 손을 빌리는 일도 이제 낯설지 않구려. 세월이 또 하나의 습관을 바꾸었도다.`:`${title}에 나서려는 마음은 가상하나 서두르진 말거라. 오래된 것은 급한 손을 싫어하느니.`,
+    stolas:(title,high)=>high?`${title}까지 함께해 주시니 이상하게 마음이 가벼워지는군요. 왕실 업무보다 이런 작은 동행이 더 어렵게 느껴질 때가 있답니다.`:`${title}에 도움은 감사하지만 무리하진 마세요. 제 사적인 일에까지 책임을 느끼실 필요는 없으니까요.`,
+    loona:(title,high)=>high?`${title}까지 네가 알아서 맞춰주는 건… 편하긴 해. 괜히 의미 붙이지는 말고.`:`${title} 도와줄 거면 빨리 해. 내가 고맙다는 말 길게 하는 타입은 아니니까.`,
+    moxxie:(title,high)=>high?`${title}에서 당신이 맡은 부분은 믿고 넘어가도 되겠군요. 이런 말, 블리츠 씨한테는 절대 안 합니다.`:`${title}를 돕겠다면 절차대로 해주세요. 즉흥성은 블리츠 씨 한 명으로 충분합니다.`,
+    millie:(title,high)=>high?`${title}도 같이 하자! 네가 옆에 있으면 일이 빨리 끝나는 것보다 더 재밌어지는 게 좋아!`:`${title} 도와줄래? 좋아! 대신 다치면 내가 진짜 화낼 거니까 내 말 잘 들어!`,
+    fizzarolli:(title,high)=>high?`${title}까지 봤으면 무대 뒤 티켓 제대로 뽑았네. 농담 아닌 표정도 환불은 안 돼.`:`${title} 도와준다고? 오, 공짜 스태프! 농담이야. 반쯤은.`,
+    octavia:(title,high)=>high?`${title}까지 네가 옆에 있어도 생각보다 안 피곤하네. 그게 꽤 큰 칭찬인 건 알아둬.`:`${title}는 그냥 내가 하게 둬. 도와주고 싶으면 말 안 걸고 옆에 있어도 돼.`
+  };
   const makeTalk=(char,index,scene)=>{
     const base="rel-talk-"+slug(char.id)+"-"+String(index+1).padStart(2,"0");
     const threshold=char.threshold||45;
+    const low={affectionCondition:A(char.id,"<",threshold)};
+    const high={affectionCondition:A(char.id,">=",threshold)};
+    const alt=ALT_TONE[char.id]||((title,high)=>high?`${title}까지 같이해 주는 건 생각보다 든든하네.`:`${title}는 내가 먼저 해볼게. 옆에서 봐줘.`);
+    const actionLabel=index%3===0?`${scene.title}에 직접 손을 보탠다`:index%3===1?`${scene.title}을 방해하지 않고 지켜본다`:`${scene.title}의 다음 행동을 기다린다`;
     return {
       id:base,
       name:"TALK · "+scene.title,
@@ -19,11 +48,31 @@
       randomEligible:true,
       entries:[
         N(base+"-n1",scene.setup),
-        D(base+"-d1",char.id,char.name,scene.low[0],{affectionCondition:A(char.id,"<",threshold)}),
-        D(base+"-d2",char.id,char.name,scene.high[0],{affectionCondition:A(char.id,">=",threshold)}),
-        P(base+"-p1",scene.player,{affectionEffects:[{id:base+"-aff",characterId:char.id,amount:1}]}),
-        D(base+"-d3",char.id,char.name,scene.low[1],{affectionCondition:A(char.id,"<",threshold)}),
-        D(base+"-d4",char.id,char.name,scene.high[1],{affectionCondition:A(char.id,">=",threshold)})
+        D(base+"-d1",char.id,char.name,scene.low[0],low),
+        D(base+"-d2",char.id,char.name,scene.high[0],high),
+        Q(base+"-choice",scene.title+"에서 어떻게 반응할까?",[
+          {
+            id:base+"-speak",
+            label:scene.player,
+            entries:[
+              D(base+"-d3",char.id,char.name,scene.low[1],low),
+              D(base+"-d4",char.id,char.name,scene.high[1],high)
+            ],
+            affectionEffects:[{id:base+"-aff-speak",characterId:char.id,amount:1}],
+            exitMode:"continue"
+          },
+          {
+            id:base+"-act",
+            label:actionLabel,
+            entries:[
+              N(base+"-act-n",scene.title+"에 말보다 행동으로 반응한다."),
+              D(base+"-act-low",char.id,char.name,alt(scene.title,false),low),
+              D(base+"-act-high",char.id,char.name,alt(scene.title,true),high)
+            ],
+            affectionEffects:[{id:base+"-aff-act",characterId:char.id,amount:1}],
+            exitMode:"continue"
+          }
+        ])
       ]
     };
   };
@@ -44,7 +93,7 @@
       emotionState:data.emotion||"curious",
       emotionIntensity:high?42:28,
       entries:[
-        P(id+"-p",data.question),
+        N(id+"-q","질문 · "+data.question),
         D(id+"-d",char.id,char.name,data.answer)
       ]
     };
@@ -357,7 +406,7 @@
     const midId="rel-ask-"+slug(char.id)+"-mid";
     window.HV_STORY_PACKS.push({
       id:"relationship-"+slug(char.id),
-      version:4,
+      version:5,
       requiredCharacterIds:[char.id],
       events:(char.scenes||[]).map((scene,index)=>makeTalk(char,index,scene)),
       asks:[
