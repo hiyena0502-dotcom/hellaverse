@@ -10,6 +10,7 @@ const jsFiles=[
   "data/character-events.js",
   "data/relationship-content.js",
   "data/solo-talks.js",
+  "data/character-banter.js",
   "data/item-presets.js",
   "data/origin-intros.js",
   "data/dialogue-presets.js",
@@ -49,6 +50,7 @@ const storyPackCode=read("data/story-packs.js");
 const characterEventCode=read("data/character-events.js");
 const relationshipCode=read("data/relationship-content.js");
 const soloTalkCode=read("data/solo-talks.js");
+const banterCode=read("data/character-banter.js");
 const itemPresetCode=read("data/item-presets.js");
 const originIntroCode=read("data/origin-intros.js");
 const dialoguePresetCode=read("data/dialogue-presets.js");
@@ -90,6 +92,7 @@ assert.match(dialogueCode,/ev\.randomEligible!==false/,"random TALK eligibility 
 assert.match(editorUi,/event-random-eligible/,"random TALK eligibility editor control missing");
 assert.match(index,/data\/relationship-content\.js/,"relationship content script missing from build");
 assert.match(index,/data\/solo-talks\.js/,"solo TALK content script missing from build");
+assert.match(index,/data\/character-banter\.js/,"character banter content script missing from build");
 
 const soloTalkContext={window:{HV_STORY_PACKS:[]}};
 vm.runInNewContext(soloTalkCode,soloTalkContext);
@@ -108,7 +111,7 @@ for(const pack of soloTalkPacks){
   const characterId=pack.requiredCharacterIds?.[0]||"";
   const expected=["belphegor","leviathan"].includes(characterId)?52:56;
   assert.equal((pack.events||[]).length,expected,pack.id+" solo TALK expansion count mismatch");
-  assert.equal(pack.version,2,pack.id+" must replace version 1 repeated dialogue in existing saves");
+  assert.equal(pack.version,3,pack.id+" must replace shared-template solo dialogue in existing saves");
   const characterLines=[];
   const choicePrompts=[];
   const choiceLabels=[];
@@ -127,7 +130,7 @@ for(const pack of soloTalkPacks){
       choiceLabels.push(option.label);
       const branchLines=[];
       walkEntries(option.entries,entry=>{if(entry.type==="dialogue")branchLines.push(entry)});
-      assert.equal(branchLines.length,4,event.id+" each choice must continue through low/high reaction and follow-up dialogue");
+      assert.equal(branchLines.length,2,event.id+" each choice must continue through distinct low/high character reactions");
       assert.equal(option.affectionEffects?.[0]?.characterId,characterId,event.id+" choice must preserve TALK affection progression");
       assert.equal(option.exitMode,"continue",event.id+" choice must return to the event flow after its reaction");
     }
@@ -146,6 +149,10 @@ for(const pack of soloTalkPacks){
 }
 assert.equal(new Set(allSoloCharacterLines).size,allSoloCharacterLines.length,"solo TALK dialogue must not be duplicated across different characters");
 assert.ok(!allSoloCharacterLines.some(line=>line.includes("분위기를 읽는 눈은 있네, 베이비")),"retired Asmodeus repeat line must not return");
+assert.ok(!allSoloCharacterLines.some(line=>line.includes("이 정도 설명이면 호기심은 잠시 달랠 수 있겠지요")),"shared elegant closer must not return");
+assert.ok(!allSoloCharacterLines.some(line=>line.includes("밤이 지나기 전")&&line.includes("내 방식으로 마무리")),"shared night closer must not return");
+assert.match(soloTalkCode,/ASMODEUS_LOW/,"Asmodeus needs dedicated low-affection voice lines");
+assert.match(soloTalkCode,/ASMODEUS_HIGH/,"Asmodeus needs dedicated high-affection voice lines");
 
 const relationshipContext={window:{}};
 vm.runInNewContext(relationshipCode,relationshipContext);
@@ -155,11 +162,28 @@ assert.equal(relationshipPacks.reduce((sum,pack)=>sum+(pack.asks||[]).length,0),
 assert.equal(relationshipPacks.reduce((sum,pack)=>sum+(pack.events||[]).length,0),66,"relationship TALK must add three scenes for 22 under-served characters");
 for(const pack of relationshipPacks){
   assert.equal((pack.asks||[]).length,2,pack.id+" must have mid/deep relationship ASK");
-  assert.equal(pack.version,4,pack.id+" relationship voice pack must be on tuning version 4");
+  assert.equal(pack.version,5,pack.id+" relationship voice pack must be on branching version 5");
   const [mid,deep]=pack.asks;
   assert.equal(mid.unlockMinAffection,35,pack.id+" mid ASK affection gate mismatch");
   assert.equal(deep.unlockMinAffection,70,pack.id+" deep ASK affection gate mismatch");
   assert.equal(deep.unlockAskCondition?.askId,mid.id,pack.id+" deep ASK must require the mid ASK");
+  for(const event of pack.events||[]){
+    const directPlayer=[];
+    walkEntries(event.entries,entry=>{if(entry.type==="dialogue"&&entry.speaker==="PLAYER")directPlayer.push(entry)});
+    assert.equal(directPlayer.length,0,event.id+" relationship TALK must not page direct PLAYER dialogue");
+    const choice=event.entries.find(entry=>entry.type==="choice");
+    assert.equal(choice?.options?.length,2,event.id+" relationship TALK must provide two response paths");
+    for(const option of choice?.options||[]){
+      const replies=[];
+      walkEntries(option.entries,entry=>{if(entry.type==="dialogue"&&entry.speakerCharacterId===event.characterId)replies.push(entry)});
+      assert.equal(replies.length,2,event.id+" relationship choice must have low/high follow-up reactions");
+    }
+  }
+  for(const ask of pack.asks||[]){
+    const directPlayer=[];
+    walkEntries(ask.entries,entry=>{if(entry.type==="dialogue"&&entry.speaker==="PLAYER")directPlayer.push(entry)});
+    assert.equal(directPlayer.length,0,ask.id+" ASK must use the selected question instead of a PLAYER dialogue page");
+  }
 }
 const relationPack=id=>relationshipPacks.find(pack=>pack.id==="relationship-"+id);
 const dialogueTexts=event=>{
@@ -191,6 +215,44 @@ for(const characterId of nonSexualCharacters){
   assert.ok(!sexualPattern.test(soloText),characterId+" solo TALK must remain non-sexual");
 }
 assert.match((relationPack("charlie-morningstar")?.asks||[])[1]?.entries?.map(entry=>entry.text||"").join(" ")||"",/배기|손 잡/,"Charlie's deep relationship ASK must focus on Vaggie intimacy without sexual content");
+
+const banterContext={window:{HV_STORY_PACKS:[]}};
+vm.runInNewContext(banterCode,banterContext);
+const banterPacks=banterContext.window.HV_STORY_PACKS||[];
+assert.equal(banterPacks.length,33,"character banter must cover exactly 33 characters");
+assert.ok(!banterPacks.some(pack=>pack.requiredCharacterIds?.[0]==="belphegor"||pack.requiredCharacterIds?.[0]==="leviathan"),"Belphegor and Leviathan must not receive new banter packs");
+assert.equal(banterPacks.reduce((sum,pack)=>sum+(pack.events||[]).length,0),33,"each included character must receive one unique banter event");
+assert.equal(banterPacks.reduce((sum,pack)=>sum+(pack.asks||[]).length,0),66,"each included character must receive two extra ASK entries");
+const banterLinesByCharacter=new Map();
+for(const pack of banterPacks){
+  const characterId=pack.requiredCharacterIds?.[0]||"";
+  assert.equal(pack.version,2,pack.id+" banter pack must be syncable");
+  assert.equal((pack.events||[]).length,1,pack.id+" must have one bespoke relationship/humor event");
+  assert.equal((pack.asks||[]).length,2,pack.id+" must have two bespoke ASK entries");
+  const event=pack.events[0];
+  const choice=event.entries.find(entry=>entry.type==="choice");
+  assert.equal(choice?.options?.length,2,event.id+" bespoke banter must branch into two reactions");
+  const directPlayer=[];
+  const texts=[];
+  walkEntries(event.entries,entry=>{
+    if(entry.type==="dialogue"&&entry.speaker==="PLAYER")directPlayer.push(entry);
+    if(entry.type==="dialogue"&&entry.speakerCharacterId===characterId)texts.push(String(entry.text||"").trim());
+  });
+  assert.equal(directPlayer.length,0,event.id+" bespoke banter must not use direct PLAYER dialogue pages");
+  for(const ask of pack.asks||[]){
+    walkEntries(ask.entries,entry=>{if(entry.type==="dialogue"&&entry.speakerCharacterId===characterId)texts.push(String(entry.text||"").trim())});
+  }
+  const duplicates=texts.filter((line,index)=>line&&texts.indexOf(line)!==index);
+  assert.deepEqual(duplicates,[],pack.id+" bespoke content must not repeat exact character lines");
+  banterLinesByCharacter.set(characterId,texts);
+}
+for(const characterId of nonSexualCharacters){
+  const texts=(banterLinesByCharacter.get(characterId)||[]).join(" ");
+  assert.ok(!sexualPattern.test(texts),characterId+" banter/ASK content must remain non-sexual");
+}
+assert.ok((banterLinesByCharacter.get("asmodeus")||[]).some(line=>/젠틀|천박|베이비|섹시/.test(line)),"Asmodeus bespoke banter must mix gentlemanly and vulgar diction");
+assert.ok((banterLinesByCharacter.get("lucifer-morningstar")||[]).some(line=>/찰리|오리/.test(line)),"Lucifer banter must expose Charlie/duck relationship humor");
+assert.ok((banterLinesByCharacter.get("vox")||[]).some(line=>/벨벳|발렌티노/.test(line)),"Vox banter must expose Vee relationships");
 
 const itemPresetContext={window:{}};
 vm.runInNewContext(itemPresetCode,itemPresetContext);
@@ -655,7 +717,7 @@ assert.equal(legacyDialogueLocalizationCheck.eventLines[1],"찰리. 멈춰. 숨 
 assert.equal(legacyDialogueLocalizationCheck.askLine,"먼저 물어봐!","legacy ASK English text must be localized");
 assert.equal(legacyDialogueLocalizationCheck.giftLine,"좋아! 그렇지!","legacy gift English text must be localized");
 assert.equal(legacyDialogueLocalizationCheck.logLine,"아담은 죽었어.","saved dialogue history must be localized");
-assert.equal(legacyDialogueLocalizationCheck.version,9,"dialogue tuning migration version missing");
+assert.equal(legacyDialogueLocalizationCheck.version,10,"dialogue tuning migration version missing");
 
 const storyPackCountBeforeTuning=context.window.HV_STORY_PACKS.length;
 context.window.HV_STORY_PACKS.push(...structuredClone(relationshipPacks));
@@ -681,7 +743,7 @@ const tunedDialogueSyncCheck=vm.runInContext(`
 `,context);
 assert.match(tunedDialogueSyncCheck.eventText,/알고리즘|피드/,"existing saves must receive tuned relationship TALK");
 assert.ok(!/예전 질문/.test(tunedDialogueSyncCheck.askText),"existing saves must receive tuned relationship ASK");
-assert.equal(tunedDialogueSyncCheck.version,9,"tuned dialogue sync must advance preset version");
+assert.equal(tunedDialogueSyncCheck.version,10,"tuned dialogue sync must advance preset version");
 context.window.HV_STORY_PACKS.length=storyPackCountBeforeTuning;
 
 context.window.HV_STORY_PACKS.push(...structuredClone(soloTalkPacks));
