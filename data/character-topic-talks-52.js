@@ -803,17 +803,164 @@
     return pick(["그건 맞는 것 같아요.","그럴 수도 있겠네요.","음, 이해돼요.","그건 좀 알겠어요."],key);
   };
 
-  const choiceEntry=(c,t,id,highOnly)=>{
-    const cond=highOnly?A(c.id,">=",c.t):undefined;
-    const option=(suffix,label,kind)=>({
-      id:id+"-opt-"+suffix,
+  const splitLongText=text=>{
+    const s=String(text||"").trim();
+    if(s.length<=118)return [s];
+    const sentences=s.match(/[^.!?。！？]+[.!?。！？]+|[^.!?。！？]+$/g)?.map(x=>x.trim()).filter(Boolean)||[s];
+    if(sentences.length<2){
+      const pivot=Math.min(s.length-1,Math.max(72,Math.floor(s.length*.52)));
+      const left=s.lastIndexOf(" ",pivot);
+      const cut=left>55?left:pivot;
+      return [s.slice(0,cut).trim(),s.slice(cut).trim()].filter(Boolean);
+    }
+    let best=1,bestDiff=Infinity,acc="";
+    for(let i=1;i<sentences.length;i++){
+      acc=sentences.slice(0,i).join(" ");
+      const right=sentences.slice(i).join(" ");
+      const diff=Math.abs(acc.length-right.length);
+      if(acc.length>=45&&right.length>=35&&diff<bestDiff){best=i;bestDiff=diff}
+    }
+    return [sentences.slice(0,best).join(" ").trim(),sentences.slice(best).join(" ").trim()].filter(Boolean).slice(0,2);
+  };
+
+  const dialogueParts=(c,text,id,affectionCondition)=>{
+    const parts=splitLongText(text);
+    return parts.map((part,i)=>D(id+"-"+(i+1),c.id,c.name,part,affectionCondition?{affectionCondition:affectionCondition}:{}));
+  };
+
+  const followScene=(c,t,kind,key)=>{
+    if(c.id==="alastor")return pick([
+      "미소는 그대로인데, 알래스터의 시선이 아까보다 정확히 네 쪽에 꽂힌다.",
+      "알래스터는 라디오 잡음을 낮춘다. 웃는 얼굴과 달리 대화의 초점은 조금도 흐려지지 않는다."
+    ],key);
+    if(c.id==="lucifer-morningstar")return pick([
+      "루시퍼는 손에 든 오리를 한 바퀴 굴려놓고 네 반응을 살핀다.",
+      "루시퍼는 오리 왕관을 괜히 다시 만지다가, 이번에는 먼저 화제를 끊지 않는다."
+    ],key);
+    if(c.id==="loona")return "루나는 휴대폰 화면을 다시 켜려다 말고, 네가 뭐라고 할지 잠깐 기다린다.";
+    if(c.id==="blitzo")return "블리츠는 의자를 반 바퀴 돌렸다가 다시 멈춘다. 농담으로 끝낼지 네 반응을 볼지 고민하는 눈치다.";
+    if(c.id==="stolas")return "스톨라스는 말끝을 흐린 뒤 창밖을 한 번 보고, 이번에는 네가 말을 고를 시간을 준다.";
+    if(c.id==="angel-dust")return "엔젤은 웃던 입꼬리를 그대로 둔 채 손끝으로 잔을 굴린다. 분위기를 깨진 않지만 대화는 아직 끝나지 않았다.";
+    if(c.id==="husk")return "허스크는 닦던 잔을 내려놓는다. 먼저 말을 보태진 않고 네 쪽을 한 번 본다.";
+    if(c.id==="fizzarolli")return "피자로리는 농담을 하나 더 얹으려다 삼키고, 대신 네 반응을 기다린다.";
+    return pick(c.a,key+"a")+". 방금 대답 뒤에 짧은 틈이 생기고, 대화가 한 번 더 이어질 여지가 남는다.";
+  };
+
+  const shouldContinue=(c,t,kind,key)=>{
+    if(kind==="shift")return false;
+    const personal=shouldDodge(c,t);
+    const n=hash(c.id+"::"+t.id+"::"+kind+"::"+key)%100;
+    if(kind==="probe")return personal||n<62;
+    if(kind==="agree")return !personal&&n<28;
+    if(kind==="joke")return n<24;
+    return false;
+  };
+
+  const followPlayer=(c,t,firstKind,nextKind,key)=>{
+    if(nextKind==="backoff")return pick(["알겠어요. 더 안 물어볼게요.","됐어요. 여기까지만 들을게요.","그럼 거기까지만 해요."],key);
+    if(nextKind==="push"){
+      if(c.id==="alastor")return pick(["그래도 먼저 얘기 꺼낸 건 당신이잖아요.","그럼 왜 먼저 그 얘길 꺼냈어요?"],key);
+      if(c.id==="lucifer-morningstar")return pick(["그래도 먼저 말한 건 당신이잖아요.","그럼 왜 먼저 얘기한 거예요?"],key);
+      return pick(["그래도 조금 궁금한데요.","그 말은 좀 더 듣고 싶어요.","딱 하나만 더 물어볼게요."],key);
+    }
+    if(nextKind==="joke")return pick(["그럼 진짜 웃고 넘겨요.","알겠어요. 농담으로 끝내죠.","그럼 이건 가볍게 끝내요."],key);
+    return pick(["그럼 다른 얘기해요.","됐어요. 이제 넘어가요.","좋아요. 여기서 끝내죠."],key);
+  };
+
+  const followResponse=(c,t,firstKind,nextKind,high,key)=>{
+    const r=register(c),x=pick(SURFACE_X[surfaceTag(t)]||SURFACE_X.hellsociety,key+"x");
+
+    if(c.id==="alastor"&&firstKind==="probe"){
+      if(nextKind==="push")return pick([
+        "맞습니다. 제가 화제를 열었지요. 하지만 문을 열었다고 집 전체를 뒤질 권리까지 드린 기억은 없습니다. 제가 한 문장을 건넨 것과 당신이 제 과거를 요구하는 건 전혀 다른 거래예요. 그 차이를 모르는 분은 아니라고 생각했는데요.",
+        "아주 좋은 지적입니다. 제가 먼저 말했죠. 그래서 지금 여기까지는 대답했습니다. 하지만 먼저 말을 꺼낸 사람이 질문의 범위까지 상대에게 넘겨준다는 규칙은 어디에도 없어요. 오히려 그 선을 어디서 멈추는지 보는 편이 훨씬 재미있군요."
+      ],key);
+      if(nextKind==="backoff")return pick([
+        "현명합니다. 모르는 부분을 남겨둔다고 관계가 실패하는 건 아니니까요. 오히려 모든 걸 알아야 안심하는 습관이 사람을 더 쉽게 망칩니다. 오늘은 그 정도 거리감이면 충분하겠군요.",
+        "좋은 선택입니다. 질문을 멈출 줄 아는 사람은 드물거든요. 대개는 침묵을 허락으로 착각합니다. 적어도 당신은 그 둘을 구분할 줄 아는군요."
+      ],key);
+      if(nextKind==="joke")return "하하, 좋습니다. 다만 방금 농담으로 덮은 질문이 사라진 건 아닙니다. 당신이 그걸 굳이 다시 꺼내지 않기로 선택했을 뿐이지요. 그 차이는 기억해두세요.";
+      return "그렇지요. 화제를 바꾸는 편이 낫습니다. 모든 호기심을 충족시키는 건 교양이 아니라 탐욕일 때가 있으니까요. 오늘은 그 사실 하나만 가져가시면 되겠습니다.";
+    }
+
+    if(c.id==="lucifer-morningstar"&&firstKind==="probe"){
+      if(nextKind==="push")return high
+        ?"오, 그건 맞아. 내가 먼저 얘기했지. 그런데 내가 창문 하나 열었다고 네가 지붕까지 올라가도 된다는 뜻은 아니잖아? 네가 궁금해하는 건 이해해. 그래도 오늘은 여기까지만. 이쯤에서 왕은 아주 품위 있게 오리 얘기로 도망가겠습니다."
+        :"그래, 내가 먼저 말했지. 실수였네. 다음부턴 입 열기 전에 계약서라도 써야겠다. ‘한 문장 언급은 후속 취재를 허용하지 않음.’ 자, 이제 진짜 다른 얘기. 오리 왕관 금색이 낫냐 빨간색이 낫냐?";
+      if(nextKind==="backoff")return high
+        ?"고마워. 아니, 그렇게 거창하게 받을 건 아니고. 그냥 네가 멈출 때 멈춰주는 건 편하다는 뜻이야. 그럼 이건 여기 두고, 아까부터 삐뚤어진 이 오리 왕관이나 좀 봐줘."
+        :"좋은 선택이야. 내 정신 건강과 네 안전 모두에게 아주 이롭지. 자, 대화의 질을 급격히 높여보자. 오리 얘기로.";
+      if(nextKind==="joke")return "그래, 그게 훨씬 낫다. 천국의 신비보다 오리의 신비가 훨씬 덜 피곤하거든. 적어도 오리는 심판 같은 건 안 해. 가끔 삑삑거리기만 하지.";
+      return "완벽해. 이 주제는 서랍에 넣고 잠그자. 열쇠는… 음, 없다고 하자. 자, 다음 얘기.";
+    }
+
+    if(nextKind==="push"){
+      if(shouldDodge(c,t)){
+        const d=deflectFor(c,high,key);
+        if(r==="formal")return d+" 제가 먼저 이야기를 꺼냈더라도, 어디까지 이어갈지는 제 쪽에서 정하고 싶습니다. 그 선을 지켜주신다면 다음에도 먼저 말을 꺼내기 훨씬 편하겠지요.";
+        if(r==="archaic")return d+" 내가 먼저 화제를 꺼냈다 하여 어디까지 이어갈지까지 넘긴 것은 아니오. 그 선을 지켜준다면 다음에도 먼저 말하기 편하겠구려.";
+        return d+" 내가 먼저 얘기했어도 어디까지 이어갈지는 내가 정하고 싶어. 그 선만 지켜주면 다음에도 먼저 말 꺼내기 훨씬 편하겠지.";
+      }
+      if(r==="formal")return "그렇다면 한마디만 더 하죠. 결국 저는 "+x+" 쪽을 보게 됩니다. 다만 실제 상황은 늘 예외가 생기니, 지금 말한 걸 규칙처럼 받아들이진 마세요.";
+      if(r==="archaic")return "그렇다면 한마디만 더 하지. 결국 나는 "+x+" 쪽을 보게 되오. 다만 실제 일에는 늘 예외가 있으니 규칙처럼 받아들이진 마시오.";
+      return "그럼 한마디만 더 할게. 결국 난 "+x+" 쪽을 보게 돼. 근데 실제로 일이 생기면 예외는 늘 있으니까, 지금 말을 규칙처럼 외우진 마.";
+    }
+    if(nextKind==="backoff"){
+      if(r==="formal")return "네, 그 정도면 충분합니다. 대화를 멈출 지점을 서로 알아두는 것도 나쁘지 않군요. 다음 이야기는 조금 더 편한 걸로 하죠.";
+      if(r==="archaic")return "좋소. 그 정도면 충분하오. 대화를 멈출 자리를 서로 아는 것도 나쁘지 않구려. 다음 화제는 조금 더 가벼운 것으로 하지.";
+      return "응, 그 정도면 충분해. 어디서 멈출지 서로 아는 것도 나쁘지 않네. 다음 얘기는 좀 더 편한 걸로 하자.";
+    }
+    if(nextKind==="joke"){
+      if(r==="formal")return "좋습니다. 이 정도라면 굳이 더 무겁게 만들 이유가 없겠군요. 다음에 실제 상황이 생기면 그때 다시 웃든 고민하든 하죠.";
+      if(r==="archaic")return "좋소. 이 정도라면 더 무겁게 만들 까닭은 없겠군. 실제 일이 생기면 그때 다시 웃든 고민하든 하지.";
+      return "좋아. 이 정도면 더 무겁게 만들 필요 없지. 진짜 상황 생기면 그때 다시 웃든 고민하든 하자.";
+    }
+    if(r==="formal")return "좋습니다. 여기서 정리하죠. 짧게 끝낼 수 있는 대화를 억지로 길게 만드는 것도 피곤한 일이니까요.";
+    if(r==="archaic")return "좋소. 여기서 정리하지. 짧게 끝낼 수 있는 이야기를 억지로 늘리는 것도 피곤한 법이오.";
+    return "좋아. 여기서 끝내자. 짧게 끝낼 수 있는 얘기를 억지로 늘리는 것도 피곤하잖아.";
+  };
+
+  const followChoice=(c,t,id,firstKind)=>{
+    const makeOpt=(suffix,label,nextKind)=>({
+      id:id+"-follow-opt-"+suffix,
       label:label,
       entries:[
-        P(id+"-p-"+suffix,playerLine(c,t,kind,id+suffix)),
-        D(id+"-r-"+suffix+"-l",c.id,c.name,responseFor(c,t,kind,false,id+suffix+"l"),{affectionCondition:A(c.id,"<",c.t)}),
-        D(id+"-r-"+suffix+"-h",c.id,c.name,responseFor(c,t,kind,true,id+suffix+"h"),{affectionCondition:A(c.id,">=",c.t)})
+        P(id+"-follow-p-"+suffix,followPlayer(c,t,firstKind,nextKind,id+suffix)),
+        ...dialogueParts(c,followResponse(c,t,firstKind,nextKind,false,id+suffix+"l"),id+"-follow-r-"+suffix+"-l",A(c.id,"<",c.t)),
+        ...dialogueParts(c,followResponse(c,t,firstKind,nextKind,true,id+suffix+"h"),id+"-follow-r-"+suffix+"-h",A(c.id,">=",c.t))
       ]
     });
+    const options=firstKind==="probe"
+      ?[
+        makeOpt("backoff","더 안 묻는다","backoff"),
+        makeOpt("push","한마디 더 묻는다","push"),
+        makeOpt("shift","화제를 바꾼다","shift")
+      ]
+      :[
+        makeOpt("joke","한번 더 받아친다","joke"),
+        makeOpt("push","조금 더 말한다","push"),
+        makeOpt("shift","여기서 끝낸다","shift")
+      ];
+    return CH(id+"-follow-choice","이어서 어떻게 할까?",options);
+  };
+
+  const choiceEntry=(c,t,id,highOnly)=>{
+    const cond=highOnly?A(c.id,">=",c.t):undefined;
+    const option=(suffix,label,kind)=>{
+      const responseLow=responseFor(c,t,kind,false,id+suffix+"l");
+      const responseHigh=responseFor(c,t,kind,true,id+suffix+"h");
+      const continuation=shouldContinue(c,t,kind,id+suffix);
+      const entries=[
+        P(id+"-p-"+suffix,playerLine(c,t,kind,id+suffix)),
+        ...dialogueParts(c,responseLow,id+"-r-"+suffix+"-l",A(c.id,"<",c.t)),
+        ...dialogueParts(c,responseHigh,id+"-r-"+suffix+"-h",A(c.id,">=",c.t))
+      ];
+      if(continuation){
+        entries.push(N(id+"-follow-n-"+suffix,followScene(c,t,kind,id+suffix+"scene")));
+        entries.push(followChoice(c,t,id+"-"+suffix,kind));
+      }
+      return {id:id+"-opt-"+suffix,label:label,entries:entries};
+    };
     const opts=[
       option("agree","맞장구친다","agree"),
       option("joke","가볍게 넘긴다","joke"),
@@ -851,6 +998,6 @@
   window.HV_STORY_PACKS ||= [];
   for(const c of PFS){
     const list=chosen(c);
-    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:11,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
+    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:12,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
   }
 })();
