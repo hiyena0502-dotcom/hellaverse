@@ -79,7 +79,7 @@ function defaultState(){
     unlockedAskIds:[],
     interactionHistory:[],
     claimedItemEffectIds:[],
-    collectionSettings:{showLocked:true,showOwnedCount:true,view:"grouped",sort:"recent"},
+    collectionSettings:{showLocked:true,showOwnedCount:true,view:"grouped",sort:"recent",expandedCharacterIds:[]},
     thoughts:defaultContentList("thoughts"),
     thoughtSettings:{categories:[...DEFAULT_CATEGORIES]},
     gacha:{
@@ -901,7 +901,7 @@ function migrateLegacyBackup(raw){
     askedAskIds,
     unlockedAskIds:[],
     interactionHistory:interactionHistory.slice(-500),
-    collectionSettings:{showLocked:true,showOwnedCount:true,view:"grouped",sort:"recent"},
+    collectionSettings:{showLocked:true,showOwnedCount:true,view:"grouped",sort:"recent",expandedCharacterIds:[]},
     thoughts,
     thoughtSettings:{categories:thoughtCategories.length?thoughtCategories:["일상","관계","과거","천국","지옥","비밀"]},
     gacha:{
@@ -1063,7 +1063,8 @@ function normalizeState(raw){
       showLocked:s.collectionSettings?.showLocked!==false,
       showOwnedCount:s.collectionSettings?.showOwnedCount!==false,
       view:s.collectionSettings?.view==="all"?"all":"grouped",
-      sort:["recent","rarity","name","count"].includes(s.collectionSettings?.sort)?s.collectionSettings.sort:"recent"
+      sort:["recent","rarity","name","count"].includes(s.collectionSettings?.sort)?s.collectionSettings.sort:"recent",
+      expandedCharacterIds:Array.isArray(s.collectionSettings?.expandedCharacterIds)?[...new Set(s.collectionSettings.expandedCharacterIds.map(String))]:[]
     },
     thoughts:(Array.isArray(s.thoughts)?s.thoughts:d.thoughts).map(normalizeThought),
     thoughtSettings:{
@@ -1473,6 +1474,7 @@ function sanitizeProgressReferences(source){
     rememberItemEffects(reaction.specialEntries);
   }));
   result.favoriteCharacterIds=result.favoriteCharacterIds.filter(id=>characterIds.has(id));
+  result.collectionSettings.expandedCharacterIds=(result.collectionSettings.expandedCharacterIds||[]).filter(id=>characterIds.has(id));
   result.playState.affection=Object.fromEntries(Object.entries(result.playState.affection||{}).filter(([id])=>characterIds.has(id)));
   result.playState.emotions=Object.fromEntries(Object.entries(result.playState.emotions||{}).filter(([id])=>characterIds.has(id)));
   result.playState.variables=Object.fromEntries(Object.entries(result.playState.variables||{}).filter(([id])=>variableIds.has(id)));
@@ -1520,7 +1522,8 @@ function mergeEditorDraftIntoLiveState(live,draft,baseline){
   merged.collectionSettings={
     ...merged.collectionSettings,
     view:liveProgress.collectionSettings?.view||"grouped",
-    sort:liveProgress.collectionSettings?.sort||"recent"
+    sort:liveProgress.collectionSettings?.sort||"recent",
+    expandedCharacterIds:[...(liveProgress.collectionSettings?.expandedCharacterIds||[])]
   };
   const draftBalance=Math.max(0,Number(draft.gacha?.balance)||0);
   const baselineBalance=Math.max(0,Number(baseline?.gacha?.balance)||0);
