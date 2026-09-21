@@ -1,7 +1,7 @@
 "use strict";
 
 (()=>{
-  const VERSION=3;
+  const VERSION=4;
   const PREF_DELTA={LOVED:5,LIKED:3,NEUTRAL:1,DISLIKED:-2,HATED:-4};
   const EMOTION_BY_PREF={
     LOVED:["joy",60],LIKED:["joy",38],NEUTRAL:["curious",24],
@@ -114,6 +114,39 @@
     fizzarolli:{love:/무대|마이크|장난감|굿즈|리본|사진/i,dislike:/고장|계약|사슬/i},
     octavia:{love:/별|헤드폰|음악|책|검정|사진/i,dislike:/왕실|파티|소음/i}
   };
+  const RELATION_TASTES={
+    lucifermorningstar:{love:["charlie-morningstar"],dislike:[]},
+    charliemorningstar:{love:["lucifer-morningstar","vaggie","emily"],dislike:[]},
+    vaggie:{love:["charlie-morningstar"],dislike:[]},
+    alastor:{love:[],dislike:["vox"]},
+    vox:{love:[],dislike:["alastor"]},
+    angeldust:{love:["husk","cherri-bomb"],dislike:["valentino"]},
+    husk:{love:["angel-dust"],dislike:[]},
+    lute:{love:["adam"],dislike:[]},
+    adam:{love:["lute"],dislike:[]},
+    emily:{love:["charlie-morningstar","sera"],dislike:[]},
+    blitzo:{love:["loona","moxxie","millie","fizzarolli"],dislike:[]},
+    loona:{love:["blitzo"],dislike:[]},
+    moxxie:{love:["millie"],dislike:[]},
+    millie:{love:["moxxie"],dislike:[]},
+    stolas:{love:["octavia","blitzo"],dislike:[]},
+    octavia:{love:["stolas"],dislike:[]},
+    fizzarolli:{love:["asmodeus"],dislike:[]},
+    asmodeus:{love:["fizzarolli"],dislike:[]}
+  };
+  const PREF_RANK={HATED:0,DISLIKED:1,NEUTRAL:2,LIKED:3,LOVED:4};
+  function relationPreference(item,character,current){
+    const rel=RELATION_TASTES[charKey(character)];
+    const owner=String(item.collectionCharacterId||"");
+    if(!rel||!owner)return current;
+    if(rel.dislike?.includes(owner)&&PREF_RANK[current]>PREF_RANK.DISLIKED)return"DISLIKED";
+    if(rel.love?.includes(owner)){
+      const sentimentalOwner=sentimental.test(item.name)||item.rarity==="LEGENDARY"||item.rarity==="MISTIC";
+      const floor=sentimentalOwner?"LOVED":"LIKED";
+      if(PREF_RANK[current]<PREF_RANK[floor])return floor;
+    }
+    return current;
+  }
   function preferenceForCharacter(item,character){
     const base=preferenceFor(item);
     const ck=charKey(character);
@@ -121,6 +154,7 @@
     let preference=base.preference;
     if(taste?.dislike?.test(item.name))preference="DISLIKED";
     if(taste?.love?.test(item.name))preference="LOVED";
+    preference=relationPreference(item,character,preference);
     if(item.collectionCharacterId===character.id&&preference==="NEUTRAL")preference="LIKED";
     const [emotionState,emotionIntensity]=preference===base.preference
       ? [base.emotionState,base.emotionIntensity]
@@ -400,12 +434,16 @@
       specialEmotionState:"",
       specialEmotionIntensity:0,
       firstEntries:[
-        narration(base+"-first-n",`${character.name}가 「${item.name}」을(를) 받아 든다.`),
+        narration(base+"-first-n",item.collectionCharacterId===character.id
+          ? `${character.name}가 「${item.name}」을(를) 알아보고 잠시 시선을 멈춘다.`
+          : `${character.name}가 「${item.name}」을(를) 받아 든다.`),
         dialogue(base+"-first-d",character,text("first"))
       ],
       repeatEntries:[dialogue(base+"-repeat-d",character,text("repeat"))],
       specialEntries:[
-        narration(base+"-special-n",`${character.name}가 이번에는 물건을 바로 치우지 않고 잠시 더 바라본다.`),
+        narration(base+"-special-n",item.collectionCharacterId===character.id
+          ? `${character.name}가 자기와 얽힌 물건을 손안에서 천천히 돌려보며 이번에는 기억을 피하지 않는다.`
+          : `${character.name}가 이번에는 물건을 바로 치우지 않고 잠시 더 바라본다.`),
         dialogue(base+"-special-d",character,text("special"))
       ]
     };
