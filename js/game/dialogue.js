@@ -65,7 +65,7 @@ function startDialogue(characterId,eventId){
     autoVisitedEventIds:entryActive?[]:[ev.id],
     newTalkEventId:wasNew?ev.id:"",
     rootEventRole:eventRoleOf(ev),
-    frames:[{sourceType:"event",sourceId:ev.id,index:0,label:entryActive?"ENTRY":actionActive?"ACTION":"본편",exitMode:"continue",targetEventId:""}],
+    frames:[{sourceType:"event",sourceId:ev.id,index:0,label:entryActive?"ENTRY":"본편",exitMode:"continue",targetEventId:""}],
     ended:false
   }:null;
   typing.token="";
@@ -481,7 +481,7 @@ function renderRoom(){
   const interactionLocked=Boolean(activeInteractionReaction||interactionContext?.followupActive||interactionCompleteMenu);
   const eventPickerVisible=!ev||ev.menuVisible!==false;
   const eventPicker=roomMode==="talk"&&eventOptions.length&&eventPickerVisible&&!interactionLocked
-    ? '<details class="room-event-details"><summary>TALK / ACTION 선택</summary><select id="roomEventSelect">'+eventOptions.map(e=>'<option value="'+esc(e.id)+'" '+(ev?.id===e.id?"selected":"")+'>'+esc(isActionEvent(e)?"[ACTION] "+e.name:e.name)+'</option>').join("")+'</select></details>'
+    ? '<details class="room-event-details"><summary>TALK 선택</summary><select id="roomEventSelect">'+eventOptions.map(e=>'<option value="'+esc(e.id)+'" '+(ev?.id===e.id?"selected":"")+'>'+esc(e.name)+'</option>').join("")+'</select></details>'
     : '';
 
   pageRoot.innerHTML=
@@ -515,7 +515,7 @@ function renderRoomBeat(){
   if(!settlePlayback()){
     if(interactionCompleteMenu){renderInteractionCompleteMenu();return}
     if(playback?.rootEventRole==="action"){
-      dynamic.innerHTML='<div class="room-empty"><h2>ACTION COMPLETE</h2><p>ACTION이 끝났습니다. 위의 TALK / ACTION 선택에서 다른 장면을 고르거나 NEW TALK를 이용할 수 있습니다.</p></div>';
+      dynamic.innerHTML='<div class="room-empty"><h2>대화가 끝났습니다.</h2><p>위의 TALK 선택에서 다른 이벤트를 고르거나 NEW TALK를 이용할 수 있습니다.</p></div>';
     }else{
       dynamic.innerHTML='<div class="room-empty"><h2>이어갈 TALK를 찾지 못했습니다.</h2><p>현재 조건에서 재생 가능한 TALK가 없습니다. TALK 선택이나 ASK / INVENTORY를 이용할 수 있습니다.</p></div>';
     }
@@ -538,7 +538,7 @@ function renderRoomBeat(){
   const length=String(entry.text||"").length;
   const density=length>210?" is-very-compact":length>130?" is-compact":"";
   const newTalk=current?.id===playback.newTalkEventId&&frame.index===0;
-  const newBadge=newTalk?(isActionEvent(current)?"NEW ACTION":"NEW TALK"):"";
+  const newBadge=newTalk?"NEW TALK":"";
   const progressLabel=series||("SCENE "+(frame.index+1)+" / "+frameEntries(frame).length);
   dynamic.innerHTML='<div class="dialogue-box">'+(newBadge?'<span class="new-talk-badge">'+newBadge+'</span>':'')+'<p class="speaker">'+esc(entry.type==="narration"?"NARRATION":speaker)+'</p><p id="dialogueText" class="dialogue-text'+density+'"></p><div class="dialogue-meta"><span>'+esc(progressLabel)+'</span><button type="button" data-action="advance-dialogue">NEXT</button></div></div>';
   if(typing.token!==token){
