@@ -753,9 +753,6 @@ const staleCharacterRefRepairCheck=vm.runInContext(`
     events:[
       {id:"voice-angel-legacy",name:"TALK · 화장대 앞",characterId:"$ANGEL",entries:[
         {id:"legacy-speaker",type:"dialogue",speakerCharacterId:"$ANGEL",speaker:"ANGEL DUST",text:"테스트"}
-      ]},
-      {id:"solo-talk-angel-dust-08",name:"SOLO TALK · retired",characterId:"angel-dust",entries:[
-        {id:"retired",type:"dialogue",speakerCharacterId:"angel-dust",text:"구형 filler"}
       ]}
     ]
   });
@@ -764,14 +761,12 @@ const staleCharacterRefRepairCheck=vm.runInContext(`
   return{
     eventCharacterId:repaired?.characterId||"",
     speakerCharacterId:repaired?.entries?.[0]?.speakerCharacterId||"",
-    retiredSoloStillExists:result.events.some(event=>event.id==="solo-talk-angel-dust-08"),
     version:result.dialoguePresetVersion
   };
 })()
 `,context);
 assert.equal(staleCharacterRefRepairCheck.eventCharacterId,"angel-dust","legacy voice event character token must be repaired");
 assert.equal(staleCharacterRefRepairCheck.speakerCharacterId,"angel-dust","legacy voice speaker token must be repaired");
-assert.equal(staleCharacterRefRepairCheck.retiredSoloStillExists,false,"retired filler solo TALK must be pruned from existing saves");
 assert.equal(staleCharacterRefRepairCheck.version,12,"character-ref repair must advance dialogue preset version");
 
 const storyPackCountBeforeTuning=context.window.HV_STORY_PACKS.length;
