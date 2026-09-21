@@ -623,8 +623,8 @@
       .replace(/할까$/,"할지");
   };
   const PROBE_HINT={
-    heaven:["천국에선 무슨 일이 있었던 거예요?","천국 얘기라서 그런 거예요?"],
-    extermination:["그때 무슨 일이 있었던 거예요?","숙청 얘기라서 그래요?"],
+    heaven:["천국에선 무슨 일이 있었던 거예요?","천국에서 어떤 일이 있었길래 그래요?"],
+    extermination:["그때 무슨 일이 있었던 거예요?","그때 어떤 일이 있었길래 그래요?"],
     family:["가족 얘기라서 그런 거예요?","누구 생각난 거예요?"],
     past:["예전에도 비슷했어요?","그때 무슨 일이 있었어요?"],
     soul:["계약 때문에 그래요?","그 계약이 아직도 걸리는 거예요?"],
@@ -689,6 +689,24 @@
     return base+" 그러고 보니 "+phrase+" 얘기 있잖아. 난 "+x+"부터 볼 것 같아.";
   };
 
+  const DODGE_TAGS={
+    "lucifer-morningstar":["heaven","family","past","extermination","trust","redemption"],
+    "lute":["past","family","trust","extermination","heaven"],
+    "adam":["past","family","selfworth"],
+    "vaggie":["past","extermination","trust"],
+    "angel-dust":["past","family","selfworth","trust","romance"],
+    "husk":["past","soul","trust"],
+    "blitzo":["past","family","romance","trust","selfworth"],
+    "paimon":["family","past","trust"],
+    "stolas":["family","past","romance","trust"],
+    "loona":["family","past","trust","selfworth"],
+    "fizzarolli":["past","selfworth","trust","romance"],
+    "octavia":["family","past","trust","romance"],
+    "valentino":["past","trust","romance","selfworth"],
+    "carmilla-carmine":["family","trust"]
+  };
+  const shouldDodge=(c,t)=>isPersonalFor(c,t)||tags(t).some(tag=>(DODGE_TAGS[c.id]||[]).includes(tag));
+
   const responseFor=(c,t,kind,high,key)=>{
     const personal=isPersonalFor(c,t),r=register(c),tag=surfaceTag(t),x=pick(SURFACE_X[tag]||SURFACE_X.hellsociety,key+"x");
 
@@ -721,11 +739,11 @@
     }
 
     if(kind==="probe"){
-      if(personal){
+      if(shouldDodge(c,t)){
         const d=deflectFor(c,high,key);
         if(c.id==="lucifer-morningstar")return high
-          ? d+" 네가 궁금해서 묻는 건 알아. 그런데 내가 먼저 얘기를 꺼냈다고 해서 설명회까지 열겠다는 뜻은 아니거든. 여기까지만 듣고 오리 하나 골라줘. 그쪽이 훨씬 생산적이야."
-          : d+" 내가 먼저 말 꺼냈다고 바로 취재 모드 들어가면 곤란하지. 궁금한 건 이해하지만 오늘은 거기까지. 자, 다음 주제는 오리냐 호텔 메뉴냐 둘 중 하나.";
+          ? d+" 네가 궁금해서 묻는 건 알아. 그리고 네가 물어서 화난 것도 아니야. 그래도 내가 먼저 한마디 꺼냈다고 과거 보고서까지 제출하는 건 아니거든. 여기까지만 하고 오리 하나 골라줘. 왕관 있는 거랑 없는 거 중에."
+          : d+" 내가 먼저 말 꺼냈다고 바로 취재 모드 들어가면 곤란하지. 천국 얘기는 특히 그래. 궁금한 건 이해하지만 오늘은 거기까지. 자, 다음 주제는 오리냐 호텔 메뉴냐 둘 중 하나.";
         if(c.id==="loona")return d+" 내가 먼저 말했어도 그게 질문권 무제한이라는 뜻은 아니야. 한마디 한 건 한마디 한 거고, 그 뒤는 내 기분 따라 정할 거야.";
         if(c.id==="blitzo")return d+" 야, 내가 먼저 꺼냈다고 감정 서류철까지 펼치라는 뜻 아니거든. 지금 정도가 딱 적당해. 더 가면 재미없어져.";
         if(c.id==="stolas")return d+" 당신이 묻는 게 불편해서라기보다는, 이걸 길게 풀면 대화 전체가 그 이야기 하나에 잡아먹힐 것 같아서요. 오늘은 여기까지만 두고 싶습니다.";
@@ -833,6 +851,6 @@
   window.HV_STORY_PACKS ||= [];
   for(const c of PFS){
     const list=chosen(c);
-    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:10,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
+    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:11,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
   }
 })();
