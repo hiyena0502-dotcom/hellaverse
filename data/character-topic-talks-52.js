@@ -7,6 +7,7 @@
   const D=(id,who,speaker,text,extra={})=>({id:id,type:"dialogue",speakerCharacterId:who,speaker:speaker,text:text,...extra});
   const P=(id,text,extra={})=>D(id,"","PLAYER",text,extra);
   const N=(id,text,extra={})=>({id:id,type:"narration",text:text,...extra});
+  const CH=(id,prompt,options,extra={})=>({id:id,type:"choice",prompt:prompt,options:options,...extra});
   const A=(who,operator,value)=>({characterId:who,operator:operator,value:value});
   const slug=s=>String(s).toLowerCase().replace(/[^a-z0-9가-힣]+/g,"-").replace(/^-|-$/g,"");
   const hash=s=>{let h=2166136261;for(const ch of String(s)){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0};
@@ -606,59 +607,143 @@
     ][n];
   };
 
+  const startRemark=(c,t,high,key)=>{
+    const r=register(c),personal=isPersonalFor(c,t),name=CALL[c.id]||c.name;
+    if(personal){
+      if(c.id==="lucifer-morningstar")return pick([
+        "…아까 그 얘기 말인데. 아니, 별건 아니야. 그냥 생각나서.",
+        "그러고 보니 좀 걸리는 게 있긴 한데—아니, 그렇게 진지한 얼굴 하지 마.",
+        "갑자기 생각난 게 하나 있는데, 깊은 뜻은 없어. 진짜로."
+      ],key)+" ‘"+t.title+"’ 쪽 이야기야.";
+      if(c.id==="alastor")return pick([
+        "문득 흥미로운 생각이 하나 떠올랐습니다. 너무 큰 의미는 두지 마시길.",
+        "하하, 조금 위험해 보이는 화제가 떠올랐군요. 어디까지나 한담입니다."
+      ],key)+" ‘"+t.title+"’ 말이지요.";
+      if(c.id==="loona")return pick([
+        "아까 그 얘기 있잖아. …아니, 그냥 말해본 거야.",
+        "갑자기 생각났는데, 이상하게 받아들이진 마."
+      ],key)+" ‘"+t.title+"’ 같은 거.";
+      if(c.id==="blitzo")return pick([
+        "오, 씨발. 방금 좀 웃긴 생각 났다. 감정 상담은 아니고.",
+        "야, 이건 그냥 떠오른 건데 너무 의미 부여하지 마."
+      ],key)+" ‘"+t.title+"’ 같은 거.";
+      if(c.id==="stolas")return pick([
+        "문득 조금 걸리는 생각이 하나 났어요. 그렇다고 심각해질 필요는 없고요.",
+        "아, 그러고 보니 아까부터 머리에 남아 있던 이야기가 하나 있군요."
+      ],key)+" ‘"+t.title+"’ 쪽 이야기예요.";
+      if(r==="formal")return "그러고 보니 ‘"+t.title+"’ 이야기가 조금 떠오르는군요. 너무 깊게 볼 필요는 없습니다.";
+      if(r==="archaic")return "문득 ‘"+t.title+"’ 이야기가 떠오르는구려. 너무 깊게 헤아릴 필요는 없소.";
+      return "그러고 보니 ‘"+t.title+"’ 같은 얘기가 좀 떠오르네. 너무 깊게 갈 건 아니고.";
+    }
+    const tag=surfaceTag(t);
+    const x=pick(SURFACE_X[tag]||SURFACE_X.hellsociety,key+"x");
+    const base=lightOpen(c,high,key+"o");
+    if(r==="formal")return base+" ‘"+t.title+"’ 같은 경우라면 저는 "+x+"부터 생각할 것 같군요.";
+    if(r==="archaic")return base+" ‘"+t.title+"’ 같은 경우라면 나는 "+x+"부터 생각하겠소.";
+    return base+" ‘"+t.title+"’ 같은 상황이면 난 "+x+"부터 볼 것 같아.";
+  };
+
+  const responseFor=(c,t,kind,high,key)=>{
+    const personal=isPersonalFor(c,t),r=register(c),tag=surfaceTag(t);
+    if(kind==="probe"){
+      if(personal)return deflectFor(c,high,key)+" "+topicTail(c,t.title,key+"tail");
+      if(high){
+        if(r==="formal")return "조금 더 말하자면 "+pick(SURFACE_X[tag]||SURFACE_X.hellsociety,key+"x")+" 쪽이 가장 먼저 보입니다.";
+        if(r==="archaic")return "조금 더 말하자면 "+pick(SURFACE_X[tag]||SURFACE_X.hellsociety,key+"x")+" 쪽이 먼저 보이는구려.";
+        return "조금 더 말하면 "+pick(SURFACE_X[tag]||SURFACE_X.hellsociety,key+"x")+" 쪽이 제일 먼저 보여.";
+      }
+      return deflectFor(c,false,key)+" "+topicTail(c,t.title,key+"tail");
+    }
+    if(kind==="joke"){
+      const row={
+        "lucifer-morningstar":["그렇게 나오면 오리 하나쯤 상품으로 걸어도 되겠네.","좋아, 그 답은 마음에 드네. 오리 점수 +1."],
+        "alastor":["하하! 그쪽이 훨씬 재미있는 반응이군요.","좋습니다. 적어도 지루하진 않군요."],
+        "vox":["오케이, 그건 썸네일은 뽑히겠네.","좋아, 그 반응은 방송에 써먹을 만해."],
+        "blitzo":["좋아, 이제 좀 사람 말 같네.","그래, 그 정도면 씨발 합격."],
+        "loona":["…그건 좀 낫네.","그래. 그 정도면 안 귀찮아."],
+        "fizzarolli":["오, 그건 펀치라인 살아있네.","좋아, 그 답은 관객 반응 괜찮겠다."],
+        "adam":["하! 그래, 그런 반응을 원했다고.","좋아, 이제 좀 재미있네."],
+        "lute":["…그건 그나마 낫네.","쓸데없는 감상보다 낫다."],
+        "charlie-morningstar":["하하, 좋아! 그쪽으로 생각하면 좀 재밌겠다!","응! 그 반응 마음에 들어!"],
+        "emily":["하하! 그거 재밌다!","오! 그쪽 생각은 못 했어!"]
+      }[c.id];
+      if(row)return pick(row,key);
+      if(r==="formal")return "그렇게 받아들이는 편이 오히려 편하군요.";
+      if(r==="archaic")return "그렇게 받아들이는 편이 오히려 낫겠구려.";
+      return "그렇게 받아들이는 쪽이 오히려 편하네.";
+    }
+    if(kind==="shift"){
+      if(r==="formal")return "좋습니다. 이 이야기는 여기까지 하고 다른 화제로 가죠.";
+      if(r==="archaic")return "좋소. 이 이야기는 여기까지 하고 다른 화제로 돌리지.";
+      return "좋아. 이 얘긴 여기까지 하고 다른 걸로 가자.";
+    }
+    // agree / neutral
+    if(personal){
+      if(high)return deflectFor(c,true,key)+" 네가 굳이 더 캐지 않는 건 편하네.";
+      return deflectFor(c,false,key);
+    }
+    const x=pick(SURFACE_X[tag]||SURFACE_X.hellsociety,key+"x");
+    if(r==="formal")return "네. 저는 "+x+" 정도로 보면 충분하다고 생각합니다.";
+    if(r==="archaic")return "그렇소. 나는 "+x+" 정도로 보면 충분하다 생각하오.";
+    return "응. 난 "+x+" 정도로 보면 충분하다고 봐.";
+  };
+
+  const playerLine=(c,t,kind,key)=>{
+    const name=CALL[c.id]||c.name;
+    if(kind==="probe")return "조금만 더 물어봐도 돼요? ‘"+t.title+"’ 쪽은 "+name+"한테 어떤 느낌이에요?";
+    if(kind==="joke")return "그럼 너무 진지하게 가지 말죠. "+name+"답게 대충 넘겨봐요.";
+    if(kind==="shift")return "됐어요. 이 얘긴 여기까지만 하고 다른 얘기해요.";
+    return "그 말은 좀 알 것 같아요. ‘"+t.title+"’이면 그럴 수도 있겠네요.";
+  };
+
+  const choiceEntry=(c,t,id,highOnly)=>{
+    const cond=highOnly?A(c.id,">=",c.t):undefined;
+    const option=(suffix,label,kind)=>({
+      id:id+"-opt-"+suffix,
+      label:label,
+      entries:[
+        P(id+"-p-"+suffix,playerLine(c,t,kind,id+suffix)),
+        D(id+"-r-"+suffix+"-l",c.id,c.name,responseFor(c,t,kind,false,id+suffix+"l"),{affectionCondition:A(c.id,"<",c.t)}),
+        D(id+"-r-"+suffix+"-h",c.id,c.name,responseFor(c,t,kind,true,id+suffix+"h"),{affectionCondition:A(c.id,">=",c.t)})
+      ]
+    });
+    const opts=[
+      option("agree","맞장구치기","agree"),
+      option("joke","가볍게 받아치기","joke"),
+      option("probe","조금 더 물어보기","probe"),
+      option("shift","다른 이야기로 넘기기","shift")
+    ];
+    return CH(id+"-choice","뭐라고 답할까?",opts,cond?{affectionCondition:cond}:{});
+  };
+
   const make=(c,t,n)=>{
-    const tg=primary(c,t),sen=isSensitive(t),personal=isPersonalFor(c,t),easy=tags(t).some(x=>c.easy.includes(x));
+    const sen=isSensitive(t),personal=isPersonalFor(c,t),easy=tags(t).some(x=>c.easy.includes(x));
     const lockRate=c.t>=60?45:c.t>=55?40:35;
     const highOnly=(personal||(sen&&!easy))&&(hash(c.id+"::"+t.id+"::lock")%100<lockRate);
     const id="pooltalk-"+slug(c.id)+"-"+String(n+1).padStart(2,"0")+"-"+slug(t.id);
-    const st=setup[(hash(id+"s")+n)%setup.length](pick(c.a,id+"a"),t.title);
-    const qLow=OPEN_LOW[(hash(id+"ql")+n)%OPEN_LOW.length](t.title)+" "+promptTail(c,t.title,id+"qtl");
-    const qHigh=OPEN_HIGH[(hash(id+"qh")+n)%OPEN_HIGH.length](t.title)+" "+promptTail(c,t.title,id+"qth");
-    const fLow=FOLLOW_LOW[(hash(id+"fl")+n)%FOLLOW_LOW.length](t.title)+" "+promptTail(c,t.title,id+"ftl");
-    const fHigh=FOLLOW_HIGH[(hash(id+"fh")+n)%FOLLOW_HIGH.length](t.title)+" "+promptTail(c,t.title,id+"fth");
-
-    let lo1,hi1,lo2,hi2;
-    if(personal){
-      lo1=deflectFor(c,false,id+"dl")+" "+topicTail(c,t.title,id+"dtl");
-      hi1=deflectFor(c,true,id+"dh")+" "+topicTail(c,t.title,id+"dth");
-      lo2=topicTail(c,t.title,id+"dtl2")+" "+deflectFor(c,false,id+"dl3");
-      hi2=topicTail(c,t.title,id+"dth2")+" "+deflectFor(c,true,id+"dh3");
-    }else{
-      const reg=register(c),stag=surfaceTag(t),x=pick(SURFACE_X[stag]||SURFACE_X.hellsociety,id+"sx");
-      const set=reg==="formal"?LIGHT_FORMAL:reg==="archaic"?LIGHT_ARCHAIC:LIGHT_CASUAL;
-      lo1=set[(hash(id+"l")+n)%set.length](lightOpen(c,false,id+"lg"),x)+" "+topicTail(c,t.title,id+"ntl");
-      hi1=set[(hash(id+"h")+n+3)%set.length](lightOpen(c,true,id+"lh"),x)+" "+topicTail(c,t.title,id+"nth");
-      lo2=closeLow(c,t.title,id+"lc")+" "+lightOpen(c,false,id+"lcg");
-      hi2=closeHigh(c,t.title,id+"hc")+" "+lightOpen(c,true,id+"hcw");
-    }
-
     const title="TALK · "+c.name+" · "+t.title;
+    const scene=pick(c.a,id+"a")+". 잠시 뒤 먼저 입을 연다.";
+    const lowStart=startRemark(c,t,false,id+"sl");
+    const highStart=startRemark(c,t,true,id+"sh");
     if(highOnly){
       const cond=A(c.id,">=",c.t);
       return {id:id,name:title,characterId:c.id,eventRole:"talk",menuVisible:true,randomEligible:true,entries:[
-        N(id+"-n",st,{affectionCondition:cond}),
-        P(id+"-ph",qHigh,{affectionCondition:cond}),
-        D(id+"-h1",c.id,c.name,hi1,{affectionCondition:cond}),
-        P(id+"-fh",fHigh,{affectionCondition:cond}),
-        D(id+"-h2",c.id,c.name,hi2,{affectionCondition:cond})
+        N(id+"-n",scene,{affectionCondition:cond}),
+        D(id+"-start-h",c.id,c.name,highStart,{affectionCondition:cond}),
+        choiceEntry(c,t,id,true)
       ]};
     }
     return {id:id,name:title,characterId:c.id,eventRole:"talk",menuVisible:true,randomEligible:true,entries:[
-      N(id+"-n",st),
-      P(id+"-pl",qLow,{affectionCondition:A(c.id,"<",c.t)}),
-      P(id+"-ph",qHigh,{affectionCondition:A(c.id,">=",c.t)}),
-      D(id+"-l1",c.id,c.name,lo1,{affectionCondition:A(c.id,"<",c.t)}),
-      D(id+"-h1",c.id,c.name,hi1,{affectionCondition:A(c.id,">=",c.t)}),
-      P(id+"-fl",fLow,{affectionCondition:A(c.id,"<",c.t)}),
-      P(id+"-fh",fHigh,{affectionCondition:A(c.id,">=",c.t)}),
-      D(id+"-l2",c.id,c.name,lo2,{affectionCondition:A(c.id,"<",c.t)}),
-      D(id+"-h2",c.id,c.name,hi2,{affectionCondition:A(c.id,">=",c.t)})
+      N(id+"-n",scene),
+      D(id+"-start-l",c.id,c.name,lowStart,{affectionCondition:A(c.id,"<",c.t)}),
+      D(id+"-start-h",c.id,c.name,highStart,{affectionCondition:A(c.id,">=",c.t)}),
+      choiceEntry(c,t,id,false)
     ]};
   };
 
   window.HV_STORY_PACKS ||= [];
   for(const c of PFS){
     const list=chosen(c);
-    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:8,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
+    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:9,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
   }
 })();
