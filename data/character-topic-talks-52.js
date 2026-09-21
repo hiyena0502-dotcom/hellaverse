@@ -1581,107 +1581,108 @@
 
   const dynamicVoiceBody=(c,t,kind,high,x,key)=>{
     const focus=voiceFocus(t);
+    const topic="‘"+focus+"’ 얘기";
     const r=register(c);
     const casual={
       agree:[
-        focus+" 건 "+x+" 정도만 챙겨도 충분해.",
-        x+"부터 보자는 쪽이 "+focus+"에선 제일 현실적이야.",
-        focus+"만 놓고 보면 난 "+x+" 쪽에 더 손 들어.",
-        "적어도 "+focus+" 얘기에서는 "+x+"을 놓치면 안 돼.",
-        focus+" 건 복잡하게 갈 것 없이 "+x+"이면 방향이 보여.",
-        "나는 "+focus+" 쪽에선 "+x+"부터 확인하는 편이야."
+        topic+"라면 "+x+" 정도만 챙겨도 충분해.",
+        topic+" 쪽은 "+x+"부터 보는 게 제일 현실적이야.",
+        "난 "+topic+"에서는 "+x+" 쪽에 더 손 들어.",
+        "적어도 "+topic+"만큼은 "+x+"을 놓치면 안 돼.",
+        topic+"는 굳이 복잡하게 갈 필요 없어. "+x+"이면 방향이 보여.",
+        x+"부터 확인하는 게 "+topic+"에선 제일 빨라."
       ],
       probe:[
-        focus+"에서 내가 제일 먼저 보는 건 "+x+" 쪽이야.",
-        x+"부터 보면 "+focus+"은 생각보다 답이 빨리 나와.",
-        focus+" 건 "+x+"을 빼고 설명하면 오히려 이상해.",
-        "굳이 하나만 꼽자면 "+focus+"에서는 "+x+"이 먼저야.",
-        "내가 "+focus+"에서 걸리는 건 "+x+" 쪽이야.",
-        focus+"만 놓고 보면 "+x+"부터 확인하는 게 맞아."
+        topic+"에서 내가 제일 먼저 보는 건 "+x+" 쪽이야.",
+        x+"부터 보면 "+topic+"는 생각보다 답이 빨리 나와.",
+        topic+"는 "+x+"을 빼고 설명하면 오히려 이상해.",
+        "굳이 하나만 꼽자면 "+topic+"에서는 "+x+"이 먼저야.",
+        "내가 "+topic+"에서 걸리는 건 "+x+" 쪽이야.",
+        topic+"만 놓고 보면 "+x+"부터 확인하는 게 맞아."
       ],
       joke:[
-        focus+" 건 "+x+" 정도만 남겨두고 웃고 넘어가도 되지.",
-        "너무 무겁게 갈 것 없이 "+focus+"에선 "+x+"만 챙기자.",
-        focus+" 얘기까지 거창해질 필요는 없어. "+x+"이면 됐어.",
-        x+" 정도는 보고, "+focus+" 나머지는 웃어도 되잖아.",
-        focus+" 건 진지함보다 "+x+" 쪽이 더 쓸모 있어 보여.",
-        "이 정도면 "+focus+"은 "+x+"만 기억하고 넘어가도 돼."
+        topic+"는 "+x+" 정도만 남겨두고 웃고 넘어가도 되지.",
+        "너무 무겁게 갈 것 없이 "+topic+"에선 "+x+"만 챙기자.",
+        topic+"까지 거창해질 필요는 없어. "+x+"이면 됐어.",
+        x+" 정도는 보고, 나머지는 웃어도 되잖아.",
+        topic+"는 진지함보다 "+x+" 쪽이 더 쓸모 있어 보여.",
+        "이 정도면 "+topic+"는 "+x+"만 기억하고 넘어가도 돼."
       ],
       shift:[
-        focus+" 얘기는 여기서 접자.",
-        "그럼 "+focus+" 쪽은 이쯤 두자.",
-        "오늘은 "+focus+" 정도면 됐어.",
-        focus+" 건 필요하면 나중에 다시 꺼내자.",
-        "이쯤에서 "+focus+" 얘기는 끝내도 되겠네.",
-        "더 붙잡지 말고 "+focus+"은 여기 두자."
+        topic+"는 여기서 접자.",
+        "그럼 "+topic+"는 이쯤 두자.",
+        "오늘은 "+topic+" 정도면 됐어.",
+        topic+"는 필요하면 나중에 다시 꺼내자.",
+        "이쯤에서 "+topic+"는 끝내도 되겠네.",
+        "더 붙잡지 말고 "+topic+"는 여기 두자."
       ]
     };
     const formal={
       agree:[
-        focus+" 건은 "+x+" 정도만 챙겨도 충분하겠습니다.",
-        x+"부터 보는 편이 "+focus+"에서는 가장 현실적이겠군요.",
-        focus+"만 놓고 보면 저는 "+x+" 쪽에 더 무게를 둡니다.",
-        "적어도 "+focus+" 이야기에서는 "+x+"을 놓치면 안 됩니다.",
-        focus+" 건은 복잡하게 갈 것 없이 "+x+"이면 방향이 보입니다.",
-        "저는 "+focus+" 쪽에서는 "+x+"부터 확인하는 편입니다."
+        topic+"라면 "+x+" 정도만 챙겨도 충분하겠습니다.",
+        topic+" 쪽은 "+x+"부터 보는 편이 가장 현실적이겠군요.",
+        "저는 "+topic+"에서는 "+x+" 쪽에 더 무게를 둡니다.",
+        "적어도 "+topic+"만큼은 "+x+"을 놓치면 안 됩니다.",
+        topic+"는 더 복잡하게 만들 필요가 없습니다. "+x+"이면 방향이 보입니다.",
+        x+"부터 확인하는 편이 "+topic+"에서는 가장 빠르겠습니다."
       ],
       probe:[
-        focus+"에서 제가 가장 먼저 보는 것은 "+x+" 쪽입니다.",
-        x+"부터 보면 "+focus+"은 생각보다 판단이 빨라집니다.",
-        focus+" 건은 "+x+"을 빼고 설명하면 오히려 이상합니다.",
-        "굳이 하나만 꼽자면 "+focus+"에서는 "+x+"이 먼저입니다.",
-        "제가 "+focus+"에서 신경 쓰는 것은 "+x+" 쪽입니다.",
-        focus+"만 놓고 보면 "+x+"부터 확인하는 것이 맞습니다."
+        topic+"에서 제가 가장 먼저 보는 것은 "+x+" 쪽입니다.",
+        x+"부터 보면 "+topic+"는 생각보다 판단이 빨라집니다.",
+        topic+"는 "+x+"을 빼고 설명하면 오히려 이상합니다.",
+        "굳이 하나만 꼽자면 "+topic+"에서는 "+x+"이 먼저입니다.",
+        "제가 "+topic+"에서 신경 쓰는 것은 "+x+" 쪽입니다.",
+        topic+"만 놓고 보면 "+x+"부터 확인하는 것이 맞습니다."
       ],
       joke:[
-        focus+" 건은 "+x+" 정도만 남겨두고 웃어도 되겠군요.",
-        "지나치게 무겁게 갈 것 없이 "+focus+"에서는 "+x+"만 챙기죠.",
-        focus+" 이야기까지 거창해질 필요는 없습니다. "+x+"이면 충분합니다.",
-        x+" 정도는 보고, "+focus+" 나머지는 가볍게 넘겨도 되겠지요.",
-        focus+" 건은 진지함보다 "+x+" 쪽이 더 실용적입니다.",
-        "이 정도면 "+focus+"은 "+x+"만 기억하고 넘어가도 되겠습니다."
+        topic+"는 "+x+" 정도만 남겨두고 웃어도 되겠군요.",
+        "지나치게 무겁게 갈 것 없이 "+topic+"에서는 "+x+"만 챙기죠.",
+        topic+"까지 거창해질 필요는 없습니다. "+x+"이면 충분합니다.",
+        x+" 정도는 보고 나머지는 가볍게 넘겨도 되겠지요.",
+        topic+"는 진지함보다 "+x+" 쪽이 더 실용적입니다.",
+        "이 정도면 "+topic+"는 "+x+"만 기억하고 넘어가도 되겠습니다."
       ],
       shift:[
-        focus+" 이야기는 여기서 두죠.",
-        "그럼 "+focus+" 쪽은 이쯤 접겠습니다.",
-        "오늘은 "+focus+" 정도면 충분합니다.",
-        focus+" 건은 필요하면 나중에 다시 이야기하죠.",
-        "이쯤에서 "+focus+" 이야기는 마쳐도 되겠군요.",
-        "더 붙잡지 말고 "+focus+"은 여기 두겠습니다."
+        topic+"는 여기서 두죠.",
+        "그럼 "+topic+"는 이쯤 접겠습니다.",
+        "오늘은 "+topic+" 정도면 충분합니다.",
+        topic+"는 필요하면 나중에 다시 이야기하죠.",
+        "이쯤에서 "+topic+"는 마쳐도 되겠군요.",
+        "더 붙잡지 말고 "+topic+"는 여기 두겠습니다."
       ]
     };
     const archaic={
       agree:[
-        focus+" 건은 "+x+" 정도만 챙겨도 충분하오.",
-        x+"부터 보는 편이 "+focus+"에서는 가장 현실적이겠구려.",
-        focus+"만 놓고 보면 나는 "+x+" 쪽에 더 무게를 두오.",
-        "적어도 "+focus+" 이야기에서는 "+x+"을 놓치면 안 되오.",
-        focus+" 건은 복잡하게 갈 것 없이 "+x+"이면 방향이 보이오.",
-        "나는 "+focus+" 쪽에서는 "+x+"부터 확인하는 편이오."
+        topic+"라면 "+x+" 정도만 챙겨도 충분하오.",
+        topic+" 쪽은 "+x+"부터 보는 편이 가장 현실적이겠구려.",
+        "나는 "+topic+"에서는 "+x+" 쪽에 더 무게를 두오.",
+        "적어도 "+topic+"만큼은 "+x+"을 놓치면 안 되오.",
+        topic+"는 더 복잡히 만들 필요가 없소. "+x+"이면 방향이 보이오.",
+        x+"부터 확인하는 편이 "+topic+"에서는 가장 빠르겠소."
       ],
       probe:[
-        focus+"에서 내가 가장 먼저 보는 것은 "+x+" 쪽이오.",
-        x+"부터 보면 "+focus+"은 생각보다 판단이 빠르오.",
-        focus+" 건은 "+x+"을 빼고 설명하면 오히려 이상하오.",
-        "굳이 하나만 꼽자면 "+focus+"에서는 "+x+"이 먼저요.",
-        "내가 "+focus+"에서 신경 쓰는 것은 "+x+" 쪽이오.",
-        focus+"만 놓고 보면 "+x+"부터 확인하는 것이 맞소."
+        topic+"에서 내가 가장 먼저 보는 것은 "+x+" 쪽이오.",
+        x+"부터 보면 "+topic+"는 생각보다 판단이 빠르오.",
+        topic+"는 "+x+"을 빼고 설명하면 오히려 이상하오.",
+        "굳이 하나만 꼽자면 "+topic+"에서는 "+x+"이 먼저요.",
+        "내가 "+topic+"에서 신경 쓰는 것은 "+x+" 쪽이오.",
+        topic+"만 놓고 보면 "+x+"부터 확인하는 것이 맞소."
       ],
       joke:[
-        focus+" 건은 "+x+" 정도만 남겨두고 웃어도 되겠구려.",
-        "지나치게 무겁게 갈 것 없이 "+focus+"에서는 "+x+"만 챙기지.",
-        focus+" 이야기까지 거창해질 필요는 없소. "+x+"이면 충분하오.",
-        x+" 정도는 보고, "+focus+" 나머지는 가볍게 넘겨도 되오.",
-        focus+" 건은 진지함보다 "+x+" 쪽이 더 쓸모 있소.",
-        "이 정도면 "+focus+"은 "+x+"만 기억하고 넘어가도 되겠구려."
+        topic+"는 "+x+" 정도만 남겨두고 웃어도 되겠구려.",
+        "지나치게 무겁게 갈 것 없이 "+topic+"에서는 "+x+"만 챙기지.",
+        topic+"까지 거창해질 필요는 없소. "+x+"이면 충분하오.",
+        x+" 정도는 보고 나머지는 가볍게 넘겨도 되오.",
+        topic+"는 진지함보다 "+x+" 쪽이 더 쓸모 있소.",
+        "이 정도면 "+topic+"는 "+x+"만 기억하고 넘어가도 되겠구려."
       ],
       shift:[
-        focus+" 이야기는 여기서 두지.",
-        "그럼 "+focus+" 쪽은 이쯤 접겠소.",
-        "오늘은 "+focus+" 정도면 충분하오.",
-        focus+" 건은 필요하면 나중에 다시 말하지.",
-        "이쯤에서 "+focus+" 이야기는 마쳐도 되겠구려.",
-        "더 붙잡지 말고 "+focus+"은 여기 두겠소."
+        topic+"는 여기서 두지.",
+        "그럼 "+topic+"는 이쯤 접겠소.",
+        "오늘은 "+topic+" 정도면 충분하오.",
+        topic+"는 필요하면 나중에 다시 말하지.",
+        "이쯤에서 "+topic+"는 마쳐도 되겠구려.",
+        "더 붙잡지 말고 "+topic+"는 여기 두겠소."
       ]
     };
     const bank=(r==="formal"?formal:r==="archaic"?archaic:casual)[kind]||casual.agree;
@@ -1945,10 +1946,7 @@
     if(kind==="shift")return voiceGeneral(c,t,"shift",high,x,key);
 
     // agree / neutral
-    if(personal){
-      if(high)return deflectFor(c,true,key)+" 굳이 더 캐지 않고 그 정도로 받아주는 건 편하네. 내가 먼저 꺼낸 말이어도, 거기서 멈춰주는 사람이 있다는 건 꽤 큰 차이거든.";
-      return deflectFor(c,false,key)+" 그래도 괜히 더 캐묻지 않고 넘어가는 건 마음에 들어. 그 정도면 충분해.";
-    }
+    if(personal)return voiceGeneral(c,t,"shift",high,x,key+"personal-boundary");
     return voiceGeneral(c,t,"agree",high,x,key);
   };
 
@@ -3004,9 +3002,33 @@
     return event;
   };
 
+  const splitEventDialogues=event=>{
+    const walk=entries=>{
+      const out=[];
+      for(const entry of entries||[]){
+        if(entry?.type==="choice"){
+          entry.options=(entry.options||[]).map(option=>({...option,entries:walk(option.entries||[])}));
+          out.push(entry);
+          continue;
+        }
+        if(entry?.type==="dialogue"&&String(entry.text||"").length>78){
+          const parts=splitLongText(entry.text);
+          parts.forEach((part,index)=>{
+            out.push({...entry,id:String(entry.id||"dialogue")+"-split-"+(index+1),text:part});
+          });
+          continue;
+        }
+        out.push(entry);
+      }
+      return out;
+    };
+    event.entries=walk(event.entries||[]);
+    return event;
+  };
+
   window.HV_STORY_PACKS ||= [];
   for(const c of PFS){
     const list=chosen(c);
-    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:45,requiredCharacterIds:[c.id],events:list.map((t,n)=>uniqueDialogueEvent(c,t,make(c,t,n)))});
+    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:46,requiredCharacterIds:[c.id],events:list.map((t,n)=>splitEventDialogues(uniqueDialogueEvent(c,t,make(c,t,n))))});
   }
 })();
