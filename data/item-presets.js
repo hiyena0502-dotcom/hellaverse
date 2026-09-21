@@ -140,7 +140,7 @@
     const owner=String(item.collectionCharacterId||"");
     if(!rel||!owner)return current;
     if(rel.dislike?.includes(owner)&&PREF_RANK[current]>PREF_RANK.DISLIKED)return"DISLIKED";
-    if(rel.love?.includes(owner)){
+    if(rel.love?.includes(owner)&&PREF_RANK[current]>=PREF_RANK.NEUTRAL){
       const sentimentalOwner=sentimental.test(item.name)||item.rarity==="LEGENDARY"||item.rarity==="MISTIC";
       const floor=sentimentalOwner?"LOVED":"LIKED";
       if(PREF_RANK[current]<PREF_RANK[floor])return floor;
