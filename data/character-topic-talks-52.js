@@ -797,10 +797,24 @@
   };
 
   const playerLine=(c,t,kind,key)=>{
-    if(kind==="probe")return probeQuestion(c,t,key);
-    if(kind==="joke")return pick(["그럼 웃고 넘겨요.","너무 진지하게 가진 말죠.","그 정도면 됐네요."],key);
-    if(kind==="shift")return pick(["그럼 다른 얘기해요.","됐어요. 넘어가죠.","이 얘긴 여기까지 해요."],key);
-    return pick(["그건 맞는 것 같아요.","그럴 수도 있겠네요.","음, 이해돼요.","그건 좀 알겠어요."],key);
+    if(kind==="probe"){
+      const ts=tags(t);
+      const pools={
+        heaven:["천국에서는요?","천국 얘기인가요?","그건 왜요?"],
+        extermination:["그때는요?","그건 왜요?","그때 무슨 일이요?"],
+        family:["가족 얘기인가요?","그건 왜요?","누구 생각났어요?"],
+        past:["예전에는요?","그건 왜요?","무슨 일이 있었어요?"],
+        soul:["계약 때문인가요?","그건 왜요?","계약 얘기인가요?"],
+        romance:["누구 생각났어요?","그건 왜요?","그런가요?"],
+        trust:["왜요?","그건 왜요?","그렇게 생각해요?"],
+        selfworth:["왜요?","그런가요?","그건 왜요?"]
+      };
+      const tag=["heaven","extermination","family","past","soul","romance","trust","selfworth"].find(x=>ts.includes(x));
+      return pick(tag?pools[tag]:["왜요?","그건 왜요?","조금 궁금해요."],key);
+    }
+    if(kind==="joke")return pick(["하긴요.","그렇네요.","그러게요."],key);
+    if(kind==="shift")return pick(["알겠어요.","그럼 넘어가요.","좋아요."],key);
+    return pick(["그렇군요.","그럴 수도 있겠네요.","음, 그렇네요.","알겠어요."],key);
   };
 
   const splitLongText=text=>{
@@ -857,14 +871,14 @@
   };
 
   const followPlayer=(c,t,firstKind,nextKind,key)=>{
-    if(nextKind==="backoff")return pick(["알겠어요. 더 안 물어볼게요.","됐어요. 여기까지만 들을게요.","그럼 거기까지만 해요."],key);
+    if(nextKind==="backoff")return pick(["알겠어요.","그럼 여기까지요.","더 안 물어볼게요."],key);
     if(nextKind==="push"){
-      if(c.id==="alastor")return pick(["그래도 먼저 얘기 꺼낸 건 당신이잖아요.","그럼 왜 먼저 그 얘길 꺼냈어요?"],key);
-      if(c.id==="lucifer-morningstar")return pick(["그래도 먼저 말한 건 당신이잖아요.","그럼 왜 먼저 얘기한 거예요?"],key);
-      return pick(["그래도 조금 궁금한데요.","그 말은 좀 더 듣고 싶어요.","딱 하나만 더 물어볼게요."],key);
+      if(c.id==="alastor")return pick(["그래도 궁금한데요.","그럼 왜 꺼냈어요?","조금만 더요."],key);
+      if(c.id==="lucifer-morningstar")return pick(["그래도 궁금한데요.","그럼 왜 말했어요?","조금만 더요."],key);
+      return pick(["조금만 더요.","그래도 궁금해요.","한 가지만 더요."],key);
     }
-    if(nextKind==="joke")return pick(["그럼 진짜 웃고 넘겨요.","알겠어요. 농담으로 끝내죠.","그럼 이건 가볍게 끝내요."],key);
-    return pick(["그럼 다른 얘기해요.","됐어요. 이제 넘어가요.","좋아요. 여기서 끝내죠."],key);
+    if(nextKind==="joke")return pick(["그러게요.","하긴요.","그렇네요."],key);
+    return pick(["알겠어요.","그럼 넘어가요.","좋아요."],key);
   };
 
   const followResponse=(c,t,firstKind,nextKind,high,key)=>{
@@ -932,13 +946,13 @@
     });
     const options=firstKind==="probe"
       ?[
-        makeOpt("backoff","더 안 묻는다","backoff"),
-        makeOpt("push","한마디 더 묻는다","push"),
-        makeOpt("shift","화제를 바꾼다","shift")
+        makeOpt("backoff","여기서 멈춘다","backoff"),
+        makeOpt("push","조금 더 묻는다","push"),
+        makeOpt("shift","다른 얘기로 돌린다","shift")
       ]
       :[
-        makeOpt("joke","한번 더 받아친다","joke"),
-        makeOpt("push","조금 더 말한다","push"),
+        makeOpt("joke","가볍게 받아친다","joke"),
+        makeOpt("push","조금 더 이어간다","push"),
         makeOpt("shift","여기서 끝낸다","shift")
       ];
     return CH(id+"-follow-choice","이어서 어떻게 할까?",options);
@@ -962,10 +976,10 @@
       return {id:id+"-opt-"+suffix,label:label,entries:entries};
     };
     const opts=[
-      option("agree","맞장구친다","agree"),
-      option("joke","가볍게 넘긴다","joke"),
-      option("probe","더 물어본다","probe"),
-      option("shift","화제를 돌린다","shift")
+      option("agree","고개를 끄덕인다","agree"),
+      option("joke","가볍게 받아친다","joke"),
+      option("probe","이유를 묻는다","probe"),
+      option("shift","다른 얘기로 돌린다","shift")
     ];
     return CH(id+"-choice","뭐라고 답할까?",opts,cond?{affectionCondition:cond}:{});
   };
@@ -998,6 +1012,6 @@
   window.HV_STORY_PACKS ||= [];
   for(const c of PFS){
     const list=chosen(c);
-    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:12,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
+    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:13,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
   }
 })();
