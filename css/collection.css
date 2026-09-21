@@ -45,3 +45,13 @@
 .rarity-RARE{border-color:rgba(160,190,220,.28)}
 .rarity-EPIC{border-color:rgba(167,45,72,.45)}
 .rarity-LEGENDARY,.rarity-MISTIC{border-color:rgba(201,166,107,.48)}
+
+
+/* v38 · item emoji + gacha reveal */
+.collection-card{min-height:220px}
+.collection-item-icon{position:absolute;top:12px;left:14px;font-size:1.55rem;line-height:1}
+.collection-gacha-line{padding-top:8px;border-top:1px dashed var(--line);display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.collection-gacha-line span{display:block;margin-bottom:4px;color:var(--gold);font-size:.58rem;letter-spacing:.1em}
+.collection-gacha-reveal{margin:14px 0;padding:13px 14px;border-left:2px solid var(--gold);background:rgba(201,166,107,.05)}
+.collection-gacha-reveal small{color:var(--gold);font-size:.62rem;letter-spacing:.12em}
+.collection-gacha-reveal p{margin:7px 0 0;white-space:pre-wrap;line-height:1.65}
