@@ -280,3 +280,8 @@
   .room-actions .mobile-set{display:block}
   .room-control-bar [data-action="open-play-settings"]{display:none}
 }
+
+
+/* v38 · inventory reveal */
+.inventory-gacha-line{margin-top:12px!important;padding-top:10px;border-top:1px dashed var(--line);color:var(--text)!important;font-size:.72rem!important;line-height:1.55!important}
+.inventory-gacha-line b{display:block;margin-bottom:5px;color:var(--gold);font-size:.58rem;letter-spacing:.12em}
