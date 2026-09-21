@@ -46,6 +46,24 @@ function entryEventsForCharacter(charId, source=state){return source.events.filt
 function exitEventsForCharacter(charId, source=state){return source.events.filter(e=>e.characterId===charId&&isExitEvent(e))}
 function variableById(id,source=state){return source.variables.find(v=>v.id===id)||null}
 function itemById(id,source=state){return source.items.find(i=>i.id===id)||null}
+function itemEmoji(item){
+  if(!item)return "🎁";
+  return String(item.symbol||window.HV_ITEM_ARCHIVE_META?.[item.id]?.symbol||"🎁");
+}
+function itemGachaLine(item){
+  if(!item)return "";
+  return String(item.gachaLine||window.HV_ITEM_ARCHIVE_META?.[item.id]?.gachaLine||"");
+}
+function gachaProfileForCharacter(characterId,source=state){
+  const character=getCharacter(characterId,source);
+  const profile=window.HV_GACHA_PROFILES?.[characterId];
+  if(profile)return{
+    icon:String(profile.icon||"🎴"),
+    title:String(profile.title||(character?.name||"CHARACTER")+" GACHA"),
+    description:String(profile.description||"")
+  };
+  return character?{icon:"🎴",title:character.name+" GACHA",description:character.name+"의 컬렉션 아카이브."}:null;
+}
 function itemCount(id,source=state){return Math.max(0,Number(source.inventoryCounts?.[id])||0)}
 function hasEverAcquired(id,source=state){
   return itemCount(id,source)>0 || (source.itemHistory||[]).some(h=>h?.itemId===id&&Number(h.amount)>0);
@@ -82,7 +100,7 @@ function showItemAcquired(item,count,sourceType,isNew){
   const host=document.createElement("div");
   host.className="item-acquire-toast";
   host.innerHTML='<span class="item-acquire-kicker">'+esc(isNew?"NEW ITEM":"ITEM ACQUIRED")+'</span>'+
-    '<strong>'+esc(item.name)+'</strong>'+
+    '<strong>'+esc(itemEmoji(item))+' '+esc(item.name)+'</strong>'+
     '<small>'+esc(item.rarity)+' · '+esc(sourceType)+' · ×'+count+'</small>';
   document.body.appendChild(host);
   setTimeout(()=>host.classList.add("show"),20);
