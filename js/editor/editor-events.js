@@ -243,6 +243,11 @@ pageRoot.addEventListener("change",e=>{
     startDialogue(selectedCharacterId,t.value);
     return;
   }
+  if(t.dataset.gachaControl==="profile"){
+    gachaProfileCharacterId=t.value;
+    renderGacha();
+    return;
+  }
   if(t.dataset.collectionControl){
     const k=t.dataset.collectionControl;
     if(k==="rarity")collectionRarity=t.value;
