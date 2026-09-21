@@ -256,6 +256,39 @@ assert.equal(entryRoleCheck.entryRole,"entry","ENTRY name must normalize to entr
 assert.equal(entryRoleCheck.entryVisible,false,"ENTRY must be hidden from TALK menus");
 assert.deepEqual([...entryRoleCheck.talkIds],["talk-one"],"ENTRY must not remain in normal TALK candidates");
 
+const entryFlowCheck=vm.runInContext(`
+(()=>{
+  state=normalizeState({
+    schemaVersion:4,
+    characters:[{id:"entry-room",name:"Entry Room",origin:"sinner"}],
+    events:[
+      {id:"entry-room-intro",name:"ENTRY · Hello",characterId:"entry-room",entries:[{id:"eri",type:"dialogue",text:"entry"}]},
+      {id:"entry-room-talk-a",name:"TALK · A",characterId:"entry-room",entries:[{id:"erta",type:"dialogue",text:"a"}]},
+      {id:"entry-room-talk-b",name:"TALK · B",characterId:"entry-room",entries:[{id:"ertb",type:"dialogue",text:"b"}]}
+    ]
+  });
+  session={variables:{},affection:{},emotions:{},log:[],recentTalks:{}};
+  currentPage="characters";
+  selectedCharacterId="";
+  startDialogue("entry-room");
+  const first={id:playback.eventId,label:playback.frames[0].label};
+  playback.frames[0].index=1;
+  finishEvent();
+  const second=playback.eventId;
+  const nextIds=[];
+  for(let i=0;i<4;i++){
+    playback.frames[0].index=frameEntries(playback.frames[0]).length;
+    finishEvent();
+    nextIds.push(playback.eventId);
+  }
+  return{first,second,nextIds};
+})()
+`,context);
+assert.equal(entryFlowCheck.first.id,"entry-room-intro","entering a room must start with ENTRY when available");
+assert.equal(entryFlowCheck.first.label,"ENTRY","room ENTRY must be labeled ENTRY");
+assert.ok(["entry-room-talk-a","entry-room-talk-b"].includes(entryFlowCheck.second),"ENTRY completion must continue into normal TALK");
+assert.ok(entryFlowCheck.nextIds.every(id=>id!=="entry-room-intro"),"ENTRY must never reappear during the same room session");
+
 const result=vm.runInContext(`
 (()=>{
   const source=defaultState();
