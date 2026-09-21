@@ -203,18 +203,25 @@ function normalizeEntry(entry={}){
 
 function eventRoleOf(event={}){
   const explicit=String(event.eventRole||event.role||"").trim().toLowerCase();
+  const id=String(event.id||"");
+  const name=String(event.name||"");
+  const legacyActionId=/(?:^|-)act(?:-|\d|$)/i.test(id)||/(?:^|-)action(?:-|\d|$)/i.test(id);
   if(explicit==="exit")return"exit";
   if(explicit==="entry")return"entry";
   if(explicit==="story")return"story";
-  const name=String(event.name||"");
+  if(explicit==="action")return"action";
   if(/^\s*EXIT(?:\s*[·:|\-]|\s|$)/i.test(name))return"exit";
   if(/^\s*ENTRY(?:\s*[·:|\-]|\s|$)/i.test(name))return"entry";
+  if(/^\s*ACTION(?:\s*[·:|\-]|\s|$)/i.test(name))return"action";
+  if(explicit==="talk"&&legacyActionId)return"action";
+  if(!explicit&&legacyActionId)return"action";
   if(event.menuVisible===false)return"story";
   return"talk";
 }
 function isExitEvent(event){return eventRoleOf(event)==="exit"}
 function isEntryEvent(event){return eventRoleOf(event)==="entry"}
 function isStoryEvent(event){return eventRoleOf(event)==="story"}
+function isActionEvent(event){return eventRoleOf(event)==="action"}
 function normalizeEvent(e={}){
   const id=e.id||uid("event");
   const rawContinuation=Array.isArray(e.continuationEventIds)
@@ -227,7 +234,7 @@ function normalizeEvent(e={}){
     name:e.name||"새 이벤트",
     characterId:e.characterId||"",
     eventRole,
-    menuVisible:eventRole==="talk"?e.menuVisible!==false:false,
+    menuVisible:["talk","action"].includes(eventRole)?e.menuVisible!==false:false,
     continuationEventIds,
     emotionExitMode:e.emotionExitMode==="reset"?"reset":"keep",
     entries:Array.isArray(e.entries)?e.entries.map(normalizeEntry):[]
@@ -631,12 +638,14 @@ function migrateLegacyBackup(raw){
       asks.push(ask);
     }else{
       const legacyKind=String(dialogue.kind||"TALK").toUpperCase();
+      const legacySceneRole=String(dialogue.sceneRole||"").toUpperCase();
+      const legacyEventRole=legacyKind==="EXIT"?"exit":legacyKind==="ENTRY"?"entry":legacySceneRole==="ACTION"?"action":"talk";
       events.push({
         id:String(dialogue.id),
-        name:String((dialogue.kind||"TALK")+" · "+(dialogue.title||dialogue.id)),
+        name:String((legacySceneRole==="ACTION"?"ACTION":(dialogue.kind||"TALK"))+" · "+(dialogue.title||dialogue.id)),
         characterId:String(dialogue.characterId),
-        eventRole:legacyKind==="EXIT"?"exit":"talk",
-        menuVisible:legacyKind!=="EXIT",
+        eventRole:legacyEventRole,
+        menuVisible:["talk","action"].includes(legacyEventRole),
         continuationEventIds:[],
         emotionExitMode:"keep",
         entries
@@ -1194,7 +1203,7 @@ function compactEventForStorage(event={}){
   if(Array.isArray(event.continuationEventIds)&&event.continuationEventIds.length){
     out.continuationEventIds=[...event.continuationEventIds];
   }
-  if(["exit","entry","story"].includes(event.eventRole))out.eventRole=event.eventRole;
+  if(["exit","entry","story","action"].includes(event.eventRole))out.eventRole=event.eventRole;
   if(event.menuVisible===false)out.menuVisible=false;
   if(event.emotionExitMode==="reset")out.emotionExitMode="reset";
   return out;
