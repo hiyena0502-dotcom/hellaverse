@@ -110,7 +110,7 @@ const allSoloCharacterLines=[];
 for(const pack of soloTalkPacks){
   const characterId=pack.requiredCharacterIds?.[0]||"";
   assert.equal((pack.events||[]).length,7,pack.id+" must contain seven curated theme scenes");
-  assert.equal(pack.version,5,pack.id+" must replace filler solo dialogue in existing saves");
+  assert.equal(pack.version,6,pack.id+" must replace generic moment-template solo dialogue in existing saves");
   const characterLines=[];
   const choicePrompts=[];
   const choiceLabels=[];
@@ -119,6 +119,10 @@ for(const pack of soloTalkPacks){
     assert.ok(!soloEventIds.has(event.id),event.id+" must be globally unique");
     soloEventIds.add(event.id);
     assert.equal(event.entries.filter(entry=>entry.type==="choice").length,1,event.id+" must present interaction as a choice");
+    const opening=String(event.entries?.[0]?.text||"").trim();
+    assert.ok(opening.length>0,event.id+" must begin with a visible situation");
+    assert.ok([...opening].length<=70,event.id+" opening narration is too long");
+    assert.ok(!/이라는 말에|그 말|그 질문|그 얘기|아까 했던|방금 말/.test(opening),event.id+" opening narration must not depend on missing prior dialogue");
     const playerLines=[];
     walkEntries(event.entries,entry=>{if(entry.type==="dialogue"&&entry.speaker==="PLAYER")playerLines.push(entry)});
     assert.equal(playerLines.length,0,event.id+" must not play direct PLAYER dialogue pages");
@@ -164,6 +168,7 @@ assert.ok(!allSoloCharacterLines.some(line=>line.includes("분위기를 읽는 �
 assert.ok(!allSoloCharacterLines.some(line=>line.includes("이 정도 설명이면 호기심은 잠시 달랠 수 있겠지요")),"shared elegant closer must not return");
 assert.ok(!allSoloCharacterLines.some(line=>line.includes("밤이 지나기 전")&&line.includes("내 방식으로 마무리")),"shared night closer must not return");
 assert.ok(!soloTalkCode.includes("ACTIVE_TAILS"),"shared solo TALK tail templates must be removed");
+assert.ok(!soloTalkCode.includes("MOMENTS"),"generic solo TALK moment templates must be removed");
 assert.ok(!soloTalkCode.includes("compactTail"),"three-part solo TALK composition must be removed");
 assert.match(soloTalkCode,/STYLE_BY_CHARACTER/,"solo TALK must preserve character-specific voice styles");
 assert.ok(!soloTalkCode.includes("천박한 건 좋아하지만 무례한 건 질색이라서"),"repeated Asmodeus etiquette sentence must be removed");
@@ -744,30 +749,64 @@ assert.match(legacyDialogueLocalizationCheck.luciferOpening,/호텔 업무 메�
 assert.ok(!legacyDialogueLocalizationCheck.luciferOpening.includes("이라는 말에"),"rewritten Lucifer opening must not depend on missing prior dialogue");
 assert.equal(legacyDialogueLocalizationCheck.version,12,"dialogue tuning migration version missing");
 
-const staleCharacterRefRepairCheck=vm.runInContext(`
+const characterEventPackSnapshot=vm.runInContext(`
+(window.HV_STORY_PACKS||[])
+  .filter(pack=>String(pack.id||"").startsWith("voice-events-"))
+  .map(pack=>({
+    id:pack.id,
+    refs:pack.characterRefs||{},
+    events:pack.events||[]
+  }))
+`,context);
+const fullLegacyRefRepairCheck=vm.runInContext(`
 (()=>{
+  const packs=${JSON.stringify(characterEventPackSnapshot)};
+  const characterRows=[];
+  const events=[];
+  for(const pack of packs){
+    for(const [token,aliases] of Object.entries(pack.refs||{})){
+      const preferred=(aliases||[]).find(value=>String(value).includes("-"))||(aliases||[])[0];
+      if(!preferred)continue;
+      if(!characterRows.some(row=>row.id===preferred))characterRows.push({id:preferred,name:preferred,origin:"hellborn"});
+      for(const sourceEvent of pack.events||[]){
+        events.push({
+          ...sourceEvent,
+          characterId:token,
+          entries:(sourceEvent.entries||[]).map(entry=>entry.type==="dialogue"
+            ? {...entry,speakerCharacterId:token}
+            : entry
+          )
+        });
+      }
+    }
+  }
   const source=normalizeState({
     schemaVersion:4,
     dialoguePresetVersion:11,
-    characters:[{id:"angel-dust",name:"Angel Dust",origin:"sinner"}],
-    events:[
-      {id:"voice-angel-legacy",name:"TALK · 화장대 앞",characterId:"$ANGEL",entries:[
-        {id:"legacy-speaker",type:"dialogue",speakerCharacterId:"$ANGEL",speaker:"ANGEL DUST",text:"테스트"}
-      ]}
-    ]
+    characters:characterRows,
+    events
   });
   const result=window.HV_APPLY_DIALOGUE_PRESETS(source,{normalizeEntry,normalizeEvent,normalizeVariable,normalizeItemEffects}).state;
-  const repaired=result.events.find(event=>event.id==="voice-angel-legacy");
-  return{
-    eventCharacterId:repaired?.characterId||"",
-    speakerCharacterId:repaired?.entries?.[0]?.speakerCharacterId||"",
-    version:result.dialoguePresetVersion
+  const ids=new Set(result.characters.map(character=>character.id));
+  const bad=[];
+  const visit=entries=>{
+    for(const entry of entries||[]){
+      if(entry.speakerCharacterId&&!ids.has(entry.speakerCharacterId))bad.push(entry.speakerCharacterId);
+      if(entry.affectionCondition?.characterId&&!ids.has(entry.affectionCondition.characterId))bad.push(entry.affectionCondition.characterId);
+      if(entry.emotionCondition?.characterId&&!ids.has(entry.emotionCondition.characterId))bad.push(entry.emotionCondition.characterId);
+      if(entry.type==="choice")for(const option of entry.options||[])visit(option.entries);
+    }
   };
+  for(const event of result.events||[]){
+    if(!ids.has(event.characterId))bad.push(event.characterId);
+    visit(event.entries);
+  }
+  return{bad,total:result.events.length,version:result.dialoguePresetVersion};
 })()
 `,context);
-assert.equal(staleCharacterRefRepairCheck.eventCharacterId,"angel-dust","legacy voice event character token must be repaired");
-assert.equal(staleCharacterRefRepairCheck.speakerCharacterId,"angel-dust","legacy voice speaker token must be repaired");
-assert.equal(staleCharacterRefRepairCheck.version,12,"character-ref repair must advance dialogue preset version");
+assert.equal(fullLegacyRefRepairCheck.total,48,"all legacy voice events must be included in the repair fixture");
+assert.deepEqual(fullLegacyRefRepairCheck.bad,[],"all legacy voice event character references must be repaired");
+assert.equal(fullLegacyRefRepairCheck.version,12,"full character-ref repair must advance dialogue preset version");
 
 const storyPackCountBeforeTuning=context.window.HV_STORY_PACKS.length;
 context.window.HV_STORY_PACKS.push(...structuredClone(relationshipPacks));
