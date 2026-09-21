@@ -447,15 +447,27 @@
   const sceneSetup=(char,theme,index)=>{
     const object=theme[1];
     const lines=[
-      `${char.display} 앞에는 ${object}이(가) 펼쳐져 있다. 한동안 시선이 거기서 떠나지 않는다.`,
-      `${char.display} 손에는 ${object}이(가) 들려 있다. 상태를 확인하던 손길이 네가 오자 잠깐 멈춘다.`,
-      `${char.display} 옆에는 ${object}이(가) 따로 놓여 있다. 다른 물건과 섞이지 않게 챙겨둔 모양이다.`,
-      `${char.display}가 ${object}을(를) 정리하다 네 시선을 알아차린다. 바로 치우지는 않는다.`,
-      `${char.display}가 ${object}을(를) 제자리에 두려다 다시 손에 든다. 생각이 바뀐 듯하다.`,
-      `${char.display} 앞의 ${object}에는 손본 흔적이 남아 있다. 아직 마무리할 부분이 조금 보인다.`,
-      `${char.display}가 ${object}을(를) 가까이에 남겨둔 채 다른 일을 하고 있다. 치울 생각은 없어 보인다.`
+      `${char.display} 앞에 ${object}이(가) 놓여 있다. 한동안 시선이 거기서 떠나지 않는다.`,
+      `${char.display}가 ${object}을(를) 한참 살펴보다 네가 오자 시선을 든다.`,
+      `${object}이(가) 다른 것들과 떨어져 따로 놓여 있다. ${char.display}가 일부러 챙겨둔 듯하다.`,
+      `${char.display}가 ${object} 주변을 정리하다 네 시선을 알아차린다.`,
+      `${char.display}가 ${object}에서 손을 떼려다 다시 시선을 돌린다.`,
+      `${object}에는 방금 확인한 흔적이 남아 있다. ${char.display}는 아직 자리를 뜨지 않는다.`,
+      `${char.display}가 ${object}을(를) 그대로 둔 채 다른 일을 하고 있다.`
     ];
     return naturalize(lines[index%lines.length],theme,char);
+  };
+  const choicePrompt=(char,theme,index)=>{
+    const prompts=[
+      `${theme[0]}을(를) 보고 어떻게 반응할까?`,
+      `${theme[0]}을(를) 살피는 ${char.display}에게 어떻게 할까?`,
+      `${theme[0]} 이야기를 꺼내볼까?`,
+      `지금은 돕는 편이 좋을까?`,
+      `${theme[0]}에 다시 시선이 간 이유를 물을까?`,
+      `${theme[0]}을(를) 확인하는 일을 도울까?`,
+      `${theme[0]}을(를) 그대로 둔 이유를 물을까?`
+    ];
+    return naturalize(prompts[index%prompts.length],theme,char);
   };
   const choiceLabels=(char,theme,index)=>{
     const labels=[
@@ -484,7 +496,7 @@
       randomEligible:true,
       entries:[
         N(base+"-n",sceneSetup(char,theme,themeIndex)),
-        Q(base+"-choice",`${theme[0]} 앞에서 어떻게 반응할까?`,[
+        Q(base+"-choice",choicePrompt(char,theme,themeIndex),[
           {
             id:base+"-active",
             label:labels[0],
