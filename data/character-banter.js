@@ -276,7 +276,7 @@
   for(const char of C){
     window.HV_STORY_PACKS.push({
       id:"character-banter-"+slug(char.id),
-      version:2,
+      version:3,
       requiredCharacterIds:[char.id],
       events:[makeEvent(char)],
       asks:char.asks.map((ask,index)=>makeAsk(char,ask,index))
