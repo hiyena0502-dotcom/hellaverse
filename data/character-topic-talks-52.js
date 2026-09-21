@@ -602,7 +602,7 @@
       "굳이 진지해지지 말고 "+name+"식 답이면 돼요.",
       "그냥 "+name+" 반응이 궁금했던 거예요.",
       "딱 한마디만요. "+name+"답게.",
-      "오늘은 가볍게요. "+name+"이면 어떻게 할지만."
+      "오늘은 가볍게요. "+name+"라면 어떻게 할지만."
     ][n];
   };
 
@@ -621,8 +621,8 @@
     if(personal){
       lo1=deflectFor(c,false,id+"dl")+" "+topicTail(c,t.title,id+"dtl");
       hi1=deflectFor(c,true,id+"dh")+" "+topicTail(c,t.title,id+"dth");
-      lo2=topicTail(c,t.title,id+"dtl2")+" "+(register(c)==="formal"?"그럼 다른 이야기로 넘어가죠.":register(c)==="archaic"?"그럼 다른 화제로 돌리세.":"그럼 다른 얘기 하자.");
-      hi2=topicTail(c,t.title,id+"dth2")+" "+(register(c)==="formal"?"당신이 이해했다면 그걸로 충분합니다.":register(c)==="archaic"?"그대가 알아들었다면 그것으로 충분하오.":"네가 알아들었으면 그걸로 됐어.");
+      lo2=topicTail(c,t.title,id+"dtl2")+" "+deflectFor(c,false,id+"dl3");
+      hi2=topicTail(c,t.title,id+"dth2")+" "+deflectFor(c,true,id+"dh3");
     }else{
       const reg=register(c),stag=surfaceTag(t),x=pick(SURFACE_X[stag]||SURFACE_X.hellsociety,id+"sx");
       const set=reg==="formal"?LIGHT_FORMAL:reg==="archaic"?LIGHT_ARCHAIC:LIGHT_CASUAL;
@@ -659,6 +659,6 @@
   window.HV_STORY_PACKS ||= [];
   for(const c of PFS){
     const list=chosen(c);
-    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:6,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
+    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:7,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
   }
 })();
