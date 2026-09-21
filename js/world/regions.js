@@ -286,9 +286,12 @@
 
   function characterSceneConfig(character){
     const hotel=readHotelCharacterSettings();
-    const cfg=hotel.characterWorld?.[character.id] || {};
+    const cfg=window.HV_WORLD_SETTINGS?.character
+      ? window.HV_WORLD_SETTINGS.character(character,hotel)
+      : (hotel.characterWorld?.[character.id] || {});
     return {
       visible:cfg.visible!==false,
+      regionIds:Array.isArray(cfg.regionIds)?cfg.regionIds:regions().map(region=>region.id),
       image:String(cfg.image||character.image||"").trim(),
       scale:Math.max(.6,Math.min(1.55,Number(cfg.scale)||1)),
       movement:["still","calm","wander","active"].includes(cfg.movement)?cfg.movement:"wander",
@@ -303,7 +306,10 @@
     const manual=hotel.autoResidents===false;
     const residentIds=Array.isArray(hotel.residentIds)?hotel.residentIds:[];
     return enabledCharacters()
-      .filter(character=>characterSceneConfig(character).visible)
+      .filter(character=>{
+        const cfg=characterSceneConfig(character);
+        return cfg.visible&&cfg.regionIds.includes(regionId);
+      })
       .filter(character=>!manual||residentIds.includes(character.id))
       .slice(0,scene.maxActors);
   }

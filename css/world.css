@@ -1186,6 +1186,53 @@
   align-content:start
 }
 .hotel-world-fields .full{grid-column:1/-1}
+.world-character-region-access{
+  overflow:hidden;
+  border:1px solid rgba(201,166,107,.16);
+  border-radius:8px;
+  background:rgba(11,7,9,.34)
+}
+.world-character-region-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:10px 11px;
+  border-bottom:1px solid rgba(201,166,107,.1)
+}
+.world-character-region-head>span{display:grid;gap:3px}
+.world-character-region-head strong{color:#dfccc3;font-size:.64rem;font-weight:600}
+.world-character-region-head small{color:#806e75;font-size:.49rem}
+.world-character-region-head>div{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:4px}
+.world-character-region-head button{
+  min-height:29px;
+  padding:5px 8px;
+  border:1px solid rgba(231,196,158,.13);
+  border-radius:999px;
+  background:rgba(255,255,255,.018);
+  color:#a78e96;
+  font-size:.46rem
+}
+.world-character-region-head button:hover{border-color:rgba(226,171,109,.42);color:#efd0bd}
+.world-character-region-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;padding:9px}
+.world-character-region-grid label{
+  position:relative;
+  min-height:36px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:6px 7px;
+  border:1px solid rgba(231,196,158,.09);
+  border-radius:6px;
+  background:rgba(255,255,255,.012);
+  color:#806e75;
+  cursor:pointer;
+  text-align:center
+}
+.world-character-region-grid input{position:absolute;opacity:0}
+.world-character-region-grid label:has(input:checked){border-color:rgba(225,169,106,.38);background:rgba(125,35,60,.24);color:#eccbbb}
+.world-character-region-grid label:has(input:focus-visible){outline:2px solid #d7a56f;outline-offset:1px}
+.world-character-region-grid span{font-size:.48rem;line-height:1.25}
 
 /* Character movement variants */
 .hotel-actor{
@@ -1262,6 +1309,10 @@
   .hotel-world-preview-stage{min-height:150px}
   .hotel-world-fields{grid-template-columns:1fr}
   .hotel-world-fields .full{grid-column:auto}
+  .world-character-region-access.full{grid-column:auto}
+  .world-character-region-head{align-items:flex-start;flex-direction:column}
+  .world-character-region-head>div{justify-content:flex-start}
+  .world-character-region-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 
 
@@ -3319,6 +3370,7 @@ button.hotel-job-card:hover{
 
 .world-position-region-nav{display:flex;gap:6px;overflow-x:auto;padding:0 0 8px;scrollbar-width:thin}
 .world-position-region-nav button{flex:0 0 auto;min-height:37px;padding:7px 10px;border:1px solid rgba(231,196,158,.12);border-radius:7px;background:rgba(255,255,255,.012);color:#8f7b82;font-size:.52rem;letter-spacing:.05em}
+.world-position-region-nav button span{display:inline-grid;min-width:19px;height:19px;margin-left:4px;place-items:center;border-radius:99px;background:rgba(255,255,255,.05);color:#c69a82;font-size:.43rem}
 .world-position-region-nav button.active{border-color:rgba(226,171,109,.42);background:rgba(121,31,57,.24);color:#eccdbd}
 .world-position-panel[hidden]{display:none}
 .world-position-panel-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:2px 0 8px;padding:10px 11px;border-left:2px solid #d9a269;background:rgba(91,25,44,.1)}
@@ -3338,6 +3390,9 @@ button.hotel-job-card:hover{
   border-radius:8px;
   background:rgba(255,255,255,.012)
 }
+.world-position-card[hidden]{display:none}
+.world-position-empty{margin:10px 0 0;padding:16px;border:1px dashed rgba(231,196,158,.14);border-radius:8px;color:#8b777e;font-size:.56rem;line-height:1.5;text-align:center}
+.world-position-empty[hidden]{display:none}
 .world-position-character{min-width:0;display:flex;align-items:center;gap:9px}
 .world-position-character>img,.world-position-character>span:first-child{width:38px;height:48px;flex:0 0 auto;object-fit:contain;display:grid;place-items:center;border:1px solid rgba(231,196,158,.14);border-radius:6px;background:#24151b;color:#e0b27d;font-size:.55rem}
 .world-position-character>span:last-child{min-width:0;display:grid;gap:3px}

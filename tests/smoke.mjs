@@ -128,6 +128,12 @@ assert.match(read("js/world/hotel.js"),/data-hotel-settings-tab="background"/,"W
 assert.match(read("js/world/hotel.js"),/data-hotel-settings-tab="positions"/,"WORLD character position tab missing");
 assert.match(read("js/world/hotel.js"),/data-world-region-settings/,"per-region background settings missing");
 assert.match(read("js/world/hotel.js"),/data-world-position-axis/,"per-region character coordinates missing");
+assert.match(read("js/world/hotel.js"),/regionIds:WORLD_CONFIG\.regions\.map/,"character WORLD regions must default to every region");
+assert.match(read("js/world/hotel.js"),/function characterAllowedInRegion\(/,"character region access helper missing");
+assert.match(read("js/world/hotel.js"),/data-world-character-region=/,"character region checklist missing");
+assert.match(read("js/world/hotel.js"),/data-preset="hotel"/,"hotel-only character shortcut missing");
+assert.match(read("js/world/hotel.js"),/data-preset="imp-office"/,"I.M.P-only character shortcut missing");
+assert.match(read("js/world/regions.js"),/cfg\.regionIds\.includes\(regionId\)/,"scene residents must respect character region access");
 assert.match(read("js/world/regions.js"),/data-action="world-settings"/,"WORLD settings must be available outside the hotel");
 assert.ok(!read("js/world/hotel.js").includes('data-action="hotel-settings-reset"'),"hotel settings must not expose immediate destructive reset");
 assert.match(read("css/world.css"),/\.hotel-settings-workspace\{[\s\S]*?grid-template-columns:205px minmax\(0,1fr\)/,"desktop hotel settings workspace missing");
@@ -147,6 +153,55 @@ assert.match(dialogueCss,/\.site-shell\.room-active>\.update-banner\{grid-row:2\
 assert.match(dialogueCss,/\.site-shell\.room-active>\.page-root\{[\s\S]*?grid-row:3;/,"room page root must stay in the flexible third grid row even when update banner is hidden");
 assert.match(dialogueCss,/\.dialogue-text\.is-compact/,"long dialogue compact typography missing");
 assert.match(dialogueCss,/\.room-event-details select\{[\s\S]*?position:absolute/,"desktop TALK picker should not shift the HUD");
+
+const worldAccessStorage=new Map();
+const worldAccessContext={
+  console,
+  Date,
+  Math,
+  JSON,
+  Set,
+  setTimeout,
+  clearTimeout,
+  requestAnimationFrame(){},
+  window:{HV_WORLD_CONFIG:{regions:[
+    {id:"hotel",name:"HAZBIN HOTEL",floors:[{id:"lobby",name:"LOBBY"}],activities:[]},
+    {id:"heaven",name:"HEAVEN"},
+    {id:"imp-office",name:"I.M.P OFFICE"}
+  ]}},
+  pageRoot:{addEventListener(){}},
+  modalRoot:{addEventListener(){}},
+  document:{body:{classList:{add(){},remove(){}}}},
+  localStorage:{
+    getItem(key){return worldAccessStorage.get(key)||null},
+    setItem(key,value){worldAccessStorage.set(key,String(value))}
+  }
+};
+worldAccessContext.window.window=worldAccessContext.window;
+vm.createContext(worldAccessContext);
+vm.runInContext(read("js/world/hotel.js"),worldAccessContext,{filename:"js/world/hotel.js"});
+const worldAccess=vm.runInContext(`
+(()=>{
+  const character={id:"char-a",name:"A"};
+  const legacy={characterWorld:{"char-a":{visible:true}}};
+  const hotelOnly={characterWorld:{"char-a":{visible:true,regionIds:["hotel"]}}};
+  const hidden={characterWorld:{"char-a":{visible:false,regionIds:["hotel","imp-office"]}}};
+  return {
+    legacyHotel:window.HV_WORLD_SETTINGS.allows(character,legacy,"hotel"),
+    legacyOffice:window.HV_WORLD_SETTINGS.allows(character,legacy,"imp-office"),
+    hotelOnlyHotel:window.HV_WORLD_SETTINGS.allows(character,hotelOnly,"hotel"),
+    hotelOnlyOffice:window.HV_WORLD_SETTINGS.allows(character,hotelOnly,"imp-office"),
+    hiddenHotel:window.HV_WORLD_SETTINGS.allows(character,hidden,"hotel")
+  };
+})()
+`,worldAccessContext);
+assert.deepEqual({...worldAccess},{
+  legacyHotel:true,
+  legacyOffice:true,
+  hotelOnlyHotel:true,
+  hotelOnlyOffice:false,
+  hiddenHotel:false
+},"character WORLD region access or legacy migration is incorrect");
 
 const storage=new Map();
 const dummy=()=>({
