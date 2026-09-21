@@ -1179,13 +1179,18 @@ function installStoryPacks(source){
       }
       return false;
     };
-    const poolTalkNeedsRepair=isPoolTalkPack&&(source.events||[]).some(event=>
-      String(event?.id||"").startsWith("pooltalk-")&&
-      (
-        entryHasStaleTalk(event?.entries)||
-        (event?.entries||[]).some(entry=>entry?.type==="dialogue"&&entry?.speaker==="PLAYER")
-      )
-    );
+    const rawPoolTalkNames=new Set((rawPack.events||[]).map(event=>String(event?.name||"")).filter(Boolean));
+    const rawPoolTalkCharacterIds=new Set((rawPack.requiredCharacterIds||[]).map(String).filter(Boolean));
+    const poolTalkNeedsRepair=isPoolTalkPack&&(source.events||[]).some(event=>{
+      const id=String(event?.id||"");
+      const name=String(event?.name||"");
+      const characterId=String(event?.characterId||"");
+      const belongsToPack=rawPoolTalkNames.has(name)||
+        (id.startsWith("pooltalk-")&&(!rawPoolTalkCharacterIds.size||rawPoolTalkCharacterIds.has(characterId)));
+      if(!belongsToPack)return false;
+      return entryHasStaleTalk(event?.entries)||
+        (event?.entries||[]).some(entry=>entry?.type==="dialogue"&&entry?.speaker==="PLAYER");
+    });
 
     if(previousVersion>=version&&!poolTalkNeedsRepair)return;
     const isUpgrade=previousVersion>0||poolTalkNeedsRepair;
