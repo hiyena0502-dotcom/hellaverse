@@ -163,12 +163,12 @@
           }else seenTalkSignatures.set(signatureKey,event.id);
         }
       }
-      if(current<VERSION&&String(event.id).startsWith("voice-")){
+      if(current<3&&String(event.id).startsWith("voice-")){
         if(enrichVoiceEvent(source,event,characters.get(event.characterId),helpers))changed=true;
       }
     }
 
-    if(current<VERSION){
+    if(current<3){
       const used=new Set();
       const granted=new Set();
       const collectGranted=entries=>walk(entries,owner=>{
@@ -187,6 +187,8 @@
         if(!item)continue;
         if(addLinkedReward(event,item,characters.get(event.characterId),helpers)){used.add(item.id);granted.add(item.id);changed=true}
       }
+    }
+    if(current<VERSION){
       source.dialoguePresetVersion=VERSION;
       changed=true;
     }
