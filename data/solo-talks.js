@@ -416,23 +416,27 @@
     (c,t)=>`거창하게 축하할 일은 아니어도 작은 표시 하나쯤은 남겨도 되잖아.`
   ];
   const TALK_OPEN={
-    activeLow:["","흠. ","좋아. ","그래. ","잠깐. ","됐어. ","보자. "],
-    activeHigh:["응. ","좋아. ","그래. ","그건 괜찮네. ","알겠어. ","좋지. ","말해줄게. "],
-    softLow:["알겠어. ","그대로 둬. ","응. ","됐어. ","그래. ","그 정도면 돼. ","좋아. "],
-    softHigh:["고마워. ","응, 좋아. ","그대로 있어. ","그게 낫네. ","좋아. ","편하네. ","알겠어. "]
+    activeLow:["","흠. ","잠깐. ","보자. ","그렇군. ","됐네. ","한번 보지. "],
+    activeHigh:["응. ","좋지. ","마음에 드네. ","그건 괜찮네. ","알아뒀어. ","좋은데. ","말해줄게. "],
+    softLow:["알겠어. ","그대로 둬. ","손대진 마. ","서두르지 마. ","거기까지만. ","그 정도면 충분해. ","기다려. "],
+    softHigh:["고마워. ","응, 편하네. ","그대로 있어. ","그게 더 낫네. ","믿을게. ","편해졌어. ","기다려줘서 좋네. "]
   };
-  const ASMODEUS_OPEN_LOW=["베이비, ","천천히. ","젠틀하게 가자. ","서두르진 마. ","좋아. ","그 손은 잠깐. ","선은 지켜. "];
-  const ASMODEUS_OPEN_HIGH=["좋아, 베이비. ","센스 있네. ","천천히 가자. ","그게 더 섹시하지. ","좋아. ","젠틀하네. ","그 정도면 믿을 만해. "];
+  const ASMODEUS_OPEN={
+    activeLow:["베이비, ","흠, 자기. ","좋아, 잠깐. ","자기, 보자. ","그 손은 잠깐. ","서두르진 마. ","선부터 지켜. "],
+    activeHigh:["좋네, 베이비. ","마음에 드네. ","그건 꽤 섹시하네. ","좋아, 자기. ","센스 있네. ","제법인데. ","그 정도면 믿을 만해. "],
+    softLow:["천천히. ","젠틀하게 가자. ","손은 그대로. ","급할 것 없어. ","거기까지만, 베이비. ","먼저 기다려. ","분위기 망치진 마. "],
+    softHigh:["고마워, 베이비. ","응, 편하네. ","그렇게 있어줘. ","그게 더 좋네. ","이런 배려는 좋아. ","젠틀하네. ","기다릴 줄 아네. "]
+  };
   const compactTail=(char,theme,momentIndex,kind,high,eventIndex)=>{
     const shift=(kind==="soft"?17:0)+(high?29:0);
     const index=(momentIndex+shift)%ACTIVE_TAILS.length;
     let line=ACTIVE_TAILS[index](char,theme);
     if(eventIndex>=ACTIVE_TAILS.length)line+=` 이번엔 ${theme[0]} 쪽을 따로 보자.`;
+    const key=kind+(high?"High":"Low");
     if(char.id==="asmodeus"){
-      const openings=high?ASMODEUS_OPEN_HIGH:ASMODEUS_OPEN_LOW;
+      const openings=ASMODEUS_OPEN[key];
       return openings[eventIndex%openings.length]+line;
     }
-    const key=kind+(high?"High":"Low");
     return TALK_OPEN[key][eventIndex%TALK_OPEN[key].length]+line;
   };
   const responseLine=(char,theme,momentIndex,kind,high,eventIndex)=>{
