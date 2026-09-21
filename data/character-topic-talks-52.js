@@ -839,23 +839,7 @@
       s=options[hash(raw)%options.length](focus);
     }
 
-    if(s.length>31){
-      const ts=[
-        [/가족|부모|자녀|아버지|엄마|아빠/,"가족 얘기, 생각보다 간단하진 않지?"],
-        [/천국|천사/,"천국 쪽도 생각보다 복잡한 게 많지?"],
-        [/호텔|투숙객|재활/,"호텔 일도 막상 굴리면 별별 문제가 다 생기지?"],
-        [/방송|뉴스|미디어|라디오|텔레비전/,"방송 쪽은 한 번 퍼지면 되돌리기 어렵잖아?"],
-        [/영혼|계약|오버로드/,"계약 얘기는 조건 하나로도 분위기가 확 달라지지?"],
-        [/I\.M\.P|의뢰|임무|회사/,"일 얘기는 현장 들어가면 계획대로 안 되잖아?"],
-        [/Goetia|귀족|가문/,"귀족 쪽은 사적인 일도 자꾸 일이 커지잖아?"],
-        [/연애|사랑|관계/,"관계 얘기는 밖에서 보는 것보다 복잡하지?"],
-        [/인간|Sinner|Hellborn/,"사는 곳이 다르면 당연하다고 보는 것도 꽤 다르지?"],
-        [/권력|법|통치/,"힘 있는 쪽 얘기는 결국 책임 문제가 따라오지?"],
-        [/파티|술|휴가|게임|놀이/,"그냥 놀자고 시작해도 꼭 일이 하나씩 생기더라?"]
-      ];
-      const hit=ts.find(([re])=>re.test(raw));
-      s=hit?hit[1]:"이런 얘기는 막상 닥치면 생각이 좀 달라지지?";
-    }
+
 
     if(r==="formal"){
       s=s.replace(/어때\?/g,"어떨까요?")
@@ -1268,6 +1252,6 @@
   window.HV_STORY_PACKS ||= [];
   for(const c of PFS){
     const list=chosen(c);
-    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:18,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
+    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:19,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
   }
 })();
