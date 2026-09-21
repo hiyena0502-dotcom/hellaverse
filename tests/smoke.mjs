@@ -488,6 +488,64 @@ assert.equal(dialoguePresetCheck.emotion,true,"voice event must gain a closing e
 assert.equal(dialoguePresetCheck.rewardOnce,true,"dialogue item reward must be one-time");
 assert.equal(dialoguePresetCheck.linkedEvent,"voice-loona-test","item must remember its acquisition event");
 
+const legacyDialogueLocalizationCheck=vm.runInContext(`
+(()=>{
+  const source=normalizeState({
+    schemaVersion:4,
+    dialoguePresetVersion:4,
+    characters:[
+      {id:"lute",name:"Lute",origin:"angel"},
+      {id:"charlie-morningstar",name:"Charlie Morningstar",origin:"hellborn"}
+    ],
+    events:[{
+      id:"legacy-english-line",
+      name:"TALK · grief",
+      characterId:"lute",
+      entries:[
+        {id:"line-1",type:"dialogue",speakerCharacterId:"lute",text:"Adam is dead. 그 사실 이후로 내겐 이 싸움이 명령 이상의 것이 됐어."},
+        {id:"line-2",type:"dialogue",speakerCharacterId:"charlie-morningstar",text:"Charlie. Stop. Breathe."}
+      ]
+    }],
+    asks:[{
+      id:"legacy-english-ask",
+      characterId:"charlie-morningstar",
+      label:"테스트",
+      entries:[{id:"ask-line",type:"dialogue",speakerCharacterId:"charlie-morningstar",text:"ASK FIRST!"}]
+    }],
+    items:[{
+      id:"legacy-gift",
+      name:"카드",
+      collectionCharacterId:"charlie-morningstar",
+      giftable:true,
+      reactions:[{
+        characterId:"charlie-morningstar",
+        preference:"NEUTRAL",
+        firstEntries:[{id:"gift-line",type:"dialogue",speakerCharacterId:"charlie-morningstar",text:"YES! 그렇지!"}],
+        repeatEntries:[],
+        specialEntries:[]
+      }]
+    }],
+    playState:{variables:{},affection:{},emotions:{},recentTalks:{},log:[
+      {kind:"dialogue",speaker:"Lute",text:"Adam is dead.",eventName:""}
+    ]}
+  });
+  const result=window.HV_APPLY_DIALOGUE_PRESETS(source,{normalizeEntry,normalizeEvent,normalizeVariable,normalizeItemEffects}).state;
+  return{
+    eventLines:result.events[0].entries.map(entry=>entry.text),
+    askLine:result.asks[0].entries[0].text,
+    giftLine:result.items[0].reactions[0].firstEntries[0].text,
+    logLine:result.playState.log[0].text,
+    version:result.dialoguePresetVersion
+  };
+})()
+`,context);
+assert.ok(legacyDialogueLocalizationCheck.eventLines[0].startsWith("아담은 죽었어."),"legacy English character dialogue must be localized");
+assert.equal(legacyDialogueLocalizationCheck.eventLines[1],"찰리. 멈춰. 숨 쉬어.","mixed legacy English dialogue must be localized");
+assert.equal(legacyDialogueLocalizationCheck.askLine,"먼저 물어봐!","legacy ASK English text must be localized");
+assert.equal(legacyDialogueLocalizationCheck.giftLine,"좋아! 그렇지!","legacy gift English text must be localized");
+assert.equal(legacyDialogueLocalizationCheck.logLine,"아담은 죽었어.","saved dialogue history must be localized");
+assert.equal(legacyDialogueLocalizationCheck.version,5,"dialogue localization migration version missing");
+
 vm.runInContext(gameStateCode,context,{filename:"js/core/game-state.js"});
 const oneTimeReward=vm.runInContext(`
 (()=>{
