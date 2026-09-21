@@ -304,6 +304,7 @@ function normalizeItemReaction(r={},fallbackCharacterId=""){
 }
 function normalizeItem(i={}){
   const collectionCharacterId=i.collectionCharacterId||i.ownerCharacterId||i.characterId||"";
+  const archiveMeta=(typeof window!=="undefined"&&window.HV_ITEM_ARCHIVE_META?.[String(i.id||"")])||{};
   let reactions=Array.isArray(i.reactions)?i.reactions.map(r=>normalizeItemReaction(r)):[];
   if(!reactions.length&&(i.reactionText||i.affectionDelta||i.emotionState)){
     reactions=[normalizeItemReaction({
@@ -322,6 +323,8 @@ function normalizeItem(i={}){
     rarity:RARITIES.includes(i.rarity)?i.rarity:"COMMON",
     collectionCharacterId,
     description:i.description||"",
+    symbol:String(i.symbol||i.icon||archiveMeta.symbol||"🎁"),
+    gachaLine:String(i.gachaLine||i.revealLine||archiveMeta.gachaLine||""),
     inventoryEventId:String(i.inventoryEventId||""),
     acquisitionMode:i.acquisitionMode==="unique"?"unique":"repeatable",
     giftUseMode:i.giftUseMode==="consume"?"consume":"keep",
@@ -667,6 +670,8 @@ function migrateLegacyBackup(raw){
       rarity:RARITIES.includes(item.rarity)?item.rarity:"COMMON",
       collectionCharacterId:characterIds.has(String(item.characterId||""))?String(item.characterId):"",
       description:String(item.desc||item.description||item.gachaDescription||""),
+      symbol:String(item.symbol||item.icon||""),
+      gachaLine:String(item.gachaLine||item.revealLine||""),
       acquisitionMode:"repeatable",
       giftUseMode:giftable?"consume":"keep",
       giftable,
@@ -1716,6 +1721,7 @@ let characterRealmFilter="ALL";
 let characterFavoritesOnly=false;
 let roomToolsOpen=false;
 let thoughtFilter="ALL";
+let gachaProfileCharacterId="";
 let collectionFilter="ALL";
 let collectionRarity="ALL";
 let collectionCategory="ALL";
