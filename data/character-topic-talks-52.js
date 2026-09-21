@@ -627,6 +627,7 @@
       "Overlord와 Goetia 중 일반 시민이 더 무서워하는 쪽":["보통 시민은 오버로드랑 고에티아 중 누구를 더 무서워할까?","보통 시민은 오버로드와 고에티아 중 어느 쪽을 더 무서워할까요?","보통 시민은 오버로드와 고에티아 중 어느 쪽을 더 두려워할까?"],
       "수백 년 전 죽은 Sinner가 현대 Hellborn 문화를 이해할 수 있는가":["수백 년 묵은 죄인이 요즘 헬본 문화 보면 따라갈 수 있을까?","오래전 죽은 죄인이 요즘 헬본 문화를 따라갈 수 있을까요?","오래전 죽은 죄인이 요즘 헬본 문화를 이해할 수 있을까?"],
       "아무 사건도 없이 둘이 몇 시간 동안 같이 있어야 하는 상황":["아무 일도 없이 몇 시간 같이 있으면 오히려 더 어색하려나?","아무 일도 없이 몇 시간 같이 있으면 오히려 더 어색하지 않을까요?","아무 일도 없이 몇 시간을 함께 보내면 오히려 더 어색하려나?"],
+      "돈, 계약, 혈통 중 지옥에서 가장 강한 권력":["돈, 계약, 혈통 중에 뭐가 제일 센 힘일까?","돈, 계약, 혈통 중 어느 쪽이 가장 강한 힘일까요?","돈과 계약, 혈통 가운데 무엇이 가장 센 힘일까?"],
       "지옥의 관광 산업이 존재한다면":["지옥 관광도 제대로 굴리면 장사 꽤 되려나?","지옥 관광도 제대로 굴리면 제법 사업이 될까요?","지옥 관광도 제대로 굴리면 제법 장사가 되려나?"],
       "생각보다 속이 여린 사람":["겉보기보다 여린 사람도 꽤 많지?","겉보기보다 여린 사람도 꽤 많지 않나요?","겉보기보다 마음 여린 자도 제법 많지 않소?"]
     };
@@ -1274,7 +1275,7 @@
   const responseFor=(c,t,kind,high,key)=>{
     const personal=isPersonalFor(c,t),r=register(c),tag=surfaceTag(t),x=pick(SURFACE_X[tag]||SURFACE_X.hellsociety,key+"x");
 
-    if(c.id==="alastor"){
+    if(c.id==="alastor"&&shouldDodge(c,t)){
       if(kind==="probe"){
         if(!high)return pick([
           "왜 알고 싶으신 겁니까? 이해하려는 거라면 지금 제가 하는 행동만으로도 판단할 재료는 충분할 텐데요. 과거를 더 캐야만 납득할 수 있다면, 그건 이해보다 호기심에 가깝지 않습니까?",
@@ -1331,7 +1332,7 @@
         "charlie-morningstar":["하하, 좋아! 그쪽으로 생각하면 훨씬 덜 무겁겠다. 나도 가끔 모든 얘기를 프로그램으로 만들려는 버릇 좀 줄여야 해!","응! 그 반응 마음에 들어! 가끔은 해결책 안 만들고 그냥 웃고 넘어가도 되는 거잖아!"],
         "emily":["하하! 그거 재밌다! 나도 자꾸 질문을 질문으로 이어가는데, 가끔은 그냥 웃고 끝내도 되는 거네!","오! 그쪽 생각은 못 했어! 좋아, 그럼 오늘은 결론 없이 그냥 재밌게 끝내자!"]
       }[c.id];
-      if(row)return pick(row,key);
+      if(row)return pick(row,key)+" "+voiceTopicNote(c,t,"joke",key+"special-joke");
       return voiceGeneral(c,t,"joke",high,x,key);
     }
 
@@ -1834,7 +1835,7 @@
   const followResponse=(c,t,firstKind,nextKind,high,key)=>{
     const r=register(c),x=pick(SURFACE_X[surfaceTag(t)]||SURFACE_X.hellsociety,key+"x");
 
-    if(c.id==="alastor"&&firstKind==="probe"){
+    if(c.id==="alastor"&&firstKind==="probe"&&shouldDodge(c,t)){
       if(nextKind==="push")return pick([
         "맞습니다. 제가 화제를 열었지요. 하지만 문을 열었다고 집 전체를 뒤질 권리까지 드린 기억은 없습니다. 제가 한 문장을 건넨 것과 당신이 제 과거를 요구하는 건 전혀 다른 거래예요. 그 차이를 모르는 분은 아니라고 생각했는데요.",
         "아주 좋은 지적입니다. 제가 먼저 말했죠. 그래서 지금 여기까지는 대답했습니다. 하지만 먼저 말을 꺼낸 사람이 질문의 범위까지 상대에게 넘겨준다는 규칙은 어디에도 없어요. 오히려 그 선을 어디서 멈추는지 보는 편이 훨씬 재미있군요."
@@ -1843,11 +1844,11 @@
         "현명합니다. 모르는 부분을 남겨둔다고 관계가 실패하는 건 아니니까요. 오히려 모든 걸 알아야 안심하는 습관이 사람을 더 쉽게 망칩니다. 오늘은 그 정도 거리감이면 충분하겠군요.",
         "좋은 선택입니다. 질문을 멈출 줄 아는 사람은 드물거든요. 대개는 침묵을 허락으로 착각합니다. 적어도 당신은 그 둘을 구분할 줄 아는군요."
       ],key);
-      if(nextKind==="joke")return "하하, 좋습니다. 다만 방금 농담으로 덮은 질문이 사라진 건 아닙니다. 당신이 그걸 굳이 다시 꺼내지 않기로 선택했을 뿐이지요. 그 차이는 기억해두세요.";
-      return "그렇지요. 화제를 바꾸는 편이 낫습니다. 모든 호기심을 충족시키는 건 교양이 아니라 탐욕일 때가 있으니까요. 오늘은 그 사실 하나만 가져가시면 되겠습니다.";
+      if(nextKind==="joke")return "하하, 좋습니다. 다만 방금 농담으로 덮은 질문이 사라진 건 아닙니다. 당신이 그걸 굳이 다시 꺼내지 않기로 선택했을 뿐이지요. "+voiceTopicNote(c,t,"joke",key+"alastor-j");
+      return "그렇지요. 화제를 바꾸는 편이 낫습니다. 모든 호기심을 충족시키는 건 교양이 아니라 탐욕일 때가 있으니까요. "+voiceTopicNote(c,t,"shift",key+"alastor-s");
     }
 
-    if(c.id==="lucifer-morningstar"&&firstKind==="probe"){
+    if(c.id==="lucifer-morningstar"&&firstKind==="probe"&&shouldDodge(c,t)){
       if(nextKind==="push")return high
         ?"오, 그건 맞아. 내가 먼저 얘기했지. 그런데 내가 창문 하나 열었다고 네가 지붕까지 올라가도 된다는 뜻은 아니잖아? 네가 궁금해하는 건 이해해. 그래도 오늘은 여기까지만. 이쯤에서 왕은 아주 품위 있게 오리 얘기로 도망가겠습니다."
         :"그래, 내가 먼저 말했지. 실수였네. 다음부턴 입 열기 전에 계약서라도 써야겠다. ‘한 문장 언급은 후속 취재를 허용하지 않음.’ 자, 이제 진짜 다른 얘기. 오리 왕관 금색이 낫냐 빨간색이 낫냐?";
@@ -1962,6 +1963,6 @@
   window.HV_STORY_PACKS ||= [];
   for(const c of PFS){
     const list=chosen(c);
-    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:31,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
+    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:32,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
   }
 })();
