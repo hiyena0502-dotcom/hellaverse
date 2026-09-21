@@ -27,7 +27,7 @@
 
   const makePack=({id,token,aliases,speaker,threshold=45,scenes})=>({
     id:"voice-events-"+id,
-    version:["angel","adam"].includes(id)?3:(id==="lute"?2:1),
+    version:["angel","adam"].includes(id)?4:(id==="lute"?3:2),
     characterRefs:{[token]:aliases},
     requiredCharacterRefs:[token],
     events:scenes.map((scene,index)=>makeEvent(token,speaker,"voice-"+id,index,threshold,scene))
