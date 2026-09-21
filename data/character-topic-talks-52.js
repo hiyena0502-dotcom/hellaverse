@@ -1166,8 +1166,22 @@
     }
   };
 
+  const voiceFocus=t=>{
+    const broad=sceneFocus(t.title);
+    if(!["천국","지옥","가족","Hellborn","Sinner","여행","술","친구","사랑"].includes(broad))return broad;
+    const raw=String(t.title||"")
+      .replace(/[?!.,:;()[\]{}'"‘’“”]/g," ")
+      .replace(/(해야 하는가|할 수 있는가|어떻게 되는가|어떻게 생각하는가|있는가|인가|일까|한다면|된다면|이라면|하는가)/g," ");
+    const stop=new Set(["천국","지옥","가족","Hellborn","Sinner","가장","정말","직접","누가","어디서","어떻게","왜","어떤","무엇","사람","사람들","문제","상황","의견","경우","정도","쪽"]);
+    const words=raw.split(/\s+/).map(x=>x.trim()).filter(Boolean)
+      .map(x=>x.replace(/(으로부터|에게서|에서|에게|으로|까지|부터|처럼|보다|라도|마저|조차|하고|이며|이고|이나|와|과|의|은|는|이|가|을|를|도|만)$/,""))
+      .filter(x=>x.length>1&&!stop.has(x));
+    const specific=words.slice(0,3).join(" ");
+    return specific||broad;
+  };
+
   const voiceTopicNote=(c,t,kind,key)=>{
-    const focus=sceneFocus(t.title);
+    const focus=voiceFocus(t);
     const r=register(c);
     const banks={
       casual:{
@@ -1306,13 +1320,13 @@
     if(kind==="probe"){
       if(shouldDodge(c,t)){
         const d=deflectFor(c,high,key);
-        if(c.id==="lucifer-morningstar")return high
+        if(c.id==="lucifer-morningstar")return (high
           ? d+" 네가 궁금해서 묻는 건 알아. 그리고 네가 물어서 화난 것도 아니야. 그래도 내가 먼저 한마디 꺼냈다고 과거 보고서까지 제출하는 건 아니거든. 여기까지만 하고 오리 하나 골라줘. 왕관 있는 거랑 없는 거 중에."
-          : d+" 내가 먼저 말 꺼냈다고 바로 취재 모드 들어가면 곤란하지. 천국 얘기는 특히 그래. 궁금한 건 이해하지만 오늘은 거기까지. 자, 다음 주제는 오리냐 호텔 메뉴냐 둘 중 하나.";
-        if(c.id==="loona")return d+" 내가 먼저 말했어도 그게 질문권 무제한이라는 뜻은 아니야. 한마디 한 건 한마디 한 거고, 그 뒤는 내 기분 따라 정할 거야.";
-        if(c.id==="blitzo")return d+" 야, 내가 먼저 꺼냈다고 감정 서류철까지 펼치라는 뜻 아니거든. 지금 정도가 딱 적당해. 더 가면 재미없어져.";
-        if(c.id==="stolas")return d+" 당신이 묻는 게 불편해서라기보다는, 이걸 길게 풀면 대화 전체가 그 이야기 하나에 잡아먹힐 것 같아서요. 오늘은 여기까지만 두고 싶습니다.";
-        return d+" 내가 먼저 이야기를 꺼냈더라도 어디까지 말할지는 내가 정하고 싶어. 지금은 한두 마디 정도가 가장 편해.";
+          : d+" 내가 먼저 말 꺼냈다고 바로 취재 모드 들어가면 곤란하지. 궁금한 건 이해하지만 오늘은 거기까지. 자, 다음 주제는 오리냐 호텔 메뉴냐 둘 중 하나.")+" "+voiceTopicNote(c,t,"shift",key+"guard-lucifer");
+        if(c.id==="loona")return d+" 내가 먼저 말했어도 그게 질문권 무제한이라는 뜻은 아니야. 한마디 한 건 한마디 한 거고, 그 뒤는 내 기분 따라 정할 거야. "+voiceTopicNote(c,t,"shift",key+"guard-loona");
+        if(c.id==="blitzo")return d+" 야, 내가 먼저 꺼냈다고 감정 서류철까지 펼치라는 뜻 아니거든. 지금 정도가 딱 적당해. 더 가면 재미없어져. "+voiceTopicNote(c,t,"shift",key+"guard-blitzo");
+        if(c.id==="stolas")return d+" 당신이 묻는 게 불편해서라기보다는, 이걸 길게 풀면 대화 전체가 그 이야기 하나에 잡아먹힐 것 같아서요. 오늘은 여기까지만 두고 싶습니다. "+voiceTopicNote(c,t,"shift",key+"guard-stolas");
+        return d+" 내가 먼저 이야기를 꺼냈더라도 어디까지 말할지는 내가 정하고 싶어. 지금은 한두 마디 정도가 가장 편해. "+voiceTopicNote(c,t,"shift",key+"guard-generic");
       }
       return voiceGeneral(c,t,"probe",high,x,key);
     }
@@ -1837,34 +1851,34 @@
 
     if(c.id==="alastor"&&firstKind==="probe"&&shouldDodge(c,t)){
       if(nextKind==="push")return pick([
-        "맞습니다. 제가 화제를 열었지요. 하지만 문을 열었다고 집 전체를 뒤질 권리까지 드린 기억은 없습니다. 제가 한 문장을 건넨 것과 당신이 제 과거를 요구하는 건 전혀 다른 거래예요. 그 차이를 모르는 분은 아니라고 생각했는데요.",
-        "아주 좋은 지적입니다. 제가 먼저 말했죠. 그래서 지금 여기까지는 대답했습니다. 하지만 먼저 말을 꺼낸 사람이 질문의 범위까지 상대에게 넘겨준다는 규칙은 어디에도 없어요. 오히려 그 선을 어디서 멈추는지 보는 편이 훨씬 재미있군요."
-      ],key);
+        "맞습니다. 제가 화제를 열었지요. 하지만 문을 열었다고 집 전체를 뒤질 권리까지 드린 기억은 없습니다. 제가 한 문장을 건넨 것과 당신이 더 요구하는 건 전혀 다른 거래예요.",
+        "아주 좋은 지적입니다. 제가 먼저 말했죠. 하지만 먼저 말을 꺼낸 사람이 질문의 범위까지 상대에게 넘겨준다는 규칙은 어디에도 없어요."
+      ],key)+" "+voiceTopicNote(c,t,"probe",key+"alastor-push");
       if(nextKind==="backoff")return pick([
-        "현명합니다. 모르는 부분을 남겨둔다고 관계가 실패하는 건 아니니까요. 오히려 모든 걸 알아야 안심하는 습관이 사람을 더 쉽게 망칩니다. 오늘은 그 정도 거리감이면 충분하겠군요.",
-        "좋은 선택입니다. 질문을 멈출 줄 아는 사람은 드물거든요. 대개는 침묵을 허락으로 착각합니다. 적어도 당신은 그 둘을 구분할 줄 아는군요."
-      ],key);
+        "현명합니다. 모르는 부분을 남겨둔다고 관계가 실패하는 건 아니니까요.",
+        "좋은 선택입니다. 질문을 멈출 줄 아는 사람은 드물거든요."
+      ],key)+" "+voiceTopicNote(c,t,"shift",key+"alastor-backoff");
       if(nextKind==="joke")return "하하, 좋습니다. 다만 방금 농담으로 덮은 질문이 사라진 건 아닙니다. 당신이 그걸 굳이 다시 꺼내지 않기로 선택했을 뿐이지요. "+voiceTopicNote(c,t,"joke",key+"alastor-j");
       return "그렇지요. 화제를 바꾸는 편이 낫습니다. 모든 호기심을 충족시키는 건 교양이 아니라 탐욕일 때가 있으니까요. "+voiceTopicNote(c,t,"shift",key+"alastor-s");
     }
 
     if(c.id==="lucifer-morningstar"&&firstKind==="probe"&&shouldDodge(c,t)){
       if(nextKind==="push")return high
-        ?"오, 그건 맞아. 내가 먼저 얘기했지. 그런데 내가 창문 하나 열었다고 네가 지붕까지 올라가도 된다는 뜻은 아니잖아? 네가 궁금해하는 건 이해해. 그래도 오늘은 여기까지만. 이쯤에서 왕은 아주 품위 있게 오리 얘기로 도망가겠습니다."
-        :"그래, 내가 먼저 말했지. 실수였네. 다음부턴 입 열기 전에 계약서라도 써야겠다. ‘한 문장 언급은 후속 취재를 허용하지 않음.’ 자, 이제 진짜 다른 얘기. 오리 왕관 금색이 낫냐 빨간색이 낫냐?";
+        ?"오, 그건 맞아. 내가 먼저 얘기했지. 그런데 내가 창문 하나 열었다고 네가 지붕까지 올라가도 된다는 뜻은 아니잖아? 네가 궁금해하는 건 이해해. 그래도 오늘은 여기까지만. "+voiceTopicNote(c,t,"shift",key+"luc-push-h")
+        :"그래, 내가 먼저 말했지. 실수였네. 다음부턴 입 열기 전에 계약서라도 써야겠다. ‘한 문장 언급은 후속 취재를 허용하지 않음.’ "+voiceTopicNote(c,t,"shift",key+"luc-push-l");
       if(nextKind==="backoff")return high
-        ?"고마워. 아니, 그렇게 거창하게 받을 건 아니고. 그냥 네가 멈출 때 멈춰주는 건 편하다는 뜻이야. 그럼 이건 여기 두고, 아까부터 삐뚤어진 이 오리 왕관이나 좀 봐줘."
-        :"좋은 선택이야. 내 정신 건강과 네 안전 모두에게 아주 이롭지. 자, 대화의 질을 급격히 높여보자. 오리 얘기로.";
-      if(nextKind==="joke")return "그래, 그게 훨씬 낫다. 천국의 신비보다 오리의 신비가 훨씬 덜 피곤하거든. 적어도 오리는 심판 같은 건 안 해. 가끔 삑삑거리기만 하지.";
-      return "완벽해. 이 주제는 서랍에 넣고 잠그자. 열쇠는… 음, 없다고 하자. 자, 다음 얘기.";
+        ?"고마워. 아니, 그렇게 거창하게 받을 건 아니고. 그냥 네가 멈출 때 멈춰주는 건 편하다는 뜻이야. "+voiceTopicNote(c,t,"shift",key+"luc-back-h")
+        :"좋은 선택이야. 내 정신 건강과 네 안전 모두에게 아주 이롭지. "+voiceTopicNote(c,t,"shift",key+"luc-back-l");
+      if(nextKind==="joke")return "그래, 그게 훨씬 낫다. 오리는 적어도 심판 같은 건 안 하거든. "+voiceTopicNote(c,t,"joke",key+"luc-joke");
+      return "완벽해. 이건 서랍에 넣고 잠그자. 열쇠는… 음, 없다고 하자. "+voiceTopicNote(c,t,"shift",key+"luc-shift");
     }
 
     if(nextKind==="push"){
       if(shouldDodge(c,t)){
         const d=deflectFor(c,high,key);
-        if(r==="formal")return d+" 제가 먼저 이야기를 꺼냈더라도, 어디까지 이어갈지는 제 쪽에서 정하고 싶습니다. 그 선을 지켜주신다면 다음에도 먼저 말을 꺼내기 훨씬 편하겠지요.";
-        if(r==="archaic")return d+" 내가 먼저 화제를 꺼냈다 하여 어디까지 이어갈지까지 넘긴 것은 아니오. 그 선을 지켜준다면 다음에도 먼저 말하기 편하겠구려.";
-        return d+" 내가 먼저 얘기했어도 어디까지 이어갈지는 내가 정하고 싶어. 그 선만 지켜주면 다음에도 먼저 말 꺼내기 훨씬 편하겠지.";
+        if(r==="formal")return d+" 제가 먼저 이야기를 꺼냈더라도, 어디까지 이어갈지는 제 쪽에서 정하고 싶습니다. "+voiceTopicNote(c,t,"shift",key+"fg-formal");
+        if(r==="archaic")return d+" 내가 먼저 화제를 꺼냈다 하여 어디까지 이어갈지까지 넘긴 것은 아니오. "+voiceTopicNote(c,t,"shift",key+"fg-archaic");
+        return d+" 내가 먼저 얘기했어도 어디까지 이어갈지는 내가 정하고 싶어. "+voiceTopicNote(c,t,"shift",key+"fg-casual");
       }
       return voiceGeneral(c,t,"probe",high,x,key+"follow-push");
     }
@@ -1963,6 +1977,6 @@
   window.HV_STORY_PACKS ||= [];
   for(const c of PFS){
     const list=chosen(c);
-    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:32,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
+    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:33,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
   }
 })();
