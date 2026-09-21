@@ -56,6 +56,7 @@ function defaultState(){
   return {
     schemaVersion:CURRENT_SCHEMA_VERSION,
     storyPackVersions:{},
+    itemPresetVersion:0,
     profile:{name:"",origin:""},
     favoriteCharacterIds:[],
     playState:{variables:{},affection:{},emotions:{},log:[],recentTalks:{}},
@@ -1004,6 +1005,7 @@ function normalizeState(raw){
     storyPackVersions:s.storyPackVersions&&typeof s.storyPackVersions==="object"
       ? Object.fromEntries(Object.entries(s.storyPackVersions).map(([id,version])=>[String(id),Math.max(0,Number(version)||0)]))
       : {},
+    itemPresetVersion:Math.max(0,Number(s.itemPresetVersion)||0),
     profile:{
       name:String(s.profile?.name||""),
       origin:rawOrigin ? normalizeOrigin(rawOrigin) : ""
@@ -1124,6 +1126,11 @@ function installStoryPacks(source){
     installed.push(pack.id);
     changed=true;
   });
+  if(typeof window.HV_APPLY_ITEM_PRESETS==="function"){
+    const presetResult=window.HV_APPLY_ITEM_PRESETS(source,{normalizeItemReaction,normalizeEntry});
+    if(presetResult?.state)source=presetResult.state;
+    if(presetResult?.changed)changed=true;
+  }
   return{state:source,changed,installed};
 }
 function compactOwnerForStorage(source,target){
