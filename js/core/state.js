@@ -184,7 +184,7 @@ function normalizeEntry(entry={}){
       options:Array.isArray(entry.options)?entry.options.map(o=>({
         id:o.id||uid("option"),
         label:o.label||"",
-        entries:Array.isArray(o.entries)?o.entries.map(normalizeEntry):[],
+        entries:normalizeEntries(o.entries),
         condition:normalizeCondition(o.condition),
         effects:normalizeEffects(o.effects),
         itemEffects:normalizeItemEffects(o.itemEffects),
@@ -200,6 +200,52 @@ function normalizeEntry(entry={}){
     };
   }
   return {...base,speaker:entry.speaker||"",speakerCharacterId:entry.speakerCharacterId||"",text:entry.text||""};
+}
+
+function splitNormalizedDialogue(entry){
+  if(!entry||entry.type!=="dialogue")return[entry];
+  const text=String(entry.text||"").trim();
+  if(text.length<=150)return[entry];
+  const sentences=text.match(/[^.!?。！？]+[.!?。！？]+|[^.!?。！？]+$/g)?.map(x=>x.trim()).filter(Boolean)||[text];
+  if(sentences.length<2)return[entry];
+
+  let best=1,bestDiff=Infinity;
+  for(let i=1;i<sentences.length;i++){
+    const left=sentences.slice(0,i).join(" ");
+    const right=sentences.slice(i).join(" ");
+    if(left.length<55||right.length<35)continue;
+    const diff=Math.abs(left.length-right.length);
+    if(diff<bestDiff){best=i;bestDiff=diff}
+  }
+  if(bestDiff===Infinity)return[entry];
+
+  const firstText=sentences.slice(0,best).join(" ").trim();
+  const secondText=sentences.slice(best).join(" ").trim();
+  if(!firstText||!secondText)return[entry];
+
+  const first={
+    ...entry,
+    id:entry.id+"-part1",
+    text:firstText,
+    effects:[],
+    itemEffects:[],
+    affectionEffects:[],
+    emotionEffects:[]
+  };
+  const second={
+    ...entry,
+    id:entry.id+"-part2",
+    text:secondText
+  };
+  return[first,second];
+}
+
+function expandNormalizedEntry(entry){
+  return splitNormalizedDialogue(entry);
+}
+
+function normalizeEntries(arr){
+  return Array.isArray(arr)?arr.flatMap(x=>expandNormalizedEntry(normalizeEntry(x))):[];
 }
 
 function eventRoleOf(event={}){
@@ -239,16 +285,16 @@ function normalizeEvent(e={}){
     randomEligible:e.randomEligible!==false,
     continuationEventIds,
     emotionExitMode:e.emotionExitMode==="reset"?"reset":"keep",
-    entries:Array.isArray(e.entries)?e.entries.map(normalizeEntry):[]
+    entries:normalizeEntries(e.entries)
   };
 }
 function normalizeVariable(v={}){
   const type=["number","boolean","string"].includes(v.type)?v.type:"number";
   return {id:v.id||uid("var"),name:v.name||"새 변수",type,defaultValue:v.defaultValue??(type==="boolean"?"false":"0")};
 }
-function legacyInteractionEntry(type,text){
-  if(!text)return null;
-  return normalizeEntry({
+function legacyInteractionEntries(type,text){
+  if(!text)return[];
+  return normalizeEntries([{
     type:type==="narration"?"narration":"dialogue",
     speaker:"",
     text:String(text),
@@ -258,13 +304,13 @@ function legacyInteractionEntry(type,text){
     affectionEffects:[],
     emotionCondition:null,
     emotionEffects:[]
-  });
+  }]);
 }
 function normalizeAsk(a={}){
-  let entries=Array.isArray(a.entries)?a.entries.map(normalizeEntry):[];
+  let entries=normalizeEntries(a.entries);
   if(!entries.length&&a.reactionText){
-    const legacy=legacyInteractionEntry(a.reactionType,a.reactionText);
-    if(legacy)entries=[legacy];
+    const legacy=legacyInteractionEntries(a.reactionType,a.reactionText);
+    if(legacy.length)entries=legacy;
   }
   return {
     id:a.id||uid("ask"),
@@ -287,10 +333,10 @@ function normalizeAsk(a={}){
   };
 }
 function normalizeItemReaction(r={},fallbackCharacterId=""){
-  let entries=Array.isArray(r.entries)?r.entries.map(normalizeEntry):[];
+  let entries=normalizeEntries(r.entries);
   if(!entries.length&&r.reactionText){
-    const legacy=legacyInteractionEntry(r.reactionType,r.reactionText);
-    if(legacy)entries=[legacy];
+    const legacy=legacyInteractionEntries(r.reactionType,r.reactionText);
+    if(legacy.length)entries=legacy;
   }
   return {
     id:r.id||uid("item-reaction"),
@@ -303,9 +349,9 @@ function normalizeItemReaction(r={},fallbackCharacterId=""){
     affectionDelta:clamp(r.affectionDelta ?? r.giftAffectionDelta,-100,100,0),
     emotionState:EMOTIONS.some(x=>x[0]===r.emotionState) ? r.emotionState : "",
     emotionIntensity:clamp(r.emotionIntensity ?? r.giftEmotionIntensity,0,100,0),
-    firstEntries:Array.isArray(r.firstEntries)?r.firstEntries.map(normalizeEntry):entries.map(normalizeEntry),
-    repeatEntries:Array.isArray(r.repeatEntries)?r.repeatEntries.map(normalizeEntry):entries.map(normalizeEntry),
-    specialEntries:Array.isArray(r.specialEntries)?r.specialEntries.map(normalizeEntry):[],
+    firstEntries:Array.isArray(r.firstEntries)?normalizeEntries(r.firstEntries):entries.map(x=>({...x})),
+    repeatEntries:Array.isArray(r.repeatEntries)?normalizeEntries(r.repeatEntries):entries.map(x=>({...x})),
+    specialEntries:Array.isArray(r.specialEntries)?normalizeEntries(r.specialEntries):[],
     specialMinAffection:clamp(r.specialMinAffection,0,100,0),
     specialEmotionState:EMOTIONS.some(x=>x[0]===r.specialEmotionState)?r.specialEmotionState:"",
     specialEmotionIntensity:clamp(r.specialEmotionIntensity,0,100,0)
