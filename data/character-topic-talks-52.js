@@ -289,6 +289,46 @@
     "octavia":{low:["그건 지금 말하기 싫어. 다른 거.","너무 깊어. 그냥 음악 얘기 하자."],high:["너한텐 조금은 괜찮아. 그래도 길게는 싫어.","한마디만 할게. 그 뒤엔 플레이리스트 얘기로 돌아가자."]}
   };
 
+  const LIGHT_OPENERS={
+    "lucifer-morningstar":{low:["오, 이 정도면 훨씬 좋네.","그래, 이런 얘기면 환영이지."],high:["네가 이런 거 물으면 편하긴 하네.","좋아, 이 정도 잡담은 재밌지."]},
+    "charlie-morningstar":{low:["응! 이런 얘기 좋아!","오, 그거 재밌겠다!"],high:["좋아! 이건 너랑 편하게 얘기할 수 있겠다!","응, 이런 건 오래 떠들어도 괜찮아!"]},
+    "sera":{low:["그 정도라면 가볍게 이야기할 수 있겠군요.","네, 이건 어렵지 않은 주제군요."],high:["당신과는 이런 이야기가 오히려 편하군요.","이 정도 화제라면 부담 없이 말할 수 있겠습니다."]},
+    "lute":{low:["그건 짧게 답할 수 있어.","그 정도면 문제없어."],high:["이런 얘기는 편하네.","그래, 이 정도면 길게 경계할 필요 없지."]},
+    "adam":{low:["오, 이제 좀 재밌는 얘기네.","그래, 이건 내가 답해주지."],high:["야, 이런 건 진작 물어보지.","좋아, 이건 꽤 내 취향이다."]},
+    "vaggie":{low:["그 정도면 현실적으로 볼 수 있지.","응, 그건 간단해."],high:["이런 건 편하게 얘기해도 되겠네.","그래, 이 정도는 부담 없지."]},
+    "alastor":{low:["아, 훨씬 산뜻한 화제군요.","그 정도라면 즐겁게 답해드리지요."],high:["이런 한담은 제법 마음에 듭니다.","당신도 드디어 가벼운 화제를 고르는군요."]},
+    "vox":{low:["좋아, 이건 바로 답 나오지.","오케이, 이건 화면 켤 것도 없네."],high:["그래, 이런 잡담이면 편하지.","네가 이런 거 물을 때가 제일 무난하네."]},
+    "niffty":{low:["좋아! 이런 거 좋아!","오! 그거 재밌겠다!"],high:["응! 이건 너랑 얘기하면 더 재밌어!","좋아! 오늘은 이런 얘기만 하자!"]},
+    "angel-dust":{low:["오, 자기야. 이건 훨씬 낫다.","그래, 이런 건 편하게 가지."],high:["좋아, 이런 얘기는 서비스 없이도 가능해.","이 정도 잡담이면 나도 편해, 자기."]},
+    "husk":{low:["이 정도면 답하기 쉽네.","그래, 그건 별거 아니지."],high:["이런 얘긴 술 없어도 되겠네.","그래, 이 정도 잡담이면 괜찮아."]},
+    "blitzo":{low:["오, 이건 감정 상담 아니지? 좋아.","그래, 이런 거면 씨발 훨씬 낫다."],high:["좋아, 이런 잡담이면 나도 편하다.","야, 이 정도는 얼마든지 떠들지."]},
+    "paimon":{low:["그 정도 화제라면 가볍게 답할 수 있소.","좋소. 이런 한담이라면 괜찮군."],high:["그대와는 이런 이야기가 제법 편해졌소.","이 정도라면 격식을 조금 덜어도 되겠군."]},
+    "satan":{low:["그건 간단하군.","좋아. 그 정도면 답하지."],high:["이런 얘기는 성가시지 않네.","그래, 이 정도면 편하게 말할 수 있다."]},
+    "mammon":{low:["오! 이건 돈 안 돼도 재밌네!","좋아! 이런 건 광고 없이도 간다!"],high:["너랑 이런 얘기 하는 건 꽤 괜찮네!","좋아, 이 정도면 공짜 토크 해주지!"]},
+    "asmodeus":{low:["좋아, 베이비. 이건 편하게 가자.","이 정도면 분위기 좋네."],high:["이런 잡담은 너랑 하면 꽤 재밌어.","좋아, 베이비. 이건 부담 없이 말하지."]},
+    "beelzebub":{low:["좋아! 이런 얘기 완전 좋아!","오, 이건 파티 중에도 할 수 있겠다!"],high:["너랑 이런 잡담하면 텐션 딱 좋아!","응! 오늘은 이런 느낌으로 가자!"]},
+    "sir-pentious":{low:["오! 이건 훨씬 답하기 쉽소!","좋소! 이런 주제는 자신 있소!"],high:["그대와 이런 잡담을 나누는 것도 즐겁군!","아주 좋소! 이번엔 과장도 조금 줄여보겠소!"]},
+    "cherri-bomb":{low:["오, 이건 좀 재밌네.","그래, 이런 거면 편하게 가지."],high:["좋아, 이 정도 잡담은 너랑 잘 맞네.","이런 건 폭탄 없어도 재밌다니까."]},
+    "velvette":{low:["오케이, 이건 덜 촌스럽네.","좋아. 이런 건 빨리 답할 수 있어."],high:["이런 얘긴 너랑 해도 안 지루해.","좋아, 필터 필요 없는 주제네."]},
+    "valentino":{low:["이 정도면 가볍게 답해주지.","좋아, 베이비. 이건 간단해."],high:["이런 얘기는 너랑 해도 괜찮군.","좋아. 이 정도는 편하게 가지."]},
+    "carmilla-carmine":{low:["그 정도라면 간단히 답할 수 있겠군요.","네, 이건 복잡하게 볼 필요 없겠습니다."],high:["당신과 이런 대화를 나누는 건 편하군요.","이 정도 화제라면 가볍게 말해도 되겠습니다."]},
+    "rosie":{low:["어머, 이런 이야기는 차와 잘 어울리겠네요.","좋아요. 이 정도라면 즐겁게 이야기할 수 있죠."],high:["당신과 이런 한담을 나누는 시간이 꽤 마음에 들어요.","후후, 오늘은 이런 가벼운 이야기가 좋겠군요."]},
+    "abel":{low:["아, 이건 저도 편하게 말할 수 있어요.","좋아요! 이런 건 어렵지 않네요."],high:["당신과 이런 얘기하면 긴장이 안 돼서 좋아요.","응, 이 정도 잡담은 정말 편해요."]},
+    "emily":{low:["오! 이건 완전 좋아!","좋아! 이런 얘기면 얼마든지!"],high:["너랑 이런 얘기하면 진짜 재밌어!","응! 오늘은 이렇게 가볍게 떠들자!"]},
+    "baxter":{low:["좋아, 이건 변수 적네.","이 정도면 실험 없이도 답 가능."],high:["너랑 이런 얘기는 데이터 정리도 필요 없네.","좋아, 이건 편하게 말해도 되겠다."]},
+    "zestial":{low:["이 정도 한담이라면 가벼이 나눌 수 있겠구려.","좋소. 오늘은 이런 이야기도 괜찮겠군."],high:["그대와 나누는 이런 한담도 제법 즐겁도다.","이 정도 화제라면 오래된 말투도 가벼워지는구려."]},
+    "stolas":{low:["아, 이 정도라면 편하게 이야기할 수 있겠군요.","좋아요. 이건 훨씬 가벼운 주제네요."],high:["당신과 이런 잡담을 하는 것도 꽤 좋군요.","네, 오늘은 이런 얘기가 딱 좋겠습니다."]},
+    "loona":{low:["그 정도면 답해줄 수 있어.","응. 이런 건 별거 아니지."],high:["이런 얘긴 너랑 해도 안 피곤해.","그래, 이 정도 잡담이면 괜찮아."]},
+    "moxxie":{low:["그 정도라면 간단히 답할 수 있습니다.","좋습니다. 이건 복잡하게 볼 필요 없겠군요."],high:["당신과 이런 이야기를 하는 건 편하군요.","이 정도 주제라면 저도 가볍게 말할 수 있습니다."]},
+    "millie":{low:["오, 이건 재밌겠네!","좋아! 이런 얘기면 얼마든지!"],high:["너랑 이런 잡담하면 진짜 편하다!","응! 오늘은 이런 거나 잔뜩 얘기하자!"]},
+    "fizzarolli":{low:["오, 드디어 펀치라인 있는 주제네.","좋아, 이런 건 무대 뒤에서도 말할 수 있지."],high:["너랑 이런 잡담하면 쉬는 느낌이라 좋아.","좋아, 오늘은 이런 편한 얘기가 딱이다."]},
+    "octavia":{low:["그 정도면 괜찮아.","응, 이런 얘기면 편해."],high:["이런 건 너랑 얘기해도 안 피곤해.","그래, 오늘은 이런 잡담이 낫다."]}
+  };
+  const lightOpen=(c,high,key)=>{
+    const row=LIGHT_OPENERS[c.id]||{low:["그 정도면 가볍게 말할 수 있어."],high:["이런 얘긴 편하게 할 수 있네."]};
+    return pick(high?row.high:row.low,key);
+  };
+
   const FORMAL=new Set(["sera","alastor","carmilla-carmine","rosie","abel","stolas","moxxie"]);
   const ARCHAIC=new Set(["paimon","sir-pentious","zestial"]);
   const register=c=>ARCHAIC.has(c.id)?"archaic":FORMAL.has(c.id)?"formal":"casual";
@@ -476,10 +516,16 @@
     selfworth:["성과 하나로 사람 전체를 판단하지 않는 일","못하는 날도 그냥 못하는 날로 두는 일","칭찬 여부로 전부 정하지 않는 일"],
     money:["계산부터 확실히 하는 일","누가 얼마를 내는지 미리 정하는 일","싸다고 무조건 좋은 거래로 보지 않는 일"],
     food:["직접 먹어보고 정하는 일","취향 차이는 그냥 취향으로 두는 일","같이 먹을 사람 입맛도 한 번 보는 일"],
-    culture:["직접 겪어보기 전엔 단정하지 않는 일","출신만 듣고 성격까지 정하지 않는 일","낯선 규칙은 이유부터 물어보는 일"]
+    culture:["직접 겪어보기 전엔 단정하지 않는 일","출신만 듣고 성격까지 정하지 않는 일","낯선 규칙은 이유부터 물어보는 일"],
+    travel:["동선부터 너무 빡빡하게 잡지 않는 일","가보고 별로면 바로 다른 곳으로 가는 일","구경할 거리랑 돌아갈 길부터 확인하는 일"]
   };
   const SURFACE_PRIORITY=["food","leisure","work","tech","media","party","culture","human","hotel","imp","goetia","sin","law","violence","money","fame","friendship","power","heaven","redemption","trust","family","romance","past","selfworth","soul","extermination","hellsociety"];
   const surfaceTag=t=>{
+    const title=t.title;
+    if(/관광|여행|휴가|놀이공원/.test(title))return"travel";
+    if(/직원|업무|회사|의뢰|고객|운영비|직책/.test(title))return"work";
+    if(/게임룸|객실|로비|투숙객|호텔/.test(title))return"hotel";
+    if(/음식|요리|조식|메뉴|술/.test(title))return"food";
     const ts=tags(t);
     return SURFACE_PRIORITY.find(x=>ts.includes(x))||ts[0]||"hellsociety";
   };
@@ -541,16 +587,22 @@
       "‘"+t+"’은 이 정도 반응만 알아두면 돼."
     ][n];
   };
+  const CALL={
+    "lucifer-morningstar":"루시퍼","charlie-morningstar":"찰리","sera":"세라","lute":"류트","adam":"아담","vaggie":"배기","alastor":"알래스터","vox":"복스","niffty":"니프티","angel-dust":"엔젤",
+    "husk":"허스크","blitzo":"블리츠","paimon":"파이몬","satan":"사탄","mammon":"마몬","asmodeus":"아스모데우스","beelzebub":"비엘제붑","sir-pentious":"펜셔스","cherri-bomb":"체리","velvette":"벨벳",
+    "valentino":"발렌티노","carmilla-carmine":"카밀라","rosie":"로지","abel":"아벨","emily":"에밀리","baxter":"백스터","zestial":"제스티얼","stolas":"스톨라스","loona":"루나","moxxie":"목시",
+    "millie":"밀리","fizzarolli":"피자로리","octavia":"옥타비아"
+  };
+
   const promptTail=(c,t,key)=>{
-    const n=hash(key)%6;
-    const lightTag=LENS[pick(c.easy?.length?c.easy:["leisure"],key)]||"가벼운 잡담";
+    const n=hash(key)%6,name=CALL[c.id]||c.name;
     return [
-      "평소 "+lightTag+" 얘기할 때처럼 가볍게요.",
-      "그냥 "+lightTag+" 얘기하듯 한마디만요.",
-      "굳이 진지해지지 말고 "+lightTag+" 잡담 정도로요.",
-      "평소 "+lightTag+" 쪽 반응 보는 느낌으로 물어본 거예요.",
-      "딱 "+lightTag+" 얘기 정도의 답이면 돼요.",
-      "오늘은 "+lightTag+" 얘기처럼 가볍게 넘겨도 돼요."
+      "그냥 "+name+"답게 한마디만요.",
+      name+"라면 뭐라고 할지 궁금해서요. 가볍게요.",
+      "굳이 진지해지지 말고 "+name+"식 답이면 돼요.",
+      "그냥 "+name+" 반응이 궁금했던 거예요.",
+      "딱 한마디만요. "+name+"답게.",
+      "오늘은 가볍게요. "+name+"이면 어떻게 할지만."
     ][n];
   };
 
@@ -569,15 +621,15 @@
     if(personal){
       lo1=deflectFor(c,false,id+"dl")+" "+topicTail(c,t.title,id+"dtl");
       hi1=deflectFor(c,true,id+"dh")+" "+topicTail(c,t.title,id+"dth");
-      lo2=deflectFor(c,false,id+"dl2")+" "+topicTail(c,t.title,id+"dtl2");
-      hi2=deflectFor(c,true,id+"dh2")+" "+topicTail(c,t.title,id+"dth2");
+      lo2=topicTail(c,t.title,id+"dtl2")+" "+(register(c)==="formal"?"그럼 다른 이야기로 넘어가죠.":register(c)==="archaic"?"그럼 다른 화제로 돌리세.":"그럼 다른 얘기 하자.");
+      hi2=topicTail(c,t.title,id+"dth2")+" "+(register(c)==="formal"?"당신이 이해했다면 그걸로 충분합니다.":register(c)==="archaic"?"그대가 알아들었다면 그것으로 충분하오.":"네가 알아들었으면 그걸로 됐어.");
     }else{
       const reg=register(c),stag=surfaceTag(t),x=pick(SURFACE_X[stag]||SURFACE_X.hellsociety,id+"sx");
       const set=reg==="formal"?LIGHT_FORMAL:reg==="archaic"?LIGHT_ARCHAIC:LIGHT_CASUAL;
-      lo1=set[(hash(id+"l")+n)%set.length](pick(c.guard,id+"g"),x)+" "+topicTail(c,t.title,id+"ntl");
-      hi1=set[(hash(id+"h")+n+3)%set.length](pick(c.warm,id+"w"),x)+" "+topicTail(c,t.title,id+"nth");
-      lo2=closeLow(c,t.title,id+"lc")+" "+pick(c.guard,id+"cg");
-      hi2=closeHigh(c,t.title,id+"hc")+" "+pick(c.warm,id+"cw");
+      lo1=set[(hash(id+"l")+n)%set.length](lightOpen(c,false,id+"lg"),x)+" "+topicTail(c,t.title,id+"ntl");
+      hi1=set[(hash(id+"h")+n+3)%set.length](lightOpen(c,true,id+"lh"),x)+" "+topicTail(c,t.title,id+"nth");
+      lo2=closeLow(c,t.title,id+"lc")+" "+lightOpen(c,false,id+"lcg");
+      hi2=closeHigh(c,t.title,id+"hc")+" "+lightOpen(c,true,id+"hcw");
     }
 
     const title="TALK · "+c.name+" · "+t.title;
@@ -607,6 +659,6 @@
   window.HV_STORY_PACKS ||= [];
   for(const c of PFS){
     const list=chosen(c);
-    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:5,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
+    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:6,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
   }
 })();
