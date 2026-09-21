@@ -9,6 +9,7 @@ const jsFiles=[
   "data/story-packs.js",
   "data/character-events.js",
   "data/item-presets.js",
+  "data/dialogue-presets.js",
   "js/core/state.js",
   "js/core/game-state.js",
   "js/ui/app-shell.js",
@@ -44,6 +45,7 @@ const gameStateCode=read("js/core/game-state.js");
 const storyPackCode=read("data/story-packs.js");
 const characterEventCode=read("data/character-events.js");
 const itemPresetCode=read("data/item-presets.js");
+const dialoguePresetCode=read("data/dialogue-presets.js");
 const dialogueCss=read("css/dialogue.css");
 const featuresCss=read("css/features.css");
 
@@ -70,6 +72,13 @@ assert.match(itemPresetCode,/HV_APPLY_ITEM_PRESETS/,"item preset installer missi
 assert.match(itemPresetCode,/FIRST|firstEntries/,"gift FIRST preset flow missing");
 assert.match(itemPresetCode,/repeatEntries/,"gift REPEAT preset flow missing");
 assert.match(itemPresetCode,/specialEntries/,"gift SPECIAL preset flow missing");
+assert.match(itemPresetCode,/HV_BUILD_ITEM_REACTION/,"runtime gift reaction builder missing");
+assert.match(dialoguePresetCode,/HV_APPLY_DIALOGUE_PRESETS/,"dialogue detail preset installer missing");
+assert.match(editorUi,/DIALOGUE_EVENT_GROUPS/,"dialogue event taxonomy missing");
+for(const role of ["talk","entry","exit","story"])assert.match(editorUi,new RegExp('id:"'+role+'"'),role.toUpperCase()+" dialogue category missing");
+assert.match(editorUi,/AUTO REACTIONS/,"automatic gift reaction preview missing");
+assert.match(editorUi,/data-item-bind="inventoryEventId"/,"dialogue item acquisition selector missing");
+assert.match(editorUi,/data-itemfx-field="once"/,"one-time item effect control missing");
 assert.match(gameStateCode,/e\.menuVisible!==false/,"hidden continuation events must stay out of TALK menus");
 assert.match(dialogueCode,/function updateRoomSpeakerVisual\(/,"per-line speaker art switching missing");
 assert.match(dialogueCode,/function nextContinuousEvent\(/,"continuous TALK fallback missing");
@@ -241,6 +250,7 @@ vm.createContext(context);
 vm.runInContext(storyPackCode,context,{filename:"data/story-packs.js"});
 vm.runInContext(characterEventCode,context,{filename:"data/character-events.js"});
 vm.runInContext(itemPresetCode,context,{filename:"data/item-presets.js"});
+vm.runInContext(dialoguePresetCode,context,{filename:"data/dialogue-presets.js"});
 vm.runInContext(stateCode,context,{filename:"js/core/state.js"});
 
 const storyPackInstall=vm.runInContext(`
@@ -271,7 +281,7 @@ const storyPackInstall=vm.runInContext(`
 `,context);
 assert.equal(storyPackInstall.changed,true,"eligible project must receive story pack");
 assert.equal(storyPackInstall.eventCount,51,"hotel pack plus seven matching character packs should install 51 events");
-assert.equal(storyPackInstall.variableCount,11,"story pack variable count changed");
+assert.equal(storyPackInstall.variableCount,39,"story and character event variables must install together");
 assert.equal(storyPackInstall.packVersion,3,"story pack version marker missing");
 assert.equal(storyPackInstall.openingVisible,true,"opening event must be visible");
 assert.equal(storyPackInstall.hiddenVisible,false,"continuation event must be hidden");
@@ -326,13 +336,13 @@ assert.ok(itemPresetCheck.first.some(line=>/최고의 아빠/.test(line)),"FIRST
 assert.ok(itemPresetCheck.repeat.length>0,"REPEAT GIFT flow must be populated");
 assert.ok(itemPresetCheck.special.length>0,"SPECIAL gift flow must be populated");
 assert.ok(itemPresetCheck.specialMinAffection>0,"SPECIAL affection rule must be populated");
-assert.equal(itemPresetCheck.itemPresetVersion,2,"item preset version marker missing");
+assert.equal(itemPresetCheck.itemPresetVersion,3,"item preset version marker missing");
 
 const itemPresetRepairCheck=vm.runInContext(`
 (()=>{
   const source=normalizeState({
     schemaVersion:4,
-    itemPresetVersion:2,
+    itemPresetVersion:3,
     characters:[{id:"lucifer-morningstar",name:"Lucifer Morningstar",origin:"hellborn"}],
     items:[{
       id:"lucifer-letter-test",
@@ -369,6 +379,99 @@ assert.equal(itemPresetRepairCheck.weight,.77,"repair-only pass must preserve a 
 assert.ok(itemPresetRepairCheck.first>0,"blank FIRST GIFT flow must repair");
 assert.ok(itemPresetRepairCheck.repeat>0,"blank REPEAT GIFT flow must repair");
 assert.ok(itemPresetRepairCheck.special>0,"blank SPECIAL flow must repair");
+
+const generatedGiftReaction=vm.runInContext(`
+(()=>{
+  const item=normalizeItem({id:"gift-headphones",name:"검정 헤드폰",rarity:"RARE",collectionCharacterId:"charlie-morningstar",giftable:true});
+  const character=normalizeCharacter({id:"loona",name:"Loona",origin:"hellborn"});
+  const reaction=normalizeItemReaction(window.HV_BUILD_ITEM_REACTION(item,character),character.id);
+  return{
+    characterId:reaction.characterId,
+    preference:reaction.preference,
+    affectionDelta:reaction.affectionDelta,
+    emotionState:reaction.emotionState,
+    firstText:reaction.firstEntries.find(entry=>entry.type==="dialogue")?.text||"",
+    repeatText:reaction.repeatEntries.find(entry=>entry.type==="dialogue")?.text||"",
+    specialText:reaction.specialEntries.find(entry=>entry.type==="dialogue")?.text||""
+  };
+})()
+`,context);
+assert.equal(generatedGiftReaction.characterId,"loona","generated gift reaction must target the selected character");
+assert.equal(generatedGiftReaction.preference,"LOVED","character taste must influence generated preference");
+assert.ok(generatedGiftReaction.affectionDelta>0,"generated gift reaction must include affection");
+assert.ok(generatedGiftReaction.emotionState,"generated gift reaction must include emotion");
+assert.match(generatedGiftReaction.firstText,/헤드폰/,"generated FIRST gift line must name the item");
+assert.ok(generatedGiftReaction.repeatText&&generatedGiftReaction.specialText,"generated repeat and special lines must exist");
+const allCharacterGiftCoverage=vm.runInContext(`
+(()=>{
+  const ids=["lucifer-morningstar","charlie-morningstar","sera","lute","adam","vaggie","alastor","vox","niffty","angel-dust","husk","blitzo","paimon","satan","mammon","asmodeus","beelzebub","belphegor","leviathan","sir-pentious","cherri-bomb","velvette","valentino","carmilla-carmine","rosie","abel","emily","baxter","zestial","stolas","loona","moxxie","millie","fizzarolli","octavia"];
+  const item=normalizeItem({id:"coverage-gift",name:"작은 별 장식",rarity:"COMMON",collectionCharacterId:"lucifer-morningstar",giftable:true});
+  return ids.map(id=>{
+    const reaction=normalizeItemReaction(window.HV_BUILD_ITEM_REACTION(item,{id,name:id}),id);
+    return [id,reaction.firstEntries.some(entry=>entry.type==="dialogue"&&entry.text),reaction.repeatEntries.some(entry=>entry.type==="dialogue"&&entry.text),reaction.specialEntries.some(entry=>entry.type==="dialogue"&&entry.text)];
+  });
+})()
+`,context);
+assert.equal(allCharacterGiftCoverage.length,35,"gift reaction coverage must include all 35 existing characters");
+assert.ok(allCharacterGiftCoverage.every(([,first,repeat,special])=>first&&repeat&&special),"every character needs FIRST, REPEAT, and SPECIAL gift dialogue");
+
+const dialoguePresetCheck=vm.runInContext(`
+(()=>{
+  const source=normalizeState({
+    schemaVersion:4,
+    characters:[{id:"loona",name:"Loona",origin:"hellborn"}],
+    events:[
+      {id:"hidden-link",name:"연계 장면",characterId:"loona",menuVisible:false,entries:[{id:"hidden-line",type:"dialogue",text:"hidden"}]},
+      {id:"voice-loona-test",name:"TALK · 이어폰",characterId:"loona",entries:[
+        {id:"setup",type:"narration",text:"루나가 이어폰을 고쳐 쓴다."},
+        {id:"player",type:"dialogue",speaker:"PLAYER",text:"새 음악 어때?"},
+        {id:"reply",type:"dialogue",speakerCharacterId:"loona",speaker:"Loona",text:"나쁘지 않아."}
+      ]}
+    ],
+    items:[{id:"loona-coffee",name:"진한 커피",rarity:"COMMON",collectionCharacterId:"loona",giftable:true}]
+  });
+  const installed=window.HV_APPLY_DIALOGUE_PRESETS(source,{normalizeEntry,normalizeEvent,normalizeVariable,normalizeItemEffects});
+  const event=installed.state.events.find(candidate=>candidate.id==="voice-loona-test");
+  const owners=[];walkStateEntries(event.entries,owner=>owners.push(owner));
+  const reward=owners.flatMap(owner=>owner.itemEffects||[]).find(effect=>effect.itemId==="loona-coffee");
+  return{
+    hiddenRole:installed.state.events.find(candidate=>candidate.id==="hidden-link").eventRole,
+    variableCount:installed.state.variables.length,
+    variableEffect:owners.some(owner=>(owner.effects||[]).some(effect=>effect.variableId.startsWith("seen_voice_loona_test"))),
+    affection:owners.some(owner=>(owner.affectionEffects||[]).some(effect=>effect.characterId==="loona"&&effect.amount===1)),
+    emotion:owners.some(owner=>(owner.emotionEffects||[]).some(effect=>effect.characterId==="loona")),
+    rewardOnce:reward?.once,
+    linkedEvent:installed.state.items[0].inventoryEventId
+  };
+})()
+`,context);
+assert.equal(dialoguePresetCheck.hiddenRole,"story","hidden continuation events must migrate to STORY");
+assert.ok(dialoguePresetCheck.variableCount>0&&dialoguePresetCheck.variableEffect,"voice event must gain a seen variable effect");
+assert.equal(dialoguePresetCheck.affection,true,"voice event must gain an affection effect");
+assert.equal(dialoguePresetCheck.emotion,true,"voice event must gain a closing emotion effect");
+assert.equal(dialoguePresetCheck.rewardOnce,true,"dialogue item reward must be one-time");
+assert.equal(dialoguePresetCheck.linkedEvent,"voice-loona-test","item must remember its acquisition event");
+
+vm.runInContext(gameStateCode,context,{filename:"js/core/game-state.js"});
+const oneTimeReward=vm.runInContext(`
+(()=>{
+  state=normalizeState({
+    schemaVersion:4,
+    characters:[{id:"reward-char",name:"Reward",origin:"hellborn"}],
+    items:[{id:"reward-item",name:"Token",rarity:"COMMON",collectionCharacterId:"reward-char",giftable:true}],
+    claimedItemEffectIds:[]
+  });
+  session=createSession();
+  showItemAcquired=()=>{};
+  saveProgressState=()=>{};
+  const effect={id:"reward-once",itemId:"reward-item",amount:1,once:true};
+  applyItemEffects([effect]);
+  applyItemEffects([effect]);
+  return{count:itemCount("reward-item"),claims:[...state.claimedItemEffectIds]};
+})()
+`,context);
+assert.equal(oneTimeReward.count,1,"one-time dialogue reward must not duplicate on replay");
+assert.deepEqual([...oneTimeReward.claims],["reward-once"],"one-time reward claim must persist");
 
 const aliasPackInstall=vm.runInContext(`
 (()=>{

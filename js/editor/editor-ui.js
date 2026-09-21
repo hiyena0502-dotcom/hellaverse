@@ -224,13 +224,39 @@ function charOptions(selected="",blank="선택 안 함",source=editorDraft){
 function eventOptions(selected="",blank="이벤트 종료",source=editorDraft,exclude=""){
   return '<option value="">'+esc(blank)+'</option>'+source.events.filter(e=>e.id!==exclude).map(e=>'<option value="'+esc(e.id)+'" '+(e.id===selected?"selected":"")+'>'+esc(e.name)+'</option>').join("");
 }
+const DIALOGUE_EVENT_GROUPS=[
+  {id:"characters",number:"01",label:"캐릭터",hint:"프로필 · 이미지"},
+  {id:"talk",number:"02",label:"TALK",hint:"목록에서 선택"},
+  {id:"entry",number:"03",label:"ENTRY",hint:"입장할 때"},
+  {id:"exit",number:"04",label:"EXIT",hint:"퇴장할 때"},
+  {id:"story",number:"05",label:"STORY",hint:"연계 · 자동 재생"},
+  {id:"variables",number:"06",label:"변수",hint:"조건 · 상태"}
+];
+const DIALOGUE_EVENT_ROLES=new Set(["talk","entry","exit","story"]);
+function editorEventRole(event){
+  const role=String(event?.eventRole||"").toLowerCase();
+  if(DIALOGUE_EVENT_ROLES.has(role))return role;
+  if(/^\s*ENTRY(?:\s*[·:|\-]|\s|$)/i.test(event?.name||""))return"entry";
+  if(/^\s*EXIT(?:\s*[·:|\-]|\s|$)/i.test(event?.name||""))return"exit";
+  if(event?.menuVisible===false)return"story";
+  return"talk";
+}
+function dialogueGroupCount(id){
+  if(id==="characters")return editorDraft.characters.length;
+  if(id==="variables")return editorDraft.variables.length;
+  return editorDraft.events.filter(event=>editorEventRole(event)===id).length;
+}
 function renderDialogueEditor(){
-  editorBody.innerHTML=editorHead("DIALOGUE","대화 이벤트 설정","캐릭터와 이벤트, 변수·분기를 관리합니다.")+
-  '<div class="subtabs"><button class="subtab '+(dialogueSubtab==="characters"?"active":"")+'" data-action="dialogue-subtab" data-id="characters">CHARACTERS</button><button class="subtab '+(dialogueSubtab==="events"?"active":"")+'" data-action="dialogue-subtab" data-id="events">EVENTS</button><button class="subtab '+(dialogueSubtab==="variables"?"active":"")+'" data-action="dialogue-subtab" data-id="variables">VARIABLES</button></div>'+
+  if(dialogueSubtab==="events")dialogueSubtab="talk";
+  if(!DIALOGUE_EVENT_GROUPS.some(group=>group.id===dialogueSubtab))dialogueSubtab="characters";
+  editorBody.innerHTML=editorHead("DIALOGUE","대화 이벤트 설정","대화가 실행되는 시점과 목적에 따라 종류를 나눠 관리합니다.")+
+  '<nav class="dialogue-type-nav" aria-label="대화 이벤트 종류">'+DIALOGUE_EVENT_GROUPS.map(group=>
+    '<button type="button" class="dialogue-type-button '+(dialogueSubtab===group.id?"active":"")+'" data-action="dialogue-subtab" data-id="'+group.id+'"><span>'+group.number+'</span><strong>'+group.label+'</strong><small>'+group.hint+'</small><b>'+dialogueGroupCount(group.id)+'</b></button>'
+  ).join("")+'</nav>'+
   '<div id="dialogueEditorContent"></div>';
   if(dialogueSubtab==="characters")renderCharacterManager();
-  else if(dialogueSubtab==="events")renderEventManager();
-  else renderVariableManager();
+  else if(dialogueSubtab==="variables")renderVariableManager();
+  else renderEventManager(dialogueSubtab);
 }
 function renderCharacterManager(){
   const root=$("#dialogueEditorContent",editorBody);
@@ -259,22 +285,29 @@ function renderVariableManager(){
   (editorDraft.variables.length?editorDraft.variables.map(v=>'<div class="table-row" data-var-id="'+esc(v.id)+'"><input data-bind="var-name" value="'+esc(v.name)+'"><select data-bind="var-type"><option value="number" '+(v.type==="number"?"selected":"")+'>숫자</option><option value="boolean" '+(v.type==="boolean"?"selected":"")+'>참/거짓</option><option value="string" '+(v.type==="string"?"selected":"")+'>문자</option></select><input data-bind="var-default" value="'+esc(v.defaultValue)+'"><span class="muted">'+esc(v.id)+'</span><button class="danger-button" data-action="delete-variable">×</button></div>').join(""):'<div class="editor-note">변수가 없습니다.</div>')+
   '</div></div>';
 }
-function renderEventManager(){
+function renderEventManager(role=dialogueSubtab){
   const root=$("#dialogueEditorContent",editorBody);
-  const ev=editorDraft.events.find(x=>x.id===selectedEditorEventId)||null;
+  role=DIALOGUE_EVENT_ROLES.has(role)?role:"talk";
   const q=editorEventQuery.trim().toLowerCase();
-  const filtered=editorDraft.events.filter(x=>{
+  const grouped=editorDraft.events.filter(x=>editorEventRole(x)===role);
+  const filtered=grouped.filter(x=>{
     if(!q)return true;
     const text=[x.name,getCharacterDraft(x.characterId)?.name,x.id].join(" ").toLowerCase();
     return text.includes(q);
   });
+  if(!grouped.some(event=>event.id===selectedEditorEventId)){
+    selectedEditorEventId=filtered[0]?.id||grouped[0]?.id||"";
+    selectedEntryId="";
+  }
+  const ev=editorDraft.events.find(x=>x.id===selectedEditorEventId&&editorEventRole(x)===role)||null;
   const pages=Math.max(1,Math.ceil(filtered.length/EDITOR_EVENT_PAGE_SIZE));
   editorEventPage=Math.max(0,Math.min(editorEventPage,pages-1));
   const visible=filtered.slice(editorEventPage*EDITOR_EVENT_PAGE_SIZE,(editorEventPage+1)*EDITOR_EVENT_PAGE_SIZE);
-  root.innerHTML='<div class="dialogue-editor-layout"><aside class="manager-list"><div class="manager-list-head"><strong>EVENTS</strong><button class="small-button" data-action="new-event">+ 추가</button></div>'+
+  const roleHint={talk:"플레이어가 TALK 목록에서 직접 선택하는 대화",entry:"캐릭터 공간에 들어갈 때 실행되는 대화",exit:"캐릭터 공간을 나갈 때 실행되는 대화",story:"다른 이벤트 뒤에 이어지는 연계·자동 대화"}[role];
+  root.innerHTML='<div class="editor-note dialogue-role-note"><b>'+role.toUpperCase()+'</b> · '+roleHint+'</div><div class="dialogue-editor-layout"><aside class="manager-list"><div class="manager-list-head"><strong>'+role.toUpperCase()+' EVENTS</strong><button class="small-button" data-action="new-event">+ 추가</button></div>'+
     '<input class="editor-list-search" data-editor-search="event" value="'+esc(editorEventQuery)+'" placeholder="이벤트 / 캐릭터 검색">'+
     '<div class="manager-list-items">'+
-    (visible.length?visible.map(x=>'<button class="manager-item '+(x.id===selectedEditorEventId?"active":"")+'" data-action="select-event" data-id="'+esc(x.id)+'"><strong>'+esc(x.name)+'</strong><small>'+esc(getCharacterDraft(x.characterId)?.name||"캐릭터 미지정")+' · '+x.entries.length+'개</small></button>').join(""):'<div class="editor-note">검색 결과가 없습니다.</div>')+
+    (visible.length?visible.map(x=>'<button class="manager-item '+(x.id===selectedEditorEventId?"active":"")+'" data-action="select-event" data-id="'+esc(x.id)+'"><strong>'+esc(x.name)+'</strong><small><span class="event-role-badge">'+role.toUpperCase()+'</span> '+esc(getCharacterDraft(x.characterId)?.name||"캐릭터 미지정")+' · '+x.entries.length+'개</small></button>').join(""):'<div class="editor-note">이 종류의 이벤트가 없습니다.</div>')+
     '</div>'+editorPager("event",editorEventPage,filtered.length,EDITOR_EVENT_PAGE_SIZE,"EVENT")+(ev?'<div style="margin-top:12px">'+eventProperties(ev)+'</div>':'')+'</aside><section class="flow-column"><div class="manager-list-head"><strong>FLOW</strong><span class="muted">'+(ev?ev.entries.length:0)+'개</span></div>'+
     (ev?'<div class="flow-adds"><button data-action="add-entry" data-type="dialogue">+ 대사</button><button data-action="add-entry" data-type="narration">+ 지문</button><button data-action="add-entry" data-type="choice">+ 선택지</button></div><div class="flow-list">'+renderFlowRows(ev.entries)+'</div>':'<div class="inspector-empty">이벤트를 추가하세요.</div>')+
     '</section><section class="inspector-column">'+renderInspector()+'</section></div>';
@@ -292,13 +325,14 @@ function eventProperties(ev){
   const chainRows=chain.map((id,index)=>{
     const target=editorDraft.events.find(x=>x.id===id);
     if(!target)return '<div class="continuation-row missing" data-continuation-id="'+esc(id)+'"><span class="continuation-index">'+String(index+1).padStart(2,"0")+'</span><div><strong>삭제된 EVENT</strong><small>'+esc(id)+'</small></div><div class="icon-actions"><button class="icon-button" data-action="remove-continuation" data-id="'+esc(id)+'">×</button></div></div>';
-    return '<div class="continuation-row" data-continuation-id="'+esc(id)+'"><span class="continuation-index">'+String(index+1).padStart(2,"0")+'</span><div><strong>'+esc(target.name)+'</strong><small>'+esc(getCharacterDraft(target.characterId)?.name||"캐릭터 미지정")+'</small></div><div class="icon-actions"><button class="icon-button" data-action="move-continuation" data-id="'+esc(id)+'" data-dir="-1" '+(index===0?"disabled":"")+'>↑</button><button class="icon-button" data-action="move-continuation" data-id="'+esc(id)+'" data-dir="1" '+(index===chain.length-1?"disabled":"")+'>↓</button><button class="icon-button" data-action="remove-continuation" data-id="'+esc(id)+'">×</button></div></div>';
+    return '<div class="continuation-row" data-continuation-id="'+esc(id)+'"><span class="continuation-index">'+String(index+1).padStart(2,"0")+'</span><div><strong>'+esc(target.name)+'</strong><small>'+editorEventRole(target).toUpperCase()+' · '+esc(getCharacterDraft(target.characterId)?.name||"캐릭터 미지정")+'</small></div><div class="icon-actions"><button class="icon-button" data-action="move-continuation" data-id="'+esc(id)+'" data-dir="-1" '+(index===0?"disabled":"")+'>↑</button><button class="icon-button" data-action="move-continuation" data-id="'+esc(id)+'" data-dir="1" '+(index===chain.length-1?"disabled":"")+'>↓</button><button class="icon-button" data-action="remove-continuation" data-id="'+esc(id)+'">×</button></div></div>';
   }).join("");
-  const results=candidates.map(x=>'<button class="continuation-search-result" type="button" data-action="add-continuation" data-id="'+esc(x.id)+'"><span>+</span><div><strong>'+esc(x.name)+'</strong><small>'+esc(getCharacterDraft(x.characterId)?.name||"캐릭터 미지정")+' · '+esc(x.id)+'</small></div></button>').join("");
+  const results=candidates.map(x=>'<button class="continuation-search-result" type="button" data-action="add-continuation" data-id="'+esc(x.id)+'"><span>+</span><div><strong>'+esc(x.name)+'</strong><small>'+editorEventRole(x).toUpperCase()+' · '+esc(getCharacterDraft(x.characterId)?.name||"캐릭터 미지정")+' · '+esc(x.id)+'</small></div></button>').join("");
 
   return '<label class="field"><span>이벤트 이름</span><input data-bind="event-name" value="'+esc(ev.name)+'"></label>'+
     '<label class="field" style="margin-top:9px"><span>캐릭터</span><select data-bind="event-character">'+charOptions(ev.characterId,"캐릭터 선택")+'</select></label>'+
-    '<label class="checkline" style="margin-top:9px"><input type="checkbox" data-bind="event-menu-visible" '+(ev.menuVisible!==false?"checked":"")+'> TALK 목록에 표시</label>'+
+    '<label class="field" style="margin-top:9px"><span>이벤트 종류</span><select data-bind="event-role"><option value="talk" '+(editorEventRole(ev)==="talk"?"selected":"")+'>TALK · 직접 선택</option><option value="entry" '+(editorEventRole(ev)==="entry"?"selected":"")+'>ENTRY · 입장</option><option value="exit" '+(editorEventRole(ev)==="exit"?"selected":"")+'>EXIT · 퇴장</option><option value="story" '+(editorEventRole(ev)==="story"?"selected":"")+'>STORY · 연계/자동</option></select></label>'+
+    (editorEventRole(ev)==="talk"?'<label class="checkline" style="margin-top:9px"><input type="checkbox" data-bind="event-menu-visible" '+(ev.menuVisible!==false?"checked":"")+'> TALK 목록에 표시</label>':'<p class="muted event-role-help">'+editorEventRole(ev).toUpperCase()+' 이벤트는 TALK 목록에서 자동으로 숨겨집니다.</p>')+
     '<label class="field" style="margin-top:9px"><span>종료 시 감정</span><select data-bind="event-emotion-exit"><option value="keep" '+(ev.emotionExitMode==="keep"?"selected":"")+'>현재 감정 유지</option><option value="reset" '+(ev.emotionExitMode==="reset"?"selected":"")+'>기본 감정으로 초기화</option></select></label>'+
     '<section class="event-continuation-editor"><div class="continuation-head"><div><strong>CONTINUATION</strong><small>이 EVENT가 끝난 뒤 위에서부터 자동 재생</small></div><b>'+chain.length+'</b></div>'+
       '<div class="continuation-list">'+(chainRows||'<div class="editor-note">이어지는 대화가 없습니다. 아래에서 EVENT를 검색해 추가하세요.</div>')+'</div>'+
@@ -388,7 +422,7 @@ function itemOptions(selected=""){
 function renderItemEffects(o,kind,attrs=""){
   const list=o.itemEffects||[];
   return '<div class="editor-block"><h4>아이템 지급</h4><div class="effect-stack">'+
-    (list.length?list.map(x=>'<div class="effect-row" data-itemfx-id="'+esc(x.id)+'"><select '+attrs+' data-itemfx-kind="'+kind+'" data-itemfx-field="itemId">'+itemOptions(x.itemId)+'</select><input '+attrs+' type="number" min="1" step="1" data-itemfx-kind="'+kind+'" data-itemfx-field="amount" value="'+x.amount+'"><span class="muted">'+esc(itemById(x.itemId,editorDraft)?.acquisitionMode==="unique"?"UNIQUE":"REPEATABLE")+'</span><button '+attrs+' class="icon-button" data-action="delete-itemfx" data-kind="'+kind+'">×</button></div>').join(""):'<div class="editor-note">지급 없음</div>')+
+    (list.length?list.map(x=>'<div class="effect-row item-effect-row" data-itemfx-id="'+esc(x.id)+'"><select '+attrs+' data-itemfx-kind="'+kind+'" data-itemfx-field="itemId">'+itemOptions(x.itemId)+'</select><input '+attrs+' type="number" min="1" step="1" data-itemfx-kind="'+kind+'" data-itemfx-field="amount" value="'+x.amount+'"><label class="checkline compact"><input '+attrs+' type="checkbox" data-itemfx-kind="'+kind+'" data-itemfx-field="once" '+(x.once?"checked":"")+'> 1회만</label><span class="muted">'+esc(itemById(x.itemId,editorDraft)?.acquisitionMode==="unique"?"UNIQUE":"REPEATABLE")+'</span><button '+attrs+' class="icon-button" data-action="delete-itemfx" data-kind="'+kind+'">×</button></div>').join(""):'<div class="editor-note">지급 없음</div>')+
     '<button '+attrs+' class="small-button" data-action="add-itemfx" data-kind="'+kind+'">+ 아이템 지급</button></div></div>';
 }
 
@@ -587,7 +621,8 @@ function renderItemEditor(){
     if(editorItemRarityFilter!=="ALL"&&i.rarity!==editorItemRarityFilter)return false;
     if(editorItemCategoryFilter!=="ALL"&&i.category!==editorItemCategoryFilter)return false;
     if(q){
-      const text=[i.name,i.description,i.category,i.rarity,itemSourceLabel(i,editorDraft),getCharacterDraft(i.collectionCharacterId)?.name]
+      const linkedEvent=editorDraft.events.find(event=>event.id===i.inventoryEventId);
+      const text=[i.name,i.description,i.category,i.rarity,itemSourceLabel(i,editorDraft),getCharacterDraft(i.collectionCharacterId)?.name,linkedEvent?.name]
         .join(" ").toLowerCase();
       if(!text.includes(q))return false;
     }
@@ -617,8 +652,30 @@ function renderItemEditor(){
       '</div>'+editorPager("item",editorItemPage,filtered.length,EDITOR_ITEM_PAGE_SIZE,"ITEM")+'</aside>'+
       '<section class="manager-detail">'+(i?renderSelectedItemEditor(i,categories):'<div class="inspector-empty">왼쪽에서 아이템을 선택하세요.</div>')+'</section></div>';
 }
+function autoItemReactionForEditor(item,character){
+  if(typeof window.HV_BUILD_ITEM_REACTION!=="function")return null;
+  try{return normalizeItemReaction(window.HV_BUILD_ITEM_REACTION(item,character),character.id)}catch{return null}
+}
+function reactionPreviewText(reaction){
+  const lists=[reaction?.firstEntries,reaction?.repeatEntries,reaction?.specialEntries];
+  for(const list of lists){
+    const entry=(list||[]).find(row=>row.type==="dialogue"&&row.text)||(list||[]).find(row=>row.text);
+    if(entry?.text)return entry.text;
+  }
+  return"자동 대사를 만들 수 없습니다.";
+}
+function itemInventoryEventOptions(item){
+  const order=["talk","entry","exit","story"];
+  return '<option value="">대화에서 지급하지 않음</option>'+order.map(role=>{
+    const events=editorDraft.events.filter(event=>editorEventRole(event)===role);
+    if(!events.length)return"";
+    return '<optgroup label="'+role.toUpperCase()+'">'+events.map(event=>'<option value="'+esc(event.id)+'" '+(item.inventoryEventId===event.id?"selected":"")+'>'+esc(event.name)+' · '+esc(getCharacterDraft(event.characterId)?.name||"캐릭터 미지정")+'</option>').join("")+'</optgroup>';
+  }).join("");
+}
 function renderSelectedItemEditor(i,categories){
   const configured=new Set(i.reactions.map(r=>r.characterId).filter(id=>editorDraft.characters.some(ch=>ch.id===id))).size;
+  const autoCharacters=i.giftable===false?[]:editorDraft.characters.filter(character=>!i.reactions.some(reaction=>reaction.characterId===character.id));
+  const covered=configured+autoCharacters.length;
   const categoryOptions=[...new Set([...categories,i.category].filter(Boolean))];
   return '<div class="item-row interaction-editor-row editor-single-detail" data-item-id="'+esc(i.id)+'">'+
     '<select data-item-bind="collectionCharacterId">'+charOptions(i.collectionCharacterId,"컬렉션 소속")+'</select>'+
@@ -627,10 +684,12 @@ function renderSelectedItemEditor(i,categories){
     '<select data-item-bind="category">'+categoryOptions.map(cat=>'<option value="'+esc(cat)+'" '+(i.category===cat?"selected":"")+'>'+esc(cat)+'</option>').join("")+'</select>'+
     '<select data-item-bind="acquisitionMode"><option value="repeatable" '+(i.acquisitionMode==="repeatable"?"selected":"")+'>REPEATABLE</option><option value="unique" '+(i.acquisitionMode==="unique"?"selected":"")+'>UNIQUE</option></select>'+
     '<button class="danger-button" data-action="delete-item">현재 아이템 삭제</button>'+
-    '<div class="full-row item-meta-strip"><span>'+esc(itemSourceLabel(i,editorDraft))+'</span><span>'+configured+' / '+editorDraft.characters.length+' REACTIONS</span><span>OWNED ×'+itemCount(i.id,editorDraft)+'</span></div>'+
+    '<div class="full-row item-meta-strip"><span>'+esc(itemSourceLabel(i,editorDraft))+'</span><span>'+covered+' / '+editorDraft.characters.length+' REACTIONS · '+configured+' MANUAL + '+autoCharacters.length+' AUTO</span><span>OWNED ×'+itemCount(i.id,editorDraft)+'</span></div>'+
     '<div class="full-row interaction-response-editor">'+
       '<div class="inline-grid"><label class="checkline"><input type="checkbox" data-item-bind="gachaEnabled" '+(i.gachaEnabled?"checked":"")+'> 가챠 포함</label><label class="checkline"><input type="checkbox" data-item-bind="giftable" '+(i.giftable!==false?"checked":"")+'> 선물 가능</label><label class="checkline"><input type="checkbox" data-item-bind="enabled" '+(i.enabled?"checked":"")+'> 사용</label><label class="checkline"><input type="checkbox" data-item-bind="secret" '+(i.secret?"checked":"")+'> SECRET</label><label class="field"><span>선물 시 처리</span><select data-item-bind="giftUseMode"><option value="keep" '+(i.giftUseMode==="keep"?"selected":"")+'>KEEP · 유지</option><option value="consume" '+(i.giftUseMode==="consume"?"selected":"")+'>CONSUMABLE · 1개 소비</option></select></label><label class="field"><span>가챠 가중치</span><input type="number" min=".01" step=".01" data-item-bind="weight" value="'+i.weight+'"></label></div>'+
       '<label class="field full"><span>아이템 설명</span><textarea data-item-bind="description">'+esc(i.description)+'</textarea></label>'+
+      '<section class="item-acquisition-editor"><div><strong>DIALOGUE ACQUISITION</strong><p>선택한 대화의 마지막에 1회성 아이템 지급 지문을 연결합니다.</p></div><label class="field"><span>획득 이벤트</span><select data-item-bind="inventoryEventId">'+itemInventoryEventOptions(i)+'</select></label>'+
+        (i.inventoryEventId?'<small>'+esc(editorDraft.events.find(event=>event.id===i.inventoryEventId)?.name||"삭제된 이벤트")+' 완료 시 처음 한 번만 지급됩니다.</small>':'<small>가챠나 직접 지급만 사용합니다.</small>')+'</section>'+
       '<div class="reaction-manager"><div class="manager-list-head"><div><strong>CHARACTER REACTIONS</strong><p class="muted">현재 아이템의 캐릭터별 선물 반응만 표시합니다.</p></div><button class="small-button" type="button" data-action="new-item-reaction" data-item-id="'+esc(i.id)+'">+ 캐릭터 반응</button></div>'+
       (i.reactions.length?i.reactions.map(r=>'<article class="item-reaction-card" data-item-id="'+esc(i.id)+'" data-reaction-id="'+esc(r.id)+'"><div class="item-reaction-head">'+
         '<select data-reaction-bind="characterId">'+charOptions(r.characterId,"선물 대상")+'</select>'+
@@ -645,6 +704,11 @@ function renderSelectedItemEditor(i,categories){
         interactionFlowEditor(r.specialEntries,"item-reaction",r.id,i.id,"specialEntries","SPECIAL")+
       '</article>').join(""):'<div class="editor-note">캐릭터별 반응이 없습니다.</div>')+
       '</div>'+
+      (autoCharacters.length?'<details class="auto-reaction-browser" open><summary><span>AUTO REACTIONS</span><b>'+autoCharacters.length+'</b><small>자동 생성된 반응을 확인하고 필요한 것만 수동 편집으로 고정하세요.</small></summary><div class="auto-reaction-list">'+autoCharacters.map(character=>{
+        const reaction=autoItemReactionForEditor(i,character);
+        if(!reaction)return"";
+        return '<article class="auto-reaction-row"><div><strong>'+esc(character.name)+'</strong><span class="reaction-preference '+reaction.preference.toLowerCase()+'">'+esc(reaction.preference)+'</span><small>호감도 '+(reaction.affectionDelta>=0?"+":"")+reaction.affectionDelta+' · '+esc(reaction.emotionState||"감정 유지")+' '+reaction.emotionIntensity+'</small></div><p>'+esc(reactionPreviewText(reaction))+'</p><button class="small-button" type="button" data-action="materialize-item-reaction" data-item-id="'+esc(i.id)+'" data-character-id="'+esc(character.id)+'">수동 편집으로 전환</button></article>';
+      }).join("")+'</div></details>':'')+
     '</div>'+
   '</div>';
 }

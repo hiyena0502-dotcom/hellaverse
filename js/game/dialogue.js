@@ -208,13 +208,10 @@ function relationshipProgress(characterId){
   const talkSeen=talkIds.filter(id=>(state.discoveredTalkIds||[]).includes(id)).length;
   const asks=asksForCharacter(characterId);
   const askSeen=asks.filter(ask=>(state.askedAskIds||[]).includes(ask.id)).length;
-  const giftItems=state.items.filter(item=>item.enabled&&item.giftable!==false&&(
-    item.reactions.some(reaction=>reaction.characterId===characterId)||item.collectionCharacterId===characterId
-  ));
+  const character=getCharacter(characterId);
+  const giftItems=state.items.filter(item=>item.enabled&&item.giftable!==false);
   const giftSeen=giftItems.filter(item=>isGiftPreferenceDiscovered(item.id,characterId)).length;
-  const specialTotal=state.items.filter(item=>item.reactions.some(reaction=>
-    reaction.characterId===characterId&&reaction.specialEntries?.length
-  )).length;
+  const specialTotal=character?giftItems.filter(item=>giftReactionFor(item,character)?.specialEntries?.length).length:0;
   const specialSeen=(state.discoveredSpecialGiftKeys||[]).filter(key=>String(key).endsWith("::"+characterId)).length;
   return{talkSeen,talkTotal:talkIds.length,askSeen,askTotal:asks.length,giftSeen,giftTotal:giftItems.length,specialSeen,specialTotal};
 }
@@ -584,7 +581,7 @@ function renderInventoryPanel(){
   const owned=state.items.filter(i=>i.enabled&&i.giftable!==false&&itemCount(i.id)>0);
   if(selectedInventoryItemId&&!owned.some(item=>item.id===selectedInventoryItemId))selectedInventoryItemId="";
   const filtered=owned.filter(item=>{
-    const reaction=item.reactions.find(r=>r.characterId===ch.id);
+    const reaction=giftReactionFor(item,ch);
     const discovered=isGiftPreferenceDiscovered(item.id,ch.id);
     const pref=discovered?(reaction?.preference||"NEUTRAL"):"UNKNOWN";
     if(inventoryQuery&&![item.name,item.category,item.rarity,item.description].join(" ").toLowerCase().includes(inventoryQuery.toLowerCase()))return false;
@@ -594,7 +591,7 @@ function renderInventoryPanel(){
     return true;
   });
   const selected=itemById(selectedInventoryItemId);
-  const selectedReaction=selected?.reactions.find(r=>r.characterId===ch.id);
+  const selectedReaction=selected?giftReactionFor(selected,ch):null;
   const selectedDiscovered=selected?isGiftPreferenceDiscovered(selected.id,ch.id):false;
   const selectedPreference=selectedDiscovered?(selectedReaction?.preference||"NO SPECIAL REACTION"):"???";
   const categories=[...new Set(owned.map(item=>item.category))].sort();
@@ -612,7 +609,7 @@ function renderInventoryPanel(){
       '<button class="filter-chip '+(inventoryUnknownOnly?"active":"")+'" type="button" data-action="inventory-unknown">미확인만</button></div>'+
     preview+'<div class="inventory-list">'+
     (filtered.length?filtered.map(i=>{
-      const reaction=i.reactions.find(r=>r.characterId===ch.id);
+      const reaction=giftReactionFor(i,ch);
       const discovered=isGiftPreferenceDiscovered(i.id,ch.id);
       const reactionLabel=discovered?(reaction?reaction.preference:"NO SPECIAL REACTION"):"???";
       const times=giftInteractionCount(i.id,ch.id);
@@ -629,13 +626,7 @@ function useInventoryItem(id){
   const ch=getCharacter(selectedCharacterId);if(!ch)return;
   if(giftNeedsConfirmation(item)&&!confirm(item.name+"을(를) "+ch.name+"에게 선물할까요?\n소모형 아이템이며 현재 "+itemCount(id)+"개 보유 중입니다."))return;
   const key=giftReactionKey(item.id,ch.id);
-  const reaction=item.reactions.find(r=>r.characterId===ch.id) || normalizeItemReaction({
-    characterId:ch.id,
-    preference:"NEUTRAL",
-    affectionDelta:0,
-    firstEntries:[normalizeEntry({type:"narration",text:"상대는 아이템을 받아 들였지만 특별한 반응은 보이지 않았다."})],
-    repeatEntries:[normalizeEntry({type:"narration",text:"상대는 익숙한 듯 아이템을 받아 들었다."})]
-  },ch.id);
+  const reaction=giftReactionFor(item,ch);
 
   const currentCount=giftInteractionCount(item.id,ch.id);
   const emotion=session.emotions[ch.id]||{state:ch.emotionDefault,intensity:ch.emotionIntensity};
@@ -818,7 +809,7 @@ function collectionDetail(id){
   const sources=itemSourceTypes(i).join(" + ");
   const recent=state.itemHistory.filter(h=>h.itemId===i.id).slice(-5).reverse();
   const giftArchive=enabledCharacters().map(ch=>{
-    const reaction=i.reactions.find(r=>r.characterId===ch.id);
+    const reaction=giftReactionFor(i,ch);
     const discovered=isGiftPreferenceDiscovered(i.id,ch.id);
     const label=discovered?(reaction?.preference||"NO SPECIAL REACTION"):"???";
     const times=giftInteractionCount(i.id,ch.id);

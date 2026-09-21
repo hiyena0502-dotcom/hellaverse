@@ -57,6 +57,7 @@ function defaultState(){
     schemaVersion:CURRENT_SCHEMA_VERSION,
     storyPackVersions:{},
     itemPresetVersion:0,
+    dialoguePresetVersion:0,
     profile:{name:"",origin:""},
     favoriteCharacterIds:[],
     playState:{variables:{},affection:{},emotions:{},log:[],recentTalks:{}},
@@ -76,6 +77,7 @@ function defaultState(){
     askedAskIds:[],
     unlockedAskIds:[],
     interactionHistory:[],
+    claimedItemEffectIds:[],
     collectionSettings:{showLocked:true,showOwnedCount:true,view:"grouped",sort:"recent"},
     thoughts:defaultContentList("thoughts"),
     thoughtSettings:{categories:[...DEFAULT_CATEGORIES]},
@@ -120,7 +122,8 @@ function normalizeItemEffects(arr){
   return Array.isArray(arr) ? arr.map(x=>({
     id:x.id||uid("itemfx"),
     itemId:x.itemId||"",
-    amount:Math.max(1,Number(x.amount)||1)
+    amount:Math.max(1,Number(x.amount)||1),
+    once:Boolean(x.once)
   })) : [];
 }
 function normalizeItemCondition(c){
@@ -202,13 +205,16 @@ function eventRoleOf(event={}){
   const explicit=String(event.eventRole||event.role||"").trim().toLowerCase();
   if(explicit==="exit")return"exit";
   if(explicit==="entry")return"entry";
+  if(explicit==="story")return"story";
   const name=String(event.name||"");
   if(/^\s*EXIT(?:\s*[·:|\-]|\s|$)/i.test(name))return"exit";
   if(/^\s*ENTRY(?:\s*[·:|\-]|\s|$)/i.test(name))return"entry";
+  if(event.menuVisible===false)return"story";
   return"talk";
 }
 function isExitEvent(event){return eventRoleOf(event)==="exit"}
 function isEntryEvent(event){return eventRoleOf(event)==="entry"}
+function isStoryEvent(event){return eventRoleOf(event)==="story"}
 function normalizeEvent(e={}){
   const id=e.id||uid("event");
   const rawContinuation=Array.isArray(e.continuationEventIds)
@@ -221,7 +227,7 @@ function normalizeEvent(e={}){
     name:e.name||"새 이벤트",
     characterId:e.characterId||"",
     eventRole,
-    menuVisible:(eventRole==="exit"||eventRole==="entry")?false:e.menuVisible!==false,
+    menuVisible:eventRole==="talk"?e.menuVisible!==false:false,
     continuationEventIds,
     emotionExitMode:e.emotionExitMode==="reset"?"reset":"keep",
     entries:Array.isArray(e.entries)?e.entries.map(normalizeEntry):[]
@@ -316,6 +322,7 @@ function normalizeItem(i={}){
     rarity:RARITIES.includes(i.rarity)?i.rarity:"COMMON",
     collectionCharacterId,
     description:i.description||"",
+    inventoryEventId:String(i.inventoryEventId||""),
     acquisitionMode:i.acquisitionMode==="unique"?"unique":"repeatable",
     giftUseMode:i.giftUseMode==="consume"?"consume":"keep",
     giftable:i.giftable!==false,
@@ -1006,6 +1013,7 @@ function normalizeState(raw){
       ? Object.fromEntries(Object.entries(s.storyPackVersions).map(([id,version])=>[String(id),Math.max(0,Number(version)||0)]))
       : {},
     itemPresetVersion:Math.max(0,Number(s.itemPresetVersion)||0),
+    dialoguePresetVersion:Math.max(0,Number(s.dialoguePresetVersion)||0),
     profile:{
       name:String(s.profile?.name||""),
       origin:rawOrigin ? normalizeOrigin(rawOrigin) : ""
@@ -1034,6 +1042,7 @@ function normalizeState(raw){
     askedAskIds:Array.isArray(s.askedAskIds)?[...new Set(s.askedAskIds.map(String))]:[],
     unlockedAskIds:Array.isArray(s.unlockedAskIds)?[...new Set(s.unlockedAskIds.map(String))]:[],
     interactionHistory:Array.isArray(s.interactionHistory)?s.interactionHistory.slice(-500):[],
+    claimedItemEffectIds:Array.isArray(s.claimedItemEffectIds)?[...new Set(s.claimedItemEffectIds.map(String))]:[],
     collectionSettings:{
       showLocked:s.collectionSettings?.showLocked!==false,
       showOwnedCount:s.collectionSettings?.showOwnedCount!==false,
@@ -1131,6 +1140,13 @@ function installStoryPacks(source){
     if(presetResult?.state)source=presetResult.state;
     if(presetResult?.changed)changed=true;
   }
+  if(typeof window.HV_APPLY_DIALOGUE_PRESETS==="function"){
+    const presetResult=window.HV_APPLY_DIALOGUE_PRESETS(source,{
+      normalizeEntry,normalizeEvent,normalizeVariable,normalizeItemEffects
+    });
+    if(presetResult?.state)source=presetResult.state;
+    if(presetResult?.changed)changed=true;
+  }
   return{state:source,changed,installed};
 }
 function compactOwnerForStorage(source,target){
@@ -1173,7 +1189,7 @@ function compactEventForStorage(event={}){
   if(Array.isArray(event.continuationEventIds)&&event.continuationEventIds.length){
     out.continuationEventIds=[...event.continuationEventIds];
   }
-  if(event.eventRole==="exit"||event.eventRole==="entry")out.eventRole=event.eventRole;
+  if(["exit","entry","story"].includes(event.eventRole))out.eventRole=event.eventRole;
   if(event.menuVisible===false)out.menuVisible=false;
   if(event.emotionExitMode==="reset")out.emotionExitMode="reset";
   return out;
@@ -1384,6 +1400,7 @@ function progressStateFrom(source=state){
     askedAskIds:[...(source.askedAskIds||[])],
     unlockedAskIds:[...(source.unlockedAskIds||[])],
     interactionHistory:clone(source.interactionHistory||[]),
+    claimedItemEffectIds:[...(source.claimedItemEffectIds||[])],
     collectionSettings:clone(source.collectionSettings||{}),
     discoveredThoughtIds:[...(source.discoveredThoughtIds||[])],
     gacha:{
@@ -1398,7 +1415,7 @@ function mergeProgressState(base,progress){
   for(const key of [
     "profile","favoriteCharacterIds","playState","inventoryCounts","newItemIds",
     "itemHistory","discoveredGiftReactionKeys","discoveredSpecialGiftKeys","giftInteractionCounts","discoveredTalkIds","askedAskIds",
-    "unlockedAskIds","interactionHistory","collectionSettings","discoveredThoughtIds"
+    "unlockedAskIds","interactionHistory","claimedItemEffectIds","collectionSettings","discoveredThoughtIds"
   ]){
     if(progress[key]!==undefined)merged[key]=clone(progress[key]);
   }
@@ -1411,6 +1428,15 @@ function mergeProgressState(base,progress){
   }
   return merged;
 }
+function walkStateEntries(entries,visit){
+  for(const entry of entries||[]){
+    visit(entry);
+    if(entry.type==="choice")for(const option of entry.options||[]){
+      visit(option);
+      walkStateEntries(option.entries,visit);
+    }
+  }
+}
 function sanitizeProgressReferences(source){
   const result=normalizeState(source);
   const characterIds=new Set(result.characters.map(item=>item.id));
@@ -1418,6 +1444,17 @@ function sanitizeProgressReferences(source){
   const itemIds=new Set(result.items.map(item=>item.id));
   const askIds=new Set(result.asks.map(item=>item.id));
   const thoughtIds=new Set(result.thoughts.map(item=>item.id));
+  const itemEffectIds=new Set();
+  const rememberItemEffects=entries=>walkStateEntries(entries,owner=>{
+    (owner.itemEffects||[]).forEach(effect=>itemEffectIds.add(effect.id));
+  });
+  result.events.forEach(event=>rememberItemEffects(event.entries));
+  result.asks.forEach(ask=>rememberItemEffects(ask.entries));
+  result.items.forEach(item=>(item.reactions||[]).forEach(reaction=>{
+    rememberItemEffects(reaction.firstEntries);
+    rememberItemEffects(reaction.repeatEntries);
+    rememberItemEffects(reaction.specialEntries);
+  }));
   result.favoriteCharacterIds=result.favoriteCharacterIds.filter(id=>characterIds.has(id));
   result.playState.affection=Object.fromEntries(Object.entries(result.playState.affection||{}).filter(([id])=>characterIds.has(id)));
   result.playState.emotions=Object.fromEntries(Object.entries(result.playState.emotions||{}).filter(([id])=>characterIds.has(id)));
@@ -1447,6 +1484,10 @@ function sanitizeProgressReferences(source){
   result.unlockedAskIds=result.unlockedAskIds.filter(id=>askIds.has(id));
   result.discoveredThoughtIds=result.discoveredThoughtIds.filter(id=>thoughtIds.has(id));
   result.interactionHistory=result.interactionHistory.filter(row=>(!row?.characterId||characterIds.has(row.characterId))&&(!row?.itemId||itemIds.has(row.itemId))&&(!row?.askId||askIds.has(row.askId)));
+  result.claimedItemEffectIds=result.claimedItemEffectIds.filter(id=>itemEffectIds.has(id));
+  result.items.forEach(item=>{
+    if(item.inventoryEventId&&!result.events.some(event=>event.id===item.inventoryEventId))item.inventoryEventId="";
+  });
   result.gacha.history=result.gacha.history.filter(row=>!row?.itemId||itemIds.has(row.itemId));
   return result;
 }
@@ -1456,7 +1497,7 @@ function mergeEditorDraftIntoLiveState(live,draft,baseline){
   for(const key of [
     "profile","favoriteCharacterIds","playState","inventoryCounts","newItemIds",
     "itemHistory","discoveredGiftReactionKeys","discoveredSpecialGiftKeys","giftInteractionCounts","discoveredTalkIds","askedAskIds",
-    "unlockedAskIds","interactionHistory","discoveredThoughtIds"
+    "unlockedAskIds","interactionHistory","claimedItemEffectIds","discoveredThoughtIds"
   ])merged[key]=clone(liveProgress[key]);
   merged.collectionSettings={
     ...merged.collectionSettings,

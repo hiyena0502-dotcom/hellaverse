@@ -1,7 +1,7 @@
 "use strict";
 
 (()=>{
-  const VERSION=2;
+  const VERSION=3;
   const PREF_DELTA={LOVED:5,LIKED:3,NEUTRAL:1,DISLIKED:-2,HATED:-4};
   const EMOTION_BY_PREF={
     LOVED:["joy",60],LIKED:["joy",38],NEUTRAL:["curious",24],
@@ -78,6 +78,56 @@
     return{preference,emotionState,emotionIntensity,specialMinAffection};
   }
 
+  const CHARACTER_TASTES={
+    charliemorningstar:{love:/편지|사진|별|수제품|리본|기념|희망|호텔/i,dislike:/무기|처형|피묻|독촉/i},
+    sera:{love:/천국|기록|문서|후광|장식핀/i,dislike:/폭탄|악마|피묻|저주/i},
+    lute:{love:/검|무기|훈장|보고서|전투|천국/i,dislike:/인형|리본|장난감|오리/i},
+    adam:{love:/기타|왕관|굿즈|무기|날개|천국/i,dislike:/독촉|청소|업무|사과문/i},
+    vaggie:{love:/무기|지도|열쇠|체크리스트|붕대|사진/i,dislike:/함정|저주|위험/i},
+    alastor:{love:/라디오|요리|악보|빈티지|레시피|마이크/i,dislike:/텔레비전|디지털|굿즈/i},
+    vox:{love:/화면|전선|기어|렌즈|리모컨|기술|시청률/i,dislike:/라디오|낡은|빈티지/i},
+    niffty:{love:/바늘|리본|청소|칼|벌레|단추|레이스/i,dislike:/먼지|곰팡이/i},
+    angeldust:{love:/화장|향수|장신구|리본|사진|술|옷/i,dislike:/계약|사슬|독촉/i},
+    husk:{love:/술|카드|병|칩|커피|열쇠/i,dislike:/반짝|소음|굿즈/i},
+    blitzo:{love:/말|총|무기|칼|폭탄|스티커|사진/i,dislike:/계약서|업무철|벌금/i},
+    paimon:{love:/왕관|인장|왕실|보석|문서|금빛/i,dislike:/싸구려|낡은|수제품/i},
+    satan:{love:/운동|불|쇠|장갑|무기|문진/i,dislike:/핑크|리본|인형/i},
+    mammon:{love:/돈|금|굿즈|티켓|왕관|보석/i,dislike:/무료|기부|빚/i},
+    asmodeus:{love:/향수|장미|음악|무대|장신구|칵테일/i,dislike:/강요|계약|수갑/i},
+    beelzebub:{love:/사탕|케이크|음식|꿀|파티|네온/i,dislike:/상한|금지|다이어트/i},
+    belphegor:{love:/베개|담요|차|향|수면|구름/i,dislike:/알람|소음|독촉/i},
+    leviathan:{love:/거울|바다|진주|보석|패션|사진/i,dislike:/짝퉁|깨진|촌스러운/i},
+    sirpentious:{love:/기어|발명|도면|차|톱니|폭탄/i,dislike:/실패|고장/i},
+    cherribomb:{love:/폭탄|불꽃|스프레이|술|무기/i,dislike:/규칙|보고서|청소/i},
+    velvette:{love:/패션|화장|사진|휴대폰|리본|굿즈/i,dislike:/구식|낡은|촌스러운/i},
+    valentino:{love:/향수|장신구|술|계약|사진/i,dislike:/거절|경고|깨진/i},
+    carmillacarmine:{love:/무기|장갑|인장|보고서|보석/i,dislike:/장난감|폭발|무질서/i},
+    rosie:{love:/차|레시피|리본|빈티지|편지|수제품/i,dislike:/무례|싸구려|상한/i},
+    abel:{love:/음악|별|깃털|간식|수제품/i,dislike:/피묻|처형|무기/i},
+    emily:{love:/별|리본|수제품|편지|사진|음식/i,dislike:/처형|피묻|부러진/i},
+    baxter:{love:/기어|전선|혈청|렌즈|도구|부품/i,dislike:/비과학|고장|빈\s*상자/i},
+    zestial:{love:/고서|편지|차|인장|빈티지|거미/i,dislike:/휴대폰|네온|싸구려/i},
+    stolas:{love:/별|책|식물|깃털|차|보석/i,dislike:/독촉|총|피묻/i},
+    loona:{love:/휴대폰|헤드폰|커피|목걸이|검정/i,dislike:/리본|인형|유치/i},
+    moxxie:{love:/악보|총|책|와인|도구|정장/i,dislike:/조잡|폭주|독촉/i},
+    millie:{love:/칼|도끼|음식|리본|농장|수제품/i,dislike:/겁쟁이|무례/i},
+    fizzarolli:{love:/무대|마이크|장난감|굿즈|리본|사진/i,dislike:/고장|계약|사슬/i},
+    octavia:{love:/별|헤드폰|음악|책|검정|사진/i,dislike:/왕실|파티|소음/i}
+  };
+  function preferenceForCharacter(item,character){
+    const base=preferenceFor(item);
+    const ck=charKey(character);
+    const taste=CHARACTER_TASTES[ck];
+    let preference=base.preference;
+    if(taste?.dislike?.test(item.name))preference="DISLIKED";
+    if(taste?.love?.test(item.name))preference="LOVED";
+    if(item.collectionCharacterId===character.id&&preference==="NEUTRAL")preference="LIKED";
+    const [emotionState,emotionIntensity]=preference===base.preference
+      ? [base.emotionState,base.emotionIntensity]
+      : (EMOTION_BY_PREF[preference]||EMOTION_BY_PREF.NEUTRAL);
+    return{...base,preference,emotionState,emotionIntensity};
+  }
+
   const dialogue=(id,character,text)=>({
     id,type:"dialogue",speaker:character.name||"",speakerCharacterId:character.id,text
   });
@@ -148,6 +198,51 @@
         repeat:`또 이거야? 적어도 일관성은 있네. 내 스케줄 방해한 값으로는 받아두지.`,
         special:`좋아, 인정할게. 네가 고른 건 이제 확인할 가치가 있어. 이건 내가 직접 보관하지.`
       },
+      sera:{
+        first:disliked?`이 물건은 우려스럽군요. 의도는 고맙지만 「${n}」은 신중히 다루겠습니다.`:`「${n}」을 제게? 예상하지 못했지만 성의는 알겠습니다. 고맙습니다.`,
+        repeat:`같은 선물을 다시 준비했군요. 당신이 중요하게 여기는 이유가 있겠지요.`,
+        special:`규정이나 의무가 아니라 저를 생각해 골랐다는 점은… 소중히 받아들이겠습니다.`
+      },
+      blitzo:{
+        first:disliked?`뭐야, 「${n}」? 이걸 받고 좋아하길 바란 건 아니지? …일단 줘 봐.`:`오, 「${n}」! 생각보다 내 취향 잘 맞혔는데? 훔친 건 아니고? 농담이야. 아마도.`,
+        repeat:`또 가져왔냐? 좋아, 이제 네 선물 루트에 내가 들어갔다는 건 확실하네.`,
+        special:`이런 거 계속 주면 내가 정든 티 내야 하잖아. 빌어먹을… 고맙다.`
+      },
+      paimon:{
+        first:disliked?`이것을 감히 왕에게 바치는 선물이라 부르는가? …그래도 네 성의는 기록해 두지.`:`「${n}」이라. 왕실의 보관품으로 삼기에 부족하지 않군. 받도록 하마.`,
+        repeat:`같은 공물을 다시 바치는군. 충성심이 꾸준하다는 뜻으로 이해하지.`,
+        special:`물건의 값보다 네가 나를 위해 골랐다는 사실이 흥미롭구나. 특별히 가까이 두마.`
+      },
+      satan:{
+        first:disliked?`이딴 걸 왜 들고 왔지? 화내기 전에 설명해. …됐어, 일단 받아두지.`:`「${n}」? 제법 묵직하군. 쓸모도 있어 보여. 고맙다.`,
+        repeat:`또 같은 거군. 꾸준한 건 마음에 든다. 거기 둬.`,
+        special:`네가 대충 고른 게 아니라는 건 안다. 그런 성의까지 무시할 생각은 없어.`
+      },
+      mammon:{
+        first:disliked?`이게 선물이라고? 재판매 가치도 없잖아! …잠깐, 한정판이면 얘기가 다르지.`:`「${n}」! 좋아, 이거 상품화하면 수익이— 아, 나 주는 거라고? 더 좋네!`,
+        repeat:`또 가져왔어? 공급이 안정적이군! 넌 제법 쓸 만한 파트너야!`,
+        special:`이건 안 팔 거야. 놀라지 마! 나도 가끔은 값을 매기지 않는 물건이 있다고.`
+      },
+      asmodeus:{
+        first:disliked?`자기야, 마음은 예쁘지만 「${n}」은 분위기를 완전히 죽이네. 그래도 받아둘게.`:`오, 「${n}」? 센스 있네. 선물은 상대를 보고 골라야 하는데, 넌 제대로 봤어.`,
+        repeat:`또 준비했어? 좋아, 이제 네가 어떤 취향으로 날 보는지 좀 알겠는데.`,
+        special:`진짜 매력적인 건 물건보다 솔직한 마음이야. 오늘 건 둘 다 마음에 드네.`
+      },
+      beelzebub:{
+        first:disliked?`어, 이건 바이브가 좀 무겁다! 그래도 나 생각해서 가져온 거지? 고마워!`:`우와! 「${n}」?! 완전 좋다! 같이 열어보자, 같이 보면 기쁨도 두 배잖아!`,
+        repeat:`또야?! 최고! 같은 게 많으면 친구들이랑 나눌 수도 있겠다!`,
+        special:`네가 올 때마다 파티가 아니라도 기분이 좋아져. 이건 진짜 네 덕분이야!`
+      },
+      belphegor:{
+        first:disliked?`…이건 잠을 깨울 만큼 불편한 물건이네. 그래도 가져온 건 고마워.`:`「${n}」? 좋아. 침대 옆에 두고 천천히 볼게. 지금은 조금 졸려서.`,
+        repeat:`또 가져왔구나. 거기 놓아줘… 잊은 것 같아도 다 기억하고 있어.`,
+        special:`네가 조용히 챙겨주는 게 편해. 굳이 많은 말을 하지 않아도 알 수 있으니까.`
+      },
+      leviathan:{
+        first:disliked?`「${n}」? 솔직히 내 기준엔 부족해. 그래도 네가 골랐다는 점까진 인정할게.`:`흠, 「${n}」. 사진으로 볼 때보다 괜찮네. 내 컬렉션에 둬도 되겠어.`,
+        repeat:`또 같은 걸 가져왔네. 취향이 흔들리지 않는 건 나쁘지 않아.`,
+        special:`남들이 가진 것보다 네가 내게 골라준 이게 더 눈에 들어오네. 조금 억울할 정도로.`
+      },
       sirpentious:{
         first:disliked?`이, 이게 선물이라고?! Sssss실로 당황스럽군! ...그래도 위대한 나는 관대하게 받아주겠다!`:`오오! 「${n}」! 훌륭하다! 자네가 드디어 나의 천재적인 취향을 이해했군!`,
         repeat:`또 가져왔나! Sssss좋다! 예비 부품— 아니, 소중한 선물은 많을수록 좋은 법이지!`,
@@ -157,12 +252,72 @@
         first:disliked?`야, 이건 좀 구린데. 그래도 네가 직접 들고 왔으니까 버리진 않을게.`:`오, 「${n}」? 존나 괜찮은데? 센스 있네!`,
         repeat:`또 가져왔냐? 좋아, 이쯤 되면 네가 뭘 골라올지 기대되는데.`,
         special:`진짜 고맙다. 다음엔 선물 말고 같이 놀러 가자. 그게 더 재밌잖아.`
+      },
+      velvette:{
+        first:disliked?`아니, 「${n}」? 이걸 내 피드에 올리면 계정이 죽어. …네 앞에서는 받아는 둘게.`:`「${n}」? 오, 생각보다 안 촌스럽네. 네 안목이 드디어 업데이트됐어.`,
+        repeat:`또 이거? 일관된 콘셉트는 좋아. 사진 각도는 내가 정할게.`,
+        special:`좋아, 이건 진짜 마음에 들어. 네가 골랐다는 태그는… 비공개로 달아둘게.`
+      },
+      valentino:{
+        first:disliked?`이걸 나한테? 자기, 취향 교육이 좀 필요하겠는데. 그래도 두고 가.`:`「${n}」이라. 제법 화려하네. 내 시선을 끈 건 칭찬해 주지.`,
+        repeat:`또 선물이야? 내가 받는 데 익숙한 건 알지만, 넌 꽤 끈질기네.`,
+        special:`이건 남한테 넘기지 않고 내가 가질게. 그 정도면 얼마나 마음에 든 건지 알겠지?`
+      },
+      carmillacarmine:{
+        first:disliked?`선택의 의도를 이해하기 어렵군. 「${n}」은 확인한 뒤 보관 여부를 정하겠다.`:`「${n}」. 실용적이고 상태도 좋군. 신중히 골랐다는 게 보인다. 고맙다.`,
+        repeat:`다시 같은 물건을 준비했군. 예비품은 쓸모가 있으니 받아두지.`,
+        special:`내가 필요로 하는 것을 먼저 살피는 사람은 드물다. 네 배려를 잊지 않겠다.`
+      },
+      rosie:{
+        first:disliked?`어머, 「${n}」이라니. 취향이 조금 섬뜩하구나—내가 할 말은 아니지만! 그래도 고마워.`:`세상에, 「${n}」! 이렇게 다정한 선물을 준비하다니. 차와 함께 천천히 구경해야겠어.`,
+        repeat:`또 챙겨왔니? 정성은 반복될수록 더 선명해지는 법이란다.`,
+        special:`물건보다 네가 건네는 표정이 더 마음에 드는구나. 아주 예쁘게 간직할게.`
+      },
+      abel:{
+        first:disliked?`어… 「${n}」은 조금 무섭네. 그래도 날 생각해 준 거니까 고마워!`:`와, 「${n}」! 진짜 나 주는 거야? 고마워, 잘 간직할게!`,
+        repeat:`또 가져왔어? 하하, 이제 받을 때마다 먼저 웃게 된다!`,
+        special:`나한테 좋은 기억 하나를 더 만들어줬네. 이건 오래 기억할게.`
+      },
+      zestial:{
+        first:disliked?`기묘한 물건을 가져왔구나. 내 마음엔 들지 않으나 네 뜻까지 물리치진 않으리.`:`「${n}」이라. 오래 살았으나 이처럼 정성 어린 선택은 여전히 반갑도다.`,
+        repeat:`다시금 같은 선물을 건네는구나. 꾸준한 마음 또한 귀한 법이지.`,
+        special:`물건은 세월에 닳으나 그것을 건넨 뜻은 오래 남는 법. 소중히 간직하리라.`
+      },
+      stolas:{
+        first:disliked?`아… 「${n}」. 조금 난처한 기억을 부르는군. 그래도 네가 준 것이니 받아둘게.`:`오, 「${n}」! 얼마나 사랑스러운 선택인지. 별빛 아래에서 다시 자세히 보고 싶구나.`,
+        repeat:`또 가져왔구나! 같은 물건도 네가 건네면 전혀 다르게 느껴져.`,
+        special:`궁전의 값비싼 물건보다 네가 직접 골라준 이 작은 선물이 더 따뜻하구나.`
+      },
+      loona:{
+        first:disliked?`뭐야, 「${n}」? 내 취향 아니거든. …그래도 버리진 않을게.`:`「${n}」? 어… 괜찮네. 고맙다고 두 번 말하게 하진 마.`,
+        repeat:`또 가져왔어? 알았어, 받아둘게. 싫다는 건 아니고.`,
+        special:`네가 계속 기억해주는 거… 나쁘지 않아. 그러니까 이상하게 웃지 마.`
+      },
+      moxxie:{
+        first:disliked?`이건 품질도 용도도 애매하군요. 하지만 선의로 주신 거라면 예의 있게 받겠습니다.`:`「${n}」! 꽤 세심한 선택이군요. 정말 감사합니다.`,
+        repeat:`같은 물건이라도 예비품은 필요하죠. 꼼꼼하게 챙겨주셔서 고맙습니다.`,
+        special:`제 취향을 이렇게 정확히 기억해 주실 줄은 몰랐습니다. 진심으로 기쁘군요.`
+      },
+      millie:{
+        first:disliked?`어우, 이건 좀 별론데! 그래도 네가 직접 가져온 거니까 고맙게 받을게!`:`오, 「${n}」! 멋진데? 실용적이면 더 좋고, 예쁘면 그것도 좋지! 고마워!`,
+        repeat:`또 챙겨왔어? 좋아! 많으면 가족이랑 나눠도 되겠네!`,
+        special:`날 생각하면서 골랐다는 게 제일 좋다. 이건 정말 소중히 쓸게!`
+      },
+      fizzarolli:{
+        first:disliked?`「${n}」? 와, 관객 반응이었다면 야유 타이밍이야. 그래도 네 성의는 합격!`:`오호, 「${n}」! 이거 무대 소품으로도 좋고 내 방에 둬도 좋겠는데? 센스 있다!`,
+        repeat:`앙코르 선물이야? 좋아, 같은 것도 연출만 바꾸면 새로워지는 법이지!`,
+        special:`농담 빼고 말하면… 네가 날 웃기려고가 아니라 웃게 하려고 골랐다는 게 좋아. 고마워.`
+      },
+      octavia:{
+        first:disliked?`어… 「${n}」. 솔직히 내 취향은 아니야. 그래도 생각해준 건 고마워.`:`「${n}」? 괜찮다. 생각보다 내 방에도 잘 어울릴 것 같아.`,
+        repeat:`또 가져왔네. 이상하게 익숙해져서 그런지 이번엔 더 마음에 들어.`,
+        special:`누가 내 취향을 기억해준다는 게 아직 좀 낯설어. 그래도… 좋은 쪽으로 낯설어.`
       }
     };
     const fallback={
-      first:disliked?`「${n}」을 받아 들고 표정이 잠시 굳는다. 그래도 선물은 받아둔다.`:`「${n}」을 받아 들고 자세히 살펴본다. 고맙다는 뜻을 전한다.`,
-      repeat:`익숙한 물건을 다시 받아 들고 가볍게 반응한다.`,
-      special:`이번에는 물건보다 그것을 골라온 마음을 더 오래 바라본다.`
+      first:disliked?`「${n}」은 내 취향과는 조금 다르네. 그래도 네가 골라온 마음까지 거절하진 않을게.`:`「${n}」? 나를 생각해서 고른 거구나. 고마워, 잘 받아둘게.`,
+      repeat:`또 챙겨왔네. 네가 기억해준 건 고맙게 생각하고 있어.`,
+      special:`이제는 물건보다 네가 나를 생각해줬다는 사실이 더 크게 느껴져. 정말 고마워.`
     };
     const set=lines[ck]||fallback;
     return set[phase]||fallback[phase];
@@ -228,7 +383,7 @@
   }
 
   function buildReaction(item,character){
-    const settings=preferenceFor(item);
+    const settings=preferenceForCharacter(item,character);
     const preference=settings.preference;
     const delta=PREF_DELTA[preference]??1;
     const base=(item.id||"item")+"::"+character.id;
@@ -329,5 +484,6 @@
     }
     return{state:source,changed,eligibleItems,populatedReactions};
   };
+  window.HV_BUILD_ITEM_REACTION=(item,character)=>buildReaction(item,character);
   window.HV_ITEM_PRESET_VERSION=VERSION;
 })();

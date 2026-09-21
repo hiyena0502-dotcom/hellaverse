@@ -1,5 +1,49 @@
 "use strict";
 let lastValidationIssues=[];
+function itemRewardSlug(value){return String(value||"").replace(/[^a-zA-Z0-9_-]+/g,"-")}
+function linkedRewardEntryIds(item,eventId){
+  const itemId=itemRewardSlug(item.id),safeEvent=itemRewardSlug(eventId);
+  return new Set(["editor-item-reward-"+itemId,"dialogue-reward-"+safeEvent+"-"+itemId]);
+}
+function removeLinkedItemReward(item,eventId){
+  const event=editorDraft.events.find(candidate=>candidate.id===eventId);
+  if(!event)return;
+  const ids=linkedRewardEntryIds(item,eventId);
+  const removedEffectIds=[];
+  event.entries=event.entries.filter(entry=>{
+    if(!ids.has(entry.id))return true;
+    for(const effect of entry.itemEffects||[])removedEffectIds.push(effect.id);
+    return false;
+  });
+  if(removedEffectIds.length){
+    const removed=new Set(removedEffectIds);
+    editorDraft.claimedItemEffectIds=(editorDraft.claimedItemEffectIds||[]).filter(id=>!removed.has(id));
+  }
+}
+function eventGrantsItem(event,itemId){
+  let found=false;
+  walkEntries(event?.entries||[],owner=>{
+    if((owner.itemEffects||[]).some(effect=>effect.itemId===itemId))found=true;
+  });
+  return found;
+}
+function linkItemToInventoryEvent(item,eventId){
+  const previous=item.inventoryEventId||"";
+  if(previous)removeLinkedItemReward(item,previous);
+  item.inventoryEventId=eventId||"";
+  if(!eventId)return;
+  const event=editorDraft.events.find(candidate=>candidate.id===eventId);
+  if(!event)return;
+  if(eventGrantsItem(event,item.id))return;
+  const character=getCharacterDraft(event.characterId);
+  const entryId="editor-item-reward-"+itemRewardSlug(item.id);
+  event.entries.push(normalizeEntry({
+    id:entryId,
+    type:"narration",
+    text:`대화를 마치자 ${character?.name||"상대"}가 「${item.name}」을(를) 건넨다.`,
+    itemEffects:[{id:entryId+"-grant",itemId:item.id,amount:1,once:true}]
+  }));
+}
 function renderValidationReport(){
   if(!editorDraft)return;
   $$(".editor-nav").forEach(b=>b.classList.remove("active"));
@@ -19,8 +63,8 @@ function jumpToValidationIssue(issue){
   const parts=String(issue.area||"").split(" · ");
   const area=parts[0];
   if(area==="EVENT"){
-    editorTab="dialogue";dialogueSubtab="events";
     selectedEditorEventId=editorDraft.events.find(item=>item.name===parts[1])?.id||editorDraft.events[0]?.id||"";
+    editorTab="dialogue";dialogueSubtab=editorEventRole(editorDraft.events.find(item=>item.id===selectedEditorEventId));
     editorEventQuery="";
     editorEventPage=Math.max(0,Math.floor(Math.max(0,editorDraft.events.findIndex(item=>item.id===selectedEditorEventId))/EDITOR_EVENT_PAGE_SIZE));
   }else if(area==="ASK"){
@@ -284,12 +328,13 @@ editorBody.addEventListener("click",e=>{
     renderVariableManager();return;
   }
   if(a==="new-event"){
-    const ev=normalizeEvent({id:uid("event"),name:"새 이벤트",characterId:selectedEditorCharacterId||editorDraft.characters[0]?.id||""});
+    const role=DIALOGUE_EVENT_ROLES.has(dialogueSubtab)?dialogueSubtab:"talk";
+    const ev=normalizeEvent({id:uid("event"),name:"새 "+role.toUpperCase()+" 이벤트",eventRole:role,menuVisible:role==="talk",characterId:selectedEditorCharacterId||editorDraft.characters[0]?.id||""});
     editorDraft.events.push(ev);
     selectedEditorEventId=ev.id;
     selectedEntryId="";
     editorEventQuery="";
-    editorEventPage=Math.max(0,Math.ceil(editorDraft.events.length/EDITOR_EVENT_PAGE_SIZE)-1);
+    editorEventPage=Math.max(0,Math.ceil(editorDraft.events.filter(item=>editorEventRole(item)===role).length/EDITOR_EVENT_PAGE_SIZE)-1);
     renderEventManager();return;
   }
   if(a==="select-event"){
@@ -307,7 +352,7 @@ editorBody.addEventListener("click",e=>{
     editorDraft.asks.forEach(a=>{if(a.eventId===id)a.eventId=""});
     editorDraft.items.forEach(i=>{if(i.inventoryEventId===id)i.inventoryEventId=""});
     sanitizeOptionTargets(editorDraft.events,id);
-    selectedEditorEventId=editorDraft.events[0]?.id||"";selectedEntryId="";renderEventManager();return;
+    selectedEditorEventId=editorDraft.events.find(item=>editorEventRole(item)===dialogueSubtab)?.id||"";selectedEntryId="";renderEventManager();return;
   }
   if(a==="add-continuation"){
     const ev=editorDraft.events.find(x=>x.id===selectedEditorEventId);
@@ -370,7 +415,7 @@ editorBody.addEventListener("click",e=>{
     if(a==="add-fx")owner.effects.push({id:uid("fx"),variableId:editorDraft.variables[0]?.id||"",operation:"set",value:"0"});
     if(a==="add-afffx")owner.affectionEffects.push({id:uid("afx"),characterId:editorDraft.characters[0]?.id||"",amount:1});
     if(a==="add-emofx"){const c=editorDraft.characters[0];owner.emotionEffects.push({id:uid("efx"),characterId:c?.id||"",state:c?.emotionDefault||"calm",intensity:c?.emotionIntensity||0})}
-    if(a==="add-itemfx"){owner.itemEffects ||= [];owner.itemEffects.push({id:uid("itemfx"),itemId:editorDraft.items[0]?.id||"",amount:1})}
+    if(a==="add-itemfx"){owner.itemEffects ||= [];owner.itemEffects.push({id:uid("itemfx"),itemId:editorDraft.items[0]?.id||"",amount:1,once:true})}
     refreshOwnerEditor(b.dataset.kind,b);return;
   }
   if(["delete-fx","delete-afffx","delete-emofx","delete-itemfx"].includes(a)){
@@ -432,13 +477,17 @@ editorBody.addEventListener("click",e=>{
   if(a==="select-item"){selectedItemId=b.dataset.id;renderItemEditor();return}
   if(a==="new-item-reaction"){
     const item=editorDraft.items.find(i=>i.id===b.dataset.itemId);if(!item)return;
-    item.reactions.push(normalizeItemReaction({
-      id:uid("item-reaction"),
-      characterId:editorDraft.characters[0]?.id||"",
-      preference:"NEUTRAL",
-      affectionDelta:1,
-      entries:[]
-    }));
+    const character=editorDraft.characters.find(ch=>!item.reactions.some(reaction=>reaction.characterId===ch.id))||editorDraft.characters[0];
+    const generated=character&&autoItemReactionForEditor(item,character);
+    item.reactions.push(generated||normalizeItemReaction({id:uid("item-reaction"),characterId:character?.id||"",preference:"NEUTRAL",affectionDelta:1,entries:[]}));
+    renderItemEditor();return;
+  }
+  if(a==="materialize-item-reaction"){
+    const item=editorDraft.items.find(candidate=>candidate.id===b.dataset.itemId);
+    const character=editorDraft.characters.find(candidate=>candidate.id===b.dataset.characterId);
+    if(!item||!character||item.reactions.some(reaction=>reaction.characterId===character.id))return;
+    const generated=autoItemReactionForEditor(item,character);
+    if(generated)item.reactions.push(generated);
     renderItemEditor();return;
   }
   if(a==="delete-item-reaction"){
@@ -608,7 +657,16 @@ function handleEditorField(e){
   if(t.dataset.bind&&ev){
     if(t.dataset.bind==="event-name"){ev.name=t.value;return}
     if(t.dataset.bind==="event-character"){ev.characterId=t.value;return}
-    if(t.dataset.bind==="event-menu-visible"){ev.menuVisible=t.checked;return}
+    if(t.dataset.bind==="event-role"){
+      const role=DIALOGUE_EVENT_ROLES.has(t.value)?t.value:"talk";
+      ev.eventRole=role;
+      ev.menuVisible=role==="talk"?ev.menuVisible!==false:false;
+      dialogueSubtab=role;
+      editorEventPage=0;
+      renderDialogueEditor();
+      return;
+    }
+    if(t.dataset.bind==="event-menu-visible"){ev.menuVisible=editorEventRole(ev)==="talk"&&t.checked;return}
     if(t.dataset.bind==="event-emotion-exit"){ev.emotionExitMode=t.value==="reset"?"reset":"keep";return}
   }
   const vr=t.closest("[data-var-id]");
@@ -673,7 +731,7 @@ function handleEditorField(e){
     }
     if(ifr){
       const fx=(owner.itemEffects||[]).find(x=>x.id===ifr.dataset.itemfxId);
-      if(fx)fx[t.dataset.itemfxField]=t.dataset.itemfxField==="amount"?Math.max(1,Number(t.value)||1):t.value;
+      if(fx)fx[t.dataset.itemfxField]=t.dataset.itemfxField==="amount"?Math.max(1,Number(t.value)||1):(t.dataset.itemfxField==="once"?t.checked:t.value);
       return;
     }
   }
@@ -722,6 +780,11 @@ function handleEditorField(e){
   if(ir&&t.dataset.itemBind){
     const item=editorDraft.items.find(x=>x.id===ir.dataset.itemId);if(!item)return;
     const k=t.dataset.itemBind;
+    if(k==="inventoryEventId"){
+      linkItemToInventoryEvent(item,t.value);
+      renderItemEditor();
+      return;
+    }
     if(t.type==="checkbox")item[k]=t.checked;
     else if(k==="weight")item[k]=Math.max(.01,Number(t.value)||1);
     else item[k]=t.value;

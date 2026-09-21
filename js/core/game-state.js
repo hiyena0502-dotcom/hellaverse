@@ -125,6 +125,21 @@ function asksForCharacter(charId,source=state){
 function itemsForCharacter(charId,source=state){
   return source.items.filter(i=>i.enabled&&(i.collectionCharacterId===charId||i.reactions.some(r=>r.characterId===charId)));
 }
+function giftReactionFor(item,character){
+  if(!item||!character)return null;
+  const explicit=(item.reactions||[]).find(reaction=>reaction.characterId===character.id);
+  if(explicit)return explicit;
+  if(typeof window.HV_BUILD_ITEM_REACTION==="function"){
+    return normalizeItemReaction(window.HV_BUILD_ITEM_REACTION(item,character),character.id);
+  }
+  return normalizeItemReaction({
+    characterId:character.id,
+    preference:"NEUTRAL",
+    affectionDelta:0,
+    firstEntries:[{type:"narration",text:character.name+"가 선물을 받아 든다."},{type:"dialogue",speakerCharacterId:character.id,speaker:character.name,text:"고마워. 잘 받아둘게."}],
+    repeatEntries:[{type:"dialogue",speakerCharacterId:character.id,speaker:character.name,text:"또 챙겨왔네. 고마워."}]
+  },character.id);
+}
 function flowHasItemGrant(entries,itemId){
   for(const entry of entries||[]){
     if((entry.itemEffects||[]).some(f=>f.itemId===itemId))return true;
@@ -140,7 +155,7 @@ function flowHasItemGrant(entries,itemId){
 function itemSourceTypes(item,source=state){
   const sources=[];
   if(item.gachaEnabled)sources.push("GACHA");
-  let dialogue=false;
+  let dialogue=Boolean(item.inventoryEventId&&source.events?.some(event=>event.id===item.inventoryEventId));
   for(const event of source.events||[])if(flowHasItemGrant(event.entries,item.id)){dialogue=true;break}
   if(!dialogue)for(const ask of source.asks||[])if(flowHasItemGrant(ask.entries,item.id)){dialogue=true;break}
   if(!dialogue){
@@ -317,7 +332,12 @@ function applyEmotionEffects(arr){
 function applyItemEffects(arr){
   normalizeItemEffects(arr).forEach(f=>{
     if(!f.itemId)return;
-    acquireItem(f.itemId,f.amount,"DIALOGUE",state,{notify:true});
+    state.claimedItemEffectIds ||= [];
+    if(f.once&&state.claimedItemEffectIds.includes(f.id))return;
+    const result=acquireItem(f.itemId,f.amount,"DIALOGUE",state,{notify:true});
+    if(f.once&&(result.gained>0||itemById(f.itemId)?.acquisitionMode==="unique")){
+      state.claimedItemEffectIds.push(f.id);
+    }
   });
 }
 function applyOwnerEffects(o){
