@@ -710,8 +710,9 @@
       .replace(/(.+?) 것$/,"$1 건 어때?");
 
     const unchanged=s===raw;
+    const stillRaw=s.includes(raw);
     const lacksSentence=!/[?.!。！？]$/.test(s);
-    if(unchanged||lacksSentence){
+    if(unchanged||stillRaw||lacksSentence){
       const fallback=[
         [/구원.*호텔|호텔.*구원/,"구원 가능하단 소문 퍼지면 호텔도 꽤 바빠지겠지?"],
         [/호텔|투숙객|객실|로비/,"호텔에서 이런 일 생기면 꽤 시끄러워지겠지?"],
@@ -766,7 +767,7 @@
     if(r==="formal"){
       s=s.replace(/어때\?/g,"어떨까요?")
         .replace(/봐\?/g,"보시나요?")
-        .replace(/할까\?/g,"하는 게 좋을까요?")
+        .replace(/할까\?/g,"할까요?")
         .replace(/있을까\?/g,"있을까요?")
         .replace(/될까\?/g,"될까요?")
         .replace(/하지\?/g,"하지 않나요?")
@@ -774,7 +775,7 @@
     }else if(r==="archaic"){
       s=s.replace(/어때\?/g,"어떠하오?")
         .replace(/봐\?/g,"어찌 보오?")
-        .replace(/할까\?/g,"하는 게 좋겠소?")
+        .replace(/할까\?/g,"하겠소?")
         .replace(/있을까\?/g,"있겠소?")
         .replace(/될까\?/g,"되겠소?")
         .replace(/하지\?/g,"하지 않소?")
@@ -1174,6 +1175,6 @@
   window.HV_STORY_PACKS ||= [];
   for(const c of PFS){
     const list=chosen(c);
-    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:16,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
+    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:17,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
   }
 })();
