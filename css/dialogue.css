@@ -106,9 +106,12 @@
   box-shadow:0 24px 70px rgba(0,0,0,.36)
 }
 .dialogue-box{
-  height:190px;
+  min-height:190px;
+  height:auto;
+  max-height:min(300px,42vh);
   display:grid;
-  grid-template-rows:auto minmax(0,1fr) auto
+  grid-template-rows:auto minmax(0,auto) auto;
+  row-gap:10px
 }
 .new-talk-badge{
   position:absolute;
@@ -125,12 +128,15 @@
 .dialogue-box .speaker{align-self:start}
 .dialogue-box .dialogue-text{
   align-self:start;
-  max-height:5.3em;
+  min-height:0;
+  max-height:7.4em;
   overflow:auto;
+  padding-right:8px;
   scrollbar-width:thin
 }
 .dialogue-box .dialogue-meta{
-  align-self:end
+  align-self:end;
+  min-height:36px
 }
 .speaker{
   margin:0 0 11px;
@@ -154,7 +160,7 @@
   justify-content:space-between;
   gap:12px;
   align-items:center;
-  margin-top:20px;
+  margin-top:8px;
   color:var(--muted);
   font-size:.72rem
 }
@@ -217,7 +223,9 @@
     width:calc(100% - 12px)
   }
   .dialogue-box{
-    height:200px;
+    min-height:200px;
+    height:auto;
+    max-height:48dvh;
     padding:20px 18px
   }
   .dialogue-text{
