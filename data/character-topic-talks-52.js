@@ -1165,10 +1165,110 @@
     }
   };
 
-  const voiceGeneral=(c,kind,high,x,key)=>{
+  const voiceTopicNote=(c,t,kind,key)=>{
+    const focus=sceneFocus(t.title);
+    const r=register(c);
+    const banks={
+      casual:{
+        agree:[
+          focus+" 쪽은 이 정도 기준이면 충분해.",
+          "적어도 "+focus+" 얘기에선 이 선이 맞아.",
+          focus+" 건 지금은 그렇게 보면 될 것 같아.",
+          "이번 "+focus+" 얘기는 여기까지가 딱 좋네.",
+          focus+" 쪽만 놓고 보면 답은 꽤 단순해."
+        ],
+        probe:[
+          "특히 "+focus+" 쪽에선 그게 더 잘 보여.",
+          focus+" 얘기라서 내가 그 부분부터 보는 거야.",
+          "이번엔 "+focus+" 쪽이 걸려서 그렇게 말한 거고.",
+          focus+" 건 실제로 생기면 더 확실히 드러날 거야.",
+          "적어도 "+focus+" 얘기에서는 그 기준이 먼저야."
+        ],
+        joke:[
+          focus+" 얘기까지 심각해지면 피곤하잖아.",
+          "그래도 "+focus+" 쪽은 웃고 넘길 여지가 있네.",
+          focus+" 건 이 정도 농담이 딱이야.",
+          "이번 "+focus+" 얘기는 너무 무겁게 만들지 말자.",
+          focus+" 쪽은 이 정도로 받아치면 충분해."
+        ],
+        shift:[
+          focus+" 얘기는 여기 두자.",
+          "그럼 "+focus+" 쪽은 일단 접어두자.",
+          "오늘은 "+focus+" 정도면 됐어.",
+          focus+" 건 실제로 필요해지면 다시 얘기하지 뭐.",
+          "이쯤에서 "+focus+" 얘기는 끝내자."
+        ]
+      },
+      formal:{
+        agree:[
+          focus+" 쪽은 이 정도 기준이면 충분하겠습니다.",
+          "적어도 "+focus+" 이야기에선 이 선이 적절하겠군요.",
+          focus+" 건은 지금 그렇게 보면 되겠습니다.",
+          "이번 "+focus+" 이야기는 여기까지가 적당하군요.",
+          focus+" 쪽만 놓고 보면 판단은 비교적 단순합니다."
+        ],
+        probe:[
+          "특히 "+focus+" 쪽에서는 그 점이 더 분명합니다.",
+          focus+" 이야기라서 제가 그 부분부터 보는 겁니다.",
+          "이번엔 "+focus+" 쪽이 걸려 그렇게 말씀드린 겁니다.",
+          focus+" 건은 실제 상황에서 더 분명히 드러나겠지요.",
+          "적어도 "+focus+" 이야기에서는 그 기준이 먼저입니다."
+        ],
+        joke:[
+          focus+" 이야기까지 지나치게 무겁게 만들 필요는 없겠지요.",
+          "그래도 "+focus+" 쪽은 웃고 넘길 여지가 있군요.",
+          focus+" 건은 이 정도 농담이면 충분하겠습니다.",
+          "이번 "+focus+" 이야기는 너무 무겁게 만들지 않죠.",
+          focus+" 쪽은 이 정도로 받아들이면 충분합니다."
+        ],
+        shift:[
+          focus+" 이야기는 여기 두죠.",
+          "그럼 "+focus+" 쪽은 일단 접어두겠습니다.",
+          "오늘은 "+focus+" 정도면 충분합니다.",
+          focus+" 건은 실제로 필요해지면 다시 이야기하죠.",
+          "이쯤에서 "+focus+" 이야기는 마치겠습니다."
+        ]
+      },
+      archaic:{
+        agree:[
+          focus+" 쪽은 이 정도 기준이면 충분하오.",
+          "적어도 "+focus+" 이야기에서는 이 선이 맞겠구려.",
+          focus+" 건은 지금 그렇게 보면 되겠소.",
+          "이번 "+focus+" 이야기는 여기까지가 적당하오.",
+          focus+" 쪽만 놓고 보면 판단은 비교적 단순하구려."
+        ],
+        probe:[
+          "특히 "+focus+" 쪽에서는 그 점이 더 잘 보이오.",
+          focus+" 이야기라서 내가 그 부분부터 보는 것이오.",
+          "이번엔 "+focus+" 쪽이 걸려 그렇게 말한 것이오.",
+          focus+" 건은 실제 일이 닥치면 더 분명해지겠지.",
+          "적어도 "+focus+" 이야기에서는 그 기준이 먼저요."
+        ],
+        joke:[
+          focus+" 이야기까지 지나치게 무겁게 만들 필요는 없겠소.",
+          "그래도 "+focus+" 쪽은 웃고 넘길 여지가 있구려.",
+          focus+" 건은 이 정도 농이면 충분하오.",
+          "이번 "+focus+" 이야기는 너무 무겁게 만들지 말지.",
+          focus+" 쪽은 이 정도로 받아들이면 충분하오."
+        ],
+        shift:[
+          focus+" 이야기는 여기 두지.",
+          "그럼 "+focus+" 쪽은 일단 접어두겠소.",
+          "오늘은 "+focus+" 정도면 충분하오.",
+          focus+" 건은 실제로 필요해지면 다시 말하지.",
+          "이쯤에서 "+focus+" 이야기는 마치세."
+        ]
+      }
+    };
+    const bank=banks[r]?.[kind]||banks.casual[kind]||banks.casual.agree;
+    return pick(bank,c.id+"::"+t.id+"::"+kind+"::"+key);
+  };
+
+  const voiceGeneral=(c,t,kind,high,x,key)=>{
     const row=VOICE_GENERAL[c.id];
     const fn=row?.[kind]||row?.agree;
-    return fn?fn(x,high,key):String(x||"");
+    const main=fn?fn(x,high,key):String(x||"");
+    return main+" "+voiceTopicNote(c,t,kind,key);
   };
 
   const responseFor=(c,t,kind,high,key)=>{
@@ -1213,7 +1313,7 @@
         if(c.id==="stolas")return d+" 당신이 묻는 게 불편해서라기보다는, 이걸 길게 풀면 대화 전체가 그 이야기 하나에 잡아먹힐 것 같아서요. 오늘은 여기까지만 두고 싶습니다.";
         return d+" 내가 먼저 이야기를 꺼냈더라도 어디까지 말할지는 내가 정하고 싶어. 지금은 한두 마디 정도가 가장 편해.";
       }
-      return voiceGeneral(c,"probe",high,x,key);
+      return voiceGeneral(c,t,"probe",high,x,key);
     }
 
     if(kind==="joke"){
@@ -1232,17 +1332,17 @@
         "emily":["하하! 그거 재밌다! 나도 자꾸 질문을 질문으로 이어가는데, 가끔은 그냥 웃고 끝내도 되는 거네!","오! 그쪽 생각은 못 했어! 좋아, 그럼 오늘은 결론 없이 그냥 재밌게 끝내자!"]
       }[c.id];
       if(row)return pick(row,key);
-      return voiceGeneral(c,"joke",high,x,key);
+      return voiceGeneral(c,t,"joke",high,x,key);
     }
 
-    if(kind==="shift")return voiceGeneral(c,"shift",high,x,key);
+    if(kind==="shift")return voiceGeneral(c,t,"shift",high,x,key);
 
     // agree / neutral
     if(personal){
       if(high)return deflectFor(c,true,key)+" 굳이 더 캐지 않고 그 정도로 받아주는 건 편하네. 내가 먼저 꺼낸 말이어도, 거기서 멈춰주는 사람이 있다는 건 꽤 큰 차이거든.";
       return deflectFor(c,false,key)+" 그래도 괜히 더 캐묻지 않고 넘어가는 건 마음에 들어. 그 정도면 충분해.";
     }
-    return voiceGeneral(c,"agree",high,x,key);
+    return voiceGeneral(c,t,"agree",high,x,key);
   };
 
   const playerLine=(c,t,kind,key)=>{
@@ -1765,11 +1865,11 @@
         if(r==="archaic")return d+" 내가 먼저 화제를 꺼냈다 하여 어디까지 이어갈지까지 넘긴 것은 아니오. 그 선을 지켜준다면 다음에도 먼저 말하기 편하겠구려.";
         return d+" 내가 먼저 얘기했어도 어디까지 이어갈지는 내가 정하고 싶어. 그 선만 지켜주면 다음에도 먼저 말 꺼내기 훨씬 편하겠지.";
       }
-      return voiceGeneral(c,"probe",high,x,key+"follow-push");
+      return voiceGeneral(c,t,"probe",high,x,key+"follow-push");
     }
-    if(nextKind==="backoff")return voiceGeneral(c,"shift",high,x,key+"follow-backoff");
-    if(nextKind==="joke")return voiceGeneral(c,"joke",high,x,key+"follow-joke");
-    return voiceGeneral(c,"shift",high,x,key+"follow-shift");
+    if(nextKind==="backoff")return voiceGeneral(c,t,"shift",high,x,key+"follow-backoff");
+    if(nextKind==="joke")return voiceGeneral(c,t,"joke",high,x,key+"follow-joke");
+    return voiceGeneral(c,t,"shift",high,x,key+"follow-shift");
   };
 
   const followChoice=(c,t,id,firstKind)=>{
@@ -1862,6 +1962,6 @@
   window.HV_STORY_PACKS ||= [];
   for(const c of PFS){
     const list=chosen(c);
-    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:30,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
+    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:31,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
   }
 })();
