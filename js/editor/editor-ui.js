@@ -226,18 +226,22 @@ function eventOptions(selected="",blank="이벤트 종료",source=editorDraft,ex
 }
 const DIALOGUE_EVENT_GROUPS=[
   {id:"characters",number:"01",label:"캐릭터",hint:"프로필 · 이미지"},
-  {id:"talk",number:"02",label:"TALK",hint:"목록에서 선택"},
-  {id:"entry",number:"03",label:"ENTRY",hint:"입장할 때"},
-  {id:"exit",number:"04",label:"EXIT",hint:"퇴장할 때"},
-  {id:"story",number:"05",label:"STORY",hint:"연계 · 자동 재생"},
-  {id:"variables",number:"06",label:"변수",hint:"조건 · 상태"}
+  {id:"talk",number:"02",label:"TALK",hint:"일반 대화 · 랜덤"},
+  {id:"action",number:"03",label:"ACTION",hint:"직접 행동 · 수동 선택"},
+  {id:"entry",number:"04",label:"ENTRY",hint:"입장할 때"},
+  {id:"exit",number:"05",label:"EXIT",hint:"퇴장할 때"},
+  {id:"story",number:"06",label:"STORY",hint:"연계 · 자동 재생"},
+  {id:"variables",number:"07",label:"변수",hint:"조건 · 상태"}
 ];
-const DIALOGUE_EVENT_ROLES=new Set(["talk","entry","exit","story"]);
+const DIALOGUE_EVENT_ROLES=new Set(["talk","action","entry","exit","story"]);
 function editorEventRole(event){
   const role=String(event?.eventRole||"").toLowerCase();
+  const id=String(event?.id||"");
+  const name=String(event?.name||"");
   if(DIALOGUE_EVENT_ROLES.has(role))return role;
-  if(/^\s*ENTRY(?:\s*[·:|\-]|\s|$)/i.test(event?.name||""))return"entry";
-  if(/^\s*EXIT(?:\s*[·:|\-]|\s|$)/i.test(event?.name||""))return"exit";
+  if(/^\s*ENTRY(?:\s*[·:|\-]|\s|$)/i.test(name))return"entry";
+  if(/^\s*EXIT(?:\s*[·:|\-]|\s|$)/i.test(name))return"exit";
+  if(/^\s*ACTION(?:\s*[·:|\-]|\s|$)/i.test(name)||/(?:^|-)act(?:-|\d|$)/i.test(id)||/(?:^|-)action(?:-|\d|$)/i.test(id))return"action";
   if(event?.menuVisible===false)return"story";
   return"talk";
 }
@@ -303,7 +307,7 @@ function renderEventManager(role=dialogueSubtab){
   const pages=Math.max(1,Math.ceil(filtered.length/EDITOR_EVENT_PAGE_SIZE));
   editorEventPage=Math.max(0,Math.min(editorEventPage,pages-1));
   const visible=filtered.slice(editorEventPage*EDITOR_EVENT_PAGE_SIZE,(editorEventPage+1)*EDITOR_EVENT_PAGE_SIZE);
-  const roleHint={talk:"플레이어가 TALK 목록에서 직접 선택하는 대화",entry:"캐릭터 공간에 들어갈 때 실행되는 대화",exit:"캐릭터 공간을 나갈 때 실행되는 대화",story:"다른 이벤트 뒤에 이어지는 연계·자동 대화"}[role];
+  const roleHint={talk:"NEW TALK·AUTO에서 순환되는 일반 대화",action:"플레이어가 직접 고르는 행동 장면. 랜덤 TALK에는 섞이지 않음",entry:"캐릭터 공간에 들어갈 때 실행되는 대화",exit:"캐릭터 공간을 나갈 때 실행되는 대화",story:"다른 이벤트 뒤에 이어지는 연계·자동 대화"}[role];
   root.innerHTML='<div class="editor-note dialogue-role-note"><b>'+role.toUpperCase()+'</b> · '+roleHint+'</div><div class="dialogue-editor-layout"><aside class="manager-list"><div class="manager-list-head"><strong>'+role.toUpperCase()+' EVENTS</strong><button class="small-button" data-action="new-event">+ 추가</button></div>'+
     '<input class="editor-list-search" data-editor-search="event" value="'+esc(editorEventQuery)+'" placeholder="이벤트 / 캐릭터 검색">'+
     '<div class="manager-list-items">'+
@@ -331,8 +335,8 @@ function eventProperties(ev){
 
   return '<label class="field"><span>이벤트 이름</span><input data-bind="event-name" value="'+esc(ev.name)+'"></label>'+
     '<label class="field" style="margin-top:9px"><span>캐릭터</span><select data-bind="event-character">'+charOptions(ev.characterId,"캐릭터 선택")+'</select></label>'+
-    '<label class="field" style="margin-top:9px"><span>이벤트 종류</span><select data-bind="event-role"><option value="talk" '+(editorEventRole(ev)==="talk"?"selected":"")+'>TALK · 직접 선택</option><option value="entry" '+(editorEventRole(ev)==="entry"?"selected":"")+'>ENTRY · 입장</option><option value="exit" '+(editorEventRole(ev)==="exit"?"selected":"")+'>EXIT · 퇴장</option><option value="story" '+(editorEventRole(ev)==="story"?"selected":"")+'>STORY · 연계/자동</option></select></label>'+
-    (editorEventRole(ev)==="talk"?'<label class="checkline" style="margin-top:9px"><input type="checkbox" data-bind="event-menu-visible" '+(ev.menuVisible!==false?"checked":"")+'> TALK 목록에 표시</label>':'<p class="muted event-role-help">'+editorEventRole(ev).toUpperCase()+' 이벤트는 TALK 목록에서 자동으로 숨겨집니다.</p>')+
+    '<label class="field" style="margin-top:9px"><span>이벤트 종류</span><select data-bind="event-role"><option value="talk" '+(editorEventRole(ev)==="talk"?"selected":"")+'>TALK · 일반 대화 / 랜덤 순환</option><option value="action" '+(editorEventRole(ev)==="action"?"selected":"")+'>ACTION · 직접 행동 / 수동 선택</option><option value="entry" '+(editorEventRole(ev)==="entry"?"selected":"")+'>ENTRY · 입장</option><option value="exit" '+(editorEventRole(ev)==="exit"?"selected":"")+'>EXIT · 퇴장</option><option value="story" '+(editorEventRole(ev)==="story"?"selected":"")+'>STORY · 연계/자동</option></select></label>'+
+    (["talk","action"].includes(editorEventRole(ev))?'<label class="checkline" style="margin-top:9px"><input type="checkbox" data-bind="event-menu-visible" '+(ev.menuVisible!==false?"checked":"")+'> '+(editorEventRole(ev)==="action"?"ACTION":"TALK")+' 선택 목록에 표시</label>':'<p class="muted event-role-help">'+editorEventRole(ev).toUpperCase()+' 이벤트는 선택 목록에서 자동으로 숨겨집니다.</p>')+
     '<label class="field" style="margin-top:9px"><span>종료 시 감정</span><select data-bind="event-emotion-exit"><option value="keep" '+(ev.emotionExitMode==="keep"?"selected":"")+'>현재 감정 유지</option><option value="reset" '+(ev.emotionExitMode==="reset"?"selected":"")+'>기본 감정으로 초기화</option></select></label>'+
     '<section class="event-continuation-editor"><div class="continuation-head"><div><strong>CONTINUATION</strong><small>이 EVENT가 끝난 뒤 위에서부터 자동 재생</small></div><b>'+chain.length+'</b></div>'+
       '<div class="continuation-list">'+(chainRows||'<div class="editor-note">이어지는 대화가 없습니다. 아래에서 EVENT를 검색해 추가하세요.</div>')+'</div>'+
