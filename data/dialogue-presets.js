@@ -1,7 +1,7 @@
 "use strict";
 
 (()=>{
-  const VERSION=2;
+  const VERSION=3;
   const key=value=>String(value||"").normalize("NFKC").trim().toLowerCase().replace(/[^a-z0-9가-힣]+/g,"");
   const hash=value=>{
     let h=2166136261;
@@ -126,8 +126,8 @@
     for(const event of source.events){
       const role=roleOf(event);
       if(event.eventRole!==role){event.eventRole=role;changed=true}
-      if(role==="action"&&/^\s*TALK\s*[·:|\-]/i.test(event.name||"")){
-        event.name=String(event.name).replace(/^\s*TALK\s*[·:|\-]\s*/i,"ACTION · ");
+      if(role==="action"&&/^\s*ACTION\s*[·:|\-]/i.test(event.name||"")){
+        event.name=String(event.name).replace(/^\s*ACTION\s*[·:|\-]\s*/i,"TALK · ");
         changed=true;
       }
       const visible=["talk","action"].includes(role)?event.menuVisible!==false:false;
