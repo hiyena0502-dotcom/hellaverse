@@ -102,6 +102,14 @@ assert.ok(!dialogueCode.includes("이벤트가 끝났습니다."),"terminal even
 assert.match(editorUi,/data-entry-field="speakerCharacterId"/,"speaker image selector missing from event editor");
 assert.match(editorEvents,/data-action="validation-jump"/,"validation issue navigation missing");
 assert.match(read("js/world/regions.js"),/currentPage!=="world"\|\|activeRegion!==regionId/,"WORLD timer must stop outside WORLD");
+assert.match(read("js/world/hotel.js"),/actorLabels:\["hover","always","hidden"\]/,"hotel actor label modes missing");
+assert.match(read("js/world/hotel.js"),/if\(!settings\.showWorkDock\)return ""/,"hotel work dock visibility setting missing");
+assert.match(read("js/world/hotel.js"),/if\(!currentSettings\.globalThoughts\)return/,"global hotel THOUGHT switch missing");
+assert.match(read("js/world/hotel.js"),/data-hotel-settings-tab="scene"/,"tabbed hotel settings navigation missing");
+assert.match(read("js/world/hotel.js"),/data-action="hotel-placement-reset"/,"non-destructive hotel placement reset missing");
+assert.ok(!read("js/world/hotel.js").includes('data-action="hotel-settings-reset"'),"hotel settings must not expose immediate destructive reset");
+assert.match(read("css/world.css"),/\.hotel-settings-workspace\{[\s\S]*?grid-template-columns:205px minmax\(0,1fr\)/,"desktop hotel settings workspace missing");
+assert.match(read("css/world.css"),/@media\(max-width:820px\)[\s\S]*?\.hotel-settings-tabs\{[\s\S]*?flex-direction:row/ ,"mobile hotel settings tabs missing");
 assert.match(read("js/world/regions.js"),/data-world-step="-1"/,"WORLD previous-region control missing");
 assert.match(read("js/world/regions.js"),/aria-current="page"/,"active WORLD region must expose its current state");
 assert.match(read("js/world/regions.js"),/class="world-map-viewport"/,"WORLD scenes need an isolated horizontal viewport");

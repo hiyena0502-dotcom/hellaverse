@@ -167,9 +167,16 @@
       neon:true,
       particles:true,
       decorativeGuests:true,
+      showFloorLabels:true,
+      sceneBrightness:1,
       autoResidents:true,
       maxActors:8,
       motionSpeed:1,
+      actorLabels:"hover",
+      globalThoughts:true,
+      thoughtRate:1,
+      showWorkDock:true,
+      compactWorkDock:false,
       workRewardMultiplier:1,
       workDurationMultiplier:1,
       activities:{},
@@ -194,9 +201,16 @@
       neon:s.neon!==false,
       particles:s.particles!==false,
       decorativeGuests:s.decorativeGuests!==false,
+      showFloorLabels:s.showFloorLabels!==false,
+      sceneBrightness:Math.max(.72,Math.min(1.28,Number(s.sceneBrightness)||d.sceneBrightness)),
       autoResidents:s.autoResidents!==false,
       maxActors:Math.max(1,Math.min(12,Number(s.maxActors)||d.maxActors)),
       motionSpeed:Math.max(.5,Math.min(1.8,Number(s.motionSpeed)||d.motionSpeed)),
+      actorLabels:["hover","always","hidden"].includes(s.actorLabels)?s.actorLabels:d.actorLabels,
+      globalThoughts:s.globalThoughts!==false,
+      thoughtRate:Math.max(.5,Math.min(2,Number(s.thoughtRate)||d.thoughtRate)),
+      showWorkDock:s.showWorkDock!==false,
+      compactWorkDock:s.compactWorkDock===true,
       workRewardMultiplier:Math.max(.25,Math.min(5,Number(s.workRewardMultiplier)||1)),
       workDurationMultiplier:Math.max(.25,Math.min(3,Number(s.workDurationMultiplier)||1)),
       activities:s.activities&&typeof s.activities==="object"?{...s.activities}:{},
@@ -370,6 +384,7 @@
   }
 
   function hotelWorkDock(settings){
+    if(!settings.showWorkDock)return "";
     const workFloors=hotelRegion().floors.slice().reverse().filter(floor=>hotelActivitiesForFloor(floor.id).length);
     const cards=workFloors.map(floor=>{
       return '<div class="hotel-work-slot" data-work-floor="'+esc(floor.id)+'">'+
@@ -518,7 +533,10 @@
       "world-hotel-page",
       settings.animation?"":"motion-off",
       settings.neon?"":"neon-off",
-      settings.particles?"":"particles-off"
+      settings.particles?"":"particles-off",
+      settings.showFloorLabels?"":"floor-labels-off",
+      "actor-labels-"+settings.actorLabels,
+      settings.compactWorkDock?"work-dock-compact":""
     ].join(" ");
     const floors=region.floors.map((floor,index)=>renderHotelFloor(floor,index,residents,settings)).join("");
     const residentsText=settings.autoResidents
@@ -526,7 +544,7 @@
       : "SELECTED · "+residents.length+" VISIBLE";
 
     pageRoot.innerHTML=
-      '<section class="'+classes+'" style="--hotel-ambient-duration:'+(7/settings.motionSpeed)+'s">'+
+      '<section class="'+classes+'" style="--hotel-ambient-duration:'+(7/settings.motionSpeed)+'s;--hotel-scene-brightness:'+settings.sceneBrightness+'">'+
         '<header class="world-hotel-head world-page-head">'+
           '<div><p class="page-kicker">WORLD · 01</p><h1>'+esc(region.name)+'</h1><p>'+esc(region.subtitle)+'</p></div>'+
           '<div class="world-hotel-actions">'+
@@ -582,6 +600,8 @@
   function scheduleWorldThoughts(){
     clearTimeout(worldThoughtTimer);
     if(currentPage!=="world")return;
+    const currentSettings=readHotelSettings();
+    if(!currentSettings.globalThoughts)return;
     worldThoughtTimer=setTimeout(()=>{
       if(currentPage!=="world"||!pageRoot.querySelector(".world-hotel-page"))return;
       const settings=readHotelSettings();
@@ -607,7 +627,7 @@
         }
       }
       scheduleWorldThoughts();
-    },6500+Math.random()*4500);
+    },(6500+Math.random()*4500)/currentSettings.thoughtRate);
   }
 
   function openHotelFloorInfo(floorId){
@@ -673,47 +693,118 @@
     '</details>';
   }
 
-  function openHotelSettings(){
-    const settings=readHotelSettings();
+  function hotelSettingValue(name,value){
+    if(name==="maxActors")return Math.round(value)+"명";
+    if(name==="sceneBrightness")return Math.round(value*100)+"%";
+    return Number(value).toFixed(value%1?2:1)+"×";
+  }
+
+  function hotelToggle(name,label,description,checked){
+    return '<label class="hotel-setting-toggle">'+
+      '<input type="checkbox" name="'+esc(name)+'" '+(checked?"checked":"")+' />'+
+      '<span class="hotel-toggle-ui" aria-hidden="true"><i></i></span>'+
+      '<span class="hotel-toggle-copy"><strong>'+esc(label)+'</strong><small>'+esc(description)+'</small></span>'+
+    '</label>';
+  }
+
+  function hotelRange(name,label,description,min,max,step,value){
+    return '<label class="hotel-setting-range">'+
+      '<span class="hotel-range-head"><strong>'+esc(label)+'</strong><output data-hotel-output="'+esc(name)+'">'+esc(hotelSettingValue(name,value))+'</output></span>'+
+      '<small>'+esc(description)+'</small>'+
+      '<input type="range" name="'+esc(name)+'" min="'+min+'" max="'+max+'" step="'+step+'" value="'+value+'" data-hotel-range />'+
+      '<span class="hotel-range-scale"><b>'+esc(hotelSettingValue(name,Number(min)))+'</b><b>'+esc(hotelSettingValue(name,Number(max)))+'</b></span>'+
+    '</label>';
+  }
+
+  function openHotelSettings(draftSettings=null,notice=""){
+    const settings=draftSettings?normalizeHotelSettings(draftSettings):readHotelSettings();
     const chars=enabledCharacters();
+    const visibleCount=currentHotelResidents(settings).length;
     const floorInputs=hotelRegion().floors.map(f=>
-      '<label class="field"><span>'+esc(f.number)+' · '+esc(f.name)+'</span><input type="text" data-hotel-floor-name="'+esc(f.id)+'" value="'+esc(floorDisplayName(f,settings))+'" /></label>'
+      '<label class="hotel-floor-name-card"><span><b>'+esc(f.number)+'</b>'+esc(f.name)+'</span><input type="text" data-hotel-floor-name="'+esc(f.id)+'" value="'+esc(floorDisplayName(f,settings))+'" maxlength="28" /></label>'
     ).join("");
     const characterEditors=chars.length
       ? '<div class="hotel-world-character-list">'+chars.map(c=>characterWorldEditor(c,settings)).join("")+'</div>'
-      : '<p class="editor-note">아직 등록된 캐릭터가 없습니다. 캐릭터를 추가하면 여기에서 WORLD 전용 모습을 따로 설정할 수 있습니다.</p>';
+      : '<p class="editor-note">아직 등록된 캐릭터가 없습니다. 캐릭터를 추가하면 이 탭에서 WORLD 전용 모습과 행동을 설정할 수 있습니다.</p>';
 
     modalRoot.innerHTML=
-      '<div class="modal-backdrop" data-close-modal><section class="modal-card hotel-settings-modal" role="dialog" aria-modal="true">'+
-        '<button class="modal-close" type="button" data-close-modal>×</button>'+
-        '<p class="label">WORLD MANAGEMENT</p><h2>HOTEL SETTINGS</h2>'+
+      '<div class="modal-backdrop hotel-settings-backdrop" data-close-modal><section class="modal-card hotel-settings-modal" role="dialog" aria-modal="true" aria-labelledby="hotelSettingsTitle" tabindex="-1">'+
+        '<button class="modal-close" type="button" data-close-modal aria-label="닫기" title="닫기">×</button>'+
+        '<header class="hotel-settings-hero">'+
+          '<div><p class="label">WORLD MANAGEMENT</p><h2 id="hotelSettingsTitle">HOTEL SETTINGS</h2><p>호텔의 분위기, 등장 인원, 업무와 층 구성을 한곳에서 조절합니다.</p></div>'+
+          '<div class="hotel-settings-summary"><span><b>'+visibleCount+'</b>현재 표시</span><span><b>'+chars.length+'</b>등록 캐릭터</span><span><b>'+hotelRegion().floors.length+'</b>호텔 층</span></div>'+
+        '</header>'+
         '<form id="hotelSettingsForm">'+
-          '<div class="hotel-setting-grid">'+
-            '<label class="checkline"><input type="checkbox" name="animation" '+(settings.animation?"checked":"")+' /> 캐릭터/배경 애니메이션</label>'+
-            '<label class="checkline"><input type="checkbox" name="neon" '+(settings.neon?"checked":"")+' /> 네온 조명 효과</label>'+
-            '<label class="checkline"><input type="checkbox" name="particles" '+(settings.particles?"checked":"")+' /> 공기 입자/불빛 효과</label>'+
-            '<label class="checkline"><input type="checkbox" name="decorativeGuests" '+(settings.decorativeGuests?"checked":"")+' /> 빈 층에 장식 실루엣 표시</label>'+
-            '<label class="checkline full"><input type="checkbox" name="autoResidents" '+(settings.autoResidents?"checked":"")+' /> 등록 캐릭터를 자동으로 호텔에 표시</label>'+
-            '<label class="field"><span>한 화면 최대 캐릭터</span><input type="number" name="maxActors" min="1" max="12" value="'+settings.maxActors+'" /></label>'+
-            '<label class="field"><span>전체 움직임 속도 · 0.5 ~ 1.8</span><input type="number" name="motionSpeed" min=".5" max="1.8" step=".1" value="'+settings.motionSpeed+'" /></label>'+
-          '</div>'+
-          '<section class="hotel-settings-block">'+
-            '<div class="hotel-settings-block-head"><div><span>HOTEL WORK</span><strong>업무 / 재화 밸런스</strong></div><small>캐릭터 능력치와 무관</small></div>'+
-            '<div class="hotel-setting-grid">'+
-              '<label class="field"><span>업무 보상 배율 · 0.25 ~ 5.0</span><input type="number" name="workRewardMultiplier" min=".25" max="5" step=".05" value="'+settings.workRewardMultiplier+'" /></label>'+
-              '<label class="field"><span>업무 시간 배율 · 0.25 ~ 3.0</span><input type="number" name="workDurationMultiplier" min=".25" max="3" step=".05" value="'+settings.workDurationMultiplier+'" /></label>'+
+          '<div class="hotel-settings-workspace">'+
+            '<nav class="hotel-settings-tabs" role="tablist" aria-label="HOTEL SETTINGS 항목">'+
+              '<button type="button" class="active" role="tab" aria-selected="true" aria-controls="hotelSettingsScene" data-hotel-settings-tab="scene"><span>01</span><strong>연출</strong><small>조명 · 움직임</small></button>'+
+              '<button type="button" role="tab" aria-selected="false" aria-controls="hotelSettingsCast" data-hotel-settings-tab="cast"><span>02</span><strong>캐릭터</strong><small>인원 · THOUGHT</small></button>'+
+              '<button type="button" role="tab" aria-selected="false" aria-controls="hotelSettingsWork" data-hotel-settings-tab="work"><span>03</span><strong>업무</strong><small>패널 · 밸런스</small></button>'+
+              '<button type="button" role="tab" aria-selected="false" aria-controls="hotelSettingsFloors" data-hotel-settings-tab="floors"><span>04</span><strong>층 관리</strong><small>이름 · 배치</small></button>'+
+            '</nav>'+
+            '<div class="hotel-settings-content">'+
+              (notice?'<div class="hotel-settings-notice" role="status">'+esc(notice)+'</div>':"")+
+              '<section class="hotel-settings-panel active" id="hotelSettingsScene" role="tabpanel" data-hotel-settings-panel="scene">'+
+                '<div class="hotel-settings-panel-head"><div><span>SCENE & EFFECTS</span><h3>호텔 연출</h3></div><p>기기 성능이나 취향에 맞춰 빠르게 조절할 수 있습니다.</p></div>'+
+                '<div class="hotel-preset-grid">'+
+                  '<button type="button" data-hotel-preset="cinematic"><span>◆</span><strong>시네마틱</strong><small>조명과 효과를 풍부하게</small></button>'+
+                  '<button type="button" data-hotel-preset="balanced"><span>◇</span><strong>기본</strong><small>연출과 성능의 균형</small></button>'+
+                  '<button type="button" data-hotel-preset="performance"><span>○</span><strong>가벼움</strong><small>움직임과 장식을 최소화</small></button>'+
+                '</div>'+
+                '<div class="hotel-setting-card-grid">'+
+                  hotelToggle("animation","캐릭터와 배경 움직임","걷기와 배경 애니메이션을 재생합니다.",settings.animation)+
+                  hotelToggle("neon","네온 조명","간판과 조명의 빛 번짐을 표시합니다.",settings.neon)+
+                  hotelToggle("particles","공기 입자와 불빛","하늘의 반짝임과 주변 효과를 표시합니다.",settings.particles)+
+                  hotelToggle("decorativeGuests","빈 층 장식 인물","캐릭터가 없는 층을 실루엣으로 채웁니다.",settings.decorativeGuests)+
+                  hotelToggle("showFloorLabels","층 이름표","호텔 안에서 층 번호와 이름을 표시합니다.",settings.showFloorLabels)+
+                '</div>'+
+                '<div class="hotel-range-grid">'+
+                  hotelRange("sceneBrightness","호텔 밝기","배경과 실내 전체 밝기",.72,1.28,.02,settings.sceneBrightness)+
+                  hotelRange("motionSpeed","전체 움직임 속도","캐릭터와 배경 애니메이션 속도",.5,1.8,.05,settings.motionSpeed)+
+                '</div>'+
+              '</section>'+
+              '<section class="hotel-settings-panel" id="hotelSettingsCast" role="tabpanel" data-hotel-settings-panel="cast" hidden>'+
+                '<div class="hotel-settings-panel-head"><div><span>RESIDENTS & THOUGHTS</span><h3>등장 캐릭터</h3></div><p>호텔에 보이는 인원과 이름표, 말풍선 빈도를 정합니다.</p></div>'+
+                '<div class="hotel-setting-card-grid">'+
+                  hotelToggle("autoResidents","등록 캐릭터 자동 표시","켜면 표시 가능한 캐릭터를 순서대로 배치합니다.",settings.autoResidents)+
+                  hotelToggle("globalThoughts","THOUGHT 말풍선","캐릭터별 설정과 함께 적용되는 전체 스위치입니다.",settings.globalThoughts)+
+                '</div>'+
+                '<div class="hotel-range-grid">'+
+                  hotelRange("maxActors","최대 표시 인원","호텔 한 화면에 동시에 나타나는 캐릭터 수",1,12,1,settings.maxActors)+
+                  hotelRange("thoughtRate","전체 THOUGHT 빈도","캐릭터 말풍선이 나타나는 전체 간격",.5,2,.1,settings.thoughtRate)+
+                  '<label class="hotel-setting-select"><span><strong>캐릭터 이름표</strong><small>호텔 화면의 이름 표시 방식</small></span><select name="actorLabels">'+
+                    '<option value="hover" '+(settings.actorLabels==="hover"?"selected":"")+'>가리킬 때만</option>'+
+                    '<option value="always" '+(settings.actorLabels==="always"?"selected":"")+'>항상 표시</option>'+
+                    '<option value="hidden" '+(settings.actorLabels==="hidden"?"selected":"")+'>표시 안 함</option>'+
+                  '</select></label>'+
+                '</div>'+
+                '<div class="hotel-settings-subhead"><div><span>CHARACTER WORLD SETTINGS</span><strong>캐릭터별 설정</strong></div><small>이미지 · 기본 층 · 움직임 · THOUGHT</small></div>'+
+                '<p class="hotel-settings-help">캐릭터를 눌러 WORLD 전용 모습을 설정하세요. HOME과 대화 화면의 원본 이미지는 바뀌지 않습니다.</p>'+
+                characterEditors+
+              '</section>'+
+              '<section class="hotel-settings-panel" id="hotelSettingsWork" role="tabpanel" data-hotel-settings-panel="work" hidden>'+
+                '<div class="hotel-settings-panel-head"><div><span>HOTEL WORK</span><h3>업무와 보상</h3></div><p>업무 패널의 표시 방식과 진행 밸런스를 조절합니다.</p></div>'+
+                '<div class="hotel-setting-card-grid">'+
+                  hotelToggle("showWorkDock","업무 패널 표시","WORLD 상단에 HOTEL WORK 카드를 표시합니다.",settings.showWorkDock)+
+                  hotelToggle("compactWorkDock","간단한 업무 카드","업무 카드 높이와 부가 정보를 줄입니다.",settings.compactWorkDock)+
+                '</div>'+
+                '<div class="hotel-range-grid">'+
+                  hotelRange("workRewardMultiplier","보상 배율","업무를 마쳤을 때 받는 SOUL",.25,5,.05,settings.workRewardMultiplier)+
+                  hotelRange("workDurationMultiplier","소요 시간 배율","낮을수록 업무가 더 빨리 끝납니다.",.25,3,.05,settings.workDurationMultiplier)+
+                '</div>'+
+                '<div class="hotel-settings-info"><span>✓</span><p><strong>업무는 실패하지 않습니다.</strong> WORLD를 나가거나 창을 닫아도 종료 시각은 저장되고, 호텔에 돌아오면 보상이 정산됩니다.</p></div>'+
+              '</section>'+
+              '<section class="hotel-settings-panel" id="hotelSettingsFloors" role="tabpanel" data-hotel-settings-panel="floors" hidden>'+
+                '<div class="hotel-settings-panel-head"><div><span>FLOOR MANAGEMENT</span><h3>층 이름과 배치</h3></div><p>각 층의 표시명을 바꾸거나 저장된 캐릭터 위치를 정리합니다.</p></div>'+
+                '<div class="hotel-floor-name-grid">'+floorInputs+'</div>'+
+                '<div class="hotel-placement-reset-card"><div><strong>캐릭터 배치 초기화</strong><p>드래그해서 저장한 위치만 지우고 캐릭터별 이미지와 행동 설정은 유지합니다.</p><small data-hotel-placement-state>현재 저장된 위치를 유지합니다.</small></div><button class="ghost-button" type="button" data-action="hotel-placement-reset">배치 초기화 예약</button></div>'+
+              '</section>'+
             '</div>'+
-            '<p class="hotel-settings-help">업무는 실패하지 않습니다. 시작한 뒤 WORLD를 나가거나 창을 닫아도 종료 시각은 저장되며, 다음에 호텔에 돌아오면 완료 보상이 정산됩니다.</p>'+
-          '</section>'+
-          '<section class="hotel-settings-block hotel-character-world-settings">'+
-            '<div class="hotel-settings-block-head"><div><span>CHARACTER WORLD SETTINGS</span><strong>캐릭터별 호텔 표시</strong></div><small>기존 캐릭터 설정과 별도로 저장</small></div>'+
-            '<p class="hotel-settings-help">캐릭터를 눌러 WORLD 전용 이미지, 기본 층, 움직임과 THOUGHT 연출을 설정하세요. 실제 위치는 호텔 화면에서 캐릭터를 직접 드래그해서 정합니다. 여기서 넣은 이미지는 HOME/대화 화면의 캐릭터 이미지를 바꾸지 않습니다.</p>'+
-            characterEditors+
-          '</section>'+
-          '<section class="hotel-settings-block"><div class="hotel-settings-block-head"><div><span>FLOORS</span><strong>층 이름</strong></div><small>표시명만 변경</small></div><div class="hotel-floor-name-grid">'+floorInputs+'</div></section>'+
-          '<div class="hotel-settings-actions"><button class="danger-button" type="button" data-action="hotel-settings-reset">RESET</button><span></span><button class="ghost-button" type="button" data-close-modal>취소</button><button class="gold-button" type="button" data-action="hotel-settings-save">저장</button></div>'+
+          '</div>'+
+          '<footer class="hotel-settings-actions"><button class="ghost-button" type="button" data-action="hotel-settings-defaults">기본값 불러오기</button><span>저장을 눌러야 WORLD에 적용됩니다.</span><button class="ghost-button" type="button" data-close-modal>취소</button><button class="gold-button" type="button" data-action="hotel-settings-save">설정 저장</button></footer>'+
         '</form>'+
       '</section></div>';
+    requestAnimationFrame(()=>$(".hotel-settings-modal",modalRoot)?.focus());
   }
   function collectHotelSettings(){
     const form=$("#hotelSettingsForm",modalRoot);
@@ -724,9 +815,16 @@
     next.neon=form.elements.neon.checked;
     next.particles=form.elements.particles.checked;
     next.decorativeGuests=form.elements.decorativeGuests.checked;
+    next.showFloorLabels=form.elements.showFloorLabels.checked;
+    next.sceneBrightness=Number(form.elements.sceneBrightness.value);
     next.autoResidents=form.elements.autoResidents.checked;
     next.maxActors=Number(form.elements.maxActors.value);
     next.motionSpeed=Number(form.elements.motionSpeed.value);
+    next.actorLabels=form.elements.actorLabels.value;
+    next.globalThoughts=form.elements.globalThoughts.checked;
+    next.thoughtRate=Number(form.elements.thoughtRate.value);
+    next.showWorkDock=form.elements.showWorkDock.checked;
+    next.compactWorkDock=form.elements.compactWorkDock.checked;
     next.workRewardMultiplier=Number(form.elements.workRewardMultiplier.value);
     next.workDurationMultiplier=Number(form.elements.workDurationMultiplier.value);
     next.activities={...saved.activities};
@@ -749,12 +847,52 @@
         movement:field("movement")?.value||"wander",
         speed:field("speed")?.value,
         scale:field("scale")?.value,
-        placement:floor===previous.floor?previous.placement:null,
+        placement:form.dataset.resetPlacements==="true"?null:(floor===previous.floor?previous.placement:null),
         thoughts:field("thoughts")?.checked,
         thoughtFrequency:field("thoughtFrequency")?.value||"normal"
       });
     });
     return normalizeHotelSettings(next);
+  }
+
+  function activateHotelSettingsTab(tabId){
+    $$("[data-hotel-settings-tab]",modalRoot).forEach(button=>{
+      const active=button.dataset.hotelSettingsTab===tabId;
+      button.classList.toggle("active",active);
+      button.setAttribute("aria-selected",String(active));
+      button.tabIndex=active?0:-1;
+    });
+    $$("[data-hotel-settings-panel]",modalRoot).forEach(panel=>{
+      const active=panel.dataset.hotelSettingsPanel===tabId;
+      panel.hidden=!active;
+      panel.classList.toggle("active",active);
+    });
+    $(".hotel-settings-content",modalRoot)?.scrollTo({top:0,behavior:"smooth"});
+  }
+
+  function syncHotelRange(input){
+    if(!input?.name)return;
+    const output=$("[data-hotel-output=\""+input.name+"\"]",modalRoot);
+    if(output)output.textContent=hotelSettingValue(input.name,Number(input.value));
+  }
+
+  function applyHotelPreset(name){
+    const form=$("#hotelSettingsForm",modalRoot);
+    if(!form)return;
+    const preset={
+      cinematic:{animation:true,neon:true,particles:true,decorativeGuests:true,showFloorLabels:true,sceneBrightness:1.12,motionSpeed:1},
+      balanced:{animation:true,neon:true,particles:true,decorativeGuests:true,showFloorLabels:true,sceneBrightness:1,motionSpeed:1},
+      performance:{animation:false,neon:false,particles:false,decorativeGuests:false,showFloorLabels:true,sceneBrightness:.92,motionSpeed:.7}
+    }[name];
+    if(!preset)return;
+    Object.entries(preset).forEach(([key,value])=>{
+      const input=form.elements[key];
+      if(!input)return;
+      if(input.type==="checkbox")input.checked=value;
+      else input.value=value;
+      if(input.matches("[data-hotel-range]"))syncHotelRange(input);
+    });
+    $$("[data-hotel-preset]",modalRoot).forEach(button=>button.classList.toggle("active",button.dataset.hotelPreset===name));
   }
 
   function startHotelJob(floorId){
@@ -924,6 +1062,8 @@
   });
 
   modalRoot.addEventListener("input",event=>{
+    const range=event.target.closest("[data-hotel-range]");
+    if(range)syncHotelRange(range);
     const input=event.target.closest("[data-world-image]");
     if(!input)return;
     const card=input.closest("[data-world-character-card]");
@@ -940,6 +1080,16 @@
   });
 
   modalRoot.addEventListener("click",event=>{
+    const tab=event.target.closest("[data-hotel-settings-tab]");
+    if(tab){
+      activateHotelSettingsTab(tab.dataset.hotelSettingsTab);
+      return;
+    }
+    const preset=event.target.closest("[data-hotel-preset]");
+    if(preset){
+      applyHotelPreset(preset.dataset.hotelPreset);
+      return;
+    }
     const button=event.target.closest("[data-action]");
     if(!button)return;
     if(button.dataset.action==="hotel-settings-save"){
@@ -947,11 +1097,17 @@
       closeModal();
       renderWorld();
       showToast("HOTEL SETTINGS SAVED");
-    }else if(button.dataset.action==="hotel-settings-reset"){
-      localStorage.removeItem(WORLD_STORAGE_KEY);
-      closeModal();
-      renderWorld();
-      showToast("HOTEL SETTINGS RESET");
+    }else if(button.dataset.action==="hotel-settings-defaults"){
+      openHotelSettings(hotelDefaults(),"기본값을 불러왔습니다. 저장하기 전까지는 WORLD에 적용되지 않습니다.");
+    }else if(button.dataset.action==="hotel-placement-reset"){
+      const form=$("#hotelSettingsForm",modalRoot);
+      if(!form)return;
+      const active=form.dataset.resetPlacements!=="true";
+      form.dataset.resetPlacements=active?"true":"false";
+      button.classList.toggle("active",active);
+      button.textContent=active?"초기화 예약 취소":"배치 초기화 예약";
+      const state=$("[data-hotel-placement-state]",form);
+      if(state)state.textContent=active?"저장하면 모든 캐릭터가 기본 층과 위치로 돌아갑니다.":"현재 저장된 위치를 유지합니다.";
     }
   });
 })();
