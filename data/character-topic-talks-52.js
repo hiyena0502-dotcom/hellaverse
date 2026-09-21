@@ -607,93 +607,182 @@
     ][n];
   };
 
+  const topicTalkPhrase=title=>{
+    let s=String(title||"").trim();
+    return s
+      .replace(/할 수 있는가$/,"할 수 있는지")
+      .replace(/해야 하는가$/,"해야 하는지")
+      .replace(/어떻게 되는가$/,"어떻게 되는지")
+      .replace(/어떻게 생각하는가$/,"어떻게 보는지")
+      .replace(/있는가$/,"있는지")
+      .replace(/인가$/,"인지")
+      .replace(/한다면$/,"하는 경우")
+      .replace(/된다면$/,"되는 경우")
+      .replace(/이라면$/,"인 경우")
+      .replace(/일까$/,"일지")
+      .replace(/할까$/,"할지");
+  };
+  const PROBE_HINT={
+    heaven:["천국에선 무슨 일이 있었던 거예요?","천국 얘기라서 그런 거예요?"],
+    extermination:["그때 무슨 일이 있었던 거예요?","숙청 얘기라서 그래요?"],
+    family:["가족 얘기라서 그런 거예요?","누구 생각난 거예요?"],
+    past:["예전에도 비슷했어요?","그때 무슨 일이 있었어요?"],
+    soul:["계약 때문에 그래요?","그 계약이 아직도 걸리는 거예요?"],
+    romance:["누구 생각난 거예요?","그런 관계를 겪어봐서 그래요?"],
+    trust:["왜 그렇게 봐요?","누굴 못 믿어서 그래요?"],
+    selfworth:["그 말, 본인 얘기이기도 해요?","그렇게 생각하게 된 이유가 있어요?"]
+  };
+  const probeQuestion=(c,t,key)=>{
+    const ts=tags(t);
+    const tag=["heaven","extermination","family","past","soul","romance","trust","selfworth"].find(x=>ts.includes(x));
+    if(tag)return pick(PROBE_HINT[tag],key);
+    return pick(["왜 그렇게 생각해요?","조금만 더 말해줘요.","그건 왜요?","무슨 뜻이에요?"],key);
+  };
   const startRemark=(c,t,high,key)=>{
-    const r=register(c),personal=isPersonalFor(c,t),name=CALL[c.id]||c.name;
-    if(personal){
-      if(c.id==="lucifer-morningstar")return pick([
-        "…아까 그 얘기 말인데. 아니, 별건 아니야. 그냥 생각나서.",
-        "그러고 보니 좀 걸리는 게 있긴 한데—아니, 그렇게 진지한 얼굴 하지 마.",
-        "갑자기 생각난 게 하나 있는데, 깊은 뜻은 없어. 진짜로."
-      ],key)+" ‘"+t.title+"’ 쪽 이야기야.";
-      if(c.id==="alastor")return pick([
-        "문득 흥미로운 생각이 하나 떠올랐습니다. 너무 큰 의미는 두지 마시길.",
-        "하하, 조금 위험해 보이는 화제가 떠올랐군요. 어디까지나 한담입니다."
-      ],key)+" ‘"+t.title+"’ 말이지요.";
-      if(c.id==="loona")return pick([
-        "아까 그 얘기 있잖아. …아니, 그냥 말해본 거야.",
-        "갑자기 생각났는데, 이상하게 받아들이진 마."
-      ],key)+" ‘"+t.title+"’ 같은 거.";
-      if(c.id==="blitzo")return pick([
-        "오, 씨발. 방금 좀 웃긴 생각 났다. 감정 상담은 아니고.",
-        "야, 이건 그냥 떠오른 건데 너무 의미 부여하지 마."
-      ],key)+" ‘"+t.title+"’ 같은 거.";
-      if(c.id==="stolas")return pick([
-        "문득 조금 걸리는 생각이 하나 났어요. 그렇다고 심각해질 필요는 없고요.",
-        "아, 그러고 보니 아까부터 머리에 남아 있던 이야기가 하나 있군요."
-      ],key)+" ‘"+t.title+"’ 쪽 이야기예요.";
-      if(r==="formal")return "그러고 보니 ‘"+t.title+"’ 이야기가 조금 떠오르는군요. 너무 깊게 볼 필요는 없습니다.";
-      if(r==="archaic")return "문득 ‘"+t.title+"’ 이야기가 떠오르는구려. 너무 깊게 헤아릴 필요는 없소.";
-      return "그러고 보니 ‘"+t.title+"’ 같은 얘기가 좀 떠오르네. 너무 깊게 갈 건 아니고.";
+    const r=register(c),personal=isPersonalFor(c,t),phrase=topicTalkPhrase(t.title),tag=surfaceTag(t);
+    if(c.id==="lucifer-morningstar"){
+      if(tags(t).includes("heaven"))return pick([
+        "천사 하나가 호텔에 눌러앉는다고 생각해봐. 날개 때문에 문짝부터 넓혀야 하나?",
+        "천국 쪽 손님이 장기 투숙하면 규칙을 새로 써야겠네. ‘빛나는 건 복도에서 자제해 주세요’ 같은 거.",
+        "천사랑 죄인이 한 지붕 아래 산다라… 룸서비스보다 먼저 누가 서로 눈치 볼지가 궁금한데."
+      ],key);
+      if(tags(t).includes("family"))return pick([
+        "가족 얘기만 나오면 다들 갑자기 전문가가 되더라. 신기하지?",
+        "가족은 참 편리한 단어야. 같은 말로 칭찬도 하고 싸움도 시작할 수 있거든.",
+        "가족 문제를 해결하는 매뉴얼이 있으면 왕실 예산으로 백 권쯤 사고 싶네."
+      ],key);
+      if(personal)return pick([
+        "이 얘기, 내가 먼저 꺼내긴 했는데 그렇게 심각한 얼굴은 하지 마.",
+        "갑자기 생각난 건 맞아. 그렇다고 숨겨둔 비극 3막짜리를 기대하진 말고.",
+        "그냥 떠오른 얘기야. 아주 평범하고, 전혀 수상하지 않은 얘기."
+      ],key)+" "+phrase+" 쪽 말이야.";
     }
-    const tag=surfaceTag(t);
+    if(c.id==="alastor"){
+      if(personal)return pick([
+        phrase+"라. 사람들이 이런 화제에서 유난히 남의 사정을 알고 싶어 하더군요.",
+        phrase+" 이야기는 흥미롭습니다. 특히 사람들은 정답보다 비밀을 더 좋아하니까요.",
+        phrase+"라니. 대개 이런 질문은 상대를 이해하려는 척하면서 호기심을 채우는 데 쓰이지요."
+      ],key);
+      return pick([
+        "흥미로운 화제가 하나 떠올랐습니다. "+phrase+" 말이지요.",
+        phrase+" 같은 일은 구경하는 입장에선 제법 재미있지 않겠습니까?",
+        "문득 "+phrase+" 쪽이 생각나는군요. 사람들 반응을 보기 좋은 소재예요."
+      ],key);
+    }
+    if(c.id==="loona"&&personal)return pick([
+      phrase+" 얘기 있잖아. 그냥 생각난 거야. 이상한 의미 붙이지 마.",
+      "갑자기 "+phrase+" 쪽이 떠올랐어. 묻기 전에 말하는데, 별거 아냐."
+    ],key);
+    if(c.id==="blitzo"&&personal)return pick([
+      "오, 씨발. "+phrase+" 생각났는데 감정 상담은 아니야.",
+      phrase+" 얘기 하나만. 의미 부여하면 바로 취소다."
+    ],key);
+    if(c.id==="stolas"&&personal)return pick([
+      "문득 "+phrase+" 이야기가 떠올랐어요. 그렇다고 심각해질 필요는 없고요.",
+      phrase+" 쪽이 조금 마음에 남는군요. 그냥 가볍게 이야기해볼까요?"
+    ],key);
+
     const x=pick(SURFACE_X[tag]||SURFACE_X.hellsociety,key+"x");
     const base=lightOpen(c,high,key+"o");
-    if(r==="formal")return base+" ‘"+t.title+"’ 같은 경우라면 저는 "+x+"부터 생각할 것 같군요.";
-    if(r==="archaic")return base+" ‘"+t.title+"’ 같은 경우라면 나는 "+x+"부터 생각하겠소.";
-    return base+" ‘"+t.title+"’ 같은 상황이면 난 "+x+"부터 볼 것 같아.";
+    if(r==="formal")return base+" 그러고 보니 "+phrase+" 얘기가 나오던데, 저는 "+x+"부터 볼 것 같습니다.";
+    if(r==="archaic")return base+" 그러고 보니 "+phrase+" 이야기가 있더군. 나는 "+x+"부터 보겠소.";
+    return base+" 그러고 보니 "+phrase+" 얘기 있잖아. 난 "+x+"부터 볼 것 같아.";
   };
 
   const responseFor=(c,t,kind,high,key)=>{
-    const personal=isPersonalFor(c,t),r=register(c),tag=surfaceTag(t);
-    if(kind==="probe"){
-      if(personal)return deflectFor(c,high,key)+" "+topicTail(c,t.title,key+"tail");
-      if(high){
-        if(r==="formal")return "조금 더 말하자면 "+pick(SURFACE_X[tag]||SURFACE_X.hellsociety,key+"x")+" 쪽이 가장 먼저 보입니다.";
-        if(r==="archaic")return "조금 더 말하자면 "+pick(SURFACE_X[tag]||SURFACE_X.hellsociety,key+"x")+" 쪽이 먼저 보이는구려.";
-        return "조금 더 말하면 "+pick(SURFACE_X[tag]||SURFACE_X.hellsociety,key+"x")+" 쪽이 제일 먼저 보여.";
+    const personal=isPersonalFor(c,t),r=register(c),tag=surfaceTag(t),x=pick(SURFACE_X[tag]||SURFACE_X.hellsociety,key+"x");
+
+    if(c.id==="alastor"){
+      if(kind==="probe"){
+        if(!high)return pick([
+          "왜 알고 싶으신 겁니까? 이해하려는 거라면 지금 제가 하는 행동만으로도 판단할 재료는 충분할 텐데요. 과거를 더 캐야만 납득할 수 있다면, 그건 이해보다 호기심에 가깝지 않습니까?",
+          "그 질문에는 이상한 전제가 하나 있군요. 제가 설명해야 당신이 이해할 수 있다는 전제 말입니다. 하지만 당신은 이미 제 앞에서 충분히 많은 걸 보고 있지요. 모르는 부분이 남아 있는 게 그렇게 불편합니까?",
+          "재미있군요. 사람들은 상대가 침묵하면 반드시 숨기는 상처가 있다고 생각하죠. 때로는 그냥 말할 가치가 없어서 말하지 않는 겁니다. 비밀이 있다는 사실과 당신이 그걸 알 권리가 있다는 건 전혀 다른 문제예요."
+        ],key);
+        return pick([
+          "궁금한 건 이해합니다. 하지만 제가 겪은 일을 알아야 저를 이해할 수 있다는 생각부터 틀렸어요. 당신은 지금의 저와 대화하고 있고, 판단할 재료도 이미 충분합니다. 나머지는 모르는 채로 두어도 관계가 무너지지 않는다는 걸 배우는 편이 더 유익하지 않겠습니까?",
+          "조금 친해졌다고 해서 질문의 전제가 달라지는 건 아닙니다. 제가 과거를 설명해야만 지금의 행동이 이해된다고 생각하신다면, 오히려 저를 너무 단순하게 보고 계신 셈이지요. 사람은 해설서가 없어도 충분히 관찰할 수 있습니다.",
+          "말해드릴 수도 있겠지요. 하지만 그러면 당신은 사실 하나를 얻고, 대신 스스로 판단할 기회를 잃습니다. 저는 어느 쪽이 더 재미있는지 이미 알고 있습니다. 당신도 곧 알게 되겠지요."
+        ],key);
       }
-      return deflectFor(c,false,key)+" "+topicTail(c,t.title,key+"tail");
+      if(kind==="joke")return pick([
+        "농담으로 넘기는 건 현명한 선택입니다. 다만 재치가 방패가 되는 순간도 있다는 건 기억하세요. 웃었다고 해서 질문이 사라지는 건 아니니까요.",
+        "가볍게 넘기시겠다면 그러시죠. 하지만 방금 당신이 웃은 이유가 정말 재미있어서인지, 더 묻기 싫어서인지는 본인이 제일 잘 알 겁니다.",
+        "재미있는 반응이군요. 웃음은 대화를 편하게 만들기도 하지만, 곤란한 사실을 덮는 데도 꽤 유용하지요. 어느 쪽인지는 제가 굳이 말하지 않겠습니다."
+      ],key);
+      if(kind==="shift")return pick([
+        "좋습니다. 모르는 채로 둘 줄 아는 것도 제법 훌륭한 판단이니까요. 모든 문을 열어야 한다고 믿는 사람보다 훨씬 덜 피곤합니다.",
+        "현명하군요. 화제를 돌린다고 패배하는 건 아닙니다. 오히려 필요 없는 정보를 욕심내지 않는 쪽이 오래 살아남지요."
+      ],key);
+      return pick([
+        "그 정도 거리감이 딱 좋군요. 사람들은 대개 이해한다는 명목으로 너무 가까이 들어오려 하거든요. 굳이 설명을 요구하지 않는 태도는 생각보다 귀합니다.",
+        "동의하신다면 거기서 멈추는 것도 좋습니다. 모든 대화가 결론이나 고백으로 끝나야 하는 건 아니니까요. 가끔은 한마디 남겨두는 편이 훨씬 오래 기억됩니다."
+      ],key);
     }
+
+    if(kind==="probe"){
+      if(personal){
+        const d=deflectFor(c,high,key);
+        if(c.id==="lucifer-morningstar")return high
+          ? d+" 네가 궁금해서 묻는 건 알아. 그런데 내가 먼저 얘기를 꺼냈다고 해서 설명회까지 열겠다는 뜻은 아니거든. 여기까지만 듣고 오리 하나 골라줘. 그쪽이 훨씬 생산적이야."
+          : d+" 내가 먼저 말 꺼냈다고 바로 취재 모드 들어가면 곤란하지. 궁금한 건 이해하지만 오늘은 거기까지. 자, 다음 주제는 오리냐 호텔 메뉴냐 둘 중 하나.";
+        if(c.id==="loona")return d+" 내가 먼저 말했어도 그게 질문권 무제한이라는 뜻은 아니야. 한마디 한 건 한마디 한 거고, 그 뒤는 내 기분 따라 정할 거야.";
+        if(c.id==="blitzo")return d+" 야, 내가 먼저 꺼냈다고 감정 서류철까지 펼치라는 뜻 아니거든. 지금 정도가 딱 적당해. 더 가면 재미없어져.";
+        if(c.id==="stolas")return d+" 당신이 묻는 게 불편해서라기보다는, 이걸 길게 풀면 대화 전체가 그 이야기 하나에 잡아먹힐 것 같아서요. 오늘은 여기까지만 두고 싶습니다.";
+        return d+" 내가 먼저 이야기를 꺼냈더라도 어디까지 말할지는 내가 정하고 싶어. 지금은 한두 마디 정도가 가장 편해.";
+      }
+      if(high){
+        if(r==="formal")return "조금 더 말하자면 저는 "+x+" 쪽을 먼저 보게 됩니다. 다만 이걸 거창한 원칙처럼 만들 생각은 없습니다. 실제 상황이 오면 그때 사람을 보고 다시 판단하겠지요.";
+        if(r==="archaic")return "조금 더 말하자면 나는 "+x+" 쪽을 먼저 보게 되오. 허나 이것을 거창한 원칙으로 세울 생각은 없소. 일이 닥치면 그때 다시 보면 될 일이오.";
+        return "조금 더 말하면 난 "+x+" 쪽을 먼저 보게 돼. 그렇다고 거창한 철학은 아니고, 실제로 일이 생기면 그때 사람 보고 다시 정하면 되지.";
+      }
+      if(r==="formal")return "그 정도까지는 말할 수 있겠습니다. 저는 "+x+" 쪽을 먼저 봅니다. 다만 오늘은 이걸 토론으로 키우기보다 한마디 의견 정도로 두고 싶군요.";
+      if(r==="archaic")return "그 정도까지는 말할 수 있겠소. 나는 "+x+" 쪽을 먼저 보오. 허나 오늘은 긴 논쟁보다 한마디 의견 정도로 두지.";
+      return "그 정도까진 말해줄 수 있어. 난 "+x+" 쪽을 먼저 봐. 근데 오늘은 이걸 토론까지 키우진 말자.";
+    }
+
     if(kind==="joke"){
       const row={
-        "lucifer-morningstar":["그렇게 나오면 오리 하나쯤 상품으로 걸어도 되겠네.","좋아, 그 답은 마음에 드네. 오리 점수 +1."],
-        "alastor":["하하! 그쪽이 훨씬 재미있는 반응이군요.","좋습니다. 적어도 지루하진 않군요."],
-        "vox":["오케이, 그건 썸네일은 뽑히겠네.","좋아, 그 반응은 방송에 써먹을 만해."],
-        "blitzo":["좋아, 이제 좀 사람 말 같네.","그래, 그 정도면 씨발 합격."],
-        "loona":["…그건 좀 낫네.","그래. 그 정도면 안 귀찮아."],
-        "fizzarolli":["오, 그건 펀치라인 살아있네.","좋아, 그 답은 관객 반응 괜찮겠다."],
-        "adam":["하! 그래, 그런 반응을 원했다고.","좋아, 이제 좀 재미있네."],
-        "lute":["…그건 그나마 낫네.","쓸데없는 감상보다 낫다."],
-        "charlie-morningstar":["하하, 좋아! 그쪽으로 생각하면 좀 재밌겠다!","응! 그 반응 마음에 들어!"],
-        "emily":["하하! 그거 재밌다!","오! 그쪽 생각은 못 했어!"]
+        "lucifer-morningstar":[
+          "좋아, 그 반응 마음에 드네. 진지하게 파고들기 시작하면 내가 오리 세 마리 꺼내서 강제로 주제 바꿀 생각이었거든. 지금 정도가 딱 좋아.",
+          "그래, 그렇게 가볍게 받으면 나도 편하지. 모든 얘기에 교훈 붙일 필요 없잖아. 오리한테도 교훈 붙이면 걔들이 화낼걸."
+        ],
+        "vox":["오케이, 그건 썸네일은 뽑히겠네. 적어도 사람들 스크롤 멈추게 할 정도는 돼. 다만 실제 방송이면 편집은 내가 한다.","좋아, 그 반응은 방송에 써먹을 만해. 너무 진지하지도 않고, 그렇다고 완전히 멍청하지도 않네. 드문 균형이야."],
+        "blitzo":["그래, 이제 좀 사람 말 같네. 뭐든 감정 보고서로 만들면 재미없어. 가끔은 그냥 웃고 다음 일 죽이러 가면 되는 거야.","좋아, 그 정도면 합격. 괜히 내 머릿속까지 들어오려 하지 말고, 웃고 넘길 건 웃고 넘기자고."],
+        "loona":["…그건 좀 낫네. 괜히 분위기 이상하게 만들지 않고 그냥 넘길 줄 아는 건 장점이야. 생각보다 드물고.","그래. 그 정도면 안 귀찮아. 사람들이 꼭 한마디를 열다섯 문장으로 만들려고 해서 문제지."],
+        "fizzarolli":["오, 그건 펀치라인 살아있네. 이런 식이면 무대에서도 안 미끄러지겠다. 적어도 내가 구조해줄 필요는 없겠어.","좋아, 그 답은 관객 반응 괜찮겠다. 너무 진지해지기 전에 웃길 줄 아는 건 중요한 기술이거든."],
+        "adam":["하! 그래, 그런 반응을 원했다고. 다들 갑자기 인생 상담사 되는 것보다 백 배 낫네. 그냥 웃기면 웃는 거지.","좋아, 이제 좀 재미있네. 질문 하나 했다고 다들 철학자 되는 거 존나 지겨웠거든."],
+        "lute":["…그건 그나마 낫네. 쓸데없는 감상 붙이지 않고 넘기는 편이 훨씬 빠르지. 필요한 얘기만 하면 돼.","그래. 그런 식이면 괜찮아. 모든 걸 의미 있는 순간으로 만들 필요는 없어."],
+        "charlie-morningstar":["하하, 좋아! 그쪽으로 생각하면 훨씬 덜 무겁겠다. 나도 가끔 모든 얘기를 프로그램으로 만들려는 버릇 좀 줄여야 해!","응! 그 반응 마음에 들어! 가끔은 해결책 안 만들고 그냥 웃고 넘어가도 되는 거잖아!"],
+        "emily":["하하! 그거 재밌다! 나도 자꾸 질문을 질문으로 이어가는데, 가끔은 그냥 웃고 끝내도 되는 거네!","오! 그쪽 생각은 못 했어! 좋아, 그럼 오늘은 결론 없이 그냥 재밌게 끝내자!"]
       }[c.id];
       if(row)return pick(row,key);
-      if(r==="formal")return "그렇게 받아들이는 편이 오히려 편하군요.";
-      if(r==="archaic")return "그렇게 받아들이는 편이 오히려 낫겠구려.";
-      return "그렇게 받아들이는 쪽이 오히려 편하네.";
+      if(r==="formal")return "그렇게 가볍게 받아들이는 편도 좋군요. 모든 이야기를 끝까지 분석할 필요는 없습니다. 이 정도 거리에서 웃고 넘어갈 수 있으면 충분하겠지요.";
+      if(r==="archaic")return "그렇게 가볍게 받는 편도 좋구려. 모든 이야기를 끝까지 헤아릴 필요는 없소. 이 정도 거리에서 웃고 넘겨도 충분하오.";
+      return "그렇게 가볍게 받는 편도 좋네. 모든 얘기를 끝까지 분석할 필요는 없잖아. 이 정도에서 웃고 넘겨도 충분해.";
     }
+
     if(kind==="shift"){
-      if(r==="formal")return "좋습니다. 이 이야기는 여기까지 하고 다른 화제로 가죠.";
-      if(r==="archaic")return "좋소. 이 이야기는 여기까지 하고 다른 화제로 돌리지.";
-      return "좋아. 이 얘긴 여기까지 하고 다른 걸로 가자.";
+      if(r==="formal")return "좋습니다. 그 판단도 마음에 드는군요. 모든 화제를 붙잡고 늘어질 필요는 없으니 여기서 끝내죠. 다음 이야기가 더 재미있을 수도 있으니까요.";
+      if(r==="archaic")return "좋소. 그 판단도 마음에 드는구려. 모든 화제를 붙잡고 늘어질 필요는 없으니 여기서 끝내지. 다음 이야기가 더 재미있을 수도 있으니.";
+      return "좋아. 그 판단 마음에 드네. 모든 얘기를 끝까지 붙잡고 있을 필요는 없지. 여기서 끝내고 다음 거 보자.";
     }
+
     // agree / neutral
     if(personal){
-      if(high)return deflectFor(c,true,key)+" 네가 굳이 더 캐지 않는 건 편하네.";
-      return deflectFor(c,false,key);
+      if(high)return deflectFor(c,true,key)+" 굳이 더 캐지 않고 그 정도로 받아주는 건 편하네. 내가 먼저 꺼낸 말이어도, 거기서 멈춰주는 사람이 있다는 건 꽤 큰 차이거든.";
+      return deflectFor(c,false,key)+" 그래도 괜히 더 캐묻지 않고 넘어가는 건 마음에 들어. 그 정도면 충분해.";
     }
-    const x=pick(SURFACE_X[tag]||SURFACE_X.hellsociety,key+"x");
-    if(r==="formal")return "네. 저는 "+x+" 정도로 보면 충분하다고 생각합니다.";
-    if(r==="archaic")return "그렇소. 나는 "+x+" 정도로 보면 충분하다 생각하오.";
-    return "응. 난 "+x+" 정도로 보면 충분하다고 봐.";
+    if(r==="formal")return "네. 저도 "+x+" 정도로 보면 충분하다고 생각합니다. 복잡하게 만들지 않아도 될 일을 괜히 거창하게 만드는 경우가 많으니까요.";
+    if(r==="archaic")return "그렇소. 나도 "+x+" 정도로 보면 충분하다 생각하오. 단순한 일을 괜히 거창하게 만드는 경우가 많으니 말이오.";
+    return "응. 난 "+x+" 정도로 보면 충분하다고 봐. 별일 아닌 걸 괜히 거창하게 만들면 오히려 더 귀찮아지잖아.";
   };
 
   const playerLine=(c,t,kind,key)=>{
-    const name=CALL[c.id]||c.name;
-    if(kind==="probe")return "조금만 더 물어봐도 돼요? ‘"+t.title+"’ 쪽은 "+name+"한테 어떤 느낌이에요?";
-    if(kind==="joke")return "그럼 너무 진지하게 가지 말죠. "+name+"답게 대충 넘겨봐요.";
-    if(kind==="shift")return "됐어요. 이 얘긴 여기까지만 하고 다른 얘기해요.";
-    return "그 말은 좀 알 것 같아요. ‘"+t.title+"’이면 그럴 수도 있겠네요.";
+    if(kind==="probe")return probeQuestion(c,t,key);
+    if(kind==="joke")return pick(["그럼 웃고 넘겨요.","너무 진지하게 가진 말죠.","그 정도면 됐네요."],key);
+    if(kind==="shift")return pick(["그럼 다른 얘기해요.","됐어요. 넘어가죠.","이 얘긴 여기까지 해요."],key);
+    return pick(["그건 맞는 것 같아요.","그럴 수도 있겠네요.","음, 이해돼요.","그건 좀 알겠어요."],key);
   };
 
   const choiceEntry=(c,t,id,highOnly)=>{
@@ -708,10 +797,10 @@
       ]
     });
     const opts=[
-      option("agree","맞장구치기","agree"),
-      option("joke","가볍게 받아치기","joke"),
-      option("probe","조금 더 물어보기","probe"),
-      option("shift","다른 이야기로 넘기기","shift")
+      option("agree","맞장구친다","agree"),
+      option("joke","가볍게 넘긴다","joke"),
+      option("probe","더 물어본다","probe"),
+      option("shift","화제를 돌린다","shift")
     ];
     return CH(id+"-choice","뭐라고 답할까?",opts,cond?{affectionCondition:cond}:{});
   };
@@ -744,6 +833,6 @@
   window.HV_STORY_PACKS ||= [];
   for(const c of PFS){
     const list=chosen(c);
-    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:9,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
+    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:10,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
   }
 })();
