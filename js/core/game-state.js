@@ -41,7 +41,8 @@ function getEvent(id, source=state){
   if(activeInteractionEvent&&activeInteractionEvent.id===id)return activeInteractionEvent;
   return source.events.find(e=>e.id===id)||null;
 }
-function eventsForCharacter(charId, source=state){return source.events.filter(e=>e.characterId===charId&&e.menuVisible!==false&&!isExitEvent(e))}
+function eventsForCharacter(charId, source=state){return source.events.filter(e=>e.characterId===charId&&e.menuVisible!==false&&!isExitEvent(e)&&!isEntryEvent(e))}
+function entryEventsForCharacter(charId, source=state){return source.events.filter(e=>e.characterId===charId&&isEntryEvent(e))}
 function exitEventsForCharacter(charId, source=state){return source.events.filter(e=>e.characterId===charId&&isExitEvent(e))}
 function variableById(id,source=state){return source.variables.find(v=>v.id===id)||null}
 function itemById(id,source=state){return source.items.find(i=>i.id===id)||null}
