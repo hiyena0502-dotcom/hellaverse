@@ -359,108 +359,136 @@
       ["방 문패","검은 방 문패","문을 닫았다는 건 미워한다는 뜻이 아니야.","네가 노크하고 기다려줘서 열어도 내 공간이 사라지지 않는 걸 알았어."]]}
   ];
 
-  const ACTIVE_TAILS=[
-    (c,t)=>`오랜만에 손에 잡으니 ${t[0]} 쪽 기억부터 먼저 살아나네.`,
-    (c,t)=>`상태를 보는 동안은 말보다 손이 먼저 움직이는 편이야.`,
-    (c,t)=>`자리 하나 달라진 것도 금방 보여. ${t[0]}은 특히 더 그래.`,
-    (c,t)=>`소리가 달라지면 이유부터 찾게 돼. 그냥 넘기는 쪽은 아니거든.`,
-    (c,t)=>`새로 들어온 건 겉보다 첫 반응이 더 솔직하지.`,
-    (c,t)=>`이름 하나 붙이는 것도 결국 내가 이걸 어떻게 볼지 정하는 일이잖아.`,
-    (c,t)=>`돌려주기 전엔 내가 놓친 게 없는지 한 번은 더 보게 돼.`,
-    (c,t)=>`손보는 중엔 순서를 건드리지 않는 게 좋아. 끝나면 보여줄게.`,
-    (c,t)=>`둘 중 하나를 고르는 건 취향보다 오늘 상황이 더 중요할 때도 있어.`,
-    (c,t)=>`쓴 뒤에 바로 정리해야 다음번에 기분 나쁘게 꼬이지 않아.`,
-    (c,t)=>`시험은 짧아도 결과는 오래 남아. 그래서 대충은 못 해.`,
-    (c,t)=>`배치가 바뀌면 내가 먼저 불편한 지점을 알아차리는 편이야.`,
-    (c,t)=>`가져갈지 말지는 쓰임보다 내가 오늘 뭘 필요로 하는지에 달렸어.`,
-    (c,t)=>`잊고 있었다고 가치까지 없어진 건 아니니까, 일단 다시 봐야지.`,
-    (c,t)=>`찾고 나면 왜 그렇게 찾았는지가 뒤늦게 보일 때가 있어.`,
-    (c,t)=>`시간을 재는 건 조급해서가 아니라 변화를 놓치기 싫어서야.`,
-    (c,t)=>`예전 것과 나란히 두면 변한 부분보다 안 변한 부분이 더 잘 보여.`,
-    (c,t)=>`누가 오기 전엔 공간부터 준비해. 사람보다 분위기가 먼저 맞아야 할 때가 있거든.`,
-    (c,t)=>`동선이 꼬이면 사소한 일도 계속 신경을 긁어. 그래서 미리 맞춰두는 거야.`,
-    (c,t)=>`불이 꺼졌을 때 제일 먼저 손이 간 걸 보면 우선순위가 들키지.`,
-    (c,t)=>`연락 하나가 오면 물건도 전혀 다른 의미로 보일 때가 있어.`,
-    (c,t)=>`녹음은 말보다 솔직해서 싫을 때가 있어. 지우기 전에 한 번 더 듣게 되고.`,
-    (c,t)=>`사진은 증거처럼 남잖아. 그래서 아무 때나 찍진 않아.`,
-    (c,t)=>`포장은 내용보다 늦게 끝나는데, 이상하게 그 시간이 제일 많이 생각하게 해.`,
-    (c,t)=>`개수를 세는 건 못 믿어서가 아니라 틀린 걸 빨리 찾고 싶어서야.`,
-    (c,t)=>`작은 사고는 금방 끝나도 몸은 먼저 기억해. 그래서 바로 손이 나간 거고.`,
-    (c,t)=>`떨어질 뻔하면 그제야 얼마나 꽉 쥐고 있었는지 알게 되더라.`,
-    (c,t)=>`결과를 기다릴 땐 할 수 있는 게 적어서 더 짜증 나. 그래도 재촉한다고 빨라지진 않고.`,
-    (c,t)=>`처음부터 다시 하는 게 자존심 상할 때도 있지만, 틀린 채 끝내는 것보단 나아.`,
-    (c,t)=>`취소선 하나 긋는다고 생각까지 사라지진 않아. 새 문장이 필요한 거지.`,
-    (c,t)=>`숨긴 건 보여주기 싫어서였지, 없었던 일로 만들고 싶어서가 아니야.`,
-    (c,t)=>`네 손에 잠깐 맡겨보는 건 내가 통제 못 한다는 뜻이 아니라 믿어보는 쪽에 가까워.`,
-    (c,t)=>`혼자 하고 싶은 순간이 있어. 도와주지 않는 것도 가끔은 제대로 돕는 거야.`,
-    (c,t)=>`이번엔 네 손이 하나 더 있으면 빨리 끝나겠어. 그 정도 도움은 받을게.`,
-    (c,t)=>`내기는 결과보다 상대가 어떤 표정으로 덤비는지가 더 재밌을 때가 많아.`,
-    (c,t)=>`규칙이 많아 보이면 이유가 있는 거야. 하나씩 사고 겪고 생긴 경우가 대부분이고.`,
-    (c,t)=>`계획을 바꾼 건 실패가 아니라 지금 쪽이 더 재밌어 보여서야.`,
-    (c,t)=>`실패 직후가 제일 솔직하지. 핑계 댈 틈도 없고 다음 수만 보이니까.`,
-    (c,t)=>`잘됐을 때 크게 떠드는 취미는 없어도, 이 정도면 나도 만족해.`,
-    (c,t)=>`끼어버린 건 억지로 당기면 더 망가져. 각도부터 바꿔야 해.`,
-    (c,t)=>`돌아온 물건은 먼저 상태를 봐. 사람도 비슷하다고 하면 너무 냉정한가.`,
-    (c,t)=>`빠진 조각이 작을수록 더 거슬려. 전체가 멀쩡해 보여도 난 알아.`,
-    (c,t)=>`날짜를 남기는 건 기념이라기보다 나중의 내가 핑계 못 대게 하는 거야.`,
-    (c,t)=>`흠집은 고칠 수 있어도 그때 있었던 일까지 지워지진 않잖아.`,
-    (c,t)=>`빛이 바뀌면 같은 것도 다르게 보여. 그래서 위치를 고집할 필요는 없지.`,
-    (c,t)=>`눈보다 귀가 먼저 알아채는 게 있어. 그럴 땐 조용히 확인하는 게 낫고.`,
-    (c,t)=>`냄새는 기억을 너무 빨리 끌어와서 가끔 반칙 같아.`,
-    (c,t)=>`갑자기 멈춘 건 생각이 끊겨서가 아니라 너무 선명하게 이어져서야.`,
-    (c,t)=>`자리를 만든다는 건 오래 둘 가능성을 인정하는 일이기도 하네.`,
-    (c,t)=>`버리기 직전까지 갔는데 손이 다시 간 건 이유가 있겠지. 아직 이름 붙일 생각은 없지만.`,
-    (c,t)=>`오늘 못 끝내도 되는 일과 오늘 끝내야 마음 편한 일을 구분하려고 해.`,
-    (c,t)=>`네가 일찍 온 건 변수였는데, 꼭 나쁜 변수라는 법은 없지.`,
-    (c,t)=>`누가 손댔는진 몰라도 흔적은 남아. 원래대로 돌리는 건 어렵지 않아.`,
-    (c,t)=>`거창하게 축하할 일은 아니어도 작은 표시 하나쯤은 남겨도 되잖아.`
-  ];
-  const TALK_OPEN={
-    activeLow:["","흠. ","잠깐. ","보자. ","그렇군. ","됐네. ","한번 보지. "],
-    activeHigh:["응. ","좋지. ","마음에 드네. ","그건 괜찮네. ","알아뒀어. ","좋은데. ","말해줄게. "],
-    softLow:["알겠어. ","그대로 둬. ","손대진 마. ","서두르지 마. ","거기까지만. ","그 정도면 충분해. ","기다려. "],
-    softHigh:["고마워. ","응, 편하네. ","그대로 있어. ","그게 더 낫네. ","믿을게. ","편해졌어. ","기다려줘서 좋네. "]
+  const STYLE_BY_CHARACTER={
+    "lucifer-morningstar":"royal",
+    "charlie-morningstar":"bright",
+    sera:"formal",lute:"terse",adam:"rough",vaggie:"terse",alastor:"showman",vox:"tech",
+    niffty:"chaos","angel-dust":"sensual",husk:"dry",blitzo:"rough",paimon:"formal",satan:"rough",
+    mammon:"showman",asmodeus:"sensual",beelzebub:"bright",belphegor:"dry",leviathan:"terse",
+    "sir-pentious":"showman","cherri-bomb":"rough",velvette:"social",valentino:"sensual",
+    "carmilla-carmine":"formal",rosie:"formal",abel:"bright",emily:"bright",baxter:"tech",
+    zestial:"archaic",stolas:"formal",loona:"dry",moxxie:"formal",millie:"bright",
+    fizzarolli:"showman",octavia:"dry"
   };
-  const ASMODEUS_OPEN={
-    activeLow:["베이비, ","흠, 자기. ","좋아, 잠깐. ","자기, 보자. ","그 손은 잠깐. ","서두르진 마. ","선부터 지켜. "],
-    activeHigh:["좋네, 베이비. ","마음에 드네. ","그건 꽤 섹시하네. ","좋아, 자기. ","센스 있네. ","제법인데. ","그 정도면 믿을 만해. "],
-    softLow:["천천히. ","젠틀하게 가자. ","손은 그대로. ","급할 것 없어. ","거기까지만, 베이비. ","먼저 기다려. ","분위기 망치진 마. "],
-    softHigh:["고마워, 베이비. ","응, 편하네. ","그렇게 있어줘. ","그게 더 좋네. ","이런 배려는 좋아. ","젠틀하네. ","기다릴 줄 아네. "]
+  const SOFT_STYLE={
+    royal:[
+      (t,h)=>h?`${t[0]}은 네 앞에서 굳이 숨길 필요는 없겠네.`:`${t[0]}은 내가 먼저 정리하지.`,
+      (t,h)=>h?`네가 기다려주니 ${t[1]}도 덜 성가시군.`:`${t[1]}은 건드리지 말고 두게.`,
+      (t,h)=>h?`이 정도는 네게 맡겨도 왕권이 흔들리진 않겠지.`:`도움은 고맙지만 ${t[0]}은 내 방식이 있어.`,
+      (t,h)=>h?`${t[0]} 얘기를 이렇게 편하게 하게 될 줄은 몰랐어.`:`지금은 ${t[0]}보다 정리가 먼저야.`,
+      (t,h)=>h?`말 안 하고 기다려주는 것도 꽤 훌륭한 재능이네.`:`서두르지 마, ${t[1]}은 도망가지 않으니까.`,
+      (t,h)=>h?`좋아, ${t[0]}은 같이 봐도 되겠어.`:`구경은 허락하지, 참견은 아직이야.`,
+      (t,h)=>h?`네가 있으면 ${t[0]}도 덜 과거처럼 느껴지는군.`:`여기까지만 보자, 나머진 내가 할게.`
+    ],
+    bright:[
+      (t,h)=>h?`좋아! ${t[0]} 얘기는 너랑 같이 보면 더 재밌어!`:`잠깐만! ${t[1]}부터 내가 확인할게!`,
+      (t,h)=>h?`응! 기다려줘서 고마워, 이제 보여줘도 괜찮아!`:`아직 정리 중이야! 조금만 기다려줘!`,
+      (t,h)=>h?`${t[0]}도 같이 하면 훨씬 덜 긴장돼!`:`${t[0]}은 먼저 내가 해볼게!`,
+      (t,h)=>h?`네가 웃어주면 이 일도 좋은 기억이 될 것 같아!`:`괜찮아! 이 정도는 내가 해결할 수 있어!`,
+      (t,h)=>h?`이건 네 반응도 궁금해! 솔직하게 말해줘!`:`아직 결론은 안 났어! 조금만 더 볼래!`,
+      (t,h)=>h?`같이 보니까 ${t[1]}도 전보다 덜 복잡해 보여!`:`도와주려는 건 고마워! 근데 먼저 내가 해볼게!`,
+      (t,h)=>h?`좋아! 이건 우리 둘이 본 걸로 기억해둘래!`:`조금만 기다려! 끝나면 내가 먼저 말해줄게!`
+    ],
+    formal:[
+      (t,h)=>h?`${t[0]}에 관해서라면 이제 당신 의견도 듣고 싶군요.`:`${t[0]}은 우선 제가 확인하겠습니다.`,
+      (t,h)=>h?`재촉하지 않는 태도는 고맙군요, 덕분에 생각할 여유가 생겼습니다.`:`${t[1]}은 그대로 두세요, 순서가 있습니다.`,
+      (t,h)=>h?`이 정도는 함께 살펴봐도 괜찮겠군요.`:`도움은 감사하지만 먼저 제 판단을 끝내겠습니다.`,
+      (t,h)=>h?`${t[0]} 이야기를 당신 앞에서 숨길 이유는 줄어들었군요.`:`지금은 설명보다 정리가 먼저입니다.`,
+      (t,h)=>h?`기다려줘서 고맙습니다, 이제 말씀드려도 되겠네요.`:`조금만 기다리시죠, 아직 확인할 부분이 남았습니다.`,
+      (t,h)=>h?`당신이라면 ${t[1]}을 맡겨도 괜찮겠습니다.`:`${t[1]}은 제가 직접 다루겠습니다.`,
+      (t,h)=>h?`이 일은 혼자 끝내는 것보다 함께 보는 편이 낫겠군요.`:`여기까지면 충분합니다, 나머지는 제가 하죠.`
+    ],
+    terse:[
+      (t,h)=>h?`응, ${t[0]}은 네가 봐도 돼.`:`그대로 둬, 내가 할게.`,
+      (t,h)=>h?`기다려줘서 고마워, 이제 괜찮아.`:`손대지 마, 순서 꼬여.`,
+      (t,h)=>h?`네가 옆에 있어도 신경 안 쓰이네.`:`도움 필요하면 내가 말할게.`,
+      (t,h)=>h?`${t[0]} 얘기는 나중에 더 해줄게.`:`지금은 캐묻지 마.`,
+      (t,h)=>h?`그래, 이 정도는 같이 보자.`:`거기까지만 해.`,
+      (t,h)=>h?`네 판단은 믿어도 되겠네.`:`내가 먼저 확인할게.`,
+      (t,h)=>h?`됐어, 같이 마무리하자.`:`여기서 멈춰, 나머진 내가 해.`
+    ],
+    rough:[
+      (t,h)=>h?`좋아, ${t[0]}은 너도 끼워줄게.`:`손부터 대지 마, 내가 먼저 본다.`,
+      (t,h)=>h?`눈치 있네, 기다린 건 잘했어.`:`재촉하지 마, 더 꼬이면 짜증 나니까.`,
+      (t,h)=>h?`이 정도면 네 도움 받아도 안 망하겠네.`:`도울 거면 내 말대로 해.`,
+      (t,h)=>h?`${t[0]} 얘긴 너한텐 숨길 필요 없겠지.`:`지금은 질문 말고 좀 봐.`,
+      (t,h)=>h?`그래, 네가 옆에 있는 게 낫다.`:`거기서 기다려, 내가 부를게.`,
+      (t,h)=>h?`좋아, 이건 같이 끝내자.`:`건드릴 거면 책임까지 져.`,
+      (t,h)=>h?`됐어, 이번엔 네 손도 믿어본다.`:`여기까지만, 더 하면 내가 화낸다.`
+    ],
+    dry:[
+      (t,h)=>h?`그래, ${t[0]}은 네가 알아도 상관없어.`:`그냥 둬, 별일 아니야.`,
+      (t,h)=>h?`기다려준 건 고맙네, 그게 제일 도움 됐어.`:`굳이 손댈 필요 없어.`,
+      (t,h)=>h?`네가 있으면 좀 덜 귀찮긴 해.`:`도움 필요하면 말할게.`,
+      (t,h)=>h?`${t[0]} 얘긴 나중에 해도 되겠지.`:`지금은 묻지 마, 피곤해.`,
+      (t,h)=>h?`이 정도는 같이 있어도 괜찮아.`:`조용히만 있어줘.`,
+      (t,h)=>h?`네가 맡아도 사고는 안 나겠네.`:`내가 먼저 볼게.`,
+      (t,h)=>h?`됐어, 같이 끝내고 쉬자.`:`여기까지만 하고 끝내자.`
+    ],
+    tech:[
+      (t,h)=>h?`${t[0]} 데이터는 너랑 같이 봐도 되겠군.`:`아직 테스트 중이니 손대지 마.`,
+      (t,h)=>h?`좋아, 관찰만 해준 건 현명했어.`:`${t[1]}은 조건이 안정될 때까지 그대로 둬.`,
+      (t,h)=>h?`네 반응도 변수로 기록해둘 만하네.`:`도움은 나중에 요청하지, 지금은 측정부터야.`,
+      (t,h)=>h?`${t[0]} 결과를 네게 설명하는 것도 나쁘지 않겠어.`:`결론 내리기엔 샘플이 부족해.`,
+      (t,h)=>h?`좋아, 이번엔 같이 검증해보자.`:`아직 버튼 누를 단계는 아니야.`,
+      (t,h)=>h?`네가 맡아도 오차 범위 안이겠군.`:`내가 먼저 기준값을 잡을게.`,
+      (t,h)=>h?`검증 끝, 이제 네 의견도 들어보지.`:`여기까지만, 더 하면 데이터가 흐려져.`
+    ],
+    showman:[
+      (t,h)=>h?`좋아, ${t[0]} 비하인드까지 특별 공개하지!`:`공연 전 준비엔 순서가 있는 법이지!`,
+      (t,h)=>h?`기다려준 관객에겐 보너스 장면이 있어야겠지!`:`아직 막은 안 올랐어, 조금만 참아!`,
+      (t,h)=>h?`네가 끼면 ${t[0]}도 제법 재밌어지겠는데!`:`도울 거면 타이밍은 내가 잡는다!`,
+      (t,h)=>h?`이 얘기는 무대 밖에서만 들을 수 있는 거야.`:`스포일러는 여기까지!`,
+      (t,h)=>h?`좋아, 이번 장면은 같이 가자!`:`조금만 기다려, 순서 틀리면 재미없어!`,
+      (t,h)=>h?`네 반응이면 다음 장면도 기대해볼 만하네.`:`아직 박수 칠 타이밍은 아니야!`,
+      (t,h)=>h?`완료! 이번엔 네 몫도 인정해주지!`:`마무리는 내가 할게, 그게 내 스타일이니까!`
+    ],
+    chaos:[
+      (t,h)=>h?`좋아!! ${t[0]}도 같이 보자!! 재밌겠다!!`:`잠깐!! 먼저 내가 잡을래!!`,
+      (t,h)=>h?`기다려줬어?! 착하다!! 이제 보여줄게!!`:`손대면 안 돼!! 아직 살아 있을지도 몰라!!`,
+      (t,h)=>h?`같이 하면 두 배로 빨라!! 아니, 세 배!!`:`도와주려면 내가 시키는 것부터 해!!`,
+      (t,h)=>h?`${t[0]} 얘기도 궁금해?! 좋아!!`:`질문은 잠깐!! 지금 이게 더 중요해!!`,
+      (t,h)=>h?`좋아!! 너도 여기 있어!! 혼자 하면 심심해!!`:`거기서 움직이지 마!! 내가 갈게!!`,
+      (t,h)=>h?`네가 맡아도 돼!! 대신 잃어버리면 같이 찾자!!`:`일단 내가 먼저 볼래!!`,
+      (t,h)=>h?`끝났다!! 다음 것도 같이 하자!!`:`여기까지만!! 더 하면 새 일이 생겨!!`
+    ],
+    social:[
+      (t,h)=>h?`${t[0]}은 네 의견도 들을 만하네, 자기야.`:`잠깐, 아직 업로드 전이야.`,
+      (t,h)=>h?`기다릴 줄 아네, 그건 꽤 점수 높아.`:`${t[1]}은 내가 각 잡을 때까지 건들지 마.`,
+      (t,h)=>h?`좋아, 이번엔 네 감각도 써먹어보자.`:`도움은 환영인데 촌스럽게 만들면 바로 취소야.`,
+      (t,h)=>h?`이건 피드용 멘트 말고 진짜 얘기야.`:`지금은 캡션보다 정리가 먼저거든.`,
+      (t,h)=>h?`네 반응은 필터 없이도 쓸 만하네.`:`일단 보기만 해, 손대는 건 다음이야.`,
+      (t,h)=>h?`좋아, 이 정도면 네 안목도 믿어줄게.`:`내가 먼저 고르고 나서 보여줄게.`,
+      (t,h)=>h?`됐어, 결과는 마음에 들어.`:`마무리는 내가 할게, 브랜드 관리니까.`
+    ],
+    sensual:[
+      (t,h)=>h?`좋아, 베이비. ${t[0]}은 같이 봐도 되겠네.`:`천천히, 손보다 허락이 먼저야.`,
+      (t,h)=>h?`기다릴 줄 아는 건 꽤 매력적이네.`:`${t[1]}은 내가 먼저 다룰게.`,
+      (t,h)=>h?`젠틀하네, 이번엔 네 손도 빌려줄게.`:`서두르진 마, 분위기 망치면 재미없잖아.`,
+      (t,h)=>h?`${t[0]} 얘기까지 듣고 싶어? 좋아, 자기야.`:`질문은 잠깐 미뤄, 먼저 끝내고.`,
+      (t,h)=>h?`좋네, 네가 옆에 있으면 덜 심심해.`:`거기 있어, 내가 먼저 신호할게.`,
+      (t,h)=>h?`이 정도면 네 센스도 믿을 만하네.`:`손댈 거면 내 눈부터 봐.`,
+      (t,h)=>h?`끝났네. 이번엔 꽤 마음에 들어.`:`여기까지만, 나머지는 내가 마무리할게.`
+    ],
+    archaic:[
+      (t,h)=>h?`${t[0]}에 관해 그대와 말을 나누어도 좋겠구려.`:`${t[0]}은 우선 내 손에 맡겨두게.`,
+      (t,h)=>h?`재촉하지 않는 배려가 실로 고맙구려.`:`${t[1]}은 아직 건드리지 않는 편이 옳으니라.`,
+      (t,h)=>h?`그대의 손을 빌리는 것도 나쁘지 않겠도다.`:`도움은 고맙되 먼저 살필 것이 남았느니라.`,
+      (t,h)=>h?`이 이야기는 그대에게 숨길 까닭이 적어졌구려.`:`지금은 설명보다 기다림이 필요하도다.`,
+      (t,h)=>h?`함께 보아도 괜찮겠구려.`:`조금만 더 기다려주게.`,
+      (t,h)=>h?`그대라면 맡겨도 되겠다는 생각이 드는군.`:`내가 먼저 확인한 뒤 건네리다.`,
+      (t,h)=>h?`이제 함께 마무리해도 좋겠구려.`:`여기까지면 충분하니 나머지는 맡겨두게.`
+    ]
   };
-  const compactTail=(char,theme,momentIndex,kind,high,eventIndex)=>{
-    const shift=(kind==="soft"?17:0)+(high?29:0);
-    const index=(momentIndex+shift)%ACTIVE_TAILS.length;
-    let line=ACTIVE_TAILS[index](char,theme);
-    if(eventIndex>=ACTIVE_TAILS.length)line+=` 이번엔 ${theme[0]} 쪽을 따로 보자.`;
-    const key=kind+(high?"High":"Low");
-    if(char.id==="asmodeus"){
-      const openings=ASMODEUS_OPEN[key];
-      return openings[eventIndex%openings.length]+line;
-    }
-    return TALK_OPEN[key][eventIndex%TALK_OPEN[key].length]+line;
-  };
-  const responseLine=(char,theme,momentIndex,kind,high,eventIndex)=>{
-    // The first pass through each character's themes gets one concise theme-specific line.
-    // Later events use a unique situation line instead of stacking shared style templates.
-    if(kind==="active"&&eventIndex<char.themes.length)return high?theme[3]:theme[2];
-    return compactTail(char,theme,momentIndex,kind,high,eventIndex);
+  const softLine=(char,theme,themeIndex,high)=>{
+    const style=STYLE_BY_CHARACTER[char.id]||"dry";
+    return SOFT_STYLE[style][themeIndex%7](theme,high);
   };
 
-  const makeEvent=(char,theme,themeIndex,moment,momentIndex,eventIndex)=>{
+  const makeEvent=(char,theme,themeIndex,moment,eventIndex)=>{
     const base=`solo-talk-${slug(char.id)}-${String(eventIndex+1).padStart(2,"0")}`;
     const low={affectionCondition:A(char.id,"<",char.threshold)};
     const high={affectionCondition:A(char.id,">=",char.threshold)};
-    const branch=(kind,label,beat)=>({
-      id:`${base}-${kind}`,
-      label,
-      entries:[
-        D(`${base}-${kind}-low`,char.id,char.name,responseLine(char,theme,momentIndex,kind,false,eventIndex),low),
-        D(`${base}-${kind}-high`,char.id,char.name,responseLine(char,theme,momentIndex,kind,true,eventIndex),high),
-        N(`${base}-${kind}-n`,naturalize(beat(char,theme),theme))
-      ],
-      affectionEffects:[{id:`${base}-${kind}-affection`,characterId:char.id,amount:1}],
-      exitMode:"continue"
-    });
     return{
       id:base,
       name:`SOLO TALK · ${theme[0]} · ${moment.suffix}`,
@@ -470,28 +498,45 @@
       randomEligible:true,
       entries:[
         N(base+"-n",naturalize(moment.setup(char,theme),theme)),
-        Q(base+"-choice",`${moment.suffix}에서 어떤 태도를 취할까?`,[
-          branch("active",moment.first,moment.after),
-          branch("soft",moment.follow,(c,t)=>`${c.display}가 재촉받지 않은 채 ${t[1]}을(를) 다시 살핀다.`)
+        Q(base+"-choice",`${moment.suffix}에서 어떻게 반응할까?`,[
+          {
+            id:base+"-active",
+            label:moment.first,
+            entries:[
+              D(base+"-active-low",char.id,char.name,theme[2],low),
+              D(base+"-active-high",char.id,char.name,theme[3],high),
+              N(base+"-active-n",naturalize(moment.after(char,theme),theme))
+            ],
+            affectionEffects:[{id:base+"-active-affection",characterId:char.id,amount:1}],
+            exitMode:"continue"
+          },
+          {
+            id:base+"-soft",
+            label:moment.follow,
+            entries:[
+              D(base+"-soft-low",char.id,char.name,softLine(char,theme,themeIndex,false),low),
+              D(base+"-soft-high",char.id,char.name,softLine(char,theme,themeIndex,true),high),
+              N(base+"-soft-n",naturalize(`${char.display}가 재촉받지 않은 채 ${theme[1]}을(를) 다시 살핀다.`,theme))
+            ],
+            affectionEffects:[{id:base+"-soft-affection",characterId:char.id,amount:1}],
+            exitMode:"continue"
+          }
         ])
       ]
     };
   };
 
   window.HV_STORY_PACKS ||= [];
-  for(const char of C){
-    const events=[];
-    const targetCount=["belphegor","leviathan"].includes(char.id)?52:56;
-    for(let eventIndex=0;eventIndex<targetCount;eventIndex++){
-      const themeIndex=eventIndex%char.themes.length;
-      const momentIndex=eventIndex%MOMENTS.length;
-      events.push(makeEvent(char,char.themes[themeIndex],themeIndex,MOMENTS[momentIndex],eventIndex,eventIndex));
-    }
+  C.forEach((char,charIndex)=>{
+    const events=char.themes.map((theme,themeIndex)=>{
+      const momentIndex=(charIndex*9+themeIndex*7)%MOMENTS.length;
+      return makeEvent(char,theme,themeIndex,MOMENTS[momentIndex],themeIndex);
+    });
     window.HV_STORY_PACKS.push({
       id:"solo-talks-"+slug(char.id),
-      version:4,
+      version:5,
       requiredCharacterIds:[char.id],
       events
     });
-  }
+  });
 })();
