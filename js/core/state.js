@@ -1204,7 +1204,6 @@ function installStoryPacks(source){
         const id=String(event?.id||"");
         const characterId=String(event?.characterId||"");
         if(currentNames.has(name))return false;
-        if(currentCharacterIds.has(characterId)&&name.startsWith("TALK · "))return false;
         if(currentCharacterIds.has(characterId)&&id.startsWith("pooltalk-"))return false;
         return true;
       });
