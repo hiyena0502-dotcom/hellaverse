@@ -1536,8 +1536,112 @@
     return main+" "+voiceTopicNote(c,t,kind,key);
   };
 
-  const responseFor=(c,t,kind,high,key)=>{
+  const specificChoiceResponse=(c,t,kind,high,key,label)=>{
+    const title=String(t.title||"");
+    const choice=String(label||"");
+
+    if(c.id==="lucifer-morningstar"&&/호텔에서 절대 맡기면 안 되는 사람이 요리를 한다면/.test(title)){
+      if(/먹어보고/.test(choice))return pick([
+        "먹어보자고? 용감하네. 좋아, 대신 첫 입은 네가 먹어. 난 왕이지 독극물 감별사는 아니거든.",
+        "직접 먹어보는 건 좋은데 왜 내가 시식 담당일 거라고 생각한 거야? 냄새 괜찮은 접시부터 고르자.",
+        "시식으로 결정하자고? 그래. 소화기랑 물부터 옆에 두면 나도 한 입 정도는 생각해볼게."
+      ],key);
+      if(/왜 그렇게 보는지/.test(choice))return pick([
+        "왜냐고? 저 냄새 맡아봐. 레시피를 따졌으면 저런 색 연기는 안 났을 것 같은데.",
+        "내가 걸리는 건 실력이 아니라 자신감이야. 못하는 사람이 자신감까지 넘치면 주방이 제일 위험해지거든.",
+        "이유는 간단해. 팬에서 저 소리가 나는데 아무도 도망치지 않고 있잖아. 그게 더 무서워."
+      ],key);
+      if(/사고/.test(choice))return pick([
+        "그치? 여기 호텔이면 전채요리보다 화재경보가 먼저 나올 수도 있어. 아주 우리답네.",
+        "정확해. 메뉴보다 사고 보고서가 먼저 완성될 것 같은 기분이야.",
+        "그 말 취소 못 하겠다. 누가 요리하는지는 몰라도 소화기 담당부터 정하자."
+      ],key);
+      if(/그만|접|넘|지켜/.test(choice))return pick([
+        "현명해. 모르는 게 약일 때도 있지. 특히 주방 문 뒤에서 뭔가 타고 있을 때는.",
+        "좋아, 못 본 걸로 하자. 누가 시식 요청하러 오기 전에 여기서 사라지는 게 낫겠네.",
+        "완벽해. 주방 문제는 주방에 남겨두자. 왕까지 시식에 동원할 필요는 없잖아."
+      ],key);
+    }
+
+    if(c.id==="lucifer-morningstar"&&/지옥 주민이 천국을 관광할 수 있는 날이 올까/.test(title)){
+      if(/가이드/.test(choice))return pick([
+        "나를 가이드로? 첫 코스가 ‘절대 가지 말아야 할 곳’만 열두 군데일 텐데 괜찮겠어?",
+        "내가 안내하면 환불 규정부터 길어질걸. 그래도 길 잃을 일은 없겠네. 아마도.",
+        "오, 왕실 천국 투어? 이름은 근사하네. 가이드가 중간에 옛날 얘기 피하려고 코스를 바꿀 수 있다는 것만 빼면."
+      ],key);
+      if(/규칙/.test(choice))return pick([
+        "그건 확실해. 입국 규정만 책 한 권 나오지 않을까? 천국은 규칙을 사랑하거든. 아주, 아주 많이.",
+        "맞아. 관광보다 허가증이 더 오래 걸릴 수도 있어. 금빛 서류철만 한가득 생기겠지.",
+        "규칙은 붙겠지. 날개 없는 관광객용 안내문부터 누가 만들지 벌써 피곤하네."
+      ],key);
+      if(/관광객/.test(choice))return pick([
+        "가능하냐고? 예전 같으면 웃었겠지만 지금은 완전히 없다고는 못 하겠네. 그래도 단체관광 버스는 좀 기다리자.",
+        "문이 열리는 것과 누구나 드나드는 건 다른 문제야. 가능해져도 아주 천천히겠지.",
+        "언젠가는? 아마. 내일은 아니고, 안내 표지판부터 수백 장 생긴 다음쯤."
+      ],key);
+    }
+
+    if(c.id==="lucifer-morningstar"&&/방송에 호텔 내부를 공개해야 하는가/.test(title)){
+      if(/편집권/.test(choice))return pick([
+        "바로 그거야. 카메라보다 편집실이 더 무서워. 같은 장면도 누가 자르느냐에 따라 완전히 다른 호텔이 되거든.",
+        "편집권이 핵심이지. 촬영은 사실을 담아도 편집은 이야기를 만들잖아. 그 이야기를 복스한테 맡길 생각은 없어.",
+        "누가 최종본을 만드느냐가 제일 중요해. 객실 하나 잘라 붙이면 ‘재활 호텔’이 아니라 동물원처럼 보이게 만들 수도 있으니까."
+      ],key);
+      if(/얼굴|공개 구역|공개해도/.test(choice))return pick([
+        "맞아. 로비는 호텔 얼굴이지만 객실은 누군가의 생활이야. 그 선은 확실히 나눠야지.",
+        "투숙객 얼굴까지 나가면 홍보가 아니라 사생활 장사가 돼. 그건 찰리도 원하지 않을걸.",
+        "보여줄 곳부터 정해야 해. 카메라가 들어왔다고 모든 문이 자동으로 열리는 건 아니잖아."
+      ],key);
+      if(/홍보 영상/.test(choice))return pick([
+        "내가 직접? 좋아, 첫 장면은 오리 백 마리로 가자. 호텔은 두 번째 컷쯤 나오면 되겠네.",
+        "왕이 직접 홍보까지 해야 해? …좋아, 대신 감독권도 내가 가진다. 오리 장면은 협상 불가야.",
+        "내 홍보 영상이면 시청률은 모르겠고 오리 굿즈 매출은 오르겠네."
+      ],key);
+    }
+
+    if(c.id==="lucifer-morningstar"&&/누군가 익명의 선물을 두고 간 상황/.test(title)){
+      if(/보낸/.test(choice))return pick([
+        "맞아. 리본보다 발신인이 먼저지. 왕으로 오래 살면 이름 없는 선물이 낭만보다 경보에 가깝거든.",
+        "보낸 사람부터 찾자. 안 그러면 열고 나서 ‘아, 그 사람이었구나’ 할 수도 있으니까. 최악의 방식으로.",
+        "카드가 비어 있으면 더 수상해. 누가 뒀는지 알아낸 다음에도 열고 싶으면 그때 고민하지."
+      ],key);
+      if(/폭발물/.test(choice))return pick([
+        "‘안 터지면 괜찮다’는 기준이 너무 지옥답아서 반박하기 어렵네.",
+        "그래, 폭발만 안 하면 선물이지. 저주나 계약서는… 음, 그건 다음 단계에서 걱정하자.",
+        "좋은 기준이네. 낮지만 현실적이야. 일단 귀에 대고 째깍거리는지만 들어보자."
+      ],key);
+      if(/열지/.test(choice))return pick([
+        "현명해. 호기심은 왕도 죽일 수 있거든. 상자 하나가 그 영광을 가져가게 두진 말자.",
+        "좋아, 그대로 두자. 정말 선물이면 주인이 나중에 설명하겠지.",
+        "나도 찬성. 리본이 예쁘다고 안전 인증이 되는 건 아니니까."
+      ],key);
+    }
+
+    if(c.id==="lucifer-morningstar"&&/호텔 운영비는 어디서 마련해야 하는가/.test(title)){
+      if(/왕실 카드/.test(choice))return pick([
+        "왕실 카드? 그 말 찰리한테는 하지 마. 내가 이미 몇 번 비슷한 생각을 했거든.",
+        "가능은 하지. 문제는 명세서를 누가 보느냐야. 왕도 카드값 앞에서는 아주 평범해진다고.",
+        "오, 훌륭한 재정 계획이네. ‘아빠 카드.’ 너무 강력해서 오히려 금지해야 할 전략이야."
+      ],key);
+      if(/지출/.test(choice))return pick([
+        "맞아. 돈 더 구하기 전에 어디서 새는지부터 봐야지. 오리 제작비는 제외하고.",
+        "지출부터 줄이는 게 맞아. 다만 ‘필수 왕실 장식’ 항목은 협상 좀 하자.",
+        "그게 제일 현실적이네. 들어오는 돈보다 빠져나가는 구멍 막는 게 먼저지."
+      ],key);
+      if(/돈은 어디|운영비/.test(choice))return pick([
+        "후원, 왕실 지원, 호텔 자체 수입… 방법은 몇 개 있지. 한 군데에 목줄 잡히지만 않으면 돼.",
+        "한 곳에서 전부 받는 건 싫어. 돈을 주는 쪽이 호텔 방향까지 정하려 들 수 있으니까.",
+        "왕실 돈만 쓰면 편하긴 한데, 그럼 찰리가 자기 힘으로 굴리는 호텔이 아니게 되잖아. 섞는 게 낫지."
+      ],key);
+    }
+
+    return null;
+  };
+
+  const responseFor=(c,t,kind,high,key,label="")=>{
     const personal=isPersonalFor(c,t),r=register(c),tag=surfaceTag(t),x=pick(SURFACE_X[tag]||SURFACE_X.hellsociety,key+"x");
+    const specific=specificChoiceResponse(c,t,kind,high,key,label);
+    if(specific)return specific;
 
     if(c.id==="alastor"&&shouldDodge(c,t)){
       if(kind==="probe"){
@@ -2314,8 +2418,8 @@
   const choiceEntry=(c,t,id,highOnly)=>{
     const cond=highOnly?A(c.id,">=",c.t):undefined;
     const option=(suffix,label,kind)=>{
-      const responseLow=responseFor(c,t,kind,false,id+suffix+"l");
-      const responseHigh=responseFor(c,t,kind,true,id+suffix+"h");
+      const responseLow=responseFor(c,t,kind,false,id+suffix+"l",label);
+      const responseHigh=responseFor(c,t,kind,true,id+suffix+"h",label);
       const continuation=shouldContinue(c,t,kind,id+suffix);
       const entries=[
         P(id+"-p-"+suffix,playerLine(c,t,kind,id+suffix,label)),
@@ -2488,6 +2592,6 @@
   window.HV_STORY_PACKS ||= [];
   for(const c of PFS){
     const list=chosen(c);
-    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:36,requiredCharacterIds:[c.id],events:list.map((t,n)=>uniqueDialogueEvent(c,t,make(c,t,n)))});
+    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:37,requiredCharacterIds:[c.id],events:list.map((t,n)=>uniqueDialogueEvent(c,t,make(c,t,n)))});
   }
 })();
