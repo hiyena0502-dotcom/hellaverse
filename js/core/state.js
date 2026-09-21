@@ -1056,17 +1056,49 @@ function normalizeState(raw){
     discoveredThoughtIds:Array.isArray(s.discoveredThoughtIds)?[...new Set(s.discoveredThoughtIds)]:[]
   };
 }
+function storyPackCharacterKey(value){
+  return String(value||"").trim().toLowerCase().replace(/[^a-z0-9가-힣]+/g,"");
+}
+function resolveStoryPackCharacterRefs(pack,source){
+  const resolved={};
+  const refs=pack?.characterRefs&&typeof pack.characterRefs==="object"?pack.characterRefs:{};
+  for(const [token,aliases] of Object.entries(refs)){
+    const candidates=[token,...(Array.isArray(aliases)?aliases:[aliases])].filter(Boolean);
+    const keys=new Set(candidates.map(storyPackCharacterKey));
+    const match=(source.characters||[]).find(character=>
+      keys.has(storyPackCharacterKey(character.id))||
+      keys.has(storyPackCharacterKey(character.name))
+    );
+    if(match)resolved[token]=match.id;
+  }
+  return resolved;
+}
+function remapStoryPackRefs(value,refs){
+  if(typeof value==="string")return refs[value]||value;
+  if(Array.isArray(value))return value.map(item=>remapStoryPackRefs(item,refs));
+  if(value&&typeof value==="object"){
+    return Object.fromEntries(Object.entries(value).map(([key,item])=>[key,remapStoryPackRefs(item,refs)]));
+  }
+  return value;
+}
 function installStoryPacks(source){
   const installed=[];
   let changed=false;
   source.storyPackVersions ||= {};
-  STORY_PACKS.forEach(pack=>{
-    if(!pack?.id)return;
-    const version=Math.max(1,Number(pack.version)||1);
-    if((Number(source.storyPackVersions[pack.id])||0)>=version)return;
+  STORY_PACKS.forEach(rawPack=>{
+    if(!rawPack?.id)return;
+    const version=Math.max(1,Number(rawPack.version)||1);
+    if((Number(source.storyPackVersions[rawPack.id])||0)>=version)return;
+
+    const refs=resolveStoryPackCharacterRefs(rawPack,source);
+    const requiredRefs=Array.isArray(rawPack.requiredCharacterRefs)?rawPack.requiredCharacterRefs:[];
+    if(requiredRefs.some(token=>!refs[token]))return;
+    const pack=remapStoryPackRefs(rawPack,refs);
+
     const characterIds=new Set((source.characters||[]).map(character=>character.id));
     const required=Array.isArray(pack.requiredCharacterIds)?pack.requiredCharacterIds:[];
     if(required.some(id=>!characterIds.has(id)))return;
+
     const variableIds=new Set((source.variables||[]).map(variable=>variable.id));
     (pack.variables||[]).forEach(variable=>{
       if(variableIds.has(variable.id))return;
@@ -1079,6 +1111,13 @@ function installStoryPacks(source){
       if(eventIds.has(event.id))return;
       source.events.push(normalizeEvent(event));
       eventIds.add(event.id);
+      changed=true;
+    });
+    const askIds=new Set((source.asks||[]).map(ask=>ask.id));
+    (pack.asks||[]).forEach(ask=>{
+      if(askIds.has(ask.id))return;
+      source.asks.push(normalizeAsk(ask));
+      askIds.add(ask.id);
       changed=true;
     });
     source.storyPackVersions[pack.id]=version;
