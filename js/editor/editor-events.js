@@ -686,6 +686,7 @@ function handleEditorField(e){
       return;
     }
     if(t.dataset.bind==="event-menu-visible"){ev.menuVisible=["talk","action"].includes(editorEventRole(ev))&&t.checked;return}
+    if(t.dataset.bind==="event-random-eligible"){ev.randomEligible=t.checked;return}
     if(t.dataset.bind==="event-emotion-exit"){ev.emotionExitMode=t.value==="reset"?"reset":"keep";return}
   }
   const vr=t.closest("[data-var-id]");
