@@ -1,7 +1,7 @@
 "use strict";
 
 (()=>{
-  const VERSION=3;
+  const VERSION=4;
   const key=value=>String(value||"").normalize("NFKC").trim().toLowerCase().replace(/[^a-z0-9가-힣]+/g,"");
   const hash=value=>{
     let h=2166136261;
@@ -14,6 +14,11 @@
       visit(entry);
       if(entry.type==="choice")for(const option of entry.options||[]){visit(option);walk(option.entries,visit)}
     }
+  };
+  const hasItemGrant=entries=>{
+    let found=false;
+    walk(entries,owner=>{if((owner.itemEffects||[]).some(effect=>Number(effect.amount||0)>0))found=true});
+    return found;
   };
   const roleOf=event=>{
     const explicit=String(event.eventRole||"").toLowerCase();
@@ -132,6 +137,9 @@
       }
       const visible=["talk","action"].includes(role)?event.menuVisible!==false:false;
       if(event.menuVisible!==visible){event.menuVisible=visible;changed=true}
+      if(role==="talk"&&(hasItemGrant(event.entries)||/보관을 맡기다|아이템\s*(?:획득|지급)|수집품을?\s*건네/i.test(String(event.name||"")))){
+        if(event.randomEligible!==false){event.randomEligible=false;changed=true}
+      }
       if(current<VERSION&&String(event.id).startsWith("voice-")){
         if(enrichVoiceEvent(source,event,characters.get(event.characterId),helpers))changed=true;
       }
