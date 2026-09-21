@@ -1098,6 +1098,14 @@
     return parts.map((part,i)=>D(id+"-"+(i+1),c.id,c.name,part,affectionCondition?{affectionCondition:affectionCondition}:{}));
   };
 
+  const hasBatchim=s=>{
+    const str=String(s||"").trim();
+    if(!str)return false;
+    const code=str.charCodeAt(str.length-1);
+    return code>=0xAC00&&code<=0xD7A3?((code-0xAC00)%28)!==0:false;
+  };
+  const topicParticle=(s,batchim,noBatchim)=>String(s||"")+(hasBatchim(s)?batchim:noBatchim);
+
   const sceneFocus=title=>{
     const raw=String(title||"");
     const special=[
@@ -1142,10 +1150,10 @@
         "누군가 "+focus+" 얘기만 다른 색 펜으로 적어놨다."
       ],
       heaven:[
-        focus+"와 관련된 문장에만 접힌 자국이 남아 있다.",
+        topicParticle(focus,"과","와")+" 관련된 문장에만 접힌 자국이 남아 있다.",
         "종이 가장자리에 "+focus+" 옆으로 작은 표시가 그려져 있다.",
         focus+" 부분은 누군가 손으로 오래 만진 듯 종이가 조금 구겨져 있다.",
-        "한쪽 여백에 "+focus+"라는 단어만 따로 적혀 있다.",
+        "한쪽 여백에 "+topicParticle(focus,"이라는","라는")+" 단어만 따로 적혀 있다.",
         focus+" 쪽 문장 아래에 가느다란 밑줄이 하나 그어져 있다."
       ],
       work:[
@@ -1191,7 +1199,7 @@
         focus+" 이야기를 두고 주방 쪽에서 한 번 웃음이 터진다."
       ],
       misc:[
-        focus+"와 관련된 흔적 하나가 유독 눈에 들어온다.",
+        topicParticle(focus,"과","와")+" 관련된 흔적 하나가 유독 눈에 들어온다.",
         "그중에서도 "+focus+" 쪽만 누군가 따로 표시해뒀다.",
         focus+" 이야기가 나오기 딱 좋은 작은 계기가 생긴다.",
         "지나가던 누군가가 "+focus+" 쪽을 보고 잠깐 고개를 갸웃한다.",
@@ -1339,7 +1347,53 @@
   };
 
   const choiceProfile=(c,t,key)=>{
+    const title=String(t.title||"");
     const tag=surfaceTag(t),personal=shouldDodge(c,t);
+
+    const specials=[
+      [/방송에 호텔 내부|호텔 내부.*방송/,[
+        ["agree","공개해도 되는 공간부터 선을 긋는다"],
+        ["probe","편집권을 누가 가져야 하는지 묻는다"],
+        ["probe","투숙객 얼굴까지 나가도 되는지 짚는다"],
+        ["joke","루시퍼가 직접 홍보 영상을 찍으라고 놀린다"]
+      ]],
+      [/익명의 선물|선물.*두고/,[
+        ["probe","누가 보낸 건지 먼저 확인한다"],
+        ["agree","함부로 열지 않는 게 낫다고 한다"],
+        ["joke","폭발물만 아니면 된다고 농담한다"],
+        ["shift","주인이 나타날 때까지 그냥 둔다"]
+      ]],
+      [/운영비/,[
+        ["probe","돈을 어디서 마련할 생각인지 묻는다"],
+        ["agree","후원보다 지출부터 줄여야 한다고 한다"],
+        ["joke","왕실 카드로 긁으면 안 되냐고 놀린다"],
+        ["shift","예산 얘기는 나중으로 미룬다"]
+      ]],
+      [/천국.*관광|관광.*천국/,[
+        ["probe","정말 관광객을 들여보낼 수 있을지 묻는다"],
+        ["joke","루시퍼가 가이드를 하면 어떻겠냐고 놀린다"],
+        ["agree","가능해도 규칙이 엄청 붙을 것 같다고 한다"],
+        ["shift","상상만 해보고 넘어간다"]
+      ]],
+      [/게임룸/,[
+        ["agree","관리할 사람부터 정하자고 한다"],
+        ["joke","게임보다 싸움이 먼저 날 것 같다고 한다"],
+        ["probe","무슨 게임을 들일 건지 묻는다"]
+      ]],
+      [/인터넷/,[
+        ["joke","다들 하루도 못 버틸 거라고 한다"],
+        ["probe","누가 제일 먼저 화낼지 묻는다"],
+        ["agree","오프라인 하루도 나쁘지 않다고 한다"]
+      ]]
+    ];
+    const special=specials.find(([re])=>re.test(title));
+    if(special){
+      let list=special[1].slice();
+      const wanted=2+(hash(key+"sc")%Math.min(3,list.length-1||1));
+      const offset=hash(key+"so")%list.length;
+      list=[...list.slice(offset),...list.slice(0,offset)];
+      return list.slice(0,Math.min(Math.max(2,wanted),list.length));
+    }
     const plans={
       media:[
         ["agree","공개 범위를 먼저 따져본다"],
@@ -1627,6 +1681,6 @@
   window.HV_STORY_PACKS ||= [];
   for(const c of PFS){
     const list=chosen(c);
-    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:26,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
+    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:27,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
   }
 })();
