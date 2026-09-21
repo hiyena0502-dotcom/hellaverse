@@ -11,6 +11,7 @@ const jsFiles=[
   "data/relationship-content.js",
   "data/solo-talks.js",
   "data/item-presets.js",
+  "data/origin-intros.js",
   "data/dialogue-presets.js",
   "js/core/state.js",
   "js/core/game-state.js",
@@ -49,6 +50,7 @@ const characterEventCode=read("data/character-events.js");
 const relationshipCode=read("data/relationship-content.js");
 const soloTalkCode=read("data/solo-talks.js");
 const itemPresetCode=read("data/item-presets.js");
+const originIntroCode=read("data/origin-intros.js");
 const dialoguePresetCode=read("data/dialogue-presets.js");
 const dialogueCss=read("css/dialogue.css");
 const featuresCss=read("css/features.css");
@@ -117,7 +119,7 @@ assert.equal(relationshipPacks.reduce((sum,pack)=>sum+(pack.asks||[]).length,0),
 assert.equal(relationshipPacks.reduce((sum,pack)=>sum+(pack.events||[]).length,0),66,"relationship TALK must add three scenes for 22 under-served characters");
 for(const pack of relationshipPacks){
   assert.equal((pack.asks||[]).length,2,pack.id+" must have mid/deep relationship ASK");
-  assert.equal(pack.version,3,pack.id+" relationship voice pack must be on tuning version 3");
+  assert.equal(pack.version,4,pack.id+" relationship voice pack must be on tuning version 4");
   const [mid,deep]=pack.asks;
   assert.equal(mid.unlockMinAffection,35,pack.id+" mid ASK affection gate mismatch");
   assert.equal(deep.unlockMinAffection,70,pack.id+" deep ASK affection gate mismatch");
@@ -134,11 +136,21 @@ assert.ok(dialogueTexts(relationPack("octavia")?.events?.[2]).some(text=>/부모
 assert.ok(dialogueTexts(relationPack("blitzo")?.events?.[0]).some(text=>/씨발|야한/.test(text)),"Blitzo TALK needs rude, crude humor");
 assert.ok((relationPack("angel-dust")?.asks||[]).some(ask=>(ask.entries||[]).some(entry=>/야한 농담|그냥 나/.test(entry.text||""))),"Angel ASK needs flirt-mask vulnerability");
 assert.ok((relationPack("adam")?.asks||[]).some(ask=>(ask.entries||[]).some(entry=>/씨발|좆같/.test(entry.text||""))),"Adam ASK needs crude ego-driven diction");
-const octaviaAdultGuard=[
-  ...(relationPack("octavia")?.events||[]).flatMap(dialogueTexts),
-  ...(relationPack("octavia")?.asks||[]).flatMap(ask=>(ask.entries||[]).map(entry=>entry.text||""))
-].join(" ");
-assert.ok(!/섹스|키스|침대|야한|흥분|꼬시/.test(octaviaAdultGuard),"Octavia dialogue must remain non-sexual");
+const nonSexualCharacters=["charlie-morningstar","emily","sera","niffty","octavia"];
+const sexualPattern=/섹스|키스|침대|야한|흥분|플러팅|꼬시|가슴|엉덩이|벗겨|벗기|신음/;
+for(const characterId of nonSexualCharacters){
+  const pack=relationPack(characterId);
+  const relationText=[
+    ...(pack?.events||[]).flatMap(dialogueTexts),
+    ...(pack?.asks||[]).flatMap(ask=>(ask.entries||[]).map(entry=>entry.text||""))
+  ].join(" ");
+  assert.ok(!sexualPattern.test(relationText),characterId+" relationship dialogue must remain non-sexual");
+
+  const solo=soloTalkPacks.find(pack=>pack.requiredCharacterIds?.[0]===characterId);
+  const soloText=(solo?.events||[]).flatMap(dialogueTexts).join(" ");
+  assert.ok(!sexualPattern.test(soloText),characterId+" solo TALK must remain non-sexual");
+}
+assert.match((relationPack("charlie-morningstar")?.asks||[])[1]?.entries?.map(entry=>entry.text||"").join(" ")||"",/배기|손 잡/,"Charlie's deep relationship ASK must focus on Vaggie intimacy without sexual content");
 
 const itemPresetContext={window:{}};
 vm.runInNewContext(itemPresetCode,itemPresetContext);
@@ -151,7 +163,24 @@ for(const pack of relationshipPacks){
   assert.ok(reaction.firstEntries?.length,characterId+" gift FIRST flow missing");
   assert.ok(reaction.repeatEntries?.length,characterId+" gift REPEAT flow missing");
   assert.ok(reaction.specialEntries?.length,characterId+" gift SPECIAL flow missing");
+  if(nonSexualCharacters.includes(characterId)){
+    const reactionText=[
+      ...(reaction.firstEntries||[]),
+      ...(reaction.repeatEntries||[]),
+      ...(reaction.specialEntries||[])
+    ].map(entry=>entry.text||"").join(" ");
+    assert.ok(!sexualPattern.test(reactionText),characterId+" gift reactions must remain non-sexual");
+  }
 }
+
+const originContext={window:{}};
+vm.runInNewContext(originIntroCode,originContext);
+for(const characterId of nonSexualCharacters){
+  const intro=originContext.window.HV_ORIGIN_INTROS?.[characterId]||{};
+  const introText=Object.values(intro).join(" ");
+  assert.ok(!sexualPattern.test(introText),characterId+" origin intros must remain non-sexual");
+}
+assert.match(characterEventCode,/id:"lute".*?씨발.*?젠장/s,"Lute should retain profanity in irritated/angry scenes");
 assert.match(editorUi,/DIALOGUE_EVENT_GROUPS/,"dialogue event taxonomy missing");
 for(const role of ["talk","entry","exit","story"])assert.match(editorUi,new RegExp('id:"'+role+'"'),role.toUpperCase()+" dialogue category missing");
 assert.match(editorUi,/AUTO REACTIONS/,"automatic gift reaction preview missing");
@@ -586,7 +615,7 @@ assert.equal(legacyDialogueLocalizationCheck.eventLines[1],"찰리. 멈춰. 숨 
 assert.equal(legacyDialogueLocalizationCheck.askLine,"먼저 물어봐!","legacy ASK English text must be localized");
 assert.equal(legacyDialogueLocalizationCheck.giftLine,"좋아! 그렇지!","legacy gift English text must be localized");
 assert.equal(legacyDialogueLocalizationCheck.logLine,"아담은 죽었어.","saved dialogue history must be localized");
-assert.equal(legacyDialogueLocalizationCheck.version,7,"dialogue tuning migration version missing");
+assert.equal(legacyDialogueLocalizationCheck.version,8,"dialogue tuning migration version missing");
 
 const storyPackCountBeforeTuning=context.window.HV_STORY_PACKS.length;
 context.window.HV_STORY_PACKS.push(...structuredClone(relationshipPacks));
@@ -597,7 +626,7 @@ const tunedDialogueSyncCheck=vm.runInContext(`
   const askId=fresh.asks[0].id;
   const source=normalizeState({
     schemaVersion:4,
-    dialoguePresetVersion:6,
+    dialoguePresetVersion:7,
     characters:[{id:"velvette",name:"Velvette",origin:"sinner"}],
     events:[{id:eventId,name:"OLD",characterId:"velvette",eventRole:"talk",menuVisible:true,entries:[{id:"old",type:"dialogue",speakerCharacterId:"velvette",text:"예전 대사"}]}],
     asks:[{id:askId,characterId:"velvette",label:"OLD",entries:[{id:"old-ask",type:"dialogue",speakerCharacterId:"velvette",text:"예전 질문"}],enabled:true}]
@@ -612,7 +641,7 @@ const tunedDialogueSyncCheck=vm.runInContext(`
 `,context);
 assert.match(tunedDialogueSyncCheck.eventText,/알고리즘|피드/,"existing saves must receive tuned relationship TALK");
 assert.ok(!/예전 질문/.test(tunedDialogueSyncCheck.askText),"existing saves must receive tuned relationship ASK");
-assert.equal(tunedDialogueSyncCheck.version,7,"tuned dialogue sync must advance preset version");
+assert.equal(tunedDialogueSyncCheck.version,8,"tuned dialogue sync must advance preset version");
 context.window.HV_STORY_PACKS.length=storyPackCountBeforeTuning;
 
 assert.match(characterEventCode,/id:"angel".*?threshold:60.*?유료 서비스/s,"Angel base TALK tuning missing");
