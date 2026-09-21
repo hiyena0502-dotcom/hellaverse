@@ -200,9 +200,14 @@ function normalizeEntry(entry={}){
 function eventRoleOf(event={}){
   const explicit=String(event.eventRole||event.role||"").trim().toLowerCase();
   if(explicit==="exit")return"exit";
-  return /^\s*EXIT(?:\s*[·:|\-]|\s|$)/i.test(String(event.name||""))?"exit":"talk";
+  if(explicit==="entry")return"entry";
+  const name=String(event.name||"");
+  if(/^\s*EXIT(?:\s*[·:|\-]|\s|$)/i.test(name))return"exit";
+  if(/^\s*ENTRY(?:\s*[·:|\-]|\s|$)/i.test(name))return"entry";
+  return"talk";
 }
 function isExitEvent(event){return eventRoleOf(event)==="exit"}
+function isEntryEvent(event){return eventRoleOf(event)==="entry"}
 function normalizeEvent(e={}){
   const id=e.id||uid("event");
   const rawContinuation=Array.isArray(e.continuationEventIds)
@@ -215,7 +220,7 @@ function normalizeEvent(e={}){
     name:e.name||"새 이벤트",
     characterId:e.characterId||"",
     eventRole,
-    menuVisible:eventRole==="exit"?false:e.menuVisible!==false,
+    menuVisible:(eventRole==="exit"||eventRole==="entry")?false:e.menuVisible!==false,
     continuationEventIds,
     emotionExitMode:e.emotionExitMode==="reset"?"reset":"keep",
     entries:Array.isArray(e.entries)?e.entries.map(normalizeEntry):[]
@@ -1122,7 +1127,7 @@ function compactEventForStorage(event={}){
   if(Array.isArray(event.continuationEventIds)&&event.continuationEventIds.length){
     out.continuationEventIds=[...event.continuationEventIds];
   }
-  if(event.eventRole==="exit")out.eventRole="exit";
+  if(event.eventRole==="exit"||event.eventRole==="entry")out.eventRole=event.eventRole;
   if(event.menuVisible===false)out.menuVisible=false;
   if(event.emotionExitMode==="reset")out.emotionExitMode="reset";
   return out;
