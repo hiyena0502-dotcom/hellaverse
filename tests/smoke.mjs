@@ -118,7 +118,7 @@ assert.match(stateCode,/function isExitEvent\(/,"EXIT event role compatibility m
 assert.match(stateCode,/function isEntryEvent\(/,"ENTRY event role compatibility missing");
 assert.match(gameStateCode,/function entryEventsForCharacter\(/,"ENTRY event helper missing");
 assert.match(dialogueCode,/playableEntryEventsForCharacter\(ch\.id\)/,"room entry must prefer ENTRY events once");
-assert.match(dialogueCode,/!isEntryEvent\(ev\)/,"ENTRY events must stay out of continuous TALK");
+assert.match(dialogueCode,/eventRoleOf\(ev\)===["']talk["']/,"ENTRY/ACTION/STORY events must stay out of continuous TALK");
 assert.match(characterEventCode,/id:"baxter"/,"Baxter voice event pack missing");
 assert.match(characterEventCode,/id:"emily"/,"Emily voice event pack missing");
 assert.match(characterEventCode,/id:"lute"/,"Lute voice event pack missing");
