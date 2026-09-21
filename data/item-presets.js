@@ -273,18 +273,29 @@
     let eligibleItems=0;
     let populatedReactions=0;
     const currentVersion=Math.max(0,Number(source.itemPresetVersion)||0);
-    if(currentVersion>=VERSION)return{state:source,changed:false};
-
     const characters=Array.isArray(source.characters)?source.characters:[];
     const byId=new Map(characters.map(character=>[character.id,character]));
-    for(const item of source.items){
-      const nextWeight=individualWeight(item);
-      if(Number(item.weight)!==nextWeight){item.weight=nextWeight;changed=true}
+    const ownerFor=item=>byId.get(item.collectionCharacterId)||
+      characters.find(character=>
+        charKey(character)===key(item.collectionCharacterId).replace(/[^a-z0-9가-힣]+/g,"")
+      );
+    const needsReactionRepair=source.items.some(item=>{
+      const owner=ownerFor(item);
+      if(!owner||item.giftable===false)return false;
+      const reaction=(item.reactions||[]).find(entry=>entry.characterId===owner.id);
+      if(!reaction||placeholderReaction(reaction))return true;
+      return !reaction.firstEntries?.length||!reaction.repeatEntries?.length||!reaction.specialEntries?.length;
+    });
+    if(currentVersion>=VERSION&&!needsReactionRepair)return{state:source,changed:false};
 
-      const owner=byId.get(item.collectionCharacterId)||
-        characters.find(character=>
-          charKey(character)===key(item.collectionCharacterId).replace(/[^a-z0-9가-힣]+/g,"")
-        );
+    const applyWeights=currentVersion<VERSION;
+    for(const item of source.items){
+      if(applyWeights){
+        const nextWeight=individualWeight(item);
+        if(Number(item.weight)!==nextWeight){item.weight=nextWeight;changed=true}
+      }
+
+      const owner=ownerFor(item);
       if(!owner||item.giftable===false)continue;
       eligibleItems+=1;
       item.reactions=Array.isArray(item.reactions)?item.reactions:[];
@@ -312,7 +323,7 @@
         }
       }
     }
-    if(eligibleItems>0){
+    if(eligibleItems>0&&currentVersion<VERSION){
       source.itemPresetVersion=VERSION;
       changed=true;
     }
