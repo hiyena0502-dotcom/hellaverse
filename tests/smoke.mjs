@@ -372,7 +372,7 @@ assert.ok(itemPresetCheck.first.some(line=>/최고의 아빠/.test(line)),"FIRST
 assert.ok(itemPresetCheck.repeat.length>0,"REPEAT GIFT flow must be populated");
 assert.ok(itemPresetCheck.special.length>0,"SPECIAL gift flow must be populated");
 assert.ok(itemPresetCheck.specialMinAffection>0,"SPECIAL affection rule must be populated");
-assert.equal(itemPresetCheck.itemPresetVersion,3,"item preset version marker missing");
+assert.equal(itemPresetCheck.itemPresetVersion,4,"item preset version marker missing");
 
 const itemPresetRepairCheck=vm.runInContext(`
 (()=>{
