@@ -1,7 +1,7 @@
 "use strict";
 
 (()=>{
-  const VERSION=4;
+  const VERSION=5;
   const key=value=>String(value||"").normalize("NFKC").trim().toLowerCase().replace(/[^a-z0-9가-힣]+/g,"");
   const hash=value=>{
     let h=2166136261;
@@ -9,6 +9,43 @@
     return h>>>0;
   };
   const tokens=value=>new Set(String(value||"").toLowerCase().match(/[a-z0-9가-힣]{2,}/g)||[]);
+  const LEGACY_DIALOGUE_TRANSLATIONS=[
+    ["Sorry I wasn't here sooner, sweetie.","더 일찍 곁에 있어주지 못해서 미안하구나, 얘야."],
+    ["A smile is a valuable tool, my dear.","미소는 아주 유용한 도구랍니다, 친애하는 분."],
+    ["Not a bad boy.","나쁜 남자는 아니었어."],
+    ["Oh, hello.","오, 안녕하시오."],
+    ["I decided... to stay.","나… 남기로 했어."],
+    ["Tell Auntie Rosie what she can do for you.","로지 이모한테 뭘 도와주면 좋을지 말해보렴."],
+    ["Adam is dead.","아담은 죽었어."],
+    ["That was uncalled for, Adam.","그건 선을 넘었어, 아담."],
+    ["Charlie!! Don't give up on this!","찰리!! 이걸 포기하면 안 돼!"],
+    ["Ugh, we were partners.","으, 우린 동료였어."],
+    ["Hi. Hello. Abel here, son of Adam.","안녕. 아벨이야. 아담의 아들이고."],
+    ["Charlie. Stop. Breathe.","찰리. 멈춰. 숨 쉬어."],
+    ["ASK FIRST!","먼저 물어봐!"],
+    ["KING OF HELL","지옥의 왕"],
+    ["DADDY","아빠"],
+    ["YES!","좋아!"],
+    ["Fine.","그래."],
+    ["darling","얘야"],
+    ["Wrath","분노의 링"]
+  ];
+  const localizeLegacyDialogue=value=>{
+    let text=String(value??"");
+    for(const [from,to] of LEGACY_DIALOGUE_TRANSLATIONS)text=text.split(from).join(to);
+    return text;
+  };
+  const localizeEntryTree=entries=>{
+    let changed=false;
+    walk(entries,owner=>{
+      for(const field of ["text","prompt","label"]){
+        if(typeof owner?.[field]!=="string")continue;
+        const next=localizeLegacyDialogue(owner[field]);
+        if(next!==owner[field]){owner[field]=next;changed=true}
+      }
+    });
+    return changed;
+  };
   const walk=(entries,visit)=>{
     for(const entry of entries||[]){
       visit(entry);
@@ -141,6 +178,23 @@
     const current=Math.max(0,Number(source.dialoguePresetVersion)||0);
     let changed=false;
     const characters=new Map((source.characters||[]).map(character=>[character.id,character]));
+    if(current<5){
+      for(const event of source.events||[])if(localizeEntryTree(event.entries))changed=true;
+      for(const ask of source.asks||[])if(localizeEntryTree(ask.entries))changed=true;
+      for(const item of source.items||[]){
+        for(const reaction of item.reactions||[]){
+          for(const field of ["firstEntries","repeatEntries","specialEntries"]){
+            if(localizeEntryTree(reaction[field]))changed=true;
+          }
+        }
+      }
+      for(const row of source.playState?.log||[]){
+        if(typeof row?.text==="string"){
+          const next=localizeLegacyDialogue(row.text);
+          if(next!==row.text){row.text=next;changed=true}
+        }
+      }
+    }
     const seenTalkSignatures=new Map();
     for(const event of source.events){
       const role=roleOf(event);
