@@ -523,6 +523,7 @@
   const SURFACE_PRIORITY=["food","leisure","work","tech","media","party","culture","human","hotel","imp","goetia","sin","law","violence","money","fame","friendship","power","heaven","redemption","trust","family","romance","past","selfworth","soul","extermination","hellsociety"];
   const surfaceTag=t=>{
     const title=t.title;
+    if(/방송|뉴스|인터뷰|미디어|영상|라디오|텔레비전|시청률|선전|SNS|복스텍/.test(title))return"media";
     if(/관광|여행|휴가|놀이공원/.test(title))return"travel";
     if(/직원|업무|회사|의뢰|고객|운영비|직책/.test(title))return"work";
     if(/게임룸|객실|로비|투숙객|호텔/.test(title))return"hotel";
@@ -1012,6 +1013,6 @@
   window.HV_STORY_PACKS ||= [];
   for(const c of PFS){
     const list=chosen(c);
-    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:13,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
+    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:14,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
   }
 })();
