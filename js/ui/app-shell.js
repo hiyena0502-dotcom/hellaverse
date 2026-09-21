@@ -474,9 +474,15 @@ function renderGacha(){
   const total=useEqualRates?activeRarities.length:(activeRarities.reduce((s,r)=>s+Number(state.gacha.rarityWeights[r]||0),0)||1);
   const history=state.gacha.history.slice(-8).reverse();
   const drawDisabled=gachaAnimating||!state.gacha.enabled||!availablePool.length;
+  const profileChars=enabledCharacters();
+  if(!profileChars.some(ch=>ch.id===gachaProfileCharacterId))gachaProfileCharacterId=profileChars[0]?.id||"";
+  const profileCharacter=getCharacter(gachaProfileCharacterId);
+  const profile=gachaProfileForCharacter(gachaProfileCharacterId);
+  const profileItems=state.items.filter(i=>i.enabled&&i.gachaEnabled&&i.collectionCharacterId===gachaProfileCharacterId);
+  const profileAvailable=profileItems.filter(i=>i.acquisitionMode!=="unique"||!hasEverAcquired(i.id));
 
   pageRoot.innerHTML=
-    '<section><div class="page-head"><div><p class="page-kicker">GACHA</p><h1>ARCHIVE DRAW</h1></div><p>아이템 설정에서 가챠 포함으로 지정한 아이템을 추첨합니다. UNIQUE는 한 번 획득하면 풀에서 빠집니다.</p></div>'+
+    '<section><div class="page-head"><div><p class="page-kicker">GACHA</p><h1>ARCHIVE DRAW</h1></div><p>아이템 설정에서 가챠 포함으로 지정한 아이템을 추첨합니다. REVEAL LINE은 뽑힌 아이템의 가챠 등장 대사를 그대로 사용합니다.</p></div>'+
     '<div class="gacha-layout">'+
       '<div class="gacha-stage '+(gachaAnimating?'is-drawing':'')+'"><div class="gacha-core"><p class="gacha-balance">'+esc(state.gacha.currencyName)+' · '+state.gacha.balance+'</p><h2>DRAW THE ARCHIVE</h2>'+
       '<p>'+availablePool.length+'개의 현재 획득 가능한 아이템이 있습니다.</p><div id="gachaResult" class="gacha-result-grid"></div>'+
@@ -484,10 +490,17 @@ function renderGacha(){
       '<button class="gold-button" type="button" data-action="draw-gacha" data-count="10" '+(drawDisabled||!canTen?"disabled":"")+'>10 DRAW · '+state.gacha.tenCost+'</button></div>'+
       (!canTen&&availablePool.length?'<p class="gacha-pool-note">REPEATABLE이 없고 UNIQUE 풀이 10개 미만이라 10회 뽑기가 잠겨 있습니다.</p>':'')+
       '</div><div class="gacha-aura" aria-hidden="true"></div></div>'+
-      '<aside class="gacha-side"><div class="info-card"><h3>RATES</h3>'+RARITIES.map(r=>'<div class="rate-row '+(activeRarities.includes(r)?"":"inactive")+'"><span>'+r+'</span><b>'+(activeRarities.includes(r)?(((useEqualRates?1:Number(state.gacha.rarityWeights[r]||0))/total)*100).toFixed(1):"0.0")+'%</b></div>').join("")+
+      '<aside class="gacha-side">'+
+      '<div class="info-card gacha-character-panel"><div class="info-card-head"><h3>CHARACTER GACHA</h3><span>PROFILE</span></div>'+
+      (profileChars.length?'<select data-gacha-control="profile">'+profileChars.map(ch=>'<option value="'+esc(ch.id)+'" '+(ch.id===gachaProfileCharacterId?'selected':'')+'>'+esc(ch.name)+'</option>').join("")+'</select>':'')+
+      (profile?'<div class="gacha-character-profile"><span class="gacha-profile-icon">'+esc(profile.icon)+'</span><div><strong>'+esc(profile.title)+'</strong><p>'+esc(profile.description||"설명 없음")+'</p></div></div>'+
+      '<div class="gacha-profile-meta"><span>POOL '+profileItems.length+'</span><span>AVAILABLE '+profileAvailable.length+'</span></div>'+
+      '<p class="gacha-profile-note">REVEAL LINE · 아이템별 가챠 등장 대사</p>':'<p class="muted">표시할 캐릭터 프로필이 없습니다.</p>')+
+      '</div>'+
+      '<div class="info-card"><h3>RATES</h3>'+RARITIES.map(r=>'<div class="rate-row '+(activeRarities.includes(r)?"":"inactive")+'"><span>'+r+'</span><b>'+(activeRarities.includes(r)?(((useEqualRates?1:Number(state.gacha.rarityWeights[r]||0))/total)*100).toFixed(1):"0.0")+'%</b></div>').join("")+
       '<p class="gacha-rate-note">'+(useEqualRates?"설정 가중치가 모두 0이라 현재 존재하는 희귀도에 균등 분배합니다.":"현재 획득 가능한 희귀도만 기준으로 실제 확률을 재분배합니다.")+'</p></div>'+
       '<div class="info-card"><div class="info-card-head"><h3>RECENT</h3><button class="small-button history-clear" type="button" data-action="clear-gacha-history" '+(!history.length||gachaAnimating?"disabled":"")+'>CLEAR</button></div>'+
-      (history.length?history.map(h=>'<div class="history-row"><span>'+esc(h.rarity)+'</span><b>'+esc(h.name)+'</b></div>').join(""):'<p class="muted">아직 기록이 없습니다.</p>')+'</div></aside>'+
+      (history.length?history.map(h=>{const item=itemById(h.itemId);return '<div class="history-row"><span>'+esc(item?itemEmoji(item):"🎁")+' '+esc(h.rarity)+'</span><b>'+esc(h.name)+'</b></div>';}).join(""):'<p class="muted">아직 기록이 없습니다.</p>')+'</div></aside>'+
     '</div></section>';
 }
 function renderThought(){
@@ -520,7 +533,7 @@ function renderCollection(){
     if(collectionStatus==="OWNED"&&!acquired)return false;
     if(collectionStatus==="LOCKED"&&acquired)return false;
     if(query){
-      const text=[i.name,i.description,i.category,i.rarity,source,getCharacter(i.collectionCharacterId)?.name].join(" ").toLowerCase();
+      const text=[i.name,i.description,itemGachaLine(i),itemEmoji(i),i.category,i.rarity,source,getCharacter(i.collectionCharacterId)?.name].join(" ").toLowerCase();
       if(!text.includes(query))return false;
     }
     return true;
@@ -539,9 +552,11 @@ function renderCollection(){
     return '<button class="collection-card rarity-'+esc(i.rarity)+' '+(acquired?"":"locked")+' '+(isNew?"is-new":"")+'" type="button" data-action="collection-detail" data-id="'+esc(i.id)+'">'+
       (isNew?'<span class="collection-new-badge">NEW</span>':'')+
       '<em>'+esc(i.category)+'</em><span class="rarity">'+esc(i.rarity)+'</span>'+
+      '<span class="collection-item-icon">'+(acquired?esc(itemEmoji(i)):"❔")+'</span>'+
       '<strong>'+(acquired?esc(i.name):"LOCKED")+'</strong>'+
       '<div class="collection-card-meta"><span>'+esc(source)+'</span><span>'+esc(i.acquisitionMode.toUpperCase())+'</span>'+(i.secret?'<span>SECRET</span>':'')+'</div>'+
       '<p>'+(acquired?esc(i.description||"설명 없음"):"아직 획득하지 않은 아이템입니다.")+'</p>'+
+      (acquired&&itemGachaLine(i)?'<p class="collection-gacha-line"><span>GACHA REVEAL</span>'+esc(itemGachaLine(i))+'</p>':'')+
       (acquired&&state.collectionSettings.showOwnedCount?'<small>ARCHIVED · INVENTORY ×'+count+'</small>':'')+
     '</button>';
   };
