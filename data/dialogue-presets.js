@@ -1,7 +1,7 @@
 "use strict";
 
 (()=>{
-  const VERSION=5;
+  const VERSION=6;
   const key=value=>String(value||"").normalize("NFKC").trim().toLowerCase().replace(/[^a-z0-9가-힣]+/g,"");
   const hash=value=>{
     let h=2166136261;
@@ -45,6 +45,40 @@
         if(next!==owner[field]){owner[field]=next;changed=true}
       }
     });
+    return changed;
+  };
+  const clonePlain=value=>JSON.parse(JSON.stringify(value));
+  const syncTunedStoryPacks=source=>{
+    let changed=false;
+    const tuned=(window.HV_STORY_PACKS||[]).filter(pack=>Number(pack?.version||0)>=2);
+    if(!tuned.length)return false;
+    const eventById=new Map((source.events||[]).map(event=>[event.id,event]));
+    const askById=new Map((source.asks||[]).map(ask=>[ask.id,ask]));
+    for(const pack of tuned){
+      for(const fresh of pack.events||[]){
+        const live=eventById.get(fresh.id);
+        if(!live)continue;
+        live.name=fresh.name;
+        live.characterId=fresh.characterId;
+        live.eventRole=fresh.eventRole||live.eventRole||"talk";
+        live.menuVisible=fresh.menuVisible!==false;
+        live.randomEligible=fresh.randomEligible!==false;
+        live.continuationEventIds=clonePlain(fresh.continuationEventIds||[]);
+        live.emotionExitMode=fresh.emotionExitMode||"keep";
+        live.entries=clonePlain(fresh.entries||[]);
+        changed=true;
+      }
+      for(const fresh of pack.asks||[]){
+        const live=askById.get(fresh.id);
+        if(!live)continue;
+        for(const key of ["label","characterId","minAffection","startLocked","unlockMinAffection","unlockCondition","unlockItemCondition","unlockAskCondition","unlockEmotionCondition","unlockHint","repeatable","affectionDelta","emotionState","emotionIntensity","enabled"]){
+          if(Object.prototype.hasOwnProperty.call(fresh,key))live[key]=clonePlain(fresh[key]);
+          else delete live[key];
+        }
+        live.entries=clonePlain(fresh.entries||[]);
+        changed=true;
+      }
+    }
     return changed;
   };
   const walk=(entries,visit)=>{
@@ -179,6 +213,7 @@
     const current=Math.max(0,Number(source.dialoguePresetVersion)||0);
     let changed=false;
     const characters=new Map((source.characters||[]).map(character=>[character.id,character]));
+    if(current<6&&syncTunedStoryPacks(source))changed=true;
     if(current<5){
       for(const event of source.events||[])if(localizeEntryTree(event.entries))changed=true;
       for(const ask of source.asks||[])if(localizeEntryTree(ask.entries))changed=true;
