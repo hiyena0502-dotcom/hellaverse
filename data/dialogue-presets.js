@@ -1,7 +1,7 @@
 "use strict";
 
 (()=>{
-  const VERSION=11;
+  const VERSION=12;
   const key=value=>String(value||"").normalize("NFKC").trim().toLowerCase().replace(/[^a-z0-9가-힣]+/g,"");
   const hash=value=>{
     let h=2166136261;
@@ -50,6 +50,89 @@
     return changed;
   };
   const clonePlain=value=>JSON.parse(JSON.stringify(value));
+  const repairLegacyCharacterRefs=source=>{
+    const characters=source.characters||[];
+    const valid=new Set(characters.map(character=>character.id));
+    const lookup=new Map();
+    for(const character of characters){
+      lookup.set(key(character.id),character.id);
+      lookup.set(key(character.name),character.id);
+    }
+    for(const pack of window.HV_STORY_PACKS||[]){
+      const refs=pack?.characterRefs&&typeof pack.characterRefs==="object"?pack.characterRefs:{};
+      for(const [token,aliases] of Object.entries(refs)){
+        const candidates=[token,...(Array.isArray(aliases)?aliases:[aliases])].filter(Boolean);
+        const resolved=candidates.map(candidate=>lookup.get(key(candidate))).find(Boolean);
+        if(!resolved)continue;
+        for(const candidate of candidates)lookup.set(key(candidate),resolved);
+      }
+    }
+    const fix=value=>{
+      const raw=String(value||"");
+      if(!raw||valid.has(raw))return raw;
+      return lookup.get(key(raw))||raw;
+    };
+    let changed=false;
+    const applyOwner=owner=>{
+      if(!owner||typeof owner!=="object")return;
+      for(const field of ["characterId","speakerCharacterId"]){
+        if(typeof owner[field]!=="string"||!owner[field])continue;
+        const next=fix(owner[field]);
+        if(next!==owner[field]){owner[field]=next;changed=true}
+      }
+      for(const field of ["affectionCondition","emotionCondition"]){
+        if(!owner[field]?.characterId)continue;
+        const next=fix(owner[field].characterId);
+        if(next!==owner[field].characterId){owner[field].characterId=next;changed=true}
+      }
+      for(const field of ["affectionEffects","emotionEffects"]){
+        for(const effect of owner[field]||[]){
+          if(!effect.characterId)continue;
+          const next=fix(effect.characterId);
+          if(next!==effect.characterId){effect.characterId=next;changed=true}
+        }
+      }
+    };
+    for(const event of source.events||[]){
+      applyOwner(event);
+      walk(event.entries,applyOwner);
+    }
+    for(const ask of source.asks||[]){
+      applyOwner(ask);
+      if(ask.unlockEmotionCondition?.characterId){
+        const next=fix(ask.unlockEmotionCondition.characterId);
+        if(next!==ask.unlockEmotionCondition.characterId){ask.unlockEmotionCondition.characterId=next;changed=true}
+      }
+      walk(ask.entries,applyOwner);
+    }
+    for(const thought of source.thoughts||[]){
+      if(!thought.characterId)continue;
+      const next=fix(thought.characterId);
+      if(next!==thought.characterId){thought.characterId=next;changed=true}
+    }
+    for(const item of source.items||[]){
+      if(item.collectionCharacterId){
+        const next=fix(item.collectionCharacterId);
+        if(next!==item.collectionCharacterId){item.collectionCharacterId=next;changed=true}
+      }
+      for(const reaction of item.reactions||[]){
+        applyOwner(reaction);
+        for(const field of ["firstEntries","repeatEntries","specialEntries"])walk(reaction[field],applyOwner);
+      }
+    }
+    return changed;
+  };
+  const pruneRetiredSoloTalk=source=>{
+    const currentIds=new Set();
+    for(const pack of window.HV_STORY_PACKS||[]){
+      if(!String(pack?.id||"").startsWith("solo-talks-"))continue;
+      for(const event of pack.events||[])currentIds.add(event.id);
+    }
+    if(!currentIds.size)return false;
+    const before=(source.events||[]).length;
+    source.events=(source.events||[]).filter(event=>!String(event.id||"").startsWith("solo-talk-")||currentIds.has(event.id));
+    return source.events.length!==before;
+  };
   const syncTunedStoryPacks=source=>{
     let changed=false;
     const tuned=(window.HV_STORY_PACKS||[]).filter(pack=>Number(pack?.version||0)>=2);
@@ -215,8 +298,10 @@
     const current=Math.max(0,Number(source.dialoguePresetVersion)||0);
     let changed=false;
     const characters=new Map((source.characters||[]).map(character=>[character.id,character]));
-    if(current<11&&syncTunedStoryPacks(source))changed=true;
-    if(current<11){
+    if(current<12&&repairLegacyCharacterRefs(source))changed=true;
+    if(current<12&&pruneRetiredSoloTalk(source))changed=true;
+    if(current<12&&syncTunedStoryPacks(source))changed=true;
+    if(current<12){
       for(const event of source.events||[])if(localizeEntryTree(event.entries))changed=true;
       for(const ask of source.asks||[])if(localizeEntryTree(ask.entries))changed=true;
       for(const item of source.items||[]){
