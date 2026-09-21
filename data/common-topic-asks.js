@@ -148,14 +148,14 @@
 
   window.HV_STORY_PACKS ||= [];
   for(const c of C){
-    const trustMin=Number(c.trustMin||0);
+    const trustMin=Number(c.trust?.[0]||0);
     const chanceMin=Number(c.chance?.[0]||0);
     window.HV_STORY_PACKS.push({
       id:"common-topic-asks-"+slug(c.id),
       version:1,
       requiredCharacterIds:[c.id],
       asks:[
-        makeAsk(c,"trust","믿게 되는 기준","누군가를 믿게 되는 기준이 뭐예요?",trustMin,c.trust),
+        makeAsk(c,"trust","믿게 되는 기준","누군가를 믿게 되는 기준이 뭐예요?",trustMin,c.trust.slice(1)),
         makeAsk(c,"second-chance","두 번째 기회","누구에게나 두 번째 기회가 있어야 한다고 생각해요?",chanceMin,c.chance.slice(1))
       ]
     });
