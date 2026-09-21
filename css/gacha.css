@@ -72,3 +72,20 @@
 }
 .gacha-result-card span{color:var(--gold);font-size:.66rem;letter-spacing:.13em}
 .gacha-result-card strong{margin-top:5px}
+
+
+/* v38 · character profiles + item reveal */
+.gacha-character-panel select{width:100%;margin-bottom:12px}
+.gacha-character-profile{display:grid;grid-template-columns:56px minmax(0,1fr);gap:12px;align-items:start;padding:12px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.gacha-profile-icon{font-size:2.2rem;line-height:1;text-align:center}
+.gacha-character-profile strong{display:block;font-family:Georgia,serif;font-weight:500}
+.gacha-character-profile p{margin:6px 0 0;color:var(--muted);font-size:.74rem;line-height:1.5}
+.gacha-profile-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.gacha-profile-meta span,.gacha-profile-note{color:var(--gold);font-size:.64rem;letter-spacing:.08em}
+.gacha-profile-note{margin:8px 0 0}
+.gacha-result-grid{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+.gacha-result-card{min-height:190px;align-content:end}
+.gacha-result-icon{font-size:2rem;line-height:1.1;margin-bottom:8px}
+.gacha-reveal-line{margin:10px 0 0!important;padding-top:9px;border-top:1px solid var(--line);color:var(--text)!important;font-size:.72rem!important;line-height:1.5!important}
+.gacha-reveal-line b{display:block;margin-bottom:4px;color:var(--gold);font-size:.58rem;letter-spacing:.12em}
+@media(max-width:760px){.gacha-result-grid{grid-template-columns:1fr}.gacha-result-card{min-height:0}}
