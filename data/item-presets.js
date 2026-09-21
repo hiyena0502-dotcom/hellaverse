@@ -494,7 +494,7 @@
       item.reactions=Array.isArray(item.reactions)?item.reactions:[];
       const index=item.reactions.findIndex(reaction=>reaction.characterId===owner.id);
       const preset=normalizeReaction(buildReaction(item,owner),owner.id);
-      if(index>=0&&currentVersion<5&&String(item.reactions[index]?.id||"").startsWith("preset-reaction-")){
+      if(index>=0&&currentVersion<6&&String(item.reactions[index]?.id||"").startsWith("preset-reaction-")){
         item.reactions[index]=preset;
         populatedReactions+=1;
         changed=true;
