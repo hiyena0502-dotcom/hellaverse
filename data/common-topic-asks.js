@@ -152,7 +152,7 @@
     const chanceMin=Number(c.chance?.[0]||0);
     window.HV_STORY_PACKS.push({
       id:"common-topic-asks-"+slug(c.id),
-      version:1,
+      version:2,
       requiredCharacterIds:[c.id],
       asks:[
         makeAsk(c,"trust","믿게 되는 기준","누군가를 믿게 되는 기준이 뭐예요?",trustMin,c.trust.slice(1)),
