@@ -1430,19 +1430,7 @@
     }
   };
 
-  const voiceFocus=t=>{
-    const broad=sceneFocus(t.title);
-    if(!["천국","지옥","가족","Hellborn","Sinner","여행","술","친구","사랑"].includes(broad))return broad;
-    const raw=String(t.title||"")
-      .replace(/[?!.,:;()[\]{}'"‘’“”]/g," ")
-      .replace(/(해야 하는가|할 수 있는가|어떻게 되는가|어떻게 생각하는가|있는가|인가|일까|한다면|된다면|이라면|하는가)/g," ");
-    const stop=new Set(["천국","지옥","가족","Hellborn","Sinner","가장","정말","직접","누가","어디서","어떻게","왜","어떤","무엇","사람","사람들","문제","상황","의견","경우","정도","쪽"]);
-    const words=raw.split(/\s+/).map(x=>x.trim()).filter(Boolean)
-      .map(x=>x.replace(/(으로부터|에게서|에서|에게|으로|까지|부터|처럼|보다|라도|마저|조차|하고|이며|이고|이나|와|과|의|은|는|이|가|을|를|도|만)$/,""))
-      .filter(x=>x.length>1&&!stop.has(x));
-    const specific=words.slice(0,3).join(" ");
-    return specific||broad;
-  };
+  const voiceFocus=t=>sceneFocus(t.title);
 
   const voiceTopicNote=(c,t,kind,key)=>{
     const focus=voiceFocus(t);
@@ -2132,11 +2120,39 @@
     ];
     const hit=special.find(([re])=>re.test(raw));
     if(hit)return hit[1];
-    const stop=new Set(["호텔","지옥","천국","가장","정말","직접","누가","어떤","무엇","어떻게","있는가","할까","문제","상황","의견","사람","사람들","필요한가","해야","하는가","한다면","된다면","것","건","게","정도"]);
-    const tokens=raw.replace(/[?!.,:;()[\]{}'"‘’“”]/g," ").split(/\s+/).map(x=>x.trim()).filter(Boolean)
-      .map(x=>x.replace(/(으로|에서|에게|까지|부터|처럼|보다|와|과|의|은|는|이|가|을|를|도|만)$/,""))
-      .filter(x=>x.length>1&&!stop.has(x));
-    return tokens.slice(0,2).join(" ")||"그 일";
+    const safe=[
+      [/Vees|Vee\b|Velvette|Valentino|Vox/,"Vees"],
+      [/Pentagram City/,"Pentagram City"],
+      [/Pride Ring/,"Pride Ring"],
+      [/Overlord/,"오버로드"],
+      [/Goetia|고에티아/,"고에티아"],
+      [/I\.M\.P|I M P|임프 회사/,"I.M.P."],
+      [/인간 세계|인간계|인간들|인간 사회|인간 종교/,"인간 세계"],
+      [/방송|생방송|미디어|SNS|뉴스|인터뷰|영상|라디오|시청률|광고/,"미디어"],
+      [/호텔|투숙객|객실|로비|프런트/,"호텔 일상"],
+      [/규칙|법|심판|재판|법정|규정/,"규칙"],
+      [/마법|Grimoire|주문|마도서/,"마법"],
+      [/계약|거래|영혼 소유/,"계약"],
+      [/권력|서열|지위|혈통|왕실|귀족/,"권력"],
+      [/돈|비용|예산|매출|가격|경제/,"돈"],
+      [/유명|인기|명성|스타|팬/,"유명세"],
+      [/싸움|전투|폭력|전쟁|무기|살인/,"싸움"],
+      [/구원|재활|변화|속죄/,"구원"],
+      [/연애|사랑|데이트|커플|관계/,"관계"],
+      [/가족|부모|자녀|아버지|엄마|아빠/,"가족"],
+      [/친구|우정|동료/,"친구"],
+      [/음악|노래|공연|무대|기타/,"음악"],
+      [/옷|패션|스타일|메이크업/,"스타일"],
+      [/기술|기기|장비|인터넷|와이파이/,"기술"],
+      [/업무|회사|일자리|직장|의뢰|고객/,"일"],
+      [/파티|축제|행사/,"파티"],
+      [/Hellborn/,"Hellborn"],
+      [/Sinner/,"Sinner"],
+      [/지옥/,"지옥"],
+      [/천사|천국/,"천국"]
+    ];
+    const safeHit=safe.find(([re])=>re.test(raw));
+    return safeHit?safeHit[1]:"그 주제";
   };
 
   const sceneDetail=(t,key)=>{
@@ -3029,6 +3045,6 @@
   window.HV_STORY_PACKS ||= [];
   for(const c of PFS){
     const list=chosen(c);
-    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:46,requiredCharacterIds:[c.id],events:list.map((t,n)=>splitEventDialogues(uniqueDialogueEvent(c,t,make(c,t,n))))});
+    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:47,requiredCharacterIds:[c.id],events:list.map((t,n)=>splitEventDialogues(uniqueDialogueEvent(c,t,make(c,t,n))))});
   }
 })();
