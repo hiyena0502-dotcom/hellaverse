@@ -679,7 +679,7 @@
       ],
       [
         `${char.display}에게 ${theme[0]} 이야기를 물어본다`,
-        `질문 대신 ${theme[1]}을(를) 조용히 바라본다`
+        `질문 대신 ${char.display}가 ${theme[1]}을(를) 보는 걸 조용히 지켜본다`
       ],
       [
         `${char.display}에게 필요한 일이 있는지 묻는다`,
@@ -748,7 +748,7 @@
     const events=char.themes.map((theme,themeIndex)=>makeEvent(char,theme,themeIndex));
     window.HV_STORY_PACKS.push({
       id:"solo-talks-"+slug(char.id),
-      version:8,
+      version:9,
       requiredCharacterIds:[char.id],
       events
     });
