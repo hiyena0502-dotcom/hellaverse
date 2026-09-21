@@ -1,7 +1,7 @@
 "use strict";
 
 (()=>{
-  const VERSION=9;
+  const VERSION=10;
   const key=value=>String(value||"").normalize("NFKC").trim().toLowerCase().replace(/[^a-z0-9가-힣]+/g,"");
   const hash=value=>{
     let h=2166136261;
@@ -213,7 +213,7 @@
     const current=Math.max(0,Number(source.dialoguePresetVersion)||0);
     let changed=false;
     const characters=new Map((source.characters||[]).map(character=>[character.id,character]));
-    if(current<9&&syncTunedStoryPacks(source))changed=true;
+    if(current<10&&syncTunedStoryPacks(source))changed=true;
     if(current<5){
       for(const event of source.events||[])if(localizeEntryTree(event.entries))changed=true;
       for(const ask of source.asks||[])if(localizeEntryTree(ask.entries))changed=true;
