@@ -1,7 +1,7 @@
 "use strict";
 
 (()=>{
-  const VERSION=10;
+  const VERSION=11;
   const key=value=>String(value||"").normalize("NFKC").trim().toLowerCase().replace(/[^a-z0-9가-힣]+/g,"");
   const hash=value=>{
     let h=2166136261;
@@ -28,7 +28,9 @@
     ["YES!","좋아!"],
     ["Fine.","그래."],
     ["darling","얘야"],
-    ["Wrath","분노의 링"]
+    ["Wrath","분노의 링"],
+    ["그리고 호텔을 돕는 방식이라는 말에 루시퍼의 표정이 잠깐 부드러워진다.","루시퍼가 호텔 업무 메모를 훑다가 한 줄에서 손을 멈춘다. 굳어 있던 표정이 조금 누그러진다."],
+    ["호텔을 돕는 방식이라는 말에 루시퍼의 표정이 잠깐 부드러워진다.","루시퍼가 호텔 업무 메모를 읽다가 잠시 손을 멈춘다. 표정이 조금 누그러진다."]
   ];
   const localizeLegacyDialogue=value=>{
     let text=String(value??"");
@@ -213,8 +215,8 @@
     const current=Math.max(0,Number(source.dialoguePresetVersion)||0);
     let changed=false;
     const characters=new Map((source.characters||[]).map(character=>[character.id,character]));
-    if(current<10&&syncTunedStoryPacks(source))changed=true;
-    if(current<5){
+    if(current<11&&syncTunedStoryPacks(source))changed=true;
+    if(current<11){
       for(const event of source.events||[])if(localizeEntryTree(event.entries))changed=true;
       for(const ask of source.asks||[])if(localizeEntryTree(ask.entries))changed=true;
       for(const item of source.items||[]){
