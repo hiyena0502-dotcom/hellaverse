@@ -1869,22 +1869,60 @@
 
   const splitLongText=text=>{
     const s=String(text||"").trim();
-    if(s.length<=118)return [s];
+    const MAX=78;
+    const SOFT=64;
+    if(s.length<=MAX)return [s];
+
     const sentences=s.match(/[^.!?。！？]+[.!?。！？]+|[^.!?。！？]+$/g)?.map(x=>x.trim()).filter(Boolean)||[s];
-    if(sentences.length<2){
-      const pivot=Math.min(s.length-1,Math.max(72,Math.floor(s.length*.52)));
-      const left=s.lastIndexOf(" ",pivot);
-      const cut=left>55?left:pivot;
-      return [s.slice(0,cut).trim(),s.slice(cut).trim()].filter(Boolean);
+    const pieces=[];
+
+    const splitPiece=piece=>{
+      let rest=piece.trim();
+      while(rest.length>MAX){
+        const searchEnd=Math.min(rest.length-1,MAX);
+        const searchStart=Math.max(30,SOFT-18);
+        let cut=-1;
+        for(let i=searchEnd;i>=searchStart;i--){
+          if(/[\s,，;:…]/.test(rest[i])){cut=i+1;break}
+        }
+        if(cut<searchStart)cut=searchEnd;
+        pieces.push(rest.slice(0,cut).trim());
+        rest=rest.slice(cut).trim();
+      }
+      if(rest)pieces.push(rest);
+    };
+
+    sentences.forEach(splitPiece);
+
+    const chunks=[];
+    let current="";
+    for(const piece of pieces){
+      if(!current){current=piece;continue}
+      const joined=current+" "+piece;
+      if(joined.length<=MAX)current=joined;
+      else{
+        chunks.push(current.trim());
+        current=piece;
+      }
     }
-    let best=1,bestDiff=Infinity,acc="";
-    for(let i=1;i<sentences.length;i++){
-      acc=sentences.slice(0,i).join(" ");
-      const right=sentences.slice(i).join(" ");
-      const diff=Math.abs(acc.length-right.length);
-      if(acc.length>=45&&right.length>=35&&diff<bestDiff){best=i;bestDiff=diff}
+    if(current)chunks.push(current.trim());
+
+    if(chunks.length<=3)return chunks;
+
+    // Avoid creating too many tiny dialogue beats.
+    const result=[];
+    let buffer="";
+    for(const chunk of chunks){
+      if(!buffer){buffer=chunk;continue}
+      if((buffer+" "+chunk).length<=MAX){
+        buffer+=" "+chunk;
+      }else{
+        result.push(buffer);
+        buffer=chunk;
+      }
     }
-    return [sentences.slice(0,best).join(" ").trim(),sentences.slice(best).join(" ").trim()].filter(Boolean).slice(0,2);
+    if(buffer)result.push(buffer);
+    return result.slice(0,4);
   };
 
   const dialogueParts=(c,text,id,affectionCondition)=>{
@@ -2806,6 +2844,6 @@
   window.HV_STORY_PACKS ||= [];
   for(const c of PFS){
     const list=chosen(c);
-    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:41,requiredCharacterIds:[c.id],events:list.map((t,n)=>uniqueDialogueEvent(c,t,make(c,t,n)))});
+    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:42,requiredCharacterIds:[c.id],events:list.map((t,n)=>uniqueDialogueEvent(c,t,make(c,t,n)))});
   }
 })();
