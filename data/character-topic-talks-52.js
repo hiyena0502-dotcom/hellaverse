@@ -1135,7 +1135,7 @@
     const bank={
       media:[
         focus+" 관련 컷에는 아직 임시 자막이 그대로 남아 있다.",
-        "화면 구석에 "+focus+"라는 작업 메모가 작게 붙어 있다.",
+        "화면 구석에 "+focus+" 관련 작업 메모가 작게 붙어 있다.",
         "누군가 "+focus+" 부분에만 빨간 표시를 해뒀다.",
         focus+" 장면만 재생 바에서 몇 번이나 되감긴 흔적이 있다.",
         "편집 목록에서 "+focus+" 항목만 아직 체크되지 않았다.",
@@ -1150,10 +1150,10 @@
         "누군가 "+focus+" 얘기만 다른 색 펜으로 적어놨다."
       ],
       heaven:[
-        topicParticle(focus,"과","와")+" 관련된 문장에만 접힌 자국이 남아 있다.",
+        focus+" 관련 문장에만 접힌 자국이 남아 있다.",
         "종이 가장자리에 "+focus+" 옆으로 작은 표시가 그려져 있다.",
         focus+" 부분은 누군가 손으로 오래 만진 듯 종이가 조금 구겨져 있다.",
-        "한쪽 여백에 "+topicParticle(focus,"이라는","라는")+" 단어만 따로 적혀 있다.",
+        "한쪽 여백에는 "+focus+" 단어만 따로 적혀 있다.",
         focus+" 쪽 문장 아래에 가느다란 밑줄이 하나 그어져 있다."
       ],
       work:[
@@ -1165,7 +1165,7 @@
       ],
       leisure:[
         focus+" 관련 물건만 누군가 이미 한 번 손댄 흔적이 있다.",
-        "옆에 놓인 쪽지에는 "+focus+"라는 말만 크게 적혀 있다.",
+        "옆에 놓인 쪽지에는 "+focus+" 메모만 크게 남아 있다.",
         focus+" 쪽에 장난스러운 낙서가 하나 더 붙어 있다.",
         "누군가 "+focus+" 옆에 별표를 세 개나 그려놨다.",
         focus+" 이야기를 두고 작은 내기표까지 생겨 있다."
@@ -1181,7 +1181,7 @@
         focus+" 쪽에는 누군가 이미 가고 싶은 곳 표시를 해뒀다.",
         "전단 귀퉁이에 "+focus+"라고 장난스러운 별표가 붙어 있다.",
         focus+" 옆에 예상 비용이 대충 계산돼 있다.",
-        "지도에서 "+focus+"와 관련된 곳만 동그라미가 여러 개다.",
+        "지도에서 "+focus+" 관련 장소만 동그라미가 여러 개다.",
         focus+" 메모 옆에 ‘진짜?’라는 짧은 낙서가 있다."
       ],
       law:[
@@ -1199,11 +1199,11 @@
         focus+" 이야기를 두고 주방 쪽에서 한 번 웃음이 터진다."
       ],
       misc:[
-        topicParticle(focus,"과","와")+" 관련된 흔적 하나가 유독 눈에 들어온다.",
+        focus+" 관련 흔적 하나가 유독 눈에 들어온다.",
         "그중에서도 "+focus+" 쪽만 누군가 따로 표시해뒀다.",
         focus+" 이야기가 나오기 딱 좋은 작은 계기가 생긴다.",
         "지나가던 누군가가 "+focus+" 쪽을 보고 잠깐 고개를 갸웃한다.",
-        focus+"에 관한 짧은 흔적이 하나 남아 있다.",
+        focus+" 관련 짧은 흔적이 하나 남아 있다.",
         "눈에 띄는 건 결국 "+focus+" 쪽이다."
       ]
     };
@@ -1681,6 +1681,6 @@
   window.HV_STORY_PACKS ||= [];
   for(const c of PFS){
     const list=chosen(c);
-    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:27,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
+    window.HV_STORY_PACKS.push({id:"pooltalk-52-"+slug(c.id),version:28,requiredCharacterIds:[c.id],events:list.map((t,n)=>make(c,t,n))});
   }
 })();
