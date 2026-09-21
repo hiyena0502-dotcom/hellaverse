@@ -150,7 +150,7 @@ function eventHasPlayableStart(ev){
   });
 }
 function playableTalkEventsForCharacter(characterId){
-  return talkEventsForCharacter(characterId).filter(eventHasPlayableStart);
+  return talkEventsForCharacter(characterId).filter(ev=>ev.randomEligible!==false).filter(eventHasPlayableStart);
 }
 function playableEntryEventsForCharacter(characterId){
   return entryEventsForCharacter(characterId).filter(eventHasPlayableStart);
@@ -158,7 +158,7 @@ function playableEntryEventsForCharacter(characterId){
 function continuousTalkEvents(){
   const enabledIds=new Set((state.characters||[]).filter(character=>character.enabled!==false).map(character=>character.id));
   return (state.events||[]).filter(ev=>
-    eventRoleOf(ev)==="talk"&&ev.menuVisible!==false&&enabledIds.has(ev.characterId)&&eventHasPlayableStart(ev)
+    eventRoleOf(ev)==="talk"&&ev.menuVisible!==false&&ev.randomEligible!==false&&enabledIds.has(ev.characterId)&&eventHasPlayableStart(ev)
   );
 }
 function randomTalkEvent(events,excludeId=""){
