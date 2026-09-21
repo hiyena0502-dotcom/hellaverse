@@ -7,6 +7,7 @@ const read=path=>fs.readFileSync(new URL(path,root),"utf8");
 
 const jsFiles=[
   "data/story-packs.js",
+  "data/character-events.js",
   "js/core/state.js",
   "js/core/game-state.js",
   "js/ui/app-shell.js",
@@ -40,6 +41,7 @@ const editorUi=read("js/editor/editor-ui.js");
 const dialogueCode=read("js/game/dialogue.js");
 const gameStateCode=read("js/core/game-state.js");
 const storyPackCode=read("data/story-packs.js");
+const characterEventCode=read("data/character-events.js");
 const dialogueCss=read("css/dialogue.css");
 const featuresCss=read("css/features.css");
 
@@ -98,6 +100,16 @@ assert.match(dialogueCode,/function beginRoomExit\(/,"room EXIT flow missing");
 assert.match(editorEvents,/a==="back-home"\)\{beginRoomExit\("home"\)\}/,"HOME exit must play room EXIT dialogue");
 assert.match(gameStateCode,/function exitEventsForCharacter\(/,"EXIT events must be separated from TALK menus");
 assert.match(stateCode,/function isExitEvent\(/,"EXIT event role compatibility missing");
+assert.match(stateCode,/function isEntryEvent\(/,"ENTRY event role compatibility missing");
+assert.match(gameStateCode,/function entryEventsForCharacter\(/,"ENTRY event helper missing");
+assert.match(dialogueCode,/playableEntryEventsForCharacter\(ch\.id\)/,"room entry must prefer ENTRY events once");
+assert.match(dialogueCode,/!isEntryEvent\(ev\)/,"ENTRY events must stay out of continuous TALK");
+assert.match(characterEventCode,/voice-events-baxter/,"Baxter voice event pack missing");
+assert.match(characterEventCode,/voice-events-emily/,"Emily voice event pack missing");
+assert.match(characterEventCode,/voice-events-lute/,"Lute voice event pack missing");
+assert.match(characterEventCode,/voice-events-adam/,"Adam voice event pack missing");
+assert.match(characterEventCode,/voice-events-vox/,"Vox voice event pack missing");
+assert.match(characterEventCode,/voice-events-pentious/,"Sir Pentious voice event pack missing");
 assert.ok(!dialogueCode.includes("이벤트가 끝났습니다."),"terminal event-ended screen must be removed");
 assert.match(editorUi,/data-entry-field="speakerCharacterId"/,"speaker image selector missing from event editor");
 assert.match(editorEvents,/data-action="validation-jump"/,"validation issue navigation missing");
@@ -166,6 +178,7 @@ const context={
 context.window.window=context.window;
 vm.createContext(context);
 vm.runInContext(storyPackCode,context,{filename:"data/story-packs.js"});
+vm.runInContext(characterEventCode,context,{filename:"data/character-events.js"});
 vm.runInContext(stateCode,context,{filename:"js/core/state.js"});
 
 const storyPackInstall=vm.runInContext(`
@@ -195,13 +208,53 @@ const storyPackInstall=vm.runInContext(`
 })()
 `,context);
 assert.equal(storyPackInstall.changed,true,"eligible project must receive story pack");
-assert.equal(storyPackInstall.eventCount,23,"story pack event count changed");
+assert.equal(storyPackInstall.eventCount,51,"hotel pack plus seven matching character packs should install 51 events");
 assert.equal(storyPackInstall.variableCount,11,"story pack variable count changed");
 assert.equal(storyPackInstall.packVersion,3,"story pack version marker missing");
 assert.equal(storyPackInstall.openingVisible,true,"opening event must be visible");
 assert.equal(storyPackInstall.hiddenVisible,false,"continuation event must be hidden");
 assert.equal(storyPackInstall.speakerCharacterId,"lucifer-morningstar","speaker image id must survive compaction");
 assert.equal(storyPackInstall.secondChanged,false,"story pack must install only once");
+
+const aliasPackInstall=vm.runInContext(`
+(()=>{
+  const source=normalizeState({
+    schemaVersion:4,
+    characters:[{id:"custom-vox-id",name:"Vox",origin:"sinner"}]
+  });
+  const installed=installStoryPacks(source);
+  const voxEvents=installed.state.events.filter(event=>event.id.startsWith("voice-vox-"));
+  return{
+    installed:installed.installed.includes("voice-events-vox"),
+    count:voxEvents.length,
+    characterIds:[...new Set(voxEvents.map(event=>event.characterId))]
+  };
+})()
+`,context);
+assert.equal(aliasPackInstall.installed,true,"character event packs must resolve aliases by character name");
+assert.equal(aliasPackInstall.count,4,"Vox should receive four added TALK events");
+assert.deepEqual([...aliasPackInstall.characterIds],["custom-vox-id"],"resolved character aliases must rewrite event character IDs");
+
+const entryRoleCheck=vm.runInContext(`
+(()=>{
+  const normalized=normalizeState({
+    schemaVersion:4,
+    characters:[{id:"entry-char",name:"Entry Char",origin:"sinner"}],
+    events:[
+      {id:"entry-one",name:"ENTRY · Entry 1",characterId:"entry-char",entries:[{id:"e1",type:"dialogue",text:"hello"}]},
+      {id:"talk-one",name:"TALK · Normal",characterId:"entry-char",entries:[{id:"t1",type:"dialogue",text:"talk"}]}
+    ]
+  });
+  return{
+    entryRole:normalized.events.find(event=>event.id==="entry-one").eventRole,
+    entryVisible:normalized.events.find(event=>event.id==="entry-one").menuVisible,
+    talkIds:normalized.events.filter(event=>event.characterId==="entry-char"&&event.menuVisible!==false&&!isExitEvent(event)&&!isEntryEvent(event)).map(event=>event.id)
+  };
+})()
+`,context);
+assert.equal(entryRoleCheck.entryRole,"entry","ENTRY name must normalize to entry role");
+assert.equal(entryRoleCheck.entryVisible,false,"ENTRY must be hidden from TALK menus");
+assert.deepEqual([...entryRoleCheck.talkIds],["talk-one"],"ENTRY must not remain in normal TALK candidates");
 
 const result=vm.runInContext(`
 (()=>{
@@ -312,7 +365,8 @@ assert.equal(editorMerge.explicitBalance,777,"explicit editor balance change mus
 vm.runInContext(`
 function getEvent(id){return state.events.find(e=>e.id===id)||null}
 function getCharacter(id){return state.characters.find(c=>c.id===id)||null}
-function eventsForCharacter(charId,source=state){return source.events.filter(e=>e.characterId===charId&&e.menuVisible!==false&&!isExitEvent(e))}
+function eventsForCharacter(charId,source=state){return source.events.filter(e=>e.characterId===charId&&e.menuVisible!==false&&!isExitEvent(e)&&!isEntryEvent(e))}
+function entryEventsForCharacter(charId,source=state){return source.events.filter(e=>e.characterId===charId&&isEntryEvent(e))}
 function exitEventsForCharacter(charId,source=state){return source.events.filter(e=>e.characterId===charId&&isExitEvent(e))}
 function ownerPasses(){return true}
 function resetEventEmotion(){}
