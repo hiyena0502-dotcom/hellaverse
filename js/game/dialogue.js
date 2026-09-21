@@ -20,9 +20,10 @@ function startDialogue(characterId,eventId){
   const entry=enteringRoom&&!eventId?randomTalkEvent(playableEntryEventsForCharacter(ch.id)):null;
   const ev=eventId?getEvent(eventId):(entry||randomTalkForCharacter(ch.id));
   const entryActive=Boolean(ev&&isEntryEvent(ev));
+  const actionActive=Boolean(ev&&isActionEvent(ev));
   const wasNew=Boolean(ev&&!entryActive&&!isTalkDiscovered(ev.id));
   if(ev&&!entryActive){
-    rememberRecentTalk(ch.id,ev.id);
+    if(!actionActive)rememberRecentTalk(ch.id,ev.id);
     markTalkDiscovered(ev.id);
   }
   playback=ev?{
@@ -33,7 +34,8 @@ function startDialogue(characterId,eventId){
     continuationTotal:entryActive?0:(ev.continuationEventIds||[]).length,
     autoVisitedEventIds:entryActive?[]:[ev.id],
     newTalkEventId:wasNew?ev.id:"",
-    frames:[{sourceType:"event",sourceId:ev.id,index:0,label:entryActive?"ENTRY":"본편",exitMode:"continue",targetEventId:""}],
+    rootEventRole:eventRoleOf(ev),
+    frames:[{sourceType:"event",sourceId:ev.id,index:0,label:entryActive?"ENTRY":actionActive?"ACTION":"본편",exitMode:"continue",targetEventId:""}],
     ended:false
   }:null;
   typing.token="";
@@ -78,7 +80,7 @@ function jumpEvent(id,{preserveContinuation=false,label="본편"}={}){
   }
   playback.frames=[{sourceType:"event",sourceId:ev.id,index:0,label,exitMode:"continue",targetEventId:""}];
   rememberContinuousEvent(ev.id);
-  const isTalkRoot=(state.events||[]).some(event=>event.id===ev.id)&&ev.menuVisible!==false&&!isExitEvent(ev)&&!isEntryEvent(ev);
+  const isTalkRoot=(state.events||[]).some(event=>event.id===ev.id)&&ev.menuVisible!==false&&eventRoleOf(ev)==="talk";
   if(isTalkRoot){
     const wasNew=!isTalkDiscovered(ev.id);
     if(markTalkDiscovered(ev.id))saveProgressState();
@@ -117,7 +119,7 @@ function eventHasPlayableStart(ev){
   });
 }
 function playableTalkEventsForCharacter(characterId){
-  return eventsForCharacter(characterId).filter(eventHasPlayableStart);
+  return talkEventsForCharacter(characterId).filter(eventHasPlayableStart);
 }
 function playableEntryEventsForCharacter(characterId){
   return entryEventsForCharacter(characterId).filter(eventHasPlayableStart);
@@ -125,7 +127,7 @@ function playableEntryEventsForCharacter(characterId){
 function continuousTalkEvents(){
   const enabledIds=new Set((state.characters||[]).filter(character=>character.enabled!==false).map(character=>character.id));
   return (state.events||[]).filter(ev=>
-    !isExitEvent(ev)&&!isEntryEvent(ev)&&ev.menuVisible!==false&&enabledIds.has(ev.characterId)&&eventHasPlayableStart(ev)
+    eventRoleOf(ev)==="talk"&&ev.menuVisible!==false&&enabledIds.has(ev.characterId)&&eventHasPlayableStart(ev)
   );
 }
 function randomTalkEvent(events,excludeId=""){
@@ -204,7 +206,7 @@ function shuffleTalk(){
   return true;
 }
 function relationshipProgress(characterId){
-  const talkIds=eventsForCharacter(characterId).map(event=>event.id);
+  const talkIds=talkEventsForCharacter(characterId).map(event=>event.id);
   const talkSeen=talkIds.filter(id=>(state.discoveredTalkIds||[]).includes(id)).length;
   const asks=asksForCharacter(characterId);
   const askSeen=asks.filter(ask=>(state.askedAskIds||[]).includes(ask.id)).length;
@@ -352,6 +354,11 @@ function finishEvent(){
     interactionCompleteMenu={...meta,...result};
     return false;
   }
+  if(playback?.rootEventRole==="action"){
+    resetEventEmotion(ev);
+    playback.ended=true;
+    return false;
+  }
   const continuousId=nextContinuousEvent();
   if(continuousId&&jumpEvent(continuousId,{label:"랜덤 TALK"}))return true;
   resetEventEmotion(ev);
@@ -442,7 +449,7 @@ function renderRoom(){
   const interactionLocked=Boolean(activeInteractionReaction||interactionContext?.followupActive||interactionCompleteMenu);
   const eventPickerVisible=!ev||ev.menuVisible!==false;
   const eventPicker=roomMode==="talk"&&eventOptions.length&&eventPickerVisible&&!interactionLocked
-    ? '<details class="room-event-details"><summary>TALK 선택</summary><select id="roomEventSelect">'+eventOptions.map(e=>'<option value="'+esc(e.id)+'" '+(ev?.id===e.id?"selected":"")+'>'+esc(e.name)+'</option>').join("")+'</select></details>'
+    ? '<details class="room-event-details"><summary>TALK / ACTION 선택</summary><select id="roomEventSelect">'+eventOptions.map(e=>'<option value="'+esc(e.id)+'" '+(ev?.id===e.id?"selected":"")+'>'+esc(isActionEvent(e)?"[ACTION] "+e.name:e.name)+'</option>').join("")+'</select></details>'
     : '';
 
   pageRoot.innerHTML=
@@ -475,7 +482,12 @@ function renderRoomBeat(){
   }
   if(!settlePlayback()){
     if(interactionCompleteMenu){renderInteractionCompleteMenu();return}
-    dynamic.innerHTML='<div class="room-empty"><h2>이어갈 TALK를 찾지 못했습니다.</h2><p>현재 조건에서 재생 가능한 TALK가 없습니다. TALK 선택이나 ASK / INVENTORY를 이용할 수 있습니다.</p></div>';clearTyping();clearAuto();return;
+    if(playback?.rootEventRole==="action"){
+      dynamic.innerHTML='<div class="room-empty"><h2>ACTION COMPLETE</h2><p>ACTION이 끝났습니다. 위의 TALK / ACTION 선택에서 다른 장면을 고르거나 NEW TALK를 이용할 수 있습니다.</p></div>';
+    }else{
+      dynamic.innerHTML='<div class="room-empty"><h2>이어갈 TALK를 찾지 못했습니다.</h2><p>현재 조건에서 재생 가능한 TALK가 없습니다. TALK 선택이나 ASK / INVENTORY를 이용할 수 있습니다.</p></div>';
+    }
+    clearTyping();clearAuto();return;
   }
   const select=$("#roomEventSelect");
   const current=currentEvent();
@@ -494,8 +506,9 @@ function renderRoomBeat(){
   const length=String(entry.text||"").length;
   const density=length>210?" is-very-compact":length>130?" is-compact":"";
   const newTalk=current?.id===playback.newTalkEventId&&frame.index===0;
+  const newBadge=newTalk?(isActionEvent(current)?"NEW ACTION":"NEW TALK"):"";
   const progressLabel=series||("SCENE "+(frame.index+1)+" / "+frameEntries(frame).length);
-  dynamic.innerHTML='<div class="dialogue-box">'+(newTalk?'<span class="new-talk-badge">NEW TALK</span>':'')+'<p class="speaker">'+esc(entry.type==="narration"?"NARRATION":speaker)+'</p><p id="dialogueText" class="dialogue-text'+density+'"></p><div class="dialogue-meta"><span>'+esc(progressLabel)+'</span><button type="button" data-action="advance-dialogue">NEXT</button></div></div>';
+  dynamic.innerHTML='<div class="dialogue-box">'+(newBadge?'<span class="new-talk-badge">'+newBadge+'</span>':'')+'<p class="speaker">'+esc(entry.type==="narration"?"NARRATION":speaker)+'</p><p id="dialogueText" class="dialogue-text'+density+'"></p><div class="dialogue-meta"><span>'+esc(progressLabel)+'</span><button type="button" data-action="advance-dialogue">NEXT</button></div></div>';
   if(typing.token!==token){
     session.log.push({kind:entry.type,speaker,text:entry.text||"",eventName:currentEvent()?.name||""});
     if(session.log.length>200)session.log.splice(0,session.log.length-200);
