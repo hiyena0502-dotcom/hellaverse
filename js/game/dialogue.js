@@ -9,6 +9,7 @@ let inventoryPreference="ALL";
 let inventoryUnknownOnly=false;
 function startDialogue(characterId,eventId){
   const ch=getCharacter(characterId);if(!ch)return;
+  const enteringRoom=currentPage!=="room";
   selectedCharacterId=ch.id;
   roomToolsOpen=false;
   roomMode="talk";
@@ -16,9 +17,11 @@ function startDialogue(characterId,eventId){
   activeInteractionEvent=null;
   interactionContext=null;
   interactionCompleteMenu=null;
-  const ev=eventId?getEvent(eventId):randomTalkForCharacter(ch.id);
-  const wasNew=Boolean(ev&&!isTalkDiscovered(ev.id));
-  if(ev){
+  const entry=enteringRoom&&!eventId?randomTalkEvent(playableEntryEventsForCharacter(ch.id)):null;
+  const ev=eventId?getEvent(eventId):(entry||randomTalkForCharacter(ch.id));
+  const entryActive=Boolean(ev&&isEntryEvent(ev));
+  const wasNew=Boolean(ev&&!entryActive&&!isTalkDiscovered(ev.id));
+  if(ev&&!entryActive){
     rememberRecentTalk(ch.id,ev.id);
     markTalkDiscovered(ev.id);
   }
@@ -26,11 +29,11 @@ function startDialogue(characterId,eventId){
     characterId:ch.id,
     roomCharacterId:ch.id,
     eventId:ev.id,
-    continuationQueue:[...(ev.continuationEventIds||[])],
-    continuationTotal:(ev.continuationEventIds||[]).length,
-    autoVisitedEventIds:[ev.id],
+    continuationQueue:entryActive?[]:[...(ev.continuationEventIds||[])],
+    continuationTotal:entryActive?0:(ev.continuationEventIds||[]).length,
+    autoVisitedEventIds:entryActive?[]:[ev.id],
     newTalkEventId:wasNew?ev.id:"",
-    frames:[{sourceType:"event",sourceId:ev.id,index:0,label:"본편",exitMode:"continue",targetEventId:""}],
+    frames:[{sourceType:"event",sourceId:ev.id,index:0,label:entryActive?"ENTRY":"본편",exitMode:"continue",targetEventId:""}],
     ended:false
   }:null;
   typing.token="";
@@ -75,7 +78,7 @@ function jumpEvent(id,{preserveContinuation=false,label="본편"}={}){
   }
   playback.frames=[{sourceType:"event",sourceId:ev.id,index:0,label,exitMode:"continue",targetEventId:""}];
   rememberContinuousEvent(ev.id);
-  const isTalkRoot=(state.events||[]).some(event=>event.id===ev.id)&&ev.menuVisible!==false&&!isExitEvent(ev);
+  const isTalkRoot=(state.events||[]).some(event=>event.id===ev.id)&&ev.menuVisible!==false&&!isExitEvent(ev)&&!isEntryEvent(ev);
   if(isTalkRoot){
     const wasNew=!isTalkDiscovered(ev.id);
     if(markTalkDiscovered(ev.id))saveProgressState();
@@ -116,10 +119,13 @@ function eventHasPlayableStart(ev){
 function playableTalkEventsForCharacter(characterId){
   return eventsForCharacter(characterId).filter(eventHasPlayableStart);
 }
+function playableEntryEventsForCharacter(characterId){
+  return entryEventsForCharacter(characterId).filter(eventHasPlayableStart);
+}
 function continuousTalkEvents(){
   const enabledIds=new Set((state.characters||[]).filter(character=>character.enabled!==false).map(character=>character.id));
   return (state.events||[]).filter(ev=>
-    !isExitEvent(ev)&&ev.menuVisible!==false&&enabledIds.has(ev.characterId)&&eventHasPlayableStart(ev)
+    !isExitEvent(ev)&&!isEntryEvent(ev)&&ev.menuVisible!==false&&enabledIds.has(ev.characterId)&&eventHasPlayableStart(ev)
   );
 }
 function randomTalkEvent(events,excludeId=""){
