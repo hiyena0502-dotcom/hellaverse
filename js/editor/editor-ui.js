@@ -648,7 +648,7 @@ function renderItemEditor(){
       '<span class="item-filter-count">'+filtered.length+' / '+editorDraft.items.length+'</span>'+
     '</div>'+
     '<div class="manager-layout editor-select-layout"><aside class="manager-list"><div class="manager-list-items">'+
-      (visible.length?visible.map(x=>'<button class="manager-item '+(x.id===selectedItemId?"active":"")+'" data-action="select-item" data-id="'+esc(x.id)+'"><strong>'+esc(x.name)+'</strong><small>'+esc(x.rarity)+' · '+esc(getCharacterDraft(x.collectionCharacterId)?.name||"미지정")+'</small></button>').join(""):'<div class="editor-note">검색 결과가 없습니다.</div>')+
+      (visible.length?visible.map(x=>'<button class="manager-item '+(x.id===selectedItemId?"active":"")+'" data-action="select-item" data-id="'+esc(x.id)+'"><strong>'+esc(itemEmoji(x))+' '+esc(x.name)+'</strong><small>'+esc(x.rarity)+' · '+esc(getCharacterDraft(x.collectionCharacterId)?.name||"미지정")+'</small></button>').join(""):'<div class="editor-note">검색 결과가 없습니다.</div>')+
       '</div>'+editorPager("item",editorItemPage,filtered.length,EDITOR_ITEM_PAGE_SIZE,"ITEM")+'</aside>'+
       '<section class="manager-detail">'+(i?renderSelectedItemEditor(i,categories):'<div class="inspector-empty">왼쪽에서 아이템을 선택하세요.</div>')+'</section></div>';
 }
@@ -680,6 +680,7 @@ function renderSelectedItemEditor(i,categories){
   return '<div class="item-row interaction-editor-row editor-single-detail" data-item-id="'+esc(i.id)+'">'+
     '<select data-item-bind="collectionCharacterId">'+charOptions(i.collectionCharacterId,"컬렉션 소속")+'</select>'+
     '<input data-item-bind="name" value="'+esc(i.name)+'" placeholder="아이템 이름">'+
+    '<input data-item-bind="symbol" value="'+esc(itemEmoji(i))+'" placeholder="이모티콘 · 예: 🦆" maxlength="8">'+
     '<select data-item-bind="rarity">'+RARITIES.map(r=>'<option '+(i.rarity===r?"selected":"")+'>'+r+'</option>').join("")+'</select>'+
     '<select data-item-bind="category">'+categoryOptions.map(cat=>'<option value="'+esc(cat)+'" '+(i.category===cat?"selected":"")+'>'+esc(cat)+'</option>').join("")+'</select>'+
     '<select data-item-bind="acquisitionMode"><option value="repeatable" '+(i.acquisitionMode==="repeatable"?"selected":"")+'>REPEATABLE</option><option value="unique" '+(i.acquisitionMode==="unique"?"selected":"")+'>UNIQUE</option></select>'+
@@ -688,6 +689,7 @@ function renderSelectedItemEditor(i,categories){
     '<div class="full-row interaction-response-editor">'+
       '<div class="inline-grid"><label class="checkline"><input type="checkbox" data-item-bind="gachaEnabled" '+(i.gachaEnabled?"checked":"")+'> 가챠 포함</label><label class="checkline"><input type="checkbox" data-item-bind="giftable" '+(i.giftable!==false?"checked":"")+'> 선물 가능</label><label class="checkline"><input type="checkbox" data-item-bind="enabled" '+(i.enabled?"checked":"")+'> 사용</label><label class="checkline"><input type="checkbox" data-item-bind="secret" '+(i.secret?"checked":"")+'> SECRET</label><label class="field"><span>선물 시 처리</span><select data-item-bind="giftUseMode"><option value="keep" '+(i.giftUseMode==="keep"?"selected":"")+'>KEEP · 유지</option><option value="consume" '+(i.giftUseMode==="consume"?"selected":"")+'>CONSUMABLE · 1개 소비</option></select></label><label class="field"><span>가챠 가중치</span><input type="number" min=".01" step=".01" data-item-bind="weight" value="'+i.weight+'"></label></div>'+
       '<label class="field full"><span>아이템 설명</span><textarea data-item-bind="description">'+esc(i.description)+'</textarea></label>'+
+      '<label class="field full"><span>가챠 등장 대사 · REVEAL LINE</span><textarea data-item-bind="gachaLine" placeholder="가챠에서 이 아이템이 등장할 때 표시할 대사">'+esc(itemGachaLine(i))+'</textarea></label>'+
       '<section class="item-acquisition-editor"><div><strong>DIALOGUE ACQUISITION</strong><p>선택한 대화의 마지막에 1회성 아이템 지급 지문을 연결합니다.</p></div><label class="field"><span>획득 이벤트</span><select data-item-bind="inventoryEventId">'+itemInventoryEventOptions(i)+'</select></label>'+
         (i.inventoryEventId?'<small>'+esc(editorDraft.events.find(event=>event.id===i.inventoryEventId)?.name||"삭제된 이벤트")+' 완료 시 처음 한 번만 지급됩니다.</small>':'<small>가챠나 직접 지급만 사용합니다.</small>')+'</section>'+
       '<div class="reaction-manager"><div class="manager-list-head"><div><strong>CHARACTER REACTIONS</strong><p class="muted">현재 아이템의 캐릭터별 선물 반응만 표시합니다.</p></div><button class="small-button" type="button" data-action="new-item-reaction" data-item-id="'+esc(i.id)+'">+ 캐릭터 반응</button></div>'+
@@ -715,11 +717,18 @@ function renderSelectedItemEditor(i,categories){
 function renderGachaEditor(){
   const total=RARITIES.reduce((s,r)=>s+Number(editorDraft.gacha.rarityWeights[r]||0),0)||1;
   const pool=editorDraft.items.filter(i=>i.enabled&&i.gachaEnabled);
+  const profiles=editorDraft.characters.map(ch=>{
+    const profile=gachaProfileForCharacter(ch.id,editorDraft);
+    const count=pool.filter(i=>i.collectionCharacterId===ch.id).length;
+    return {ch,profile,count};
+  });
   editorBody.innerHTML=editorHead("GACHA","가챠 설정","아이템 설정의 가챠 포함 항목을 대상으로 비용·확률을 관리합니다.")+
   '<div class="settings-grid"><section class="settings-card"><h3>BASIC</h3><div class="form-grid"><label class="checkline"><input type="checkbox" data-gacha-bind="enabled" '+(editorDraft.gacha.enabled?"checked":"")+'> 가챠 사용</label><label class="field"><span>재화 이름</span><input data-gacha-bind="currencyName" value="'+esc(editorDraft.gacha.currencyName)+'"></label><label class="field"><span>현재 재화</span><input type="number" min="0" data-gacha-bind="balance" value="'+editorDraft.gacha.balance+'"></label><label class="field"><span>1회 비용</span><input type="number" min="0" data-gacha-bind="singleCost" value="'+editorDraft.gacha.singleCost+'"></label><label class="field"><span>10회 비용</span><input type="number" min="0" data-gacha-bind="tenCost" value="'+editorDraft.gacha.tenCost+'"></label></div></section>'+
   '<section class="settings-card"><h3>RARITY WEIGHT</h3><div class="rarity-editor">'+RARITIES.map(r=>'<label class="rarity-edit-row"><span>'+r+' · '+((editorDraft.gacha.rarityWeights[r]/total)*100).toFixed(1)+'%</span><input type="number" min="0" step="1" data-rarity="'+r+'" value="'+editorDraft.gacha.rarityWeights[r]+'"></label>').join("")+'</div></section></div>'+
+  '<div class="settings-card gacha-profile-editor" style="margin-top:14px"><div class="manager-list-head"><div><h3>CHARACTER GACHA PROFILES</h3><p class="muted">캐릭터별 아이콘·제목·설명입니다. REVEAL LINE은 공용 멘트가 아니라 각 아이템의 “가챠 등장 대사”를 사용합니다.</p></div><b>'+profiles.length+' PROFILES</b></div>'+
+  '<div class="gacha-profile-editor-grid">'+profiles.map(({ch,profile,count})=>'<article class="gacha-profile-editor-card"><span>'+esc(profile?.icon||"🎴")+'</span><div><strong>'+esc(profile?.title||ch.name+" GACHA")+'</strong><small>'+esc(ch.name)+' · '+count+' ITEMS</small><p>'+esc(profile?.description||"설명 없음")+'</p></div></article>').join("")+'</div></div>'+
   '<div class="settings-card" style="margin-top:14px"><h3>ITEM POOL</h3><p class="muted">아이템 설정에서 “가챠 포함”을 켠 항목입니다.</p><div class="table-editor">'+
-  (pool.length?pool.map(i=>'<div class="table-row"><span>'+esc(i.name)+'</span><span>'+esc(i.rarity)+'</span><span>WEIGHT '+i.weight+'</span><span>'+esc(getCharacterDraft(i.collectionCharacterId)?.name||"캐릭터 미지정")+'</span><span></span></div>').join(""):'<div class="editor-note">현재 가챠 풀에 등록된 아이템이 없습니다.</div>')+'</div></div>';
+  (pool.length?pool.map(i=>'<div class="table-row"><span>'+esc(itemEmoji(i))+' '+esc(i.name)+'</span><span>'+esc(i.rarity)+'</span><span>WEIGHT '+i.weight+'</span><span>'+esc(getCharacterDraft(i.collectionCharacterId)?.name||"캐릭터 미지정")+'</span><span>'+(itemGachaLine(i)?'REVEAL ✓':'REVEAL —')+'</span></div>').join(""):'<div class="editor-note">현재 가챠 풀에 등록된 아이템이 없습니다.</div>')+'</div></div>';
 }
 function renderThoughtEditor(){
   const q=editorThoughtQuery.trim().toLowerCase();
