@@ -359,89 +359,103 @@
       ["방 문패","검은 방 문패","문을 닫았다는 건 미워한다는 뜻이 아니야.","네가 노크하고 기다려줘서 열어도 내 공간이 사라지지 않는 걸 알았어."]]}
   ];
 
-  const STYLE_GROUPS={
-    formal:new Set(["sera","vaggie","carmilla-carmine","moxxie"]),
-    clipped:new Set(["lute","satan","loona"]),
-    archaic:new Set(["paimon","zestial"]),
-    excited:new Set(["charlie-morningstar","emily","niffty","beelzebub","millie"]),
-    crude:new Set(["adam","blitzo","angel-dust","cherri-bomb","valentino","fizzarolli"]),
-    showman:new Set(["alastor","mammon","sir-pentious"]),
-    tech:new Set(["vox","baxter"]),
-    elegant:new Set(["lucifer-morningstar","asmodeus","rosie","stolas"]),
-    dry:new Set(["husk","belphegor","leviathan","octavia"]),
-    gentle:new Set(["abel"])
-  };
-  const styleOf=id=>Object.entries(STYLE_GROUPS).find(([,ids])=>ids.has(id))?.[0]||"casual";
-  const ACTIVE_LEADS=[
-    "아침부터 붙잡고 있던 이유라면, ",
-    "잠깐 손을 멈춘 건, ",
-    "내려놓지 못하고 있던 건, ",
-    "자리를 몇 번이나 바꾼 건, ",
-    "아직 버리지 않은 까닭은, ",
-    "결정을 미뤄둔 건, ",
-    "오늘 유난히 조용했던 건, ",
-    "밤이 깊도록 끝내지 못한 건, "
+  const ACTIVE_TAILS=[
+    (c,t)=>`오랜만에 손에 잡으니 ${t[0]} 쪽 기억부터 먼저 살아나네.`,
+    (c,t)=>`상태를 보는 동안은 말보다 손이 먼저 움직이는 편이야.`,
+    (c,t)=>`자리 하나 달라진 것도 금방 보여. ${t[0]}은 특히 더 그래.`,
+    (c,t)=>`소리가 달라지면 이유부터 찾게 돼. 그냥 넘기는 쪽은 아니거든.`,
+    (c,t)=>`새로 들어온 건 겉보다 첫 반응이 더 솔직하지.`,
+    (c,t)=>`이름 하나 붙이는 것도 결국 내가 이걸 어떻게 볼지 정하는 일이잖아.`,
+    (c,t)=>`돌려주기 전엔 내가 놓친 게 없는지 한 번은 더 보게 돼.`,
+    (c,t)=>`손보는 중엔 순서를 건드리지 않는 게 좋아. 끝나면 보여줄게.`,
+    (c,t)=>`둘 중 하나를 고르는 건 취향보다 오늘 상황이 더 중요할 때도 있어.`,
+    (c,t)=>`쓴 뒤에 바로 정리해야 다음번에 기분 나쁘게 꼬이지 않아.`,
+    (c,t)=>`시험은 짧아도 결과는 오래 남아. 그래서 대충은 못 해.`,
+    (c,t)=>`배치가 바뀌면 내가 먼저 불편한 지점을 알아차리는 편이야.`,
+    (c,t)=>`가져갈지 말지는 쓰임보다 내가 오늘 뭘 필요로 하는지에 달렸어.`,
+    (c,t)=>`잊고 있었다고 가치까지 없어진 건 아니니까, 일단 다시 봐야지.`,
+    (c,t)=>`찾고 나면 왜 그렇게 찾았는지가 뒤늦게 보일 때가 있어.`,
+    (c,t)=>`시간을 재는 건 조급해서가 아니라 변화를 놓치기 싫어서야.`,
+    (c,t)=>`예전 것과 나란히 두면 변한 부분보다 안 변한 부분이 더 잘 보여.`,
+    (c,t)=>`누가 오기 전엔 공간부터 준비해. 사람보다 분위기가 먼저 맞아야 할 때가 있거든.`,
+    (c,t)=>`동선이 꼬이면 사소한 일도 계속 신경을 긁어. 그래서 미리 맞춰두는 거야.`,
+    (c,t)=>`불이 꺼졌을 때 제일 먼저 손이 간 걸 보면 우선순위가 들키지.`,
+    (c,t)=>`연락 하나가 오면 물건도 전혀 다른 의미로 보일 때가 있어.`,
+    (c,t)=>`녹음은 말보다 솔직해서 싫을 때가 있어. 지우기 전에 한 번 더 듣게 되고.`,
+    (c,t)=>`사진은 증거처럼 남잖아. 그래서 아무 때나 찍진 않아.`,
+    (c,t)=>`포장은 내용보다 늦게 끝나는데, 이상하게 그 시간이 제일 많이 생각하게 해.`,
+    (c,t)=>`개수를 세는 건 못 믿어서가 아니라 틀린 걸 빨리 찾고 싶어서야.`,
+    (c,t)=>`작은 사고는 금방 끝나도 몸은 먼저 기억해. 그래서 바로 손이 나간 거고.`,
+    (c,t)=>`떨어질 뻔하면 그제야 얼마나 꽉 쥐고 있었는지 알게 되더라.`,
+    (c,t)=>`결과를 기다릴 땐 할 수 있는 게 적어서 더 짜증 나. 그래도 재촉한다고 빨라지진 않고.`,
+    (c,t)=>`처음부터 다시 하는 게 자존심 상할 때도 있지만, 틀린 채 끝내는 것보단 나아.`,
+    (c,t)=>`취소선 하나 긋는다고 생각까지 사라지진 않아. 새 문장이 필요한 거지.`,
+    (c,t)=>`숨긴 건 보여주기 싫어서였지, 없었던 일로 만들고 싶어서가 아니야.`,
+    (c,t)=>`네 손에 잠깐 맡겨보는 건 내가 통제 못 한다는 뜻이 아니라 믿어보는 쪽에 가까워.`,
+    (c,t)=>`혼자 하고 싶은 순간이 있어. 도와주지 않는 것도 가끔은 제대로 돕는 거야.`,
+    (c,t)=>`이번엔 네 손이 하나 더 있으면 빨리 끝나겠어. 그 정도 도움은 받을게.`,
+    (c,t)=>`내기는 결과보다 상대가 어떤 표정으로 덤비는지가 더 재밌을 때가 많아.`,
+    (c,t)=>`규칙이 많아 보이면 이유가 있는 거야. 하나씩 사고 겪고 생긴 경우가 대부분이고.`,
+    (c,t)=>`계획을 바꾼 건 실패가 아니라 지금 쪽이 더 재밌어 보여서야.`,
+    (c,t)=>`실패 직후가 제일 솔직하지. 핑계 댈 틈도 없고 다음 수만 보이니까.`,
+    (c,t)=>`잘됐을 때 크게 떠드는 취미는 없어도, 이 정도면 나도 만족해.`,
+    (c,t)=>`끼어버린 건 억지로 당기면 더 망가져. 각도부터 바꿔야 해.`,
+    (c,t)=>`돌아온 물건은 먼저 상태를 봐. 사람도 비슷하다고 하면 너무 냉정한가.`,
+    (c,t)=>`빠진 조각이 작을수록 더 거슬려. 전체가 멀쩡해 보여도 난 알아.`,
+    (c,t)=>`날짜를 남기는 건 기념이라기보다 나중의 내가 핑계 못 대게 하는 거야.`,
+    (c,t)=>`흠집은 고칠 수 있어도 그때 있었던 일까지 지워지진 않잖아.`,
+    (c,t)=>`빛이 바뀌면 같은 것도 다르게 보여. 그래서 위치를 고집할 필요는 없지.`,
+    (c,t)=>`눈보다 귀가 먼저 알아채는 게 있어. 그럴 땐 조용히 확인하는 게 낫고.`,
+    (c,t)=>`냄새는 기억을 너무 빨리 끌어와서 가끔 반칙 같아.`,
+    (c,t)=>`갑자기 멈춘 건 생각이 끊겨서가 아니라 너무 선명하게 이어져서야.`,
+    (c,t)=>`자리를 만든다는 건 오래 둘 가능성을 인정하는 일이기도 하네.`,
+    (c,t)=>`버리기 직전까지 갔는데 손이 다시 간 건 이유가 있겠지. 아직 이름 붙일 생각은 없지만.`,
+    (c,t)=>`오늘 못 끝내도 되는 일과 오늘 끝내야 마음 편한 일을 구분하려고 해.`,
+    (c,t)=>`네가 일찍 온 건 변수였는데, 꼭 나쁜 변수라는 법은 없지.`,
+    (c,t)=>`누가 손댔는진 몰라도 흔적은 남아. 원래대로 돌리는 건 어렵지 않아.`,
+    (c,t)=>`거창하게 축하할 일은 아니어도 작은 표시 하나쯤은 남겨도 되잖아.`
   ];
-  const SOFT_FIRST=[
-    (t,high)=>high?`${t[1]}보다 네가 조용히 자리를 내준 게 먼저 눈에 들어왔어.`:`${t[1]}만 보고 있어도 돼. 아직 설명까지 필요한 건 아니니까.`,
-    (t,high)=>high?`${J(t[0],"을","를")} 사이에 둔 이런 틈을 불편하게 채우지 않는 사람은 드물어.`:`${t[0]} 때문에 잠깐 멈춘 걸 지켜본다고 답이 달라지진 않아.`,
-    (t,high)=>high?`${t[1]}에 손대지 않고 기다려 준 건 기억해둘게.`:`${t[1]} 앞에서 허락을 기다린 선택은 나쁘지 않았어.`,
-    (t,high)=>high?`정답 대신 시간을 준 덕분에 ${J(t[0],"을","를")} 어디에 둘지 알 것 같아.`:`${t[0]}의 자리는 서두르지 않아도 내가 정할 수 있어.`,
-    (t,high)=>high?`치우라는 말이 없으니 ${J(t[0],"을","를")} 남겨둔 이유도 숨기고 싶지 않네.`:`${J(t[1],"을","를")} 그대로 두겠다는 선택도 있는 법이야.`,
-    (t,high)=>high?`${J(t[0],"을","를")} 대신 고르지 않은 태도가 오히려 결정을 쉽게 해줬어.`:`${t[0]}에 대한 결정을 존중한다는 말은 그 뒤에도 지켜봐야 알 수 있지.`,
-    (t,high)=>high?`${t[1]} 앞에서 대답을 요구하지 않는 침묵이라면 조금 더 머물러도 괜찮아.`:`${J(t[0],"을","를")} 두고 말이 없다고 반드시 가까워진 건 아니야. 그래도 방해는 안 되네.`,
-    (t,high)=>high?`${t[0]}의 끝을 재촉하지 않는 사람이 있으니 오늘 밤은 덜 길게 느껴져.`:`${J(t[1],"이","가")} 정리되길 기다리는 건 네 선택이야. 나는 하던 일을 마칠 거고.`
+  const SOFT_TAILS=ACTIVE_TAILS.map((fn,index)=>(c,t)=>{
+    const base=fn(c,t);
+    const turns=[
+      "네가 먼저 손대지 않은 건 마음에 드네.",
+      "보고만 있어도 되는 순간을 아는 건 꽤 드문 재주야.",
+      "재촉하지 않으니 내가 생각할 틈이 생겼어.",
+      "말보다 거리를 지켜준 쪽이 더 정확한 반응이었어.",
+      "굳이 대신 결정하지 않은 건 잘했어.",
+      "이건 내가 먼저 움직일 때까지 두는 편이 낫겠어.",
+      "질문보다 기다림이 더 맞는 순간도 있으니까.",
+      "지금은 설명보다 네가 가만히 있는 쪽이 편하네."
+    ];
+    return `${base} ${turns[index%turns.length]}`;
+  });
+  const ASMODEUS_LOW=[
+    "손부터 뻗기 전에 눈으로 물어보는 건 합격이야, 베이비. 욕망에도 매너는 있거든.",
+    "그렇게 궁금해도 멋대로 만지진 마. 천박한 건 좋아하지만 무례한 건 질색이라서.",
+    "피즈 물건은 특히 조심해. 애인 물건 함부로 휘젓는 건 침대에서도 무대에서도 촌스러운 짓이야.",
+    "가까이 와도 돼. 다만 허락은 분위기로 때우는 게 아니라 확실히 받는 거야."
   ];
-  const CLOSE_BY_STYLE={
-    formal:{active:(t,h)=>h?`${t[0]}에 관한 다음 판단도 당신에게는 숨기지 않겠습니다.`:`설명은 여기까지지만, 질문 자체는 타당했습니다.`,soft:(t,h)=>h?`함께 머문 시간까지 ${t[0]}의 기록에 남겨두고 싶군요.`:`선을 지켜준 점은 분명히 기억하겠습니다.`},
-    clipped:{active:(t,h)=>h?`${t[0]} 얘기는 다음에도 네게 먼저 하겠다.`:`답은 줬다. 나머지는 행동으로 봐.`,soft:(t,h)=>h?`남아 있어. 지금은 그게 도움이 된다.`:`위치는 그대로. 방해만 하지 마.`},
-    archaic:{active:(t,h)=>h?`${t[0]}의 뒷이야기 또한 때가 오면 그대에게 들려주리다.`:`물음에는 답하였으니 성급히 결론짓지는 말거라.`,soft:(t,h)=>h?`말 없는 동행 또한 귀한 예를 갖춘 대화임을 알겠구려.`:`그대가 지킨 거리를 나 또한 존중하리다.`},
-    excited:{active:(t,h)=>h?`좋아!! 다음 ${t[0]} 이야기도 제일 먼저 들려줄게!!!`:`이제 이유도 알았으니까 같이 다음 걸 해보자!!`,soft:(t,h)=>h?`말하지 않아도 같이 있는 방법이 있다는 게 정말 좋아!!!`:`기다려 줬으니까 이번엔 내가 먼저 움직일게!!`},
-    crude:{active:(t,h)=>h?`${t[0]} 얘기까지 들었으면 이제 꽤 깊이 들어온 거야. 도망가진 마.`:`됐지? 더 캐면 이번엔 내가 질문한다.`,soft:(t,h)=>h?`말없이 버티는 것도 재주네. 그 재주, 다음에도 가져와.`:`눈치껏 있는 건 허락할게. 괜히 감동적인 표정은 짓지 마.`},
-    showman:{active:(t,h)=>h?`다음 ${t[0]} 막이 오르면 당신 자리는 앞줄로 비워두지요!`:`훌륭한 질문이었으나 해설은 이 정도가 가장 아름답습니다!`,soft:(t,h)=>h?`침묵까지 즐길 줄 아는 관객은 오래 곁에 두고 싶은 법이지요.`:`막이 다시 오를 때까지 그 자리에서 조용히 기다리시지요.`},
-    tech:{active:(t,h)=>h?`${t[0]} 관련 다음 로그는 네 접근 권한으로 먼저 열어두지.`:`필요한 데이터는 줬어. 해석은 네 처리 능력에 맡긴다.`,soft:(t,h)=>h?`개입하지 않은 선택도 유효한 입력이야. 예상보다 마음에 드네.`:`대기 상태 유지. 내가 다음 단계로 넘길 때까지 건드리지 마.`},
-    elegant:{active:(t,h)=>h?`${t[0]}에 얽힌 다음 장면도 당신에게라면 제대로 들려주고 싶군요.`:`이 정도 설명이면 호기심은 잠시 달랠 수 있겠지요.`,soft:(t,h)=>h?`말보다 오래 남는 동행도 있다는 걸 오늘 다시 알았어요.`:`서두르지 않는 태도에는 그에 맞는 예의를 돌려드리죠.`},
-    dry:{active:(t,h)=>h?`${t[0]} 얘기를 여기까지 했으니 다음엔 네 쪽 이야기도 들어야겠네.`:`설명은 끝. 생각은 알아서 해.`,soft:(t,h)=>h?`그냥 있어. 조용한 사람 하나쯤은 나쁘지 않으니까.`:`가만히 있을 거면 상관없어. 그 이상은 기대하지 말고.`},
-    gentle:{active:(t,h)=>h?`다음 ${t[0]} 이야기도 함께 정리해주면 좋겠어요.`:`물어봐 줘서 오히려 제 생각이 조금 선명해졌어요.`,soft:(t,h)=>h?`기다려 주는 마음도 대답이라는 걸 이제 알 것 같아요.`:`부담을 주지 않아서 고마워요. 천천히 해볼게요.`},
-    casual:{active:(t,h)=>h?`${t[0]} 얘기는 다음에도 네게 먼저 해줄게.`:`궁금한 건 풀렸지? 나머지는 다음에 보자.`,soft:(t,h)=>h?`같이 조용히 있는 것도 생각보다 괜찮네.`:`기다려 준 건 고마워. 이제 내가 알아서 할게.`}
-  };
-  const ACTIVE_CONTEXT=[
-    t=>`오늘 아침의 ${J(t[1],"은","는")} 이 상태로 남겨두자.`,
-    t=>`짧은 틈이 끝나기 전에 ${t[0]}부터 정리하면 돼.`,
-    t=>`${J(t[1],"을","를")} 다시 꺼낼 때는 지금보다 말을 덜 고르겠지.`,
-    t=>`적어도 ${J(t[0],"이","가")} 머물 자리는 이번에 정해졌어.`,
-    t=>`남겨둔 ${J(t[1],"은","는")} 오늘 답의 증거로 충분해.`,
-    t=>`결정한 뒤에도 ${t[0]}에 관한 생각은 네게 알려줄게.`,
-    t=>`이 침묵이 끝나면 ${t[1]}부터 천천히 움직일 거야.`,
-    t=>`밤이 지나기 전 ${t[0]}만큼은 내 방식으로 마무리하겠어.`
+  const ASMODEUS_HIGH=[
+    "좋아, 네가 기다리는 방식은 꽤 섹시하네. 서두르지 않는 사람이 오래 즐기는 법이지.",
+    "피즈가 이걸 아끼는 이유까지 네게 말해도 되겠다. 입 무겁게 굴면 다음 얘기도 있고.",
+    "네 앞에선 야한 농담이랑 진짜 걱정을 같은 문장에 넣어도 안 어색하네. 그게 꽤 마음에 들어.",
+    "젠틀하게 말하면 신뢰고, 천박하게 말하면 내 사람 물건엔 손버릇 조심하라는 뜻이야. 둘 다 맞아."
   ];
-  const SOFT_CONTEXT=[
-    t=>`${t[1]} 사이로 들어온 아침빛이 조금 전보다 편안해 보인다.`,
-    t=>`${J(t[0],"을","를")} 사이에 둔 휴식이 어색하지 않게 이어진다.`,
-    t=>`${J(t[1],"을","를")} 쥔 손에서 더는 경계하는 힘이 느껴지지 않는다.`,
-    t=>`${t[0]}의 자리를 정하는 일이 더 이상 급해 보이지 않는다.`,
-    t=>`방 한쪽의 ${J(t[1],"이","가")} 치워야 할 흔적이 아닌 기억으로 남는다.`,
-    t=>`${t[0]}에 관한 선택이 강요가 아닌 약속에 가까워진다.`,
-    t=>`${t[1]} 곁의 침묵이 이번에는 대화를 피하는 방식으로 느껴지지 않는다.`,
-    t=>`늦은 밤의 ${J(t[0],"이","가")} 둘 사이에 무겁지 않은 여운을 남긴다.`
-  ];
-  const SOFT_SPOKEN_CONTEXT=[
-    t=>`오늘 아침엔 ${J(t[0],"을","를")} 서둘러 끝내지 않아도 되겠네.`,
-    t=>`이 짧은 틈만큼은 ${t[1]}도 잠시 그대로 두지.`,
-    t=>`${J(t[1],"을","를")} 다시 보여줄지는 내가 먼저 정해서 말할게.`,
-    t=>`${t[0]}의 자리는 생각이 정리된 뒤 옮기면 돼.`,
-    t=>`남아 있는 ${t[1]}도 오늘은 흔적이 아니라 기억으로 보이는군.`,
-    t=>`${t[0]}에 대한 선택은 내일 바뀌어도 괜찮다고 생각해.`,
-    t=>`이 침묵 뒤에는 ${t[1]} 이야기를 내가 먼저 꺼낼 수도 있겠어.`,
-    t=>`밤이 끝날 때까지 ${J(t[0],"과","와")} 여기 있어도 괜찮겠네.`
-  ];
-  const activeFirst=(theme,momentIndex,high)=>`${ACTIVE_LEADS[momentIndex%ACTIVE_LEADS.length]}${high?theme[3]:theme[2]}`;
-  const softFirst=(theme,momentIndex,high)=>`${SOFT_FIRST[momentIndex%SOFT_FIRST.length](theme,high)} ${high?theme[3]:theme[2]}`;
-  const closeLine=(char,theme,branch,high,momentIndex)=>{
-    const spoken=CLOSE_BY_STYLE[styleOf(char.id)][branch](theme,high);
-    return branch==="active"
-      ?`${spoken} ${ACTIVE_CONTEXT[momentIndex%ACTIVE_CONTEXT.length](theme)}`
-      :`${spoken} ${SOFT_SPOKEN_CONTEXT[momentIndex%SOFT_SPOKEN_CONTEXT.length](theme)}`;
+  const responseLine=(char,theme,momentIndex,kind,high)=>{
+    const core=high?theme[3]:theme[2];
+    const tail=(kind==="active"?ACTIVE_TAILS:SOFT_TAILS)[momentIndex%(kind==="active"?ACTIVE_TAILS.length:SOFT_TAILS.length)](char,theme);
+    if(char.id==="asmodeus"){
+      const spice=(high?ASMODEUS_HIGH:ASMODEUS_LOW)[momentIndex%4];
+      return `${core} ${spice} ${tail}`;
+    }
+    if(char.id==="alastor")return `${core} 하하, ${tail}`;
+    if(char.id==="vox")return `${core} 화면에 띄우면 단순해 보이겠지만, ${tail}`;
+    if(char.id==="baxter")return `${core} 관찰 결과를 덧붙이자면, ${tail}`;
+    if(char.id==="charlie-morningstar"||char.id==="emily")return `${core} 그리고 있잖아! ${tail}`;
+    if(char.id==="lute")return `${core} ${tail}`;
+    if(char.id==="velvette")return `${core} 이건 피드용 멘트 아니고 진짜로, ${tail}`;
+    if(char.id==="sir-pentious")return `${core} 그리고 명심하게! ${tail}`;
+    return `${core} ${tail}`;
   };
 
   const makeEvent=(char,theme,themeIndex,moment,momentIndex,eventIndex)=>{
@@ -452,12 +466,9 @@
       id:`${base}-${kind}`,
       label,
       entries:[
-        D(`${base}-${kind}-low1`,char.id,char.name,kind==="active"?activeFirst(theme,momentIndex,false):softFirst(theme,momentIndex,false),low),
-        D(`${base}-${kind}-high1`,char.id,char.name,kind==="active"?activeFirst(theme,momentIndex,true):softFirst(theme,momentIndex,true),high),
-        N(`${base}-${kind}-n`,naturalize(beat(char,theme),theme)),
-        D(`${base}-${kind}-low2`,char.id,char.name,closeLine(char,theme,kind,false,momentIndex),low),
-        D(`${base}-${kind}-high2`,char.id,char.name,closeLine(char,theme,kind,true,momentIndex),high),
-        ...(kind==="soft"?[N(`${base}-${kind}-after`,SOFT_CONTEXT[momentIndex%SOFT_CONTEXT.length](theme))]:[])
+        D(`${base}-${kind}-low`,char.id,char.name,responseLine(char,theme,momentIndex,kind,false),low),
+        D(`${base}-${kind}-high`,char.id,char.name,responseLine(char,theme,momentIndex,kind,true),high),
+        N(`${base}-${kind}-n`,naturalize(beat(char,theme),theme))
       ],
       affectionEffects:[{id:`${base}-${kind}-affection`,characterId:char.id,amount:1}],
       exitMode:"continue"
@@ -471,9 +482,9 @@
       randomEligible:true,
       entries:[
         N(base+"-n",naturalize(moment.setup(char,theme),theme)),
-        Q(base+"-choice",`${moment.suffix} 상황에서 어떻게 반응할까?`,[
+        Q(base+"-choice",`${moment.suffix}에서 어떤 태도를 취할까?`,[
           branch("active",moment.first,moment.after),
-          branch("soft",moment.follow,(c,t)=>`${moment.suffix}의 긴장을 재촉하지 않자 ${c.display}가 ${t[1]} 곁에서 천천히 호흡을 고른다.`)
+          branch("soft",moment.follow,(c,t)=>`${c.display}가 재촉받지 않은 채 ${t[1]}을(를) 다시 살핀다.`)
         ])
       ]
     };
@@ -490,7 +501,7 @@
     }
     window.HV_STORY_PACKS.push({
       id:"solo-talks-"+slug(char.id),
-      version:2,
+      version:3,
       requiredCharacterIds:[char.id],
       events
     });
