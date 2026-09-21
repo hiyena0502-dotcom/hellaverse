@@ -810,3 +810,17 @@ details.advanced summary{cursor:pointer;color:var(--gold);font-size:.72rem}
   .auto-reaction-browser>summary{grid-template-columns:auto auto}
   .auto-reaction-browser>summary small{grid-column:1/-1}
 }
+
+
+/* v38 · gacha profile archive */
+.gacha-profile-editor-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px;margin-top:12px}
+.gacha-profile-editor-card{display:grid;grid-template-columns:42px minmax(0,1fr);gap:10px;padding:11px;border:1px solid var(--line);border-radius:7px;background:rgba(255,255,255,.012)}
+.gacha-profile-editor-card>span{font-size:1.55rem;text-align:center}
+.gacha-profile-editor-card>div{min-width:0}
+.gacha-profile-editor-card strong{display:block;font-size:.76rem}
+.gacha-profile-editor-card small{display:block;margin-top:3px;color:var(--gold);font-size:.58rem;letter-spacing:.06em}
+.gacha-profile-editor-card p{margin:7px 0 0;color:var(--muted);font-size:.66rem;line-height:1.45}
+.editor-single-detail.item-row{grid-template-columns:minmax(0,1.4fr) 90px repeat(3,minmax(120px,1fr)) auto;gap:8px}
+.editor-single-detail.item-row>.full-row,.editor-single-detail.item-row>.interaction-response-editor{grid-column:1/-1}
+@media(max-width:1100px){.editor-single-detail.item-row{grid-template-columns:repeat(2,minmax(0,1fr))}.editor-single-detail.item-row>.full-row,.editor-single-detail.item-row>.interaction-response-editor{grid-column:1/-1}}
+@media(max-width:760px){.editor-single-detail.item-row{grid-template-columns:1fr}.editor-single-detail.item-row>.full-row,.editor-single-detail.item-row>.interaction-response-editor{grid-column:auto}}
