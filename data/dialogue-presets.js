@@ -125,8 +125,9 @@
   const pruneRetiredSoloTalk=source=>{
     const currentIds=new Set();
     for(const pack of window.HV_STORY_PACKS||[]){
-      if(!String(pack?.id||"").startsWith("solo-talks-"))continue;
-      for(const event of pack.events||[])currentIds.add(event.id);
+      for(const event of pack.events||[]){
+        if(String(event?.id||"").startsWith("solo-talk-"))currentIds.add(event.id);
+      }
     }
     if(!currentIds.size)return false;
     const before=(source.events||[]).length;
