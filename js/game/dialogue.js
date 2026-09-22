@@ -152,8 +152,22 @@ function rememberContinuousEvent(id){
   playback.autoVisitedEventIds=Array.isArray(playback.autoVisitedEventIds)?playback.autoVisitedEventIds:[];
   if(!playback.autoVisitedEventIds.includes(id))playback.autoVisitedEventIds.push(id);
 }
+function eventAllowedForPlayerOrigin(ev){
+  if(!ev)return false;
+  const origin=String(state.profile?.origin||"").toLowerCase();
+  const explicit=Array.isArray(ev.playerOrigins)?ev.playerOrigins.map(String).map(x=>x.toLowerCase()).filter(Boolean):[];
+  if(explicit.length&&!explicit.includes(origin))return false;
+
+  // Legacy origin-specific TALK authored before event-level origin restrictions existed.
+  // Keep the dialogue intact, but only offer it to WINNER players.
+  const name=String(ev.name||"").replace(/^\s*TALK\s*[·:|\-]\s*/i,"").trim();
+  if(ev.characterId==="lucifer-morningstar"&&name==="위너가 여기까지 왔네"){
+    return origin==="winner";
+  }
+  return true;
+}
 function eventHasPlayableStart(ev){
-  if(!ev||!Array.isArray(ev.entries)||!ev.entries.length)return false;
+  if(!ev||!eventAllowedForPlayerOrigin(ev)||!Array.isArray(ev.entries)||!ev.entries.length)return false;
   return ev.entries.some(entry=>{
     if(!ownerPasses(entry))return false;
     if(entry.type==="choice")return visibleOptions(entry).length>0;
@@ -256,7 +270,7 @@ function shuffleTalk(){
   return true;
 }
 function relationshipProgress(characterId){
-  const talkIds=talkEventsForCharacter(characterId).map(event=>event.id);
+  const talkIds=talkEventsForCharacter(characterId).filter(eventAllowedForPlayerOrigin).map(event=>event.id);
   const talkSeen=talkIds.filter(id=>(state.discoveredTalkIds||[]).includes(id)).length;
   const asks=asksForCharacter(characterId);
   const askSeen=asks.filter(ask=>(state.askedAskIds||[]).includes(ask.id)).length;
