@@ -213,7 +213,7 @@ for(const id of ["luc_t65_tension","luc_t65_push","luc_t65_closed","luc_t66_tens
   assert.ok((luciferWith6567.variables||[]).some(variable=>variable.id===id),"Lucifer 65-67 system variable missing: "+id);
 }
 const lucifer6567Text=JSON.stringify(luciferWith6567.events.slice(64,67));
-for(const phrase of ["…이건 좀 못 본 척해주면 안 돼?","전부은 안 돼.","그런 질문 쉽게 하지 마.","나중엔 말할 수도 있고.","이건 입장권은 아니잖아.","그러니까 안 잃어버릴 거야."]){
+for(const phrase of ["…이건 좀 못 본 척해주면 안 돼?","전부는 안 돼.","그런 질문 쉽게 하지 마.","나중엔 말할 수도 있고.","이건 입장권은 아니잖아.","그러니까 안 잃어버릴 거야."]){
   assert.ok(lucifer6567Text.includes(phrase),"Lucifer TALK 65-67 must preserve the revised user-authored text: "+phrase);
 }
 const luciferFirst67Ids=Array.from(luciferWith6567.events.slice(0,67),event=>event.id);
