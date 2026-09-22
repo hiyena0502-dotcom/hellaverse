@@ -9,6 +9,7 @@ const jsFiles=[
   "data/story-packs.js",
   "data/character-events.js",
   "data/relationship-content.js",
+  "data/lucifer-talk-13-20.js",
   "data/solo-talks.js",
   "data/character-banter.js",
   "data/item-presets.js",
@@ -100,6 +101,7 @@ assert.match(editorUi,/event-random-eligible/,"random TALK eligibility editor co
 assert.match(index,/data\/relationship-content\.js/,"relationship content script missing from build");
 assert.match(index,/data\/solo-talks\.js/,"solo TALK content script missing from build");
 assert.match(index,/data\/character-banter\.js/,"character banter content script missing from build");
+assert.match(index,/data\/lucifer-talk-13-20\.js/,"Lucifer TALK 13-20 script missing from build");
 
 const soloTalkContext={window:{HV_STORY_PACKS:[]}};
 vm.runInNewContext(soloTalkCode,soloTalkContext);
@@ -115,13 +117,15 @@ const walkEntries=(entries,visit)=>{
 
 const topicPoolCode=read("data/topic-pool-500.js");
 const characterTopicTalkCode=read("data/character-topic-talks-52.js");
+const luciferTalk1320Code=read("data/lucifer-talk-13-20.js");
 const topicTalkContext={window:{HV_STORY_PACKS:[]}};
 vm.runInNewContext(topicPoolCode,topicTalkContext);
 vm.runInNewContext(characterTopicTalkCode,topicTalkContext);
+vm.runInNewContext(luciferTalk1320Code,topicTalkContext);
 const luciferTopicPack=(topicTalkContext.window.HV_STORY_PACKS||[]).find(pack=>pack.id==="pooltalk-52-lucifer-morningstar");
 assert.ok(luciferTopicPack,"Lucifer topic TALK pack missing");
-assert.equal(luciferTopicPack.version,51,"Lucifer topic TALK must use five-band implementation version 51");
-assert.ok((luciferTopicPack.events||[]).length>=12,"Lucifer topic TALK must keep at least 12 topics");
+assert.equal(luciferTopicPack.version,52,"Lucifer topic TALK must use the 01-20 five-band implementation version 52");
+assert.ok((luciferTopicPack.events||[]).length>=20,"Lucifer topic TALK must keep at least 20 topics");
 const luciferFirstTwelve=luciferTopicPack.events.slice(0,12);
 assert.equal(JSON.stringify(Array.from(luciferFirstTwelve,event=>event.startMode)),JSON.stringify(["PLAYER_ASK","EVENT","PLAYER_ASK","CHARACTER_OPEN","PLAYER_ASK","EVENT","EVENT","PLAYER_ASK","EVENT","PLAYER_ASK","PLAYER_ASK","PLAYER_ASK"]),"Lucifer 01-12 start modes must follow the design document");
 const allowedBands=new Set(["COLD","DISTANT","NEUTRAL","WARM","CLOSE"]);
@@ -140,6 +144,35 @@ assert.ok(bandedLuciferResponses>=100,"Lucifer 01-12 must contain substantial fi
 for(const id of ["luc_t01_tension","luc_t01_push","luc_t01_closed","luc_t11_tension","luc_t12_closed","luc_alastor_irritation","luc_work_avoidance"]){
   assert.ok((luciferTopicPack.variables||[]).some(variable=>variable.id===id),"Lucifer system variable missing: "+id);
 }
+
+const luciferThirteenToTwenty=luciferTopicPack.events.slice(12,20);
+assert.equal(JSON.stringify(Array.from(luciferThirteenToTwenty,event=>event.startMode)),JSON.stringify(["PLAYER_ASK","PLAYER_ASK","EVENT","EVENT","PLAYER_ASK","PLAYER_ASK","EVENT","CHARACTER_OPEN"]),"Lucifer 13-20 start modes must follow the design document");
+assert.equal(JSON.stringify(Array.from(luciferThirteenToTwenty,event=>event.sensitivity)),JSON.stringify(["light","high","light","medium","medium","medium","light","light"]),"Lucifer 13-20 sensitivity levels must follow the design document");
+assert.equal(JSON.stringify(Array.from(luciferThirteenToTwenty,event=>event.entries.find(entry=>entry.type==="choice")?.options?.length)),JSON.stringify([3,4,4,4,4,4,3,3]),"Lucifer 13-20 root choice counts must follow the design document");
+let laterBandedLuciferResponses=0;
+const laterIds=[];
+for(const event of luciferThirteenToTwenty){
+  const openingTypes=event.entries.slice(0,event.startMode==="PLAYER_ASK"?3:2).map(entry=>entry.type);
+  if(event.startMode==="PLAYER_ASK")assert.equal(JSON.stringify(Array.from(openingTypes)),JSON.stringify(["narration","dialogue","dialogue"]),event.id+" must open with situation, PLAYER question, and Lucifer response");
+  else assert.equal(openingTypes[0],"narration",event.id+" must open with visible event narration");
+  walkEntries(event.entries,owner=>{
+    if(owner?.id){assert.ok(!laterIds.includes(owner.id),owner.id+" must be unique");laterIds.push(owner.id)}
+    const condition=owner?.affectionCondition;
+    if(condition?.characterId==="lucifer-morningstar"){
+      assert.notEqual(Number(condition.value),58,event.id+" must not use the old 58 split");
+      if(condition.band){assert.ok(allowedBands.has(condition.band),event.id+" has invalid affection band");laterBandedLuciferResponses++}
+    }
+  });
+}
+assert.ok(laterBandedLuciferResponses>=100,"Lucifer 13-20 must contain substantial five-band response coverage");
+for(const id of ["luc_t13_tension","luc_t14_closed","luc_t18_push","luc_t20_closed","luc_charlie_soft"]){
+  assert.ok((luciferTopicPack.variables||[]).some(variable=>variable.id===id),"Lucifer 13-20 system variable missing: "+id);
+}
+assert.doesNotMatch(luciferTalk1320Code,/호텔 일상 쪽은|왕실 쪽은|하, 그건 이렇게 보자|오케이, 왕의 짧은 의견 하나/,"Lucifer 13-20 must not retain generic generated dialogue");
+const luciferVariableIds=new Set((luciferTopicPack.variables||[]).map(variable=>variable.id));
+for(const event of luciferTopicPack.events.slice(0,20))walkEntries(event.entries,owner=>{
+  for(const effect of owner?.effects||[])if(effect.variableId)assert.ok(luciferVariableIds.has(effect.variableId),owner.id+" references missing variable "+effect.variableId);
+});
 
 const soloEventIds=new Set();
 const allSoloCharacterLines=[];
