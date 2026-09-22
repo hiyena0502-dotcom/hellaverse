@@ -102,6 +102,16 @@ function defaultState(){
   };
 }
 
+function normalizeEmotionImages(raw={}){
+  const source=raw&&typeof raw==="object"?raw:{};
+  return Object.fromEntries(EMOTIONS.map(([id])=>{
+    const row=source[id]&&typeof source[id]==="object"?source[id]:{};
+    return [id,{
+      image:String(row.image||""),
+      scale:Math.max(.5,Math.min(2,Number(row.scale)||1))
+    }];
+  }));
+}
 function normalizeCharacter(c={}){
   return {
     id:c.id || uid("char"),
@@ -110,6 +120,7 @@ function normalizeCharacter(c={}){
     role:c.role || "",
     quote:c.quote || "",
     image:c.image || "",
+    emotionImages:normalizeEmotionImages(c.emotionImages),
     enabled:c.enabled !== false,
     affectionStart:clamp(c.affectionStart,0,100,0),
     emotionDefault:EMOTIONS.some(x=>x[0]===c.emotionDefault) ? c.emotionDefault : "calm",
