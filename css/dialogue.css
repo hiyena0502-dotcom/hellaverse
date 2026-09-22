@@ -83,6 +83,8 @@
   max-width:min(58vw,720px);
   max-height:72vh;
   object-fit:contain;
+  transform:scale(var(--character-image-scale,1));
+  transform-origin:center bottom;
   opacity:.82;
   filter:drop-shadow(0 34px 46px rgba(0,0,0,.55))
 }
@@ -91,8 +93,8 @@
   animation:room-speaker-shift .28s ease-out
 }
 @keyframes room-speaker-shift{
-  from{opacity:.2;transform:translateY(10px) scale(.985)}
-  to{opacity:.82;transform:none}
+  from{opacity:.2;transform:translateY(10px) scale(calc(var(--character-image-scale,1) * .985))}
+  to{opacity:.82;transform:scale(var(--character-image-scale,1))}
 }
 .dialogue-box,.choice-box,.room-empty{
   position:relative;
