@@ -56,7 +56,7 @@
           dialogue("welcome-01-d5",C.lucifer,"LUCIFER","걱정할 것 없단다! 환영 담당은 이미 완성했으니까!"),
           narration("welcome-01-n2","루시퍼가 금색 천으로 덮인 커다란 상자를 두드린다. 상자 안에서 여러 마리의 꽥꽥거리는 소리가 난다."),
           dialogue("welcome-01-d6",C.angel,"ANGEL DUST","저 상자, 방금 단체로 울었는데? 환영 담당 맞아?"),
-          dialogue("welcome-01-d7",C.lucifer,"LUCIFER","자동 인사와 삼부 합창이 가능한 왕실 환영용 오리 합창단이야."),
+          dialogue("welcome-01-d7",C.lucifer,"LUCIFER","자동 인사와 삼부 합창이 가능한 오리 합창단이야. 내가 만들었으니 당연히 수준은 높고."),
           dialogue("welcome-01-d8",C.alastor,"ALASTOR","기계 새에게 첫인상을 맡기다니. 실패 방식도 참 현대적이군요."),
           dialogue("welcome-01-d9",C.baxter,"BAXTER","누가 장식 조명을 실험실 전원에 연결했지? 이대로면 로비가 세 번은 꺼져."),
           dialogue("welcome-01-d10",C.angel,"ANGEL DUST","세 번 켜면 되는 거 아냐?"),
@@ -246,7 +246,7 @@
           dialogue("fridge-01-d4",C.charlie,"CHARLIE","괜찮아, 화내기 전에 차근차근 확인하면—"),
           dialogue("fridge-01-d5",C.vaggie,"VAGGIE","이미 모두가 서로를 범인처럼 보고 있어."),
           player("fridge-01-d6","그럼 재판 말고 사실 확인부터 하죠. 마지막으로 본 사람은요?"),
-          dialogue("fridge-01-d7",C.lucifer,"LUCIFER","나는 냉장고 안에 왕실 디저트 보안 장치를 설치했을 뿐이란다."),
+          dialogue("fridge-01-d7",C.lucifer,"LUCIFER","내 디저트에 보안 장치를 좀 달았을 뿐이란다. 남의 디저트였으면 안 했겠지."),
           dialogue("fridge-01-d8",C.husk,"HUSK","…왜 그걸 이제 말하지?"),
           dialogue("fridge-01-d9",C.lucifer,"LUCIFER","아무도 보안 장치가 용의자일 거라곤 안 물었으니까.")
         ]
@@ -271,7 +271,7 @@
             ],{effects:[effect("fridge-02-o1-fx","hotel_fridge_result","set","trail")]}),
             option("fridge-02-o2","루시퍼의 보안 장치를 재현한다",[
               player("fridge-02-o2-d1","보안 장치가 뭘 하는지 같은 상자로 재현해 보죠."),
-              dialogue("fridge-02-o2-d2",C.lucifer,"LUCIFER","좋아! 과학적이고 왕실다운 접근이야."),
+              dialogue("fridge-02-o2-d2",C.lucifer,"LUCIFER","좋아! 과학적이고, 무엇보다 내 방식답네."),
               dialogue("fridge-02-o2-d3",C.baxter,"BAXTER","그 두 단어가 같이 쓰인 게 불안하군.")
             ],{effects:[effect("fridge-02-o2-fx","hotel_fridge_result","set","device")]}),
             option("fridge-02-o3","모두의 알리바이를 한 문장으로 제한한다",[
@@ -424,7 +424,7 @@
         continuationEventIds:["hotel-photo-03-result"],
         entries:[
           narration("photo-02-n1","카메라 렌즈 둘레에 금빛 왕관 모양 장식이 생겼다. 백스터가 아무 말 없이 루시퍼를 본다."),
-          dialogue("photo-02-d1",C.lucifer,"LUCIFER","작은 보정이야. 왕실 사진에는 왕실 광택이 필요하거든."),
+          dialogue("photo-02-d1",C.lucifer,"LUCIFER","작은 보정이야. 내가 사진에 나오는데 이 정도 광택은 있어야지."),
           dialogue("photo-02-d2",C.baxter,"BAXTER","그 광택이 자동초점을 태우고 있어."),
           dialogue("photo-02-d3",C.alastor,"ALASTOR","사진 한 장을 위해 이렇게까지 기계를 달래야 하다니. 라디오의 시대가 그립군요."),
           dialogue("photo-02-d4",C.angel,"ANGEL DUST","라디오는 얼굴이 안 나오니까 네가 좋아하는 거겠지."),
@@ -475,7 +475,7 @@
           dialogue("laundry-01-d4",C.angel,"ANGEL DUST","내 실크 셔츠를 뜨거운 물에 넣은 건 아니지?"),
           dialogue("laundry-01-d5",C.husk,"HUSK","저 조그만 분홍 천이 네 거면 유감이군."),
           dialogue("laundry-01-d6",C.angel,"ANGEL DUST","그건 원래 그 크기야."),
-          dialogue("laundry-01-d7",C.lucifer,"LUCIFER","내 흰 코트는 특별 세탁이 필요한데. 왕실 섬유는 섬세하다고."),
+          dialogue("laundry-01-d7",C.lucifer,"LUCIFER","내 흰 코트는 특별 세탁이 필요해. 아무 옷이랑 같이 돌릴 물건은 아니거든."),
           dialogue("laundry-01-d8",C.baxter,"BAXTER","그 코트에서 약한 마력 방전이 측정된다. 세탁기 탓하지 마."),
           player("laundry-01-d9","옷 주인부터 찾죠. 특징 하나씩 말해요. 서로 놀리는 건 나중에."),
           dialogue("laundry-01-d10",C.husk,"HUSK","그 ‘나중에’가 제일 믿음직스럽군.")
@@ -552,7 +552,7 @@
           dialogue("game-01-d3",C.angel,"ANGEL DUST","상품 있어? 없으면 내가 만들게."),
           dialogue("game-01-d4",C.vaggie,"VAGGIE","상품 없음. 내기 없음. 속임수 없음."),
           dialogue("game-01-d5",C.alastor,"ALASTOR","규칙이 세 줄이나 되니 이미 절반은 깨졌겠군요."),
-          dialogue("game-01-d6",C.lucifer,"LUCIFER","그래서 내가 게임을 하나 가져왔지! 왕실 가족용 협동 보드게임!"),
+          dialogue("game-01-d6",C.lucifer,"LUCIFER","그래서 내가 게임을 하나 가져왔지! 내가 고른 가족용 협동 보드게임! 당연히 재미없을 리 없고."),
           narration("game-01-n2","루시퍼가 금빛 상자를 열자 작은 말들이 스스로 걸어 나와 테이블 위에 선다."),
           dialogue("game-01-d7",C.baxter,"BAXTER","왜 보드게임에서 마력 반응이 나와?"),
           dialogue("game-01-d8",C.lucifer,"LUCIFER","몰입감."),
@@ -669,7 +669,7 @@
           narration("movie-02-n1","영화가 시작되자 이번엔 소파 자리가 문제다. 엔젤은 담요를 두 장 차지했고, 루시퍼는 팔걸이에 왕관 모양 쿠션을 올려놨다."),
           dialogue("movie-02-d1",C.husk,"HUSK","난 바에 있을 거다. 거기선 아무도 내 팔걸이 안 훔쳐."),
           dialogue("movie-02-d2",C.angel,"ANGEL DUST","이건 훔친 게 아니라 선점이야."),
-          dialogue("movie-02-d3",C.lucifer,"LUCIFER","왕실 쿠션은 좌석이 아니라 상징물이란다."),
+          dialogue("movie-02-d3",C.lucifer,"LUCIFER","그 쿠션은 그냥 쿠션이 아니야. 내가 쓰던 거잖아."),
           dialogue("movie-02-d4",C.vaggie,"VAGGIE","그럼 상징물은 바닥에 둬."),
           narration("movie-02-horror-n1","첫 점프 스케어가 터지자 엔젤이 웃고, 찰리는 담요를 턱까지 끌어올린다.",{condition:{variableId:"hotel_movie_pick",operator:"==",value:"horror"}}),
           narration("movie-02-comedy-n1","첫 웃음 포인트에서 찰리가 가장 크게 웃고, 알래스터는 영화보다 주변 반응을 더 즐기는 표정이다.",{condition:{variableId:"hotel_movie_pick",operator:"==",value:"comedy"}}),
@@ -711,7 +711,7 @@
             option("movie-03-o3","소파에서 그대로 버틴다",[
               player("movie-03-o3-d1","전 여기서 안 움직일래요. 이미 너무 편해졌어요."),
               dialogue("movie-03-o3-d2",C.niffty,"NIFFTY","담요 덮어줄까? 얼굴까지?"),
-              dialogue("movie-03-o3-d3",C.lucifer,"LUCIFER","왕실 쿠션 하나 빌려주지.")
+              dialogue("movie-03-o3-d3",C.lucifer,"LUCIFER","내 쿠션 하나 빌려주지. 잘 다뤄.")
             ])
           ]),
           dialogue("movie-03-d9",C.charlie,"CHARLIE","그럼 다음 영화의 밤도 있는 걸로!"),
