@@ -67,7 +67,7 @@ function defaultState(){
     dialoguePresetVersion:0,
     profile:{name:"",origin:""},
     favoriteCharacterIds:[],
-    playState:{variables:{},affection:{},emotions:{},log:[],recentTalks:{}},
+    playState:{variables:{},affection:{},emotions:{},log:[],recentTalks:{},selectedOptionIds:[]},
     characters:defaultContentList("characters"),
     events:defaultContentList("events"),
     variables:defaultContentList("variables"),
@@ -1037,7 +1037,8 @@ function normalizePlayState(p={}){
           String(characterId),
           Array.isArray(ids)?[...new Set(ids.map(String).filter(Boolean))].slice(-3):[]
         ]).filter(([,ids])=>ids.length))
-      : {}
+      : {},
+    selectedOptionIds:Array.isArray(p.selectedOptionIds)?[...new Set(p.selectedOptionIds.map(String).filter(Boolean))].slice(-5000):[]
   };
 }
 function migrateStateV1ToV2(source){
@@ -1699,7 +1700,8 @@ function syncPlayStateFromSession(){
     affection:clone(session.affection||{}),
     emotions:clone(session.emotions||{}),
     log:Array.isArray(session.log)?session.log.slice(-200):[],
-    recentTalks:clone(session.recentTalks||{})
+    recentTalks:clone(session.recentTalks||{}),
+    selectedOptionIds:Array.isArray(session.selectedOptionIds)?[...new Set(session.selectedOptionIds.map(String).filter(Boolean))].slice(-5000):[]
   };
 }
 function progressStateFrom(source=state){
