@@ -419,11 +419,12 @@ function renderHome(){
   selectedCharacterId=ch.id;
   const aff=Math.round(session.affection[ch.id]??ch.affectionStart);
   const emo=session.emotions[ch.id]||{state:ch.emotionDefault,intensity:ch.emotionIntensity};
+  const imageScale=Math.max(.5,Math.min(2,Number(ch.imageScale)||1));
   const art=ch.image?'<img src="'+esc(ch.image)+'" alt="'+esc(ch.name)+'" />':'<div class="silhouette">'+esc(ch.name.slice(0,2).toUpperCase())+'</div>';
   pageRoot.innerHTML=
     '<section class="home-lobby">'+
       '<div class="lobby-character">'+
-        '<div class="home-character"><div class="character-art">'+art+'</div></div>'+
+        '<div class="home-character"><div class="character-art" style="--character-image-scale:'+imageScale+'">'+art+'</div></div>'+
         (chars.length>1?'<button class="lobby-arrow left" type="button" data-action="home-prev">‹</button><button class="lobby-arrow right" type="button" data-action="home-next">›</button>':'')+
         '<div class="lobby-copy"><p class="page-kicker">'+esc(originLabel(ch.origin))+'</p><h1>'+esc(ch.name)+'</h1>'+
           '<p class="role-line">'+esc(ch.role||"ROLE NOT SET")+'</p><p class="origin-line">AFFECTION '+aff+' · '+esc(emotionLabel(emo.state))+' '+emo.intensity+'</p>'+
@@ -458,10 +459,11 @@ function renderCharacters(){
     '</div>'+
     (visible.length?'<div class="character-directory-grid">'+visible.map(ch=>{
       const favorite=favorites.has(ch.id);
+      const imageScale=Math.max(.5,Math.min(2,Number(ch.imageScale)||1));
       const art=ch.image?'<img src="'+esc(ch.image)+'" alt="'+esc(ch.name)+'">':'<span class="directory-silhouette">'+esc(ch.name.slice(0,2).toUpperCase())+'</span>';
       return '<article class="character-directory-card '+(favorite?"favorite":"")+'">'+
         '<button class="character-favorite" type="button" data-action="character-favorite" data-id="'+esc(ch.id)+'" aria-label="즐겨찾기">'+(favorite?"★":"☆")+'</button>'+
-        '<button class="character-open" type="button" data-action="character-open" data-id="'+esc(ch.id)+'"><span class="directory-art">'+art+'</span>'+
+        '<button class="character-open" type="button" data-action="character-open" data-id="'+esc(ch.id)+'"><span class="directory-art" style="--character-image-scale:'+imageScale+'">'+art+'</span>'+
         '<span class="directory-copy"><small>'+esc(originLabel(ch.origin))+'</small><strong>'+esc(ch.name)+'</strong><p>'+esc(ch.role||ch.quote||"")+'</p><b>ROOM →</b></span></button></article>';
     }).join("")+'</div>':'<div class="empty-panel"><div><h2>조건에 맞는 캐릭터가 없습니다.</h2><p>검색어나 필터를 바꿔보세요.</p></div></div>')+
     '</section>';
