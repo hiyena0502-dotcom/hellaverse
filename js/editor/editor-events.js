@@ -153,6 +153,30 @@ async function handleCharacterImageFile(input){
     alert(error?.message||"이미지를 불러오지 못했습니다.");
   }
 }
+async function handleEmotionImageFile(input){
+  const file=input?.files?.[0];
+  const emotionId=input?.dataset.emotionImageFile;
+  if(!file||!EMOTIONS.some(([id])=>id===emotionId))return;
+  const character=editorDraft?.characters.find(row=>row.id===selectedEditorCharacterId);
+  if(!character)return;
+  const before=serializeEditorDraft();
+  try{
+    character.emotionImages=normalizeEmotionImages(character.emotionImages);
+    character.emotionImages[emotionId].image=await optimizeCharacterImageFile(file);
+    if(!editorLargeProject&&before!==serializeEditorDraft()){
+      if(editorUndoStack.at(-1)!==before)editorUndoStack.push(before);
+      if(editorUndoStack.length>12)editorUndoStack.shift();
+      editorRedoStack=[];
+      updateEditorHistoryButtons();
+    }
+    markEditorDirty();
+    renderCharacterImageEditor();
+  }catch(error){
+    alert(error?.message||"이미지를 불러오지 못했습니다.");
+  }finally{
+    input.value="";
+  }
+}
 
 /* APP EVENTS */
 originChoice.addEventListener("click",e=>{
@@ -389,6 +413,18 @@ editorBody.addEventListener("click",e=>{
     const c=normalizeCharacter({id:uid("char"),name:"새 캐릭터"});editorDraft.characters.push(c);selectedEditorCharacterId=c.id;renderCharacterManager();return;
   }
   if(a==="select-character"){selectedEditorCharacterId=b.dataset.id;renderCharacterManager();return}
+  if(a==="select-image-character"){selectedEditorCharacterId=b.dataset.id;renderCharacterImageEditor();return}
+  if(a==="clear-emotion-image"){
+    const character=editorDraft.characters.find(row=>row.id===selectedEditorCharacterId);
+    const emotionId=b.dataset.emotion;
+    if(!character||!EMOTIONS.some(([id])=>id===emotionId))return;
+    checkpointEditor();
+    character.emotionImages=normalizeEmotionImages(character.emotionImages);
+    character.emotionImages[emotionId].image="";
+    markEditorDirty();
+    renderCharacterImageEditor();
+    return;
+  }
   if(a==="clear-character-image"){
     const character=editorDraft.characters.find(row=>row.id===selectedEditorCharacterId);
     if(!character||!character.image)return;
@@ -645,6 +681,10 @@ editorBody.addEventListener("change",e=>{
     handleCharacterImageFile(e.target);
     return;
   }
+  if(e.target.matches("[data-emotion-image-file]")){
+    handleEmotionImageFile(e.target);
+    return;
+  }
   if(!editorLargeProject){
     const before=e.target.dataset.undoStart;
     if(before&&before!==serializeEditorDraft()){
@@ -660,6 +700,23 @@ editorBody.addEventListener("change",e=>{
 });
 function handleEditorField(e){
   const t=e.target;
+
+  if(t.dataset.emotionImageScale){
+    const character=editorDraft?.characters.find(row=>row.id===selectedEditorCharacterId);
+    const emotionId=t.dataset.emotionImageScale;
+    if(!character||!EMOTIONS.some(([id])=>id===emotionId))return;
+    character.emotionImages=normalizeEmotionImages(character.emotionImages);
+    const scale=Math.max(.5,Math.min(2,Number(t.value)||1));
+    character.emotionImages[emotionId].scale=scale;
+    const card=t.closest("[data-emotion-image-card]");
+    const preview=card?.querySelector(".emotion-image-preview");
+    if(preview)preview.style.setProperty("--emotion-image-scale",scale);
+    const output=card?.querySelector("[data-emotion-scale-output]");
+    if(output)output.textContent=Math.round(scale*100)+"%";
+    const label=card?.querySelector(".emotion-image-scale b");
+    if(label)label.textContent=Math.round(scale*100)+"%";
+    return;
+  }
 
   if(t.hasAttribute("data-continuation-search")){
     editorContinuationQuery=t.value;
