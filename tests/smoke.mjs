@@ -123,7 +123,7 @@ assert.ok(luciferTopicPack,"Lucifer topic TALK pack missing");
 assert.equal(luciferTopicPack.version,51,"Lucifer topic TALK must use five-band implementation version 51");
 assert.ok((luciferTopicPack.events||[]).length>=12,"Lucifer topic TALK must keep at least 12 topics");
 const luciferFirstTwelve=luciferTopicPack.events.slice(0,12);
-assert.deepEqual(luciferFirstTwelve.map(event=>event.startMode),["PLAYER_ASK","EVENT","PLAYER_ASK","CHARACTER_OPEN","PLAYER_ASK","EVENT","EVENT","PLAYER_ASK","EVENT","PLAYER_ASK","PLAYER_ASK","PLAYER_ASK"],"Lucifer 01-12 start modes must follow the design document");
+assert.equal(JSON.stringify(Array.from(luciferFirstTwelve,event=>event.startMode)),JSON.stringify(["PLAYER_ASK","EVENT","PLAYER_ASK","CHARACTER_OPEN","PLAYER_ASK","EVENT","EVENT","PLAYER_ASK","EVENT","PLAYER_ASK","PLAYER_ASK","PLAYER_ASK"]),"Lucifer 01-12 start modes must follow the design document");
 const allowedBands=new Set(["COLD","DISTANT","NEUTRAL","WARM","CLOSE"]);
 let bandedLuciferResponses=0;
 for(const event of luciferFirstTwelve){
