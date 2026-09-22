@@ -1096,7 +1096,7 @@ assert.equal(legacyDialogueLocalizationCheck.giftLine,"좋아! 그렇지!","lega
 assert.equal(legacyDialogueLocalizationCheck.logLine,"아담은 죽었어.","saved dialogue history must be localized");
 assert.match(legacyDialogueLocalizationCheck.luciferOpening,/호텔 업무 메모/,"contextless Lucifer legacy opening must be rewritten with a visible situation");
 assert.ok(!legacyDialogueLocalizationCheck.luciferOpening.includes("이라는 말에"),"rewritten Lucifer opening must not depend on missing prior dialogue");
-assert.equal(legacyDialogueLocalizationCheck.version,17,"dialogue tuning migration version missing");
+assert.equal(legacyDialogueLocalizationCheck.version,18,"dialogue tuning migration version missing");
 
 const characterEventPackSnapshot=vm.runInContext(`
 (window.HV_STORY_PACKS||[])
@@ -1155,7 +1155,7 @@ const fullLegacyRefRepairCheck=vm.runInContext(`
 `,context);
 assert.equal(fullLegacyRefRepairCheck.total,48,"all legacy voice events must be included in the repair fixture");
 assert.equal(fullLegacyRefRepairCheck.bad.length,0,"all legacy voice event character references must be repaired");
-assert.equal(fullLegacyRefRepairCheck.version,17,"full character-ref repair must advance dialogue preset version");
+assert.equal(fullLegacyRefRepairCheck.version,18,"full character-ref repair must advance dialogue preset version");
 
 const storyPackCountBeforeTuning=context.window.HV_STORY_PACKS.length;
 context.window.HV_STORY_PACKS.push(...structuredClone(relationshipPacks));
@@ -1181,7 +1181,7 @@ const tunedDialogueSyncCheck=vm.runInContext(`
 `,context);
 assert.match(tunedDialogueSyncCheck.eventText,/알고리즘|피드/,"existing saves must receive tuned relationship TALK");
 assert.ok(!/예전 질문/.test(tunedDialogueSyncCheck.askText),"existing saves must receive tuned relationship ASK");
-assert.equal(tunedDialogueSyncCheck.version,17,"tuned dialogue sync must advance preset version");
+assert.equal(tunedDialogueSyncCheck.version,18,"tuned dialogue sync must advance preset version");
 context.window.HV_STORY_PACKS.length=storyPackCountBeforeTuning;
 
 context.window.HV_STORY_PACKS.push(...structuredClone(soloTalkPacks));
@@ -1211,7 +1211,7 @@ const soloDialogueSyncCheck=vm.runInContext(`
 assert.equal(soloDialogueSyncCheck.choiceCount,1,"existing saves must receive the choice-driven solo TALK rewrite");
 assert.equal(soloDialogueSyncCheck.retiredLine,false,"existing saves must remove the repeated Asmodeus line");
 assert.equal(soloDialogueSyncCheck.retiredEventExists,false,"existing saves must remove retired solo TALK filler events");
-assert.equal(soloDialogueSyncCheck.version,17,"solo TALK sync must advance preset version");
+assert.equal(soloDialogueSyncCheck.version,18,"solo TALK sync must advance preset version");
 context.window.HV_STORY_PACKS.length=storyPackCountBeforeTuning;
 
 assert.match(characterEventCode,/id:"angel".*?threshold:60.*?유료 서비스/s,"Angel base TALK tuning missing");
