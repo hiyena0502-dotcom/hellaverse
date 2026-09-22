@@ -135,13 +135,15 @@ function normalizeAskCondition(c){
   if(!c || typeof c!=="object")return null;
   return {askId:c.askId||"",status:["asked","not-asked","unlocked","locked"].includes(c.status)?c.status:"asked"};
 }
+const AFFECTION_BANDS=["COLD","DISTANT","NEUTRAL","WARM","CLOSE"];
 function normalizeAffectionCondition(c){
   if(!c || typeof c!=="object") return null;
-  return {characterId:c.characterId||c.targetId||"",operator:c.operator||">=",value:clamp(c.value,0,100,0)};
+  const band=AFFECTION_BANDS.includes(c.band)?c.band:"";
+  return {characterId:c.characterId||c.targetId||"",band,operator:c.operator||">=",value:clamp(c.value,0,100,0)};
 }
 function normalizeAffectionEffects(arr){
   return Array.isArray(arr) ? arr.map(x=>({
-    id:x.id||uid("afx"),characterId:x.characterId||x.targetId||"",amount:clamp(x.amount,-100,100,0)
+    id:x.id||uid("afx"),characterId:x.characterId||x.targetId||"",amount:clamp(x.amount,-100,100,0),silent:Boolean(x.silent)
   })) : [];
 }
 function normalizeEmotionCondition(c){
@@ -195,6 +197,7 @@ function normalizeEntry(entry={}){
         askCondition:normalizeAskCondition(o.askCondition),
         affectionCondition:normalizeAffectionCondition(o.affectionCondition),
         affectionEffects:normalizeAffectionEffects(o.affectionEffects),
+        tone:["neutral","supportive","light","sensitive","confrontational"].includes(o.tone)?o.tone:"neutral",
         emotionCondition:normalizeEmotionCondition(o.emotionCondition),
         emotionEffects:normalizeEmotionEffects(o.emotionEffects),
         exitMode:o.exitMode==="end"?"end":"continue",
@@ -286,6 +289,8 @@ function normalizeEvent(e={}){
     eventRole,
     menuVisible:["talk","action"].includes(eventRole)?e.menuVisible!==false:false,
     randomEligible:e.randomEligible!==false,
+    startMode:["PLAYER_ASK","CHARACTER_OPEN","EVENT"].includes(e.startMode)?e.startMode:"",
+    sensitivity:["light","medium","high"].includes(e.sensitivity)?e.sensitivity:"",
     continuationEventIds,
     emotionExitMode:e.emotionExitMode==="reset"?"reset":"keep",
     entries:normalizeEntries(e.entries)
@@ -293,7 +298,12 @@ function normalizeEvent(e={}){
 }
 function normalizeVariable(v={}){
   const type=["number","boolean","string"].includes(v.type)?v.type:"number";
-  return {id:v.id||uid("var"),name:v.name||"새 변수",type,defaultValue:v.defaultValue??(type==="boolean"?"false":"0")};
+  const out={id:v.id||uid("var"),name:v.name||"새 변수",type,defaultValue:v.defaultValue??(type==="boolean"?"false":"0")};
+  if(type==="number"){
+    if(Number.isFinite(Number(v.minValue)))out.minValue=Number(v.minValue);
+    if(Number.isFinite(Number(v.maxValue)))out.maxValue=Number(v.maxValue);
+  }
+  return out;
 }
 function legacyInteractionEntries(type,text){
   if(!text)return[];
@@ -1371,6 +1381,7 @@ function compactEntryForStorage(entry={}){
 }
 function compactOptionForStorage(option={}){
   const out={id:option.id,label:option.label||""};
+  if(option.tone&&option.tone!=="neutral")out.tone=option.tone;
   if(Array.isArray(option.entries)&&option.entries.length)out.entries=option.entries.map(compactEntryForStorage);
   if(option.exitMode==="end")out.exitMode="end";
   if(option.targetEventId)out.targetEventId=option.targetEventId;
@@ -1389,6 +1400,8 @@ function compactEventForStorage(event={}){
   if(["exit","entry","story","action"].includes(event.eventRole))out.eventRole=event.eventRole;
   if(event.menuVisible===false)out.menuVisible=false;
   if(event.randomEligible===false)out.randomEligible=false;
+  if(event.startMode)out.startMode=event.startMode;
+  if(event.sensitivity)out.sensitivity=event.sensitivity;
   if(event.emotionExitMode==="reset")out.emotionExitMode="reset";
   return out;
 }

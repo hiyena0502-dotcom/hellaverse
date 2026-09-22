@@ -687,6 +687,8 @@ function handleEditorField(e){
     }
     if(t.dataset.bind==="event-menu-visible"){ev.menuVisible=["talk","action"].includes(editorEventRole(ev))&&t.checked;return}
     if(t.dataset.bind==="event-random-eligible"){ev.randomEligible=t.checked;return}
+    if(t.dataset.bind==="event-start-mode"){ev.startMode=["PLAYER_ASK","CHARACTER_OPEN","EVENT"].includes(t.value)?t.value:"";return}
+    if(t.dataset.bind==="event-sensitivity"){ev.sensitivity=["light","medium","high"].includes(t.value)?t.value:"";return}
     if(t.dataset.bind==="event-emotion-exit"){ev.emotionExitMode=t.value==="reset"?"reset":"keep";return}
   }
   const vr=t.closest("[data-var-id]");
@@ -703,6 +705,7 @@ function handleEditorField(e){
   const option=entry?.type==="choice"&&optionCard?entry.options.find(o=>o.id===optionCard.dataset.optionId):null;
   if(t.dataset.optionField&&option){
     if(t.dataset.optionField==="label")option.label=t.value;
+    if(t.dataset.optionField==="tone")option.tone=["neutral","supportive","light","sensitive","confrontational"].includes(t.value)?t.value:"neutral";
     if(t.dataset.optionField==="exit"){
       if(t.value.startsWith("event:")){option.targetEventId=t.value.slice(6);option.exitMode="continue"}
       else{option.targetEventId="";option.exitMode=t.value==="end"?"end":"continue"}
@@ -744,7 +747,9 @@ function handleEditorField(e){
       const fx=owner.effects.find(x=>x.id===fxr.dataset.fxId);if(fx)fx[t.dataset.fxField]=t.value;return;
     }
     if(afr){
-      const fx=owner.affectionEffects.find(x=>x.id===afr.dataset.afffxId);if(fx)fx[t.dataset.afffxField]=t.dataset.afffxField==="amount"?clamp(t.value,-100,100,0):t.value;return;
+      const fx=owner.affectionEffects.find(x=>x.id===afr.dataset.afffxId);
+      if(fx)fx[t.dataset.afffxField]=t.dataset.afffxField==="amount"?clamp(t.value,-100,100,0):(t.dataset.afffxField==="silent"?t.checked:t.value);
+      return;
     }
     if(emr){
       const fx=owner.emotionEffects.find(x=>x.id===emr.dataset.emofxId);if(fx)fx[t.dataset.emofxField]=t.dataset.emofxField==="intensity"?clamp(t.value,0,100,0):t.value;return;

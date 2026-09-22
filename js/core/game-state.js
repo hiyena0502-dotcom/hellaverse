@@ -322,10 +322,20 @@ function completeInteraction(meta){
   saveProgressState();
   return result;
 }
+function affectionBandForValue(value){
+  const n=clamp(value,0,100,0);
+  if(n<20)return"COLD";
+  if(n<40)return"DISTANT";
+  if(n<60)return"NEUTRAL";
+  if(n<80)return"WARM";
+  return"CLOSE";
+}
 function affectionConditionPasses(c){
   if(!c?.characterId)return true;
   const ch=getCharacter(c.characterId);if(!ch)return true;
-  const cur=Number(session.affection[ch.id]??ch.affectionStart),exp=Number(c.value)||0;
+  const cur=Number(session.affection[ch.id]??ch.affectionStart);
+  if(c.band)return affectionBandForValue(cur)===c.band;
+  const exp=Number(c.value)||0;
   switch(c.operator){case">":return cur>exp;case"<":return cur<exp;case"<=":return cur<=exp;case"==":return cur===exp;case"!=":return cur!==exp;default:return cur>=exp}
 }
 function emotionConditionPasses(c){
@@ -348,10 +358,16 @@ function applyEffects(arr){
     const v=variableById(f.variableId);if(!v)return;
     const cur=session.variables[v.id]??parseVariable(v,v.defaultValue);
     const val=parseVariable(v,f.value);
-    if(f.operation==="add")session.variables[v.id]=Number(cur)+Number(val);
-    else if(f.operation==="subtract")session.variables[v.id]=Number(cur)-Number(val);
-    else if(f.operation==="toggle")session.variables[v.id]=!Boolean(cur);
-    else session.variables[v.id]=val;
+    let next;
+    if(f.operation==="add")next=Number(cur)+Number(val);
+    else if(f.operation==="subtract")next=Number(cur)-Number(val);
+    else if(f.operation==="toggle")next=!Boolean(cur);
+    else next=val;
+    if(v.type==="number"){
+      if(Number.isFinite(Number(v.minValue)))next=Math.max(Number(v.minValue),Number(next));
+      if(Number.isFinite(Number(v.maxValue)))next=Math.min(Number(v.maxValue),Number(next));
+    }
+    session.variables[v.id]=next;
   });
 }
 function applyAffectionEffects(arr){
@@ -361,7 +377,7 @@ function applyAffectionEffects(arr){
     const cur=Number(session.affection[ch.id]??ch.affectionStart);
     const next=clamp(cur+Number(f.amount),0,100,cur);
     const delta=next-cur;session.affection[ch.id]=next;
-    if(delta)messages.push(ch.name+" 호감도 "+(delta>0?"+":"")+delta);
+    if(delta&&!f.silent)messages.push(ch.name+" 호감도 "+(delta>0?"+":"")+delta);
   });
   if(messages.length)showToast(messages.join(" · "));
 }
@@ -534,7 +550,7 @@ function makeEntry(type){
   return{...common,type:"dialogue",speaker:"",speakerCharacterId:"",text:""};
 }
 function makeOption(label){
-  return{id:uid("option"),label,entries:[],condition:null,effects:[],itemCondition:null,askCondition:null,itemEffects:[],affectionCondition:null,affectionEffects:[],emotionCondition:null,emotionEffects:[],exitMode:"continue",targetEventId:""};
+  return{id:uid("option"),label,tone:"neutral",entries:[],condition:null,effects:[],itemCondition:null,askCondition:null,itemEffects:[],affectionCondition:null,affectionEffects:[],emotionCondition:null,emotionEffects:[],exitMode:"continue",targetEventId:""};
 }
 function regenerateIds(entry){
   entry.id=uid("entry");

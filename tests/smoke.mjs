@@ -78,6 +78,11 @@ assert.match(stateCode,/function migrateStateV3ToV4\(/,"schema v4 continuation m
 assert.match(editorEvents,/data-action="validation-jump"/,"validation issue navigation missing");
 assert.match(read("js/world/regions.js"),/currentPage!=="world"\|\|activeRegion!==regionId/,"WORLD timer must stop outside WORLD");
 assert.match(stateCode,/function installStoryPacks\(/,"one-time story pack installer missing");
+assert.match(stateCode,/AFFECTION_BANDS/,"five-band affection normalization missing");
+assert.match(gameStateCode,/function affectionBandForValue\(/,"five-band affection runtime missing");
+assert.match(editorUi,/data-affcond-field="band"/,"affection band editor control missing");
+assert.match(editorUi,/data-bind="event-start-mode"/,"TALK start-mode editor control missing");
+assert.match(editorUi,/data-entry-field="narrationRole"/,"narration role editor control missing");
 assert.match(stateCode,/for\(const variable of pack\.variables\|\|\[\]\)/,"pool TALK variable installer missing");
 assert.match(stateCode,/source\.variables\.push\(normalizedVariable\)/,"pool TALK variable definitions must be registered in project state");
 assert.match(itemPresetCode,/HV_APPLY_ITEM_PRESETS/,"item preset installer missing");
