@@ -157,6 +157,12 @@ assert.equal(luciferCanonicalAsk?.asks?.length,9,"Lucifer ASK must merge all nin
 assert.equal(unifiedRuntimePacks.filter(pack=>String(pack.id||"").startsWith("unified-asks-")).length,33,"unified ASK packs must cover all active personal character sets");
 assert.ok(!unifiedRuntimePacks.some(pack=>/^(?:relationship|topic-conversations|common-topic-asks|solo-talks|character-banter)-/.test(String(pack.id||""))),"fragmented legacy pack ids must not exist in the unified runtime");
 
+const walk6164Entries=(entries,visit)=>{
+  for(const entry of entries||[]){
+    visit(entry);
+    if(entry.type==="choice")for(const option of entry.options||[]){visit(option);walk6164Entries(option.entries,visit)}
+  }
+};
 vm.runInNewContext(read("data/lucifer-talk-61-64.js"),unifiedContext);
 const luciferWith6164=(unifiedContext.window.HV_STORY_PACKS||[]).find(pack=>pack.id==="pooltalk-52-lucifer-morningstar");
 assert.equal(luciferWith6164?.version,57,"Lucifer supplemental TALK 61-64 override version missing");
@@ -166,7 +172,7 @@ assert.equal(JSON.stringify(Array.from(luciferWith6164.events.slice(60,64),event
 for(const event of luciferWith6164.events.slice(60,64)){
   assert.ok(["light","medium","high"].includes(event.sensitivity),event.id+" sensitivity missing");
   assert.equal(event.startMode,"EVENT",event.id+" must preserve scene-first TALK flow");
-  walkEntries(event.entries,owner=>{
+  walk6164Entries(event.entries,owner=>{
     const condition=owner?.affectionCondition;
     if(condition?.characterId==="lucifer-morningstar"){
       assert.ok(["COLD","DISTANT","NEUTRAL","WARM","CLOSE"].includes(condition.band),event.id+" must use five-band affection conditions");
