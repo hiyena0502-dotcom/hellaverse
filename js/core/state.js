@@ -176,7 +176,10 @@ function normalizeEntry(entry={}){
     emotionCondition:normalizeEmotionCondition(entry.emotionCondition),
     emotionEffects:normalizeEmotionEffects(entry.emotionEffects)
   };
-  if(base.type==="narration") return {...base,text:entry.text||""};
+  if(base.type==="narration"){
+    const narrationRole=["intro","reaction","situation","transition","action","closing","background-dialogue"].includes(entry.narrationRole)?entry.narrationRole:"";
+    return {...base,text:entry.text||"",narrationRole};
+  }
   if(base.type==="choice"){
     return {
       ...base,
@@ -1343,6 +1346,7 @@ function compactEntryForStorage(entry={}){
     if(entry.text)out.text=entry.text;
   }else if(entry.type==="narration"){
     if(entry.text)out.text=entry.text;
+    if(entry.narrationRole)out.narrationRole=entry.narrationRole;
   }else if(entry.type==="choice"){
     if(entry.prompt)out.prompt=entry.prompt;
     out.options=(entry.options||[]).map(compactOptionForStorage);
