@@ -273,9 +273,10 @@ function renderCharacterManager(){
 function characterForm(c){
   const image=String(c.image||"");
   const uploaded=/^data:image\//i.test(image);
+  const imageScale=Math.max(.5,Math.min(2,Number(c.imageScale)||1));
   const imagePreview=image
-    ? '<div class="character-image-preview has-image"><img src="'+esc(image)+'" alt="'+esc(c.name)+' 미리보기"></div>'
-    : '<div class="character-image-preview"><span>NO IMAGE</span></div>';
+    ? '<div class="character-image-preview has-image" style="--character-editor-image-scale:'+imageScale+'"><img src="'+esc(image)+'" alt="'+esc(c.name)+' 미리보기"></div>'
+    : '<div class="character-image-preview" style="--character-editor-image-scale:'+imageScale+'"><span>NO IMAGE</span></div>';
   return '<div class="form-grid">'+
     '<label class="field"><span>이름</span><input data-bind="char-name" value="'+esc(c.name)+'"></label>'+
     '<label class="field"><span>출신 분류</span><select data-bind="char-origin">'+ORIGINS.map(o=>'<option value="'+o[0]+'" '+(c.origin===o[0]?"selected":"")+'>'+o[1]+'</option>').join("")+'</select></label>'+
@@ -284,6 +285,7 @@ function characterForm(c){
       '<label class="field"><span>이미지 URL <small>선택</small></span><input data-bind="char-image" value="'+esc(uploaded?"":image)+'" placeholder="https://..."></label>'+
       '<div class="character-image-actions"><label class="small-button character-image-file-button">파일 선택<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" data-character-image-file hidden></label>'+
       (image?'<button type="button" class="small-button" data-action="clear-character-image">이미지 제거</button>':'')+'</div>'+
+      '<label class="character-base-image-scale"><span>이미지 크기 <b data-character-image-scale-label>'+Math.round(imageScale*100)+'%</b></span><input type="range" min=".5" max="2" step=".05" value="'+imageScale+'" data-bind="char-image-scale"></label>'+
       '<small class="character-image-help">'+(uploaded?'업로드 이미지 사용 중 · URL을 입력하면 교체됩니다.':'PNG / JPG / WEBP / GIF · URL 없이도 저장할 수 있습니다.')+'</small>'+
     '</div></div></div>'+
     '<label class="field full"><span>HOME 소개 문구</span><textarea data-bind="char-quote">'+esc(c.quote)+'</textarea></label>'+
