@@ -398,7 +398,7 @@
   replace("지옥에서 평판이 곧 권력인가",id=>EV(id,"지옥에서 평판이 곧 권력인가","PLAYER_ASK","medium",[
     N(id+"-intro","유명 악마들의 얼굴이 실린 잡지가 로비 테이블에 펼쳐져 있다.","intro",{effects:reset("21",id)}),
     P(id+"-player","지옥에서는 이름이 알려지고 무서워하는 사람이 많으면 그것도 권력인 거예요?"),
-    ...BR(id+"-open",{COLD:"안 싸우고도 길을 비켜주면 편하긴 하지.",DISTANT:"평판만으로 상대가 먼저 물러나면 힘처럼 쓸 수는 있어.",NEUTRAL:"이름만으로 사람 행동을 바꾸면 그것도 권력의 한 종류지. 전부는 아니지만.",WARM:"그렇지. 싸우기 전에 상대가 계산하게 만드는 힘이니까. 다만 이름만 남고 실속이 비면 오래 못 가.",CLOSE:"평판은 남을 움직이게 해. 그런데 그 이름을 실제로 받쳐줄 힘이나 사람이 없으면 결국 껍데기야."}),
+    ...BR(id+"-open",{COLD:"안 싸우고도 길을 비켜주면 편하긴 하지.",DISTANT:"이름만 듣고 먼저 비키면 쓸모는 있겠지.",NEUTRAL:"어느 정도는 힘처럼 쓰이겠지. 그 이상은 몰라.",WARM:"이름만으로 귀찮은 일을 줄일 수 있으면 편하잖아.",CLOSE:"평판? 쓸 수 있으면 쓰는 거지. 굳이 철학까지 붙일 건 없고."}),
     CH(id+"-choice","평판과 권력 중 무엇을 더 짚을까?",[
       O(id+"-power","평판도 결국 권력인지 다시 묻는다","neutral",[
         P(id+"-power-player","그럼 평판도 결국 권력인 건 맞네요?"),
@@ -406,22 +406,22 @@
         CH(id+"-power-follow","평판 말고 또 무엇이 필요할까?",[
           O(id+"-needs","실제로 무엇이 더 필요한지 묻는다","neutral",[
             P(id+"-needs-player","그럼 평판 말고 또 뭐가 필요해요?"),
-            ...BR(id+"-needs-r",{default:"힘, 돈, 사람, 계약. 누구냐에 따라 다르지. 내가 오버로드 세력표까지 관리하진 않아.",WARM:"직접 힘일 수도 있고, 돈이나 계약, 자기 편일 수도 있어. 정답표가 하나인 건 아니야.",CLOSE:"버틸 힘과 움직일 사람, 잃기 싫은 것까지. 이름보다 그 뒤에 실제로 남아 있는 게 중요하지."})
+            ...BR(id+"-needs-r",{default:"힘, 돈, 사람, 계약. 뭐 그런 거겠지. 내가 오버로드 세력표까지 왜 외워.",WARM:"몰라. 힘일 수도 있고 돈일 수도 있고. 걔들마다 다르겠지.",CLOSE:"그 이상은 걔들한테 물어봐. 난 관심 없어."})
           ])
         ])
       ]),
       O(id+"-examples","알래스터와 Vox를 사례로 묻는다","light",[
         P(id+"-examples-player","알래스터나 Vox는요? 둘 다 평판이 권력이 된 경우 아닌가요?"),
-        ...BR(id+"-examples-r",{COLD:"둘 다 이름만 큰 건 아니지. 유감스럽게도.",DISTANT:"빨간 사슴도 TV 얼굴도 실제로 쥔 게 있으니 평판만 있는 쪽은 아니야.",NEUTRAL:"둘 다 평판과 실체를 같이 가진 쪽이야. 쓰는 방식이 다를 뿐이지.",WARM:"사슴은 공포를 오래 남겼고, TV는 화면과 회사를 쥐었지. 둘 다 소문만으로 버티는 건 아니야.",CLOSE:"둘 다 자기 이름을 실제 힘에 연결해뒀어. 그래서 보기 싫어도 무시하기 어렵지."}),
+        ...BR(id+"-examples-r",{COLD:"누구랑 누구? …아, 사슴 대가리랑 TV 대가리. 둘 다 시끄럽지.",DISTANT:"둘 다 이름만 큰 건 아닌 것 같더라. 그 이상은 몰라.",NEUTRAL:"사슴 대가리는 직접 봤고, TV 얼굴은 화면이 너무 많아서 알게 된 거고. 끝.",WARM:"둘 다 뭔가 쥔 건 있겠지. 정확히 뭔지까지 내가 왜 조사해.",CLOSE:"유명하고 힘도 좀 있겠지. 그래도 내 관심 순위에선 한참 아래야."}),
         CH(id+"-examples-follow","어느 쪽을 더 물어볼까?",[
           O(id+"-alastor","알래스터를 더 묻는다","light",[P(id+"-alastor-player","알래스터는요?"),...BR(id+"-alastor-r",{default:{lines:"라디오 사슴은 평판도 크고 실제 힘도 있어. 둘 다 가진 쪽이라 더 성가신 거야.",effects:[add(id+"-alastor-irritation","luc_alastor_irritation",1)]},CLOSE:{lines:"사슴 대가리는 오래 사라져도 이름이 남았고, 돌아와서 그 이름이 빈말이 아니란 것도 보여줬지. 마음에 들진 않지만.",effects:[add(id+"-alastor-irritation-close","luc_alastor_irritation",1)]}})]),
           O(id+"-alastor-dislike","그래서 더 싫은 거냐고 묻는다","light",[P(id+"-alastor-dislike-player","그래서 더 싫어요?"),...BR(id+"-alastor-dislike-r",{COLD:{lines:"친한 척 떠보지 마.",delta:-1},DISTANT:"싫은 건 맞지만 질문이랑은 상관없어.",NEUTRAL:"힘이 있어서 싫은 게 아니라 그 힘을 쓰는 꼴이 싫은 거야.",WARM:{lines:"하! 둘 다지. 네가 그걸 굳이 확인하는 건 조금 웃기네.",delta:1},CLOSE:{lines:"응. 힘도 있고 찰리 주변에서 계속 웃고 있으니 더 거슬려.",delta:1}})]),
-          O(id+"-vox","Vox를 더 묻는다","neutral",[P(id+"-vox-player","Vox의 영향력은 어느 정도예요?"),...BR(id+"-vox-r",{default:"화면과 회사, 같이 움직이는 놈들이 있다는 건 알아. 정확한 세력 규모를 내가 왜 조사해.",WARM:"얼굴이 많이 보인다는 것만으로 끝나는 놈은 아니야. 그래도 숫자까지 세고 다니진 않아.",CLOSE:{lines:"평소엔 관심 없어. 호텔이나 찰리를 건드리는 순간부터는 얘기가 달라지고.",effects:[set(id+"-vox-protect","luc_charlie_protective",true)]}})])
+          O(id+"-vox","Vox를 더 묻는다","neutral",[P(id+"-vox-player","Vox의 영향력은 어느 정도예요?"),...BR(id+"-vox-r",{default:"누구? …아, 그 TV 대가리. 화면이랑 회사가 있다는 건 알아. 규모까지 내가 왜 알아.",WARM:"아, 그 TV 얼굴. 유명하긴 하더라. 그래서 뭐.",CLOSE:{lines:"이름은 아직도 잘 기억 안 나. 찰리 건드리면 그때나 신경 쓰이지.",effects:[set(id+"-vox-protect","luc_charlie_protective",true)]}})])
         ])
       ]),
       O(id+"-self","루시퍼의 평판과 실제 영향력을 묻는다","sensitive",[
         P(id+"-self-player","그럼 루시퍼는요? 왕이라는 평판과 실제 영향력이 같은가요?"),
-        ...BR(id+"-self-r",{COLD:"그 논리면 다들 내 말 잘 들어야겠네. 안 그렇잖아.",DISTANT:"왕이라는 이름은 남아 있지. 그걸 얼마나 썼는지는 다른 문제고.",NEUTRAL:"이름과 힘은 있어. 실제로 왕 역할을 얼마나 했냐고 물으면 답이 달라지지만.",WARM:"내 이름이 사라진 건 아니야. 다만 오래 그 이름으로 뭘 움직이진 않았지.",CLOSE:"왕이라는 이름과 실제로 왕 노릇을 한 정도가 같진 않아. 그건 나도 알아."}),
+        ...BR(id+"-self-r",{COLD:"그 논리면 다들 내 말부터 들어야겠네. 뭐, 원래 그래야 하긴 하지.",DISTANT:"내가 안 움직였던 거지 힘이 사라진 건 아니야.",NEUTRAL:"왕 노릇을 덜 한 건 맞아. 그렇다고 내가 왕이 아닌 건 아니잖아.",WARM:"오래 손 놓고 있었지. 그래도 내가 누구인지는 안 바뀌어.",CLOSE:"응, 왕 노릇은 덜 했어. 그렇다고 누가 날 끌어내린 것도 아니고."}),
         CH(id+"-self-follow","그 책임까지 물을까?",[
           O(id+"-responsibility","왕인데 너무 관심이 없었다고 지적한다","confrontational",[P(id+"-responsibility-player","왕인데 너무 관심 없이 지낸 거 아니에요?"),...BR(id+"-responsibility-r",{COLD:{lines:"그걸 지금 네가 평가할 자리는 아니지.",delta:-2,effects:[add(id+"-self-tension-cold","luc_t21_tension",1)]},DISTANT:{lines:"모르는 이야기를 너무 쉽게 결론 내리네.",delta:-1,effects:[add(id+"-self-tension-dist","luc_t21_tension",1)]},NEUTRAL:{lines:"관심을 놓은 건 맞아. 그래도 한 문장으로 정리당하고 싶진 않네.",delta:-1},WARM:"틀린 말은 아니야. 그래도 지금 당장 업무 보고를 시작하진 않을 거야.",CLOSE:"응. 성실하게 왕 역할을 했다고는 못 해. 인정한다고 바로 달라지는 건 아니지만."})]),
           O(id+"-leave","평가하지 않고 화제를 돌린다","supportive",[P(id+"-leave-player","그건 여기서 평가하지 않을게요."),...BR(id+"-leave-r",{default:{lines:"…그래. 그게 낫겠네.",delta:1,effects:[set(id+"-leave-close","luc_t21_closed",true)]},CLOSE:{lines:"고마워. 내가 말하고 싶을 때는 조금 더 말할 수도 있으니까.",delta:1,effects:[set(id+"-leave-close2","luc_t21_closed",true)]}})])
@@ -595,16 +595,17 @@
       O(id+"-compare","Vox와 알래스터를 비교한다","light",[
         P(id+"-compare-player","Vox와 알래스터를 비교하면요?"),
         ...BR(id+"-compare-r",{COLD:"TV는 회사와 화면을 쥐었고, 사슴은 오래된 공포를 남겼지.",DISTANT:"둘 다 이름만 큰 건 아니야. 현재 힘을 숫자로 비교해줄 생각은 없지만.",NEUTRAL:"복스는 조직과 매체가 있고, 알래스터는 사라져도 남은 평판이 있어. 방식이 달라.",WARM:"TV 얼굴은 지금 쥔 게 많고, 빨간 사슴은 과거에 남긴 무서움이 아직 살아 있지.",CLOSE:"복스는 현재의 연결망, 사슴 대가리는 오래 남은 공포를 써. 누가 몇 점 더 센지는 몰라."}),
-        CH(id+"-compare-follow","알래스터의 현재 힘까지 물을까?",[
-          O(id+"-alastor-now","알래스터가 예전과 같은 힘인지 묻는다","sensitive",[P(id+"-alastor-now-player","알래스터가 지금도 예전과 같은 힘인지는 알아요?"),...BR(id+"-alastor-now-r",{default:{lines:"몰라. 과거 평판이 유지된다고 현재가 정확히 같다는 뜻은 아니지.",effects:[add(id+"-alastor-irritation","luc_alastor_irritation",1)]},CLOSE:{lines:"정확히는 몰라. 직접 확인하려고 사슴과 힘겨루기할 만큼 한가하지도 않고.",effects:[add(id+"-alastor-irritation-close","luc_alastor_irritation",1)]}})])
+        CH(id+"-compare-follow","둘의 실제 힘까지 물을까?",[
+          O(id+"-alastor-now","알래스터가 예전과 같은 힘인지 묻는다","sensitive",[P(id+"-alastor-now-player","알래스터가 지금도 예전과 같은 힘인지는 알아요?"),...BR(id+"-alastor-now-r",{default:{lines:"몰라. 내가 그 사슴 대가리 상태표를 왜 들고 다녀.",effects:[add(id+"-alastor-irritation","luc_alastor_irritation",1)]},CLOSE:{lines:"강하긴 하겠지. 예전이랑 똑같은지는 관심 없어.",effects:[add(id+"-alastor-irritation-close","luc_alastor_irritation",1)]}})]),
+          O(id+"-vox-box","TV 악마에게 갇혔던 일을 꺼낸다","light",[P(id+"-vox-box-player","그래도 그 TV 악마한테 상자에 갇힌 적도 있잖아요."),...BR(id+"-vox-box-r",{COLD:"뭐? …아, 그거. 아직도 그걸 기억하고 있어?",DISTANT:"아, 찰리 흉내 내서 함정 팠던 그거? 귀찮았지. 그래서?",NEUTRAL:"갇히긴 했지. 내가 약해서 진 게 아니라 내가 죄인을 못 건드리는 걸 이용한 거잖아.",WARM:"아, 그 상자? 잠깐 갇혔지. 걔 이름도 기억 안 나는데 내가 왜 그 일을 붙잡고 있어.",CLOSE:"솔직히 상자보다 찰리가 화낼 게 더 신경 쓰였어. 그 TV 얼굴이 날 이겼다고 떠들든 말든… 그래서 뭐?"})])
         ])
       ]),
       O(id+"-self","루시퍼도 유명하지만 활동은 적었다고 지적한다","sensitive",[
         P(id+"-self-player","루시퍼도 이름은 제일 유명한데 활동은 적었잖아요."),
         ...BR(id+"-self-r",{COLD:"굳이 나까지 끌고 와?",DISTANT:"활동이 적었던 건 맞아. 힘이 없어진 건 아니고.",NEUTRAL:"내 이름과 실제 영향력이 늘 같진 않았지. 내가 그 이름을 거의 안 썼으니까.",WARM:"맞아. 유명세는 남았는데 내가 직접 움직인 일은 적었어.",CLOSE:"응. 이름은 가장 컸어도 그 이름을 열심히 써먹진 않았지. 그 차이는 인정해."}),
         CH(id+"-self-follow","영향력이 별개였다고 평가할까?",[
-          O(id+"-influence","실제 영향력은 별개였다고 말한다","confrontational",[P(id+"-influence-player","이름은 제일 커도 실제 영향력은 별개였던 거네요."),...BR(id+"-influence-r",{COLD:{lines:"평가표 읽듯 말하지 마.",delta:-2,effects:[add(id+"-influence-ten-cold","luc_t28_tension",1)]},DISTANT:{lines:"말투가 꽤 비꼬네.",delta:-1},NEUTRAL:{lines:"틀린 말은 아니어도 그렇게 단정당하면 기분 좋진 않아.",delta:-1},WARM:"그래. 내가 영향력을 쓰지 않은 시간이 길었지.",CLOSE:"맞아. 힘이 없었던 게 아니라 손을 놓고 있었어. 결과는 비슷하게 보였겠지만."})]),
-          O(id+"-separate","힘과 활동을 구분해 이해한다","supportive",[P(id+"-separate-player","힘이 없었다기보다 쓰지 않았던 거군요."),...BR(id+"-separate-r",{default:"그래. 그 구분이면 정확해.",WARM:{lines:"응. 변명처럼 들릴 수 있어도 사실은 그래.",delta:1},CLOSE:{lines:"맞아. 그리고 왜 그렇게 살았는지는… 다른 날에 말할 수도 있겠지.",delta:1}})])
+          O(id+"-influence","실제 영향력은 별개였다고 말한다","confrontational",[P(id+"-influence-player","이름은 제일 커도 실제 영향력은 별개였던 거네요."),...BR(id+"-influence-r",{COLD:{lines:"영향력? 내가 굳이 안 쓴 거지, 못 쓴 게 아니야.",delta:-2,effects:[add(id+"-influence-ten-cold","luc_t28_tension",1)]},DISTANT:{lines:"움직이지 않았다고 힘까지 없어진 줄 알았어?",delta:-1},NEUTRAL:{lines:"안 한 거랑 못 한 건 다르지.",delta:-1},WARM:"손 놓고 있던 건 맞아. 그래도 왕관 주인이 바뀐 건 아니고.",CLOSE:"응, 오래 안 움직였지. 그래도 누가 내 자리를 대신 가져간 건 아니잖아."})]),
+          O(id+"-separate","힘과 활동을 구분해 이해한다","supportive",[P(id+"-separate-player","힘이 없었다기보다 쓰지 않았던 거군요."),...BR(id+"-separate-r",{default:"그래. 안 쓴 거랑 없는 건 다르니까.",WARM:{lines:"응. 이제야 말이 통하네.",delta:1},CLOSE:{lines:"맞아. 내가 조용했다고 평범해진 건 아니지.",delta:1}})])
         ])
       ])
     ])
@@ -625,22 +626,22 @@
 
   replace("지옥에서 혁명이 벌어진다면 누가 가장 먼저 반응할까",id=>EV(id,"지옥에서 혁명이 벌어진다면 누가 가장 먼저 반응할까","EVENT","medium",[
     N(id+"-intro","TV에서 누군가 혁명을 외치는 방송이 흘러나온다. 루시퍼가 화면을 보며 눈썹을 올린다.","intro",{effects:reset("30",id)}),
-    ...BR(id+"-open",{COLD:"누가 누구 상대로? 그것부터 없으면 그냥 소음이지.",DISTANT:"혁명이라는 단어만으로는 부족해. 불똥이 어디로 튀는지가 먼저야.",NEUTRAL:"대부분 자기 구역과 돈에 영향이 오는 순간 움직이겠지.",WARM:"Vees는 방송부터 잡고, 오버로드들은 자기 영역부터 잠글걸. 누가 정확히 먼저인지는 모르고.",CLOSE:"다들 대의를 위해 움직인다기보다 자기한테 불이 붙는 순간 반응할 거야. 나도 상황부터 볼 테고."}),
+    ...BR(id+"-open",{COLD:"혁명? 나한테? 아니면 걔들끼리? 그거부터 말해.",DISTANT:"누가 누구한테 반란인데. 그거 없으면 몰라.",NEUTRAL:"지옥 전체? 너무 넓어. 터지면 그때 보면 되지.",WARM:"벌써 반응 순위까지? 아직 아무도 안 일어났잖아.",CLOSE:"찰리까지 휘말리는지만 보면 돼. 나머진 실제로 터지면 그때 생각하고."}),
     CH(id+"-choice","혁명 가정에서 누구를 먼저 볼까?",[
-      O(id+"-first","누가 가장 먼저 움직일지 묻는다","neutral",[P(id+"-first-player","지옥 전체가 들썩이면 누가 가장 먼저 움직일까요?"),...BR(id+"-first-r",{default:"자기 구역이나 돈에 먼저 불똥 튄 쪽. 순위까지 맞힐 생각은 없어.",WARM:"Vees는 방송과 시장이 흔들리면 빠를 거고, 다른 오버로드도 자기 영역을 지키려 들겠지.",CLOSE:"누가 1등인지는 몰라. 대의보다 손실이 보이는 순간 움직이는 쪽이 빠를 거야."})]),
+      O(id+"-first","누가 가장 먼저 움직일지 묻는다","neutral",[P(id+"-first-player","지옥 전체가 들썩이면 누가 가장 먼저 움직일까요?"),...BR(id+"-first-r",{default:"몰라. 시끄러운 놈이 먼저 튀어나오겠지.",WARM:"그 TV 놈 패거리는 방송부터 켤 것 같고. 그 뒤는 몰라.",CLOSE:"누가 1등인지 내가 왜 맞혀. 실제로 터지면 보면 되지."})]),
       O(id+"-lilith","Lilith라면 어떻게 했을지 묻는다","sensitive",[
         P(id+"-lilith-player","Lilith라면 이런 상황에서 어떻게 했을까요?"),
-        ...BR(id+"-lilith-r",{COLD:{lines:"왜 갑자기 걔 얘기야?",delta:-1,effects:[add(id+"-lilith-ten-cold","luc_t30_tension",1)]},DISTANT:"사람을 움직이는 데 능숙했어. 그 이상은 말 안 해.",NEUTRAL:"목소리와 분위기로 사람을 모으는 법은 알았지. 지금이라면 어떨지는 몰라.",WARM:"과거의 릴리스라면 사람들을 먼저 모으고 방향을 만들었겠지. 지금도 같을지는 내가 정할 수 없어.",CLOSE:"사람들이 왜 움직이는지 보는 데 능숙했어. 그래도 돌아온 뒤 무엇을 할지는 그 사람만 알겠지."}),
+        ...BR(id+"-lilith-r",{COLD:{lines:"왜 갑자기 걔 얘기야?",delta:-1,effects:[add(id+"-lilith-ten-cold","luc_t30_tension",1)]},DISTANT:"사람 움직이는 건 잘했어. 여기까지.",NEUTRAL:"나보다 그런 건 잘했지. 지금이라면 어떨지는 몰라.",WARM:"…사람들을 모으는 데는 나보다 능숙했어.",CLOSE:"그건 릴리스가 더 잘했어. 그 뒤는 묻지 마."}),
         CH(id+"-lilith-follow","Lilith와 루시퍼의 관계까지 물을까?",[
           O(id+"-vox-name","Vox가 Lilith 이름을 이용하는 게 화나는지 묻는다","sensitive",[P(id+"-vox-name-player","Vox가 Lilith 이름을 이용하는 건 화나요?"),...BR(id+"-vox-name-r",{COLD:{lines:"그걸 지금 네가 파고들 필요는 없어.",delta:-1,effects:[add(id+"-vox-push-cold","luc_t30_push",1)]},DISTANT:"마음에 들진 않아. 여기까지.",NEUTRAL:"짜증은 나. 걔 이름을 자기 방송 도구처럼 쓰는 건 싫으니까.",WARM:"응, 화나. 복스가 어떤 이름이든 화면에 올리면 자기 소유처럼 굴잖아.",CLOSE:"화나지. 내 감정과 별개로 릴리스 이름을 복스가 제 이야기처럼 파는 건 싫어."})]),
           O(id+"-follow-her","Lilith가 돌아오면 루시퍼도 따를지 묻는다","confrontational",[P(id+"-follow-her-player","Lilith가 돌아오면 루시퍼도 따를 거예요?"),...BR(id+"-follow-her-r",{COLD:{lines:"그 질문은 끝이야.",delta:-3,effects:[add(id+"-follow-push-cold","luc_t30_push",1),add(id+"-follow-ten-cold","luc_t30_tension",1),set(id+"-follow-close-cold","luc_t30_closed",true)]},DISTANT:{lines:"내 관계를 혁명 가정에 끼워 넣지 마.",delta:-2,effects:[add(id+"-follow-push-dist","luc_t30_push",1),add(id+"-follow-ten-dist","luc_t30_tension",1)]},NEUTRAL:{lines:"그건 지금 답할 수 있는 질문이 아니야.",delta:-1},WARM:{lines:"몰라. 돌아오지도 않은 사람과 내 선택을 네가 먼저 정하지 마.",delta:-1},CLOSE:"…그때 생각할게. 가까운 사이라고 미래의 답까지 전부 줄 수 있는 건 아니야."})]),
           O(id+"-change-topic","Lilith 이야기를 멈춘다","supportive",[P(id+"-change-topic-player","그 얘기는 여기서 멈출게요."),...BR(id+"-change-topic-r",{default:{lines:"그래. 그게 좋아.",delta:1,effects:[set(id+"-lilith-close","luc_t30_closed",true)]},CLOSE:{lines:"고마워. 지금은 그 정도가 내가 줄 수 있는 답이야.",delta:1,effects:[set(id+"-lilith-close2","luc_t30_closed",true)]}})])
         ])
       ]),
-      O(id+"-sins","칠죄종이 어떻게 반응할지 묻는다","light",[P(id+"-sins-player","칠죄종은 어떻게 반응할까요?"),...BR(id+"-sins-r",{default:"사탄은 질서가 깨지면 움직이고, 마몬은 손익부터 보겠지.",WARM:"사탄은 크게 반응하고, 마몬은 계산기부터 두드려. 비와 오지는 자기 사람들에게 번지면 나설 것 같고.",CLOSE:"각자 자기 방식이지. 사탄은 질서, 마몬은 돈, 비와 오지는 자기 사람. 행동 예측표까지 만들진 않을 거야."})]),
+      O(id+"-sins","칠죄종이 어떻게 반응할지 묻는다","light",[P(id+"-sins-player","칠죄종은 어떻게 반응할까요?"),...BR(id+"-sins-r",{default:"사탄은 화내겠지. 마몬은… 몰라, 돈 얘기부터 하려나.",WARM:"사탄은 시끄러울 거고, 마몬은 마몬답겠지. 비랑 오지는 직접 물어봐.",CLOSE:"걔들 반응을 내가 왜 전부 외워. 사탄은 화낼 것 같고, 나머진 그때 보면 돼."})]),
       O(id+"-self","루시퍼 본인은 무엇부터 할지 묻는다","sensitive",[
         P(id+"-self-player","루시퍼는 무엇부터 할 건데요?"),
-        ...BR(id+"-self-r",{COLD:"누가 왜 움직이는지부터 봐. 아무것도 모르고 칠 순 없잖아.",DISTANT:"상황과 원인부터 확인해. 혁명이란 단어만 듣고 진압하진 않아.",NEUTRAL:"어디서 시작됐고 누구에게 위험한지 먼저 볼 거야.",WARM:"원인부터 보고 호텔까지 번지는지 확인해. 찰리가 있으면 그 애 위치가 먼저고.",CLOSE:{lines:"찰리 위치부터 확인하고, 혼자 군중 속으로 들어가려 하면 같이 가거나 막을 거야. 그다음 원인을 보지.",effects:[set(id+"-self-protect","luc_charlie_protective",true)]}}),
+        ...BR(id+"-self-r",{COLD:"나한테 오는 건지부터 보지. 아니면 왜 내가 먼저 뛰어.",DISTANT:"호텔까지 안 오면 일단 봐. 급하면 누가 알려주겠지.",NEUTRAL:"찰리 어디 있는지부터 볼 거야. 나머진 그다음.",WARM:"찰리부터 찾지. 혁명은 안 도망가잖아.",CLOSE:{lines:"찰리 위치부터 확인해. 걔만 안전하면 나머지는 왕이 알아서 할게.",effects:[set(id+"-self-protect","luc_charlie_protective",true)]}}),
         CH(id+"-self-follow","왕의 역할을 압박할까?",[
           O(id+"-stop-it","왕이면 일단 막아야 한다고 한다","confrontational",[P(id+"-stop-it-player","왕이면 일단 막아야 하는 거 아닌가요?"),...BR(id+"-stop-it-r",{COLD:{lines:"무슨 일인지도 모르고 때려눕히라는 거야?",delta:-2,effects:[add(id+"-stop-ten-cold","luc_t30_tension",1)]},DISTANT:{lines:"진압부터 하는 왕을 원하면 다른 사람 찾아.",delta:-1},NEUTRAL:{lines:"원인을 모르고 막으면 더 큰 일이 될 수 있어.",delta:-1},WARM:"질서를 지키는 것과 이유도 없이 누르는 건 달라.",CLOSE:"호텔과 찰리를 지키는 건 먼저 해. 그래도 누가 왜 일어났는지도 모르고 힘부터 쓰진 않을 거야."})]),
           O(id+"-charlie","찰리부터 확인하는 걸 이해한다","supportive",[P(id+"-charlie-player","호텔까지 번지면 찰리부터 확인해야겠네요."),...BR(id+"-charlie-r",{default:{lines:"당연하지. 그건 순서 고민할 일도 아니야.",effects:[set(id+"-charlie-protect","luc_charlie_protective",true)]},WARM:{lines:"응. 찰리가 혼자 해결하려고 뛰어들기 전에 찾아야지.",delta:1,effects:[set(id+"-charlie-protect-warm","luc_charlie_protective",true)]},CLOSE:{lines:"맞아. 찰리를 찾고, 그 애가 사람들을 돕고 싶다면 혼자 가지 않게 할 거야.",delta:1,effects:[set(id+"-charlie-protect-close","luc_charlie_protective",true)]}})])
