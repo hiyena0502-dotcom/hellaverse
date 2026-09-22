@@ -455,8 +455,9 @@ function startTyping(text,token){
 }
 function roomCharacterArt(character){
   if(!character)return'<div class="silhouette">??</div>';
+  const imageScale=Math.max(.5,Math.min(2,Number(character.imageScale)||1));
   return character.image
-    ? '<img src="'+esc(character.image)+'" alt="'+esc(character.name)+'" />'
+    ? '<img src="'+esc(character.image)+'" alt="'+esc(character.name)+'" style="--character-image-scale:'+imageScale+'" />'
     : '<div class="silhouette">'+esc(character.name.slice(0,2).toUpperCase())+'</div>';
 }
 function entrySpeakerCharacter(entry){
