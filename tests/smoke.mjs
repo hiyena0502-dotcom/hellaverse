@@ -78,6 +78,8 @@ assert.match(stateCode,/function migrateStateV3ToV4\(/,"schema v4 continuation m
 assert.match(editorEvents,/data-action="validation-jump"/,"validation issue navigation missing");
 assert.match(read("js/world/regions.js"),/currentPage!=="world"\|\|activeRegion!==regionId/,"WORLD timer must stop outside WORLD");
 assert.match(stateCode,/function installStoryPacks\(/,"one-time story pack installer missing");
+assert.match(stateCode,/for\(const variable of pack\.variables\|\|\[\]\)/,"pool TALK variable installer missing");
+assert.match(stateCode,/source\.variables\.push\(normalizedVariable\)/,"pool TALK variable definitions must be registered in project state");
 assert.match(itemPresetCode,/HV_APPLY_ITEM_PRESETS/,"item preset installer missing");
 assert.match(itemPresetCode,/FIRST|firstEntries/,"gift FIRST preset flow missing");
 assert.match(itemPresetCode,/repeatEntries/,"gift REPEAT preset flow missing");

@@ -1239,6 +1239,22 @@ function installStoryPacks(source){
       }
       source.events=kept;
       if(poolChanged)changed=true;
+
+      // Pool TALK packs can define state variables used by choice effects.
+      // Install/sync them before returning so editor validation and runtime
+      // can resolve every variableId referenced by the TALK branches.
+      for(const variable of pack.variables||[]){
+        const normalizedVariable=normalizeVariable(variable);
+        const variableIndex=(source.variables||[]).findIndex(row=>row?.id===normalizedVariable.id);
+        if(variableIndex<0){
+          source.variables.push(normalizedVariable);
+          changed=true;
+        }else if(JSON.stringify(source.variables[variableIndex])!==JSON.stringify(normalizedVariable)){
+          source.variables[variableIndex]=normalizedVariable;
+          changed=true;
+        }
+      }
+
       source.storyPackVersions[pack.id]=version;
       installed.push(pack.id);
       if(previousVersion!==version)changed=true;
