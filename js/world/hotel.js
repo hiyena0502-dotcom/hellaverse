@@ -737,6 +737,13 @@
     const cfg=characterWorldSettings(character,settings);
     const baseImage=character.image||"";
     const preview=cfg.image||baseImage;
+    const uploaded=/^data:image\//i.test(cfg.image);
+    const imageFieldValue=uploaded?"":cfg.image;
+    const imageStatus=uploaded
+      ?"사진 파일 사용 중 · URL을 입력하면 교체됩니다."
+      :cfg.image
+        ?"URL 이미지 사용 중 · 사진 파일로 교체할 수 있습니다."
+        :"PNG / JPG / WEBP · 비어 있으면 기존 캐릭터 이미지를 사용합니다.";
     const initials=(character.name||"?").slice(0,2).toUpperCase();
     const thoughts=worldThoughtPool(character.id);
     const allowedRegions=WORLD_CONFIG.regions.filter(region=>cfg.regionIds.includes(region.id));
@@ -749,7 +756,8 @@
     return '<details class="hotel-character-world-card" data-world-character-card="'+esc(character.id)+'">'+
       '<summary>'+
         '<div class="hotel-world-char-thumb">'+
-          (preview?'<img src="'+esc(preview)+'" alt="" data-world-summary-image />':'<span>'+esc(initials)+'</span>')+
+          '<img '+(preview?'src="'+esc(preview)+'"':'')+' alt="" data-world-summary-image '+(preview?'':'hidden')+' />'+
+          '<span data-world-summary-fallback '+(preview?'hidden':'')+'>'+esc(initials)+'</span>'+
         '</div>'+
         '<div class="hotel-world-char-title"><strong>'+esc(character.name)+'</strong><small>'+esc(originLabel(character.origin))+' · '+thoughts.length+' THOUGHTS</small></div>'+
         '<span class="hotel-world-char-state">'+(cfg.visible?locationState:"HIDDEN")+'</span>'+
@@ -774,7 +782,12 @@
             '</div></div>'+
             '<div class="world-character-region-grid">'+regionAccess+'</div>'+
           '</section>'+
-          '<label class="field full"><span>WORLD 전용 이미지 URL</span><input type="url" data-world-field="image" data-world-image value="'+esc(cfg.image)+'" placeholder="https://.../character.png" /></label>'+
+          '<label class="field full"><span>WORLD 전용 이미지 URL</span><input type="url" data-world-field="image" data-world-image value="'+esc(imageFieldValue)+'" placeholder="https://.../character.png" /></label>'+
+          '<div class="full" style="grid-column:1/-1;display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+
+            '<label class="small-button character-image-file-button">사진 파일 선택<input type="file" accept="image/png,image/jpeg,image/webp" data-world-image-file hidden /></label>'+
+            '<button type="button" class="small-button" data-action="clear-world-image">WORLD 이미지 제거</button>'+
+            '<small data-world-image-status style="flex:1 1 240px">'+esc(imageStatus)+'</small>'+
+          '</div>'+
           '<label class="field"><span>기본 층</span><select data-world-field="floor">'+floorOptions+'</select></label>'+
           '<label class="field"><span>움직임</span><select data-world-field="movement">'+
             '<option value="still" '+(cfg.movement==="still"?"selected":"")+'>STILL · 거의 움직이지 않음</option>'+
@@ -793,6 +806,90 @@
         '</div>'+
       '</div>'+
     '</details>';
+  }
+
+  const WORLD_IMAGE_MAX_INPUT_BYTES=12*1024*1024;
+  const WORLD_IMAGE_MAX_STORED_CHARS=1_750_000;
+
+  function readWorldImageFile(file){
+    return new Promise((resolve,reject)=>{
+      const reader=new FileReader();
+      reader.onload=()=>resolve(String(reader.result||""));
+      reader.onerror=()=>reject(new Error("이미지 파일을 읽지 못했습니다."));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function optimizeWorldImageFile(file){
+    if(!file||!String(file.type||"").startsWith("image/"))throw new Error("이미지 파일만 선택할 수 있습니다.");
+    if(file.size>WORLD_IMAGE_MAX_INPUT_BYTES)throw new Error("이미지가 너무 큽니다. 12MB 이하 파일을 선택해주세요.");
+    const raw=await readWorldImageFile(file);
+    const optimized=await new Promise((resolve,reject)=>{
+      const image=new Image();
+      image.onload=()=>{
+        try{
+          const longest=Math.max(image.naturalWidth||1,image.naturalHeight||1);
+          const scale=Math.min(1,1200/longest);
+          const width=Math.max(1,Math.round((image.naturalWidth||1)*scale));
+          const height=Math.max(1,Math.round((image.naturalHeight||1)*scale));
+          const canvas=document.createElement("canvas");
+          canvas.width=width;
+          canvas.height=height;
+          const context=canvas.getContext("2d");
+          if(!context)throw new Error("이미지 변환을 시작할 수 없습니다.");
+          context.drawImage(image,0,0,width,height);
+          resolve(canvas.toDataURL("image/webp",.84));
+        }catch(error){reject(error)}
+      };
+      image.onerror=()=>reject(new Error("이미지를 해석하지 못했습니다."));
+      image.src=raw;
+    });
+    if(!String(optimized).startsWith("data:image/"))throw new Error("이미지 변환에 실패했습니다.");
+    if(String(optimized).length>WORLD_IMAGE_MAX_STORED_CHARS)throw new Error("압축 후에도 이미지가 너무 큽니다. 더 작은 이미지를 사용해주세요.");
+    return String(optimized);
+  }
+
+  function syncWorldImagePreview(card,worldImage){
+    if(!card)return;
+    const character=getCharacter(card.dataset.worldCharacterCard);
+    const fallback=character?.image||"";
+    const own=String(worldImage||"").trim();
+    const src=own||fallback;
+    const preview=$("[data-world-preview-img]",card);
+    const previewFallback=$("[data-world-preview-fallback]",card);
+    const summary=$("[data-world-summary-image]",card);
+    const summaryFallback=$("[data-world-summary-fallback]",card);
+    [preview,summary].forEach(img=>{
+      if(!img)return;
+      if(src){img.src=src;img.hidden=false}
+      else{img.removeAttribute("src");img.hidden=true}
+    });
+    [previewFallback,summaryFallback].forEach(node=>{if(node)node.hidden=Boolean(src)});
+    const status=$("[data-world-image-status]",card);
+    if(status){
+      status.textContent=/^data:image\//i.test(own)
+        ?"사진 파일 사용 중 · URL을 입력하면 교체됩니다."
+        :own
+          ?"URL 이미지 사용 중 · 사진 파일로 교체할 수 있습니다."
+          :"WORLD 전용 이미지 없음 · 기존 캐릭터 이미지를 사용합니다.";
+    }
+  }
+
+  async function handleWorldImageFile(input){
+    const file=input?.files?.[0];
+    const card=input?.closest("[data-world-character-card]");
+    if(!file||!card)return;
+    try{
+      const image=await optimizeWorldImageFile(file);
+      card.__worldImageValue=image;
+      const urlInput=$("[data-world-image]",card);
+      if(urlInput)urlInput.value="";
+      syncWorldImagePreview(card,image);
+    }catch(error){
+      alert(error?.message||"이미지를 불러오지 못했습니다.");
+    }finally{
+      input.value="";
+    }
   }
 
   function hotelSettingValue(name,value){
@@ -1049,6 +1146,10 @@
           '<footer class="hotel-settings-actions"><button class="ghost-button" type="button" data-action="world-settings-defaults">기본값 불러오기</button><span>저장을 눌러야 WORLD에 적용됩니다.</span><button class="ghost-button" type="button" data-close-modal>취소</button><button class="gold-button" type="button" data-action="world-settings-save">설정 저장</button></footer>'+
         '</form>'+
       '</section></div>';
+    $("[data-world-character-card]",modalRoot).forEach(card=>{
+      const character=getCharacter(card.dataset.worldCharacterCard);
+      card.__worldImageValue=character?characterWorldSettings(character,settings).image:"";
+    });
     requestAnimationFrame(()=>$(".hotel-settings-modal",modalRoot)?.focus());
   }
   function collectHotelSettings(){
@@ -1084,7 +1185,7 @@
       next.characterWorld[id]=normalizeCharacterWorld({
         visible:field("visible")?.checked,
         regionIds,
-        image:field("image")?.value||"",
+        image:typeof card.__worldImageValue==="string"?card.__worldImageValue:(field("image")?.value||""),
         floor,
         movement:field("movement")?.value||"wander",
         speed:field("speed")?.value,
@@ -1417,15 +1518,13 @@
     if(!input)return;
     const card=input.closest("[data-world-character-card]");
     if(!card)return;
-    const character=getCharacter(card.dataset.worldCharacterCard);
-    const fallback=character?.image||"";
-    const src=input.value.trim()||fallback;
-    const img=$("[data-world-preview-img]",card);
-    const empty=$("[data-world-preview-fallback]",card);
-    if(img){
-      if(src){img.src=src;img.hidden=false}else{img.removeAttribute("src");img.hidden=true}
-    }
-    if(empty)empty.hidden=Boolean(src);
+    card.__worldImageValue=input.value.trim();
+    syncWorldImagePreview(card,card.__worldImageValue);
+  });
+
+  modalRoot.addEventListener("change",event=>{
+    const input=event.target.closest("[data-world-image-file]");
+    if(input)handleWorldImageFile(input);
   });
 
   modalRoot.addEventListener("click",event=>{
@@ -1441,7 +1540,14 @@
     }
     const button=event.target.closest("[data-action]");
     if(!button)return;
-    if(button.dataset.action==="world-character-region-preset"){
+    if(button.dataset.action==="clear-world-image"){
+      const card=button.closest("[data-world-character-card]");
+      if(!card)return;
+      card.__worldImageValue="";
+      const urlInput=$("[data-world-image]",card);
+      if(urlInput)urlInput.value="";
+      syncWorldImagePreview(card,"");
+    }else if(button.dataset.action==="world-character-region-preset"){
       const card=button.closest("[data-world-character-card]");
       if(!card)return;
       const preset=button.dataset.preset;
@@ -1450,8 +1556,13 @@
       });
       syncCharacterRegionAccess(card);
     }else if(button.dataset.action==="world-settings-save"){
-      saveHotelSettings(collectHotelSettings());
-      saveScenePlacements(collectScenePlacements());
+      try{
+        saveHotelSettings(collectHotelSettings());
+        saveScenePlacements(collectScenePlacements());
+      }catch(error){
+        alert("WORLD 이미지를 저장하지 못했습니다. 이미지 파일이 너무 크거나 브라우저 저장 공간이 부족할 수 있습니다.");
+        return;
+      }
       closeModal();
       renderWorld();
       showToast("WORLD MAP SETTINGS SAVED");
