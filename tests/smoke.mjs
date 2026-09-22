@@ -11,6 +11,7 @@ const jsFiles=[
   "data/relationship-content.js",
   "data/lucifer-talk-13-30.js",
   "data/lucifer-talk-31-60.js",
+  "data/lucifer-talk-61-64.js",
   "data/unified-character-content.js",
   "data/solo-talks.js",
   "data/character-banter.js",
@@ -118,11 +119,12 @@ assert.match(index,/data\/unified-character-content\.js/,"unified per-character 
 assert.doesNotMatch(index,/data\/(?:relationship-content|topic-conversations|common-topic-asks|solo-talks|character-banter)\.js/,"fragmented per-character content scripts must not load at runtime");
 assert.match(index,/data\/lucifer-talk-13-30\.js/,"Lucifer TALK 13-30 script missing from build");
 assert.match(index,/data\/lucifer-talk-31-60\.js/,"Lucifer TALK 31-60 script missing from build");
+assert.match(index,/data\/lucifer-talk-61-64\.js/,"Lucifer TALK 61-64 script missing from build");
 
 const retiredCharacterPattern=/(?:belphegor|leviathan|벨페고르|레비아탄)/i;
 for(const path of [
   "data/unified-character-content.js","data/relationship-content.js","data/solo-talks.js","data/origin-intros.js",
-  "data/gacha-profiles.js","data/item-presets.js","data/archive-meta-5.js","data/lucifer-talk-13-30.js","data/lucifer-talk-31-60.js"
+  "data/gacha-profiles.js","data/item-presets.js","data/archive-meta-5.js","data/lucifer-talk-13-30.js","data/lucifer-talk-31-60.js","data/lucifer-talk-61-64.js"
 ]){
   assert.doesNotMatch(read(path),retiredCharacterPattern,path+" must not contain retired Belphegor/Leviathan content");
 }
@@ -154,6 +156,32 @@ const luciferCanonicalAsk=unifiedRuntimePacks.find(pack=>pack.id==="unified-asks
 assert.equal(luciferCanonicalAsk?.asks?.length,9,"Lucifer ASK must merge all nine existing personal questions");
 assert.equal(unifiedRuntimePacks.filter(pack=>String(pack.id||"").startsWith("unified-asks-")).length,33,"unified ASK packs must cover all active personal character sets");
 assert.ok(!unifiedRuntimePacks.some(pack=>/^(?:relationship|topic-conversations|common-topic-asks|solo-talks|character-banter)-/.test(String(pack.id||""))),"fragmented legacy pack ids must not exist in the unified runtime");
+
+vm.runInNewContext(read("data/lucifer-talk-61-64.js"),unifiedContext);
+const luciferWith6164=(unifiedContext.window.HV_STORY_PACKS||[]).find(pack=>pack.id==="pooltalk-52-lucifer-morningstar");
+assert.equal(luciferWith6164?.version,57,"Lucifer supplemental TALK 61-64 override version missing");
+assert.equal(JSON.stringify(Array.from(luciferWith6164.events.slice(0,60),event=>event.id)),JSON.stringify(luciferMainIdsBeforeUnified),"Lucifer 61-64 override must not modify main TALK 01-60");
+assert.equal(JSON.stringify(Array.from(luciferWith6164.events.slice(60,64),event=>event.id)),JSON.stringify(["solo-talk-lucifer-morningstar-01","solo-talk-lucifer-morningstar-02","solo-talk-lucifer-morningstar-03","solo-talk-lucifer-morningstar-04"]),"Lucifer supplemental TALK 61-64 order must be duck/crown/score/family photo");
+assert.equal(JSON.stringify(Array.from(luciferWith6164.events.slice(60,64),event=>event.name)),JSON.stringify(["TALK · 오리 설계","TALK · 왕관 손질","TALK · 낡은 악보","TALK · 가족사진"]),"Lucifer supplemental TALK 61-64 titles must match the revised set");
+for(const event of luciferWith6164.events.slice(60,64)){
+  assert.ok(["light","medium","high"].includes(event.sensitivity),event.id+" sensitivity missing");
+  assert.equal(event.startMode,"EVENT",event.id+" must preserve scene-first TALK flow");
+  walkEntries(event.entries,owner=>{
+    const condition=owner?.affectionCondition;
+    if(condition?.characterId==="lucifer-morningstar"){
+      assert.ok(["COLD","DISTANT","NEUTRAL","WARM","CLOSE"].includes(condition.band),event.id+" must use five-band affection conditions");
+      assert.notEqual(Number(condition.value),58,event.id+" must not use the old 58 split");
+    }
+  });
+}
+for(const id of ["luc_t61_tension","luc_t61_push","luc_t61_closed","luc_t62_tension","luc_t63_tension","luc_t64_tension","luc_t61_duck_reason_shared","luc_t62_crown_worn","luc_t63_score_played","luc_t64_photo_boundary_respected"]){
+  assert.ok((luciferWith6164.variables||[]).some(variable=>variable.id===id),"Lucifer 61-64 system variable missing: "+id);
+}
+const lucifer6164Text=JSON.stringify(luciferWith6164.events.slice(60,64));
+for(const phrase of ["건드리지 마. 아직 비율 안 맞아.","왕 노릇을 얼마나 하고 있느냐는 다른 문제지만.","그러니까 더 짜증 나.","그 뒤까지 전부 좋았다는 뜻은 아니고."]){
+  assert.ok(lucifer6164Text.includes(phrase),"Lucifer TALK 61-64 must preserve the revised user-authored text: "+phrase);
+}
+
 
 const walkEntries=(entries,visit)=>{
   for(const entry of entries||[]){
