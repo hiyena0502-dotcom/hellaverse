@@ -98,6 +98,17 @@ function frameEntries(frame){
   return getEvent(frame.sourceId)?.entries||[];
 }
 function visibleOptions(entry){return entry.options.filter(ownerPasses)}
+function hasChosenOption(optionId){
+  return Boolean(optionId&&(session.selectedOptionIds||[]).includes(optionId));
+}
+function markOptionChosen(optionId){
+  if(!optionId)return false;
+  session.selectedOptionIds=Array.isArray(session.selectedOptionIds)?session.selectedOptionIds:[];
+  if(session.selectedOptionIds.includes(optionId))return false;
+  session.selectedOptionIds.push(optionId);
+  if(session.selectedOptionIds.length>5000)session.selectedOptionIds=session.selectedOptionIds.slice(-5000);
+  return true;
+}
 function jumpEvent(id,{preserveContinuation=false,label="본편"}={}){
   const departing=currentEvent();const ev=getEvent(id);
   if(!ev){if(playback)playback.ended=true;return false}
@@ -537,7 +548,13 @@ function renderRoomBeat(){
   if(entry.type==="choice"){
     clearTyping();clearAuto();
     const opts=visibleOptions(entry);
-    dynamic.innerHTML='<div class="choice-box"><p class="page-kicker">CHOICE</p><h2>'+esc(entry.prompt||"무엇을 선택할까?")+'</h2><div class="choice-list">'+opts.map(o=>'<button class="choice-option" type="button" data-action="choose-option" data-id="'+esc(o.id)+'">'+esc(o.label||"이름 없는 선택지")+'</button>').join("")+'</div></div>';
+    dynamic.innerHTML='<div class="choice-box"><p class="page-kicker">CHOICE</p><h2>'+esc(entry.prompt||"무엇을 선택할까?")+'</h2><div class="choice-list">'+opts.map(o=>{
+      const chosen=hasChosenOption(o.id);
+      return '<button class="choice-option'+(chosen?' is-chosen':'')+'" type="button" data-action="choose-option" data-id="'+esc(o.id)+'">'+
+        '<span class="choice-option-label">'+esc(o.label||"이름 없는 선택지")+'</span>'+
+        (chosen?'<span class="choice-option-status">✓ 선택함</span>':'')+
+      '</button>';
+    }).join("")+'</div></div>';
     return;
   }
   const speakerCharacter=updateRoomSpeakerVisual(entry);
@@ -729,6 +746,7 @@ function chooseOption(id){
   if(!entry||entry.type!=="choice")return;
   const option=entry.options.find(o=>o.id===id);if(!option||!ownerPasses(option))return;
   applyOwnerEffects(entry);applyOwnerEffects(option);
+  markOptionChosen(option.id);
   session.log.push({kind:"choice",speaker:"CHOICE",text:(entry.prompt||"선택")+" → "+(option.label||""),eventName:currentEvent()?.name||""});
   if(session.log.length>200)session.log.splice(0,session.log.length-200);
   saveProgressState();
