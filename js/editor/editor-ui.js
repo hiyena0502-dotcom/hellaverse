@@ -207,7 +207,8 @@ function renderEditor(){
   else if(editorTab==="item")renderItemEditor();
   else if(editorTab==="gacha")renderGachaEditor();
   else if(editorTab==="thought")renderThoughtEditor();
-  else renderCollectionEditor();
+  else if(editorTab==="collection")renderCollectionEditor();
+  else renderCharacterImageEditor();
 }
 function editorHead(kicker,title,desc,actions=""){
   return '<div class="editor-section-head"><div><p class="label">'+esc(kicker)+'</p><h2>'+esc(title)+'</h2></div><div><p>'+esc(desc)+'</p>'+actions+'</div></div>';
@@ -778,6 +779,36 @@ function renderThoughtEditor(){
         '</div>'
         :'<div class="inspector-empty">왼쪽에서 THOUGHT를 선택하세요.</div>')+
       '</section></div>';
+}
+function renderCharacterImageEditor(){
+  const chars=editorDraft.characters;
+  if(!chars.some(character=>character.id===selectedEditorCharacterId))selectedEditorCharacterId=chars[0]?.id||"";
+  const character=chars.find(row=>row.id===selectedEditorCharacterId)||null;
+  const emotionSettings=character?normalizeEmotionImages(character.emotionImages):{};
+  const cards=character?EMOTIONS.map(([emotionId,label])=>{
+    const row=emotionSettings[emotionId]||{image:"",scale:1};
+    const image=String(row.image||"");
+    const scale=Math.max(.5,Math.min(2,Number(row.scale)||1));
+    const uploaded=/^data:image\//i.test(image);
+    return '<article class="emotion-image-card" data-emotion-image-card="'+esc(emotionId)+'">'+
+      '<div class="emotion-image-card-head"><div><span>'+esc(emotionId.toUpperCase())+'</span><strong>'+esc(label)+'</strong></div><output data-emotion-scale-output>'+Math.round(scale*100)+'%</output></div>'+
+      '<div class="emotion-image-preview" style="--emotion-image-scale:'+scale+'">'+
+        (image?'<img src="'+esc(image)+'" alt="'+esc(character.name+" "+label)+'">':'<span>NO IMAGE</span>')+
+      '</div>'+
+      '<div class="emotion-image-controls">'+
+        '<label class="small-button character-image-file-button">이미지 선택<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" data-emotion-image-file="'+esc(emotionId)+'" hidden></label>'+
+        (image?'<button type="button" class="small-button" data-action="clear-emotion-image" data-emotion="'+esc(emotionId)+'">이미지 제거</button>':'')+
+      '</div>'+
+      '<label class="emotion-image-scale"><span>크기 <b>'+Math.round(scale*100)+'%</b></span><input type="range" min=".5" max="2" step=".05" value="'+scale+'" data-emotion-image-scale="'+esc(emotionId)+'"></label>'+
+      '<small>'+(uploaded?'업로드 이미지 저장됨':'아직 이미지가 없습니다.')+'</small>'+
+    '</article>';
+  }).join(""):"";
+  editorBody.innerHTML=editorHead("CHARACTER IMAGE","캐릭터 이미지 설정","감정별 이미지와 표시 크기만 저장합니다. 아직 대화 화면에는 자동 적용되지 않습니다.")+
+    '<div class="manager-layout character-image-settings-layout"><aside class="manager-list"><div class="manager-list-head"><strong>CHARACTERS</strong><span class="muted">'+chars.length+'명</span></div><div class="manager-list-items">'+
+      (chars.length?chars.map(row=>'<button class="manager-item '+(row.id===selectedEditorCharacterId?"active":"")+'" data-action="select-image-character" data-id="'+esc(row.id)+'"><strong>'+esc(row.name)+'</strong><small>'+esc(originLabel(row.origin))+'</small></button>').join(""):'<div class="editor-note">캐릭터가 없습니다.</div>')+
+    '</div></aside><section class="manager-detail">'+
+      (character?'<div class="character-image-settings-head"><div><p class="label">EMOTION IMAGES</p><h3>'+esc(character.name)+'</h3></div><p>각 감정 카드에서 파일을 넣고 크기만 조절할 수 있습니다.</p></div><div class="emotion-image-grid">'+cards+'</div>':'<div class="inspector-empty">캐릭터를 먼저 추가하세요.</div>')+
+    '</section></div>';
 }
 function renderCollectionEditor(){
   const chars=editorDraft.characters;
