@@ -253,6 +253,10 @@
 .choice-list{display:grid;gap:8px}
 .choice-option{
   min-height:50px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
   border:1px solid var(--line);
   border-radius:5px;
   background:rgba(255,255,255,.02);
@@ -261,6 +265,24 @@
   text-align:left
 }
 .choice-option:hover{border-color:rgba(201,166,107,.35);background:rgba(167,45,72,.07)}
+.choice-option.is-chosen{
+  border-color:rgba(201,166,107,.2);
+  background:rgba(201,166,107,.035);
+  color:rgba(244,239,229,.58)
+}
+.choice-option.is-chosen:hover{
+  border-color:rgba(201,166,107,.42);
+  background:rgba(201,166,107,.07);
+  color:rgba(244,239,229,.76)
+}
+.choice-option-label{min-width:0}
+.choice-option-status{
+  flex:0 0 auto;
+  color:rgba(201,166,107,.68);
+  font-size:.62rem;
+  letter-spacing:.08em;
+  white-space:nowrap
+}
 .room-empty{text-align:center}
 .room-empty p{color:var(--muted)}
 .room-control-bar{
