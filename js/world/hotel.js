@@ -205,7 +205,7 @@
       floor:s.floor==="auto"||floorIds.includes(s.floor)?s.floor:"auto",
       movement:["still","calm","wander","active"].includes(s.movement)?s.movement:d.movement,
       speed:Math.max(.45,Math.min(1.8,Number(s.speed)||d.speed)),
-      scale:Math.max(.6,Math.min(1.55,Number(s.scale)||d.scale)),
+      scale:Math.max(.5,Math.min(2,Number(s.scale)||d.scale)),
       placement,
       thoughts:s.thoughts!==false,
       thoughtFrequency:["rare","normal","often"].includes(s.thoughtFrequency)?s.thoughtFrequency:d.thoughtFrequency
@@ -764,7 +764,7 @@
       '</summary>'+
       '<div class="hotel-world-char-body">'+
         '<div class="hotel-world-preview">'+
-          '<div class="hotel-world-preview-stage">'+
+          '<div class="hotel-world-preview-stage" style="--world-preview-scale:'+cfg.scale+'">'+
             '<img '+(preview?'src="'+esc(preview)+'"':'')+' alt="" data-world-preview-img '+(preview?'':'hidden')+' />'+
             '<span data-world-preview-fallback '+(preview?'hidden':'')+'>'+esc(initials)+'</span>'+
           '</div>'+
@@ -796,7 +796,7 @@
             '<option value="active" '+(cfg.movement==="active"?"selected":"")+'>ACTIVE · 많이 돌아다님</option>'+
           '</select></label>'+
           '<label class="field"><span>이동 속도 · 0.45 ~ 1.8</span><input type="number" min=".45" max="1.8" step=".05" data-world-field="speed" value="'+cfg.speed+'" /></label>'+
-          '<label class="field"><span>캐릭터 크기 · 0.6 ~ 1.55</span><input type="number" min=".6" max="1.55" step=".05" data-world-field="scale" value="'+cfg.scale+'" /></label>'+
+          '<label class="field full world-image-scale-field"><span>WORLD 이미지 크기 <b data-world-image-scale-label>'+Math.round(cfg.scale*100)+'%</b></span><input type="range" min=".5" max="2" step=".05" data-world-field="scale" value="'+cfg.scale+'" /></label>'+
           '<label class="checkline"><input type="checkbox" data-world-field="thoughts" '+(cfg.thoughts?"checked":"")+' /> 기존 THOUGHT가 가끔 떠오름</label>'+
           '<label class="field"><span>THOUGHT 빈도</span><select data-world-field="thoughtFrequency">'+
             '<option value="rare" '+(cfg.thoughtFrequency==="rare"?"selected":"")+'>RARE · 드물게</option>'+
@@ -1514,6 +1514,15 @@
     if(positionRange)syncWorldPositionRange(positionRange);
     const accessInput=event.target.closest('[data-world-character-region],[data-world-field="visible"]');
     if(accessInput)syncCharacterRegionAccess(accessInput.closest("[data-world-character-card]"));
+    const scaleInput=event.target.closest('[data-world-field="scale"]');
+    if(scaleInput){
+      const card=scaleInput.closest("[data-world-character-card]");
+      const scale=Math.max(.5,Math.min(2,Number(scaleInput.value)||1));
+      const preview=$(".hotel-world-preview-stage",card);
+      if(preview)preview.style.setProperty("--world-preview-scale",scale);
+      const label=$("[data-world-image-scale-label]",card);
+      if(label)label.textContent=Math.round(scale*100)+"%";
+    }
     const input=event.target.closest("[data-world-image]");
     if(!input)return;
     const card=input.closest("[data-world-character-card]");
