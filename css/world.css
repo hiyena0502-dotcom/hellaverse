@@ -1170,7 +1170,9 @@
   max-width:100%;
   max-height:184px;
   object-fit:contain;
-  object-position:center bottom
+  object-position:center bottom;
+  transform:scale(var(--world-preview-scale,1));
+  transform-origin:center bottom
 }
 .hotel-world-preview-stage span{
   align-self:center;
@@ -1186,6 +1188,8 @@
   align-content:start
 }
 .hotel-world-fields .full{grid-column:1/-1}
+.world-image-scale-field b{color:var(--text);font-weight:600}
+.world-image-scale-field input{width:100%;margin-top:6px}
 .world-character-region-access{
   overflow:hidden;
   border:1px solid rgba(201,166,107,.16);
