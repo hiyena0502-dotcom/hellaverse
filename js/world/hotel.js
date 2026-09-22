@@ -1146,7 +1146,7 @@
           '<footer class="hotel-settings-actions"><button class="ghost-button" type="button" data-action="world-settings-defaults">기본값 불러오기</button><span>저장을 눌러야 WORLD에 적용됩니다.</span><button class="ghost-button" type="button" data-close-modal>취소</button><button class="gold-button" type="button" data-action="world-settings-save">설정 저장</button></footer>'+
         '</form>'+
       '</section></div>';
-    $("[data-world-character-card]",modalRoot).forEach(card=>{
+    $$("[data-world-character-card]",modalRoot).forEach(card=>{
       const character=getCharacter(card.dataset.worldCharacterCard);
       card.__worldImageValue=character?characterWorldSettings(character,settings).image:"";
     });
