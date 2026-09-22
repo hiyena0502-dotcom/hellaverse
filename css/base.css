@@ -352,6 +352,8 @@ input:focus,textarea:focus,select:focus,button:focus-visible{
   max-width:min(58vw,720px);
   max-height:76vh;
   object-fit:contain;
+  transform:scale(var(--character-image-scale,1));
+  transform-origin:center bottom;
   filter:drop-shadow(0 34px 46px rgba(0,0,0,.56))
 }
 .silhouette{
