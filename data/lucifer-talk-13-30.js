@@ -665,10 +665,10 @@
   const byId=new Map((pack.variables||[]).map(variable=>[variable.id,variable]));
   for(const variable of variables)byId.set(variable.id,variable);
   pack.variables=[...byId.values()];
-  const topicFamilies={1:"heaven_sensitive",11:"royal_duty_sensitive",14:"heaven_sensitive",21:"reputation_power",24:"heaven_sensitive",26:"royal_duty_sensitive",27:"personal_boundary",28:"reputation_power",30:"family_sensitive"};
+  const topicFamilies={1:"heaven_sensitive",7:"missing_items",11:"royal_duty_sensitive",14:"heaven_sensitive",15:"cooking",18:"alcohol",19:"cooking",20:"sofa_lounge",21:"reputation_power",24:"heaven_sensitive",26:"royal_duty_sensitive",27:"personal_boundary",28:"reputation_power",30:"family_sensitive"};
   for(const [topic,family] of Object.entries(topicFamilies)){
     const event=pack.events[Number(topic)-1];
     if(event)event.topicFamily=family;
   }
-  pack.version=53;
+  pack.version=54;
 })();

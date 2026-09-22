@@ -176,7 +176,7 @@ for(const pack of allTopicTalkPacks){
 }
 const luciferTopicPack=(topicTalkContext.window.HV_STORY_PACKS||[]).find(pack=>pack.id==="pooltalk-52-lucifer-morningstar");
 assert.ok(luciferTopicPack,"Lucifer topic TALK pack missing");
-assert.equal(luciferTopicPack.version,53,"Lucifer topic TALK must use the 01-30 five-band implementation version 53");
+assert.equal(luciferTopicPack.version,54,"Lucifer topic TALK must use the 01-30 five-band implementation version 54");
 assert.ok((luciferTopicPack.events||[]).length>=30,"Lucifer topic TALK must keep at least 30 topics");
 const luciferFirstTwelve=luciferTopicPack.events.slice(0,12);
 assert.equal(JSON.stringify(Array.from(luciferFirstTwelve,event=>event.startMode)),JSON.stringify(["PLAYER_ASK","EVENT","PLAYER_ASK","CHARACTER_OPEN","PLAYER_ASK","EVENT","EVENT","PLAYER_ASK","EVENT","PLAYER_ASK","PLAYER_ASK","PLAYER_ASK"]),"Lucifer 01-12 start modes must follow the design document");
@@ -220,6 +220,11 @@ assert.ok(laterBandedLuciferResponses>=100,"Lucifer 13-20 must contain substanti
 for(const id of ["luc_t13_tension","luc_t14_closed","luc_t18_push","luc_t20_closed","luc_charlie_soft"]){
   assert.ok((luciferTopicPack.variables||[]).some(variable=>variable.id===id),"Lucifer 13-20 system variable missing: "+id);
 }
+assert.equal(luciferTopicPack.events[6].topicFamily,"missing_items","Lucifer 07 missing-items family missing");
+assert.equal(luciferTopicPack.events[14].topicFamily,"cooking","Lucifer 15 cooking family missing");
+assert.equal(luciferTopicPack.events[17].topicFamily,"alcohol","Lucifer 18 alcohol family missing");
+assert.equal(luciferTopicPack.events[18].topicFamily,"cooking","Lucifer 19 cooking family missing");
+assert.equal(luciferTopicPack.events[19].topicFamily,"sofa_lounge","Lucifer 20 sofa/lounge family missing");
 assert.doesNotMatch(luciferTalk1330Code,/호텔 일상 쪽은|왕실 쪽은|하, 그건 이렇게 보자|오케이, 왕의 짧은 의견 하나/,"Lucifer 13-30 must not retain generic generated dialogue");
 const luciferVariableIds=new Set((luciferTopicPack.variables||[]).map(variable=>variable.id));
 for(const event of luciferTopicPack.events.slice(0,30))walkEntries(event.entries,owner=>{
