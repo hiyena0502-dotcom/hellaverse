@@ -311,6 +311,9 @@ function normalizeEvent(e={}){
     startMode:["PLAYER_ASK","CHARACTER_OPEN","EVENT"].includes(e.startMode)?e.startMode:"",
     sensitivity:["light","medium","high"].includes(e.sensitivity)?e.sensitivity:"",
     topicFamily:String(e.topicFamily||"").trim().slice(0,80),
+    playerOrigins:Array.isArray(e.playerOrigins)
+      ? [...new Set(e.playerOrigins.map(normalizeOrigin).filter(origin=>["sinner","hellborn","angel","winner"].includes(origin)))]
+      : [],
     continuationEventIds,
     emotionExitMode:e.emotionExitMode==="reset"?"reset":"keep",
     entries:normalizeEntries(e.entries)
