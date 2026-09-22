@@ -291,6 +291,7 @@ function normalizeEvent(e={}){
     randomEligible:e.randomEligible!==false,
     startMode:["PLAYER_ASK","CHARACTER_OPEN","EVENT"].includes(e.startMode)?e.startMode:"",
     sensitivity:["light","medium","high"].includes(e.sensitivity)?e.sensitivity:"",
+    topicFamily:String(e.topicFamily||"").trim().slice(0,80),
     continuationEventIds,
     emotionExitMode:e.emotionExitMode==="reset"?"reset":"keep",
     entries:normalizeEntries(e.entries)
@@ -1404,6 +1405,7 @@ function compactEventForStorage(event={}){
   if(event.randomEligible===false)out.randomEligible=false;
   if(event.startMode)out.startMode=event.startMode;
   if(event.sensitivity)out.sensitivity=event.sensitivity;
+  if(event.topicFamily)out.topicFamily=event.topicFamily;
   if(event.emotionExitMode==="reset")out.emotionExitMode="reset";
   return out;
 }

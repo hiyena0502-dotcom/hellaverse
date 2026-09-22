@@ -189,11 +189,18 @@ function rememberRecentTalk(characterId,eventId){
   session.recentTalks[characterId]=next;
   state.playState.recentTalks=clone(session.recentTalks);
 }
+function recentTalkFamilies(characterId){
+  const ids=new Set(recentTalkIds(characterId));
+  return new Set((state.events||[])
+    .filter(event=>ids.has(event.id)&&event.topicFamily)
+    .map(event=>event.topicFamily));
+}
 function randomTalkForCharacter(characterId,excludeId=""){
   const candidates=playableTalkEventsForCharacter(characterId);
   if(!candidates.length)return null;
   const recent=new Set(recentTalkIds(characterId));
-  let pool=candidates.filter(ev=>ev.id!==excludeId&&!recent.has(ev.id));
+  const recentFamilies=recentTalkFamilies(characterId);
+  let pool=candidates.filter(ev=>ev.id!==excludeId&&!recent.has(ev.id)&&(!ev.topicFamily||!recentFamilies.has(ev.topicFamily)));
   if(!pool.length)pool=candidates.filter(ev=>ev.id!==excludeId);
   return randomTalkEvent(pool.length?pool:candidates,excludeId);
 }
@@ -207,7 +214,8 @@ function nextContinuousEvent(){
 
   const visited=new Set(Array.isArray(playback.autoVisitedEventIds)?playback.autoVisitedEventIds:[]);
   const recent=new Set(recentTalkIds(roomCharacterId));
-  let pool=candidates.filter(ev=>ev.id!==currentId&&!visited.has(ev.id)&&!recent.has(ev.id));
+  const recentFamilies=recentTalkFamilies(roomCharacterId);
+  let pool=candidates.filter(ev=>ev.id!==currentId&&!visited.has(ev.id)&&!recent.has(ev.id)&&(!ev.topicFamily||!recentFamilies.has(ev.topicFamily)));
 
   if(!pool.length)pool=candidates.filter(ev=>ev.id!==currentId&&!visited.has(ev.id));
   if(!pool.length){

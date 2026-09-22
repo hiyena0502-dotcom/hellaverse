@@ -689,6 +689,7 @@ function handleEditorField(e){
     if(t.dataset.bind==="event-random-eligible"){ev.randomEligible=t.checked;return}
     if(t.dataset.bind==="event-start-mode"){ev.startMode=["PLAYER_ASK","CHARACTER_OPEN","EVENT"].includes(t.value)?t.value:"";return}
     if(t.dataset.bind==="event-sensitivity"){ev.sensitivity=["light","medium","high"].includes(t.value)?t.value:"";return}
+    if(t.dataset.bind==="event-topic-family"){ev.topicFamily=String(t.value||"").trim().slice(0,80);return}
     if(t.dataset.bind==="event-emotion-exit"){ev.emotionExitMode=t.value==="reset"?"reset":"keep";return}
   }
   const vr=t.closest("[data-var-id]");

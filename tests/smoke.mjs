@@ -9,7 +9,7 @@ const jsFiles=[
   "data/story-packs.js",
   "data/character-events.js",
   "data/relationship-content.js",
-  "data/lucifer-talk-13-20.js",
+  "data/lucifer-talk-13-30.js",
   "data/unified-character-content.js",
   "data/solo-talks.js",
   "data/character-banter.js",
@@ -84,6 +84,7 @@ assert.match(stateCode,/AFFECTION_BANDS/,"five-band affection normalization miss
 assert.match(gameStateCode,/function affectionBandForValue\(/,"five-band affection runtime missing");
 assert.match(editorUi,/data-affcond-field="band"/,"affection band editor control missing");
 assert.match(editorUi,/data-bind="event-start-mode"/,"TALK start-mode editor control missing");
+assert.match(editorUi,/data-bind="event-topic-family"/,"TALK topic-family editor control missing");
 assert.match(editorUi,/data-entry-field="narrationRole"/,"narration role editor control missing");
 assert.match(stateCode,/for\(const variable of pack\.variables\|\|\[\]\)/,"pool TALK variable installer missing");
 assert.match(stateCode,/currentManaged=currentIds\.has\(id\)/,"pool TALK installer must absorb merged supplemental event ids without duplication");
@@ -102,7 +103,7 @@ assert.match(dialogueCode,/ev\.randomEligible!==false/,"random TALK eligibility 
 assert.match(editorUi,/event-random-eligible/,"random TALK eligibility editor control missing");
 assert.match(index,/data\/unified-character-content\.js/,"unified per-character TALK/ASK content script missing from build");
 assert.doesNotMatch(index,/data\/(?:relationship-content|topic-conversations|common-topic-asks|solo-talks|character-banter)\.js/,"fragmented per-character content scripts must not load at runtime");
-assert.match(index,/data\/lucifer-talk-13-20\.js/,"Lucifer TALK 13-20 script missing from build");
+assert.match(index,/data\/lucifer-talk-13-30\.js/,"Lucifer TALK 13-30 script missing from build");
 
 const soloTalkContext={window:{HV_STORY_PACKS:[]}};
 vm.runInNewContext(soloTalkCode,soloTalkContext);
@@ -114,7 +115,7 @@ const unifiedCharacterCode=read("data/unified-character-content.js");
 const unifiedContext={window:{HV_STORY_PACKS:[]}};
 vm.runInNewContext(read("data/topic-pool-500.js"),unifiedContext);
 vm.runInNewContext(read("data/character-topic-talks-52.js"),unifiedContext);
-vm.runInNewContext(read("data/lucifer-talk-13-20.js"),unifiedContext);
+vm.runInNewContext(read("data/lucifer-talk-13-30.js"),unifiedContext);
 const luciferBeforeUnified=(unifiedContext.window.HV_STORY_PACKS||[]).find(pack=>pack.id==="pooltalk-52-lucifer-morningstar");
 const luciferMainIdsBeforeUnified=Array.from((luciferBeforeUnified?.events||[]).slice(0,60),event=>event.id);
 vm.runInNewContext(unifiedCharacterCode,unifiedContext);
@@ -138,15 +139,35 @@ const walkEntries=(entries,visit)=>{
 
 const topicPoolCode=read("data/topic-pool-500.js");
 const characterTopicTalkCode=read("data/character-topic-talks-52.js");
-const luciferTalk1320Code=read("data/lucifer-talk-13-20.js");
+const luciferTalk1330Code=read("data/lucifer-talk-13-30.js");
 const topicTalkContext={window:{HV_STORY_PACKS:[]}};
 vm.runInNewContext(topicPoolCode,topicTalkContext);
 vm.runInNewContext(characterTopicTalkCode,topicTalkContext);
-vm.runInNewContext(luciferTalk1320Code,topicTalkContext);
+vm.runInNewContext(luciferTalk1330Code,topicTalkContext);
+const allTopicTalkPacks=(topicTalkContext.window.HV_STORY_PACKS||[]).filter(pack=>String(pack.id||"").startsWith("pooltalk-52-"));
+assert.equal(allTopicTalkPacks.length,33,"topic TALK packs must cover the 33 currently enabled characters");
+for(const pack of allTopicTalkPacks){
+  if(pack.id!=="pooltalk-52-lucifer-morningstar")assert.equal(pack.version,49,pack.id+" must use the shared five-band generator version");
+  const characterId=pack.requiredCharacterIds?.[0];
+  for(const event of pack.events||[]){
+    assert.ok(["CHARACTER_OPEN","EVENT","PLAYER_ASK"].includes(event.startMode),event.id+" start mode missing");
+    assert.ok(["light","medium","high"].includes(event.sensitivity),event.id+" sensitivity missing");
+    if(pack.id==="pooltalk-52-lucifer-morningstar"&&(pack.events||[]).indexOf(event)<12)continue;
+    const bands=new Set();
+    walkEntries(event.entries,owner=>{
+      const condition=owner?.affectionCondition;
+      if(condition?.characterId===characterId){
+        assert.ok(condition.band,event.id+" must not retain a numeric two-way affection split");
+        bands.add(condition.band);
+      }
+    });
+    assert.equal(JSON.stringify([...bands].sort()),JSON.stringify(["CLOSE","COLD","DISTANT","NEUTRAL","WARM"]),event.id+" must provide all five affection bands");
+  }
+}
 const luciferTopicPack=(topicTalkContext.window.HV_STORY_PACKS||[]).find(pack=>pack.id==="pooltalk-52-lucifer-morningstar");
 assert.ok(luciferTopicPack,"Lucifer topic TALK pack missing");
-assert.equal(luciferTopicPack.version,52,"Lucifer topic TALK must use the 01-20 five-band implementation version 52");
-assert.ok((luciferTopicPack.events||[]).length>=20,"Lucifer topic TALK must keep at least 20 topics");
+assert.equal(luciferTopicPack.version,53,"Lucifer topic TALK must use the 01-30 five-band implementation version 53");
+assert.ok((luciferTopicPack.events||[]).length>=30,"Lucifer topic TALK must keep at least 30 topics");
 const luciferFirstTwelve=luciferTopicPack.events.slice(0,12);
 assert.equal(JSON.stringify(Array.from(luciferFirstTwelve,event=>event.startMode)),JSON.stringify(["PLAYER_ASK","EVENT","PLAYER_ASK","CHARACTER_OPEN","PLAYER_ASK","EVENT","EVENT","PLAYER_ASK","EVENT","PLAYER_ASK","PLAYER_ASK","PLAYER_ASK"]),"Lucifer 01-12 start modes must follow the design document");
 const allowedBands=new Set(["COLD","DISTANT","NEUTRAL","WARM","CLOSE"]);
@@ -189,11 +210,30 @@ assert.ok(laterBandedLuciferResponses>=100,"Lucifer 13-20 must contain substanti
 for(const id of ["luc_t13_tension","luc_t14_closed","luc_t18_push","luc_t20_closed","luc_charlie_soft"]){
   assert.ok((luciferTopicPack.variables||[]).some(variable=>variable.id===id),"Lucifer 13-20 system variable missing: "+id);
 }
-assert.doesNotMatch(luciferTalk1320Code,/호텔 일상 쪽은|왕실 쪽은|하, 그건 이렇게 보자|오케이, 왕의 짧은 의견 하나/,"Lucifer 13-20 must not retain generic generated dialogue");
+assert.doesNotMatch(luciferTalk1330Code,/호텔 일상 쪽은|왕실 쪽은|하, 그건 이렇게 보자|오케이, 왕의 짧은 의견 하나/,"Lucifer 13-30 must not retain generic generated dialogue");
 const luciferVariableIds=new Set((luciferTopicPack.variables||[]).map(variable=>variable.id));
-for(const event of luciferTopicPack.events.slice(0,20))walkEntries(event.entries,owner=>{
+for(const event of luciferTopicPack.events.slice(0,30))walkEntries(event.entries,owner=>{
   for(const effect of owner?.effects||[])if(effect.variableId)assert.ok(luciferVariableIds.has(effect.variableId),owner.id+" references missing variable "+effect.variableId);
 });
+
+const luciferTwentyOneToThirty=luciferTopicPack.events.slice(20,30);
+assert.equal(JSON.stringify(Array.from(luciferTwentyOneToThirty,event=>event.startMode)),JSON.stringify(["PLAYER_ASK","PLAYER_ASK","PLAYER_ASK","PLAYER_ASK","EVENT","PLAYER_ASK","PLAYER_ASK","PLAYER_ASK","CHARACTER_OPEN","EVENT"]),"Lucifer 21-30 start modes must follow the design document");
+assert.equal(JSON.stringify(Array.from(luciferTwentyOneToThirty,event=>event.sensitivity)),JSON.stringify(["medium","medium","medium","high","high","high","high","medium","light","medium"]),"Lucifer 21-30 sensitivity levels must follow the design document");
+assert.equal(JSON.stringify(Array.from(luciferTwentyOneToThirty,event=>event.entries.find(entry=>entry.type==="choice")?.options?.length)),JSON.stringify([3,4,4,4,4,4,4,3,3,4]),"Lucifer 21-30 root choice counts must follow the design document");
+assert.equal(luciferTopicPack.events[20].topicFamily,"reputation_power","Lucifer 21 reputation topic family missing");
+assert.equal(luciferTopicPack.events[27].topicFamily,"reputation_power","Lucifer 28 reputation topic family missing");
+assert.equal(luciferTopicPack.events[23].topicFamily,"heaven_sensitive","Lucifer 24 heaven-sensitive family missing");
+assert.equal(luciferTopicPack.events[25].topicFamily,"royal_duty_sensitive","Lucifer 26 royal-duty family missing");
+for(const id of ["luc_t21_tension","luc_t24_push","luc_t27_closed","luc_t30_tension","luc_unknown_contract_redemption","luc_food_interest"]){
+  assert.ok(luciferVariableIds.has(id),"Lucifer 21-30 system variable missing: "+id);
+}
+const topic29AffectionEffects=[];
+walkEntries(luciferTopicPack.events[28].entries,owner=>topic29AffectionEffects.push(...(owner.affectionEffects||[])));
+assert.ok(topic29AffectionEffects.every(effect=>Number(effect.amount)>=0),"Lucifer 29 LIGHT topic must not punish the player");
+const allLuciferIds=[];
+for(const event of luciferTopicPack.events.slice(0,30))walkEntries(event.entries,owner=>{if(owner?.id)allLuciferIds.push(owner.id)});
+assert.equal(new Set(allLuciferIds).size,allLuciferIds.length,"Lucifer 01-30 entry and option IDs must be unique");
+assert.equal(fs.existsSync(new URL("data/lucifer-talk-13-20.js",root)),false,"obsolete Lucifer 13-20 override must be removed");
 
 const soloEventIds=new Set();
 const allSoloCharacterLines=[];
@@ -411,6 +451,8 @@ assert.match(dialogueCode,/function updateRoomSpeakerVisual\(/,"per-line speaker
 assert.match(dialogueCode,/function nextContinuousEvent\(/,"continuous TALK fallback missing");
 assert.match(dialogueCode,/function randomTalkEvent\(/,"random TALK picker missing");
 assert.match(dialogueCode,/randomTalkForCharacter\(ch\.id\)/,"room entry must use character-scoped recent-aware random TALK");
+assert.match(dialogueCode,/function recentTalkFamilies\(/,"related TALK cooldown helper missing");
+assert.match(dialogueCode,/!recentFamilies\.has\(ev\.topicFamily\)/,"related TALK families must not appear back-to-back");
 assert.match(dialogueCode,/const candidates=playableTalkEventsForCharacter\(roomCharacterId\)/,"continuous random TALK must stay inside the selected character room");
 assert.match(dialogueCode,/function rememberRecentTalk\(/,"recent TALK memory missing");
 assert.match(dialogueCode,/function markTalkDiscovered\(/,"TALK discovery tracker missing");
