@@ -10,6 +10,7 @@ const jsFiles=[
   "data/character-events.js",
   "data/relationship-content.js",
   "data/lucifer-talk-13-20.js",
+  "data/unified-character-content.js",
   "data/solo-talks.js",
   "data/character-banter.js",
   "data/item-presets.js",
@@ -85,6 +86,7 @@ assert.match(editorUi,/data-affcond-field="band"/,"affection band editor control
 assert.match(editorUi,/data-bind="event-start-mode"/,"TALK start-mode editor control missing");
 assert.match(editorUi,/data-entry-field="narrationRole"/,"narration role editor control missing");
 assert.match(stateCode,/for\(const variable of pack\.variables\|\|\[\]\)/,"pool TALK variable installer missing");
+assert.match(stateCode,/currentManaged=currentIds\.has\(id\)/,"pool TALK installer must absorb merged supplemental event ids without duplication");
 assert.match(stateCode,/source\.variables\.push\(normalizedVariable\)/,"pool TALK variable definitions must be registered in project state");
 assert.match(itemPresetCode,/HV_APPLY_ITEM_PRESETS/,"item preset installer missing");
 assert.match(itemPresetCode,/FIRST|firstEntries/,"gift FIRST preset flow missing");
@@ -98,9 +100,8 @@ assert.match(dialoguePresetCode,/seenTalkSignatures/,"duplicate TALK rotation gu
 assert.match(stateCode,/randomEligible:e\.randomEligible!==false/,"random TALK eligibility persistence missing");
 assert.match(dialogueCode,/ev\.randomEligible!==false/,"random TALK eligibility filter missing");
 assert.match(editorUi,/event-random-eligible/,"random TALK eligibility editor control missing");
-assert.match(index,/data\/relationship-content\.js/,"relationship content script missing from build");
-assert.match(index,/data\/solo-talks\.js/,"solo TALK content script missing from build");
-assert.match(index,/data\/character-banter\.js/,"character banter content script missing from build");
+assert.match(index,/data\/unified-character-content\.js/,"unified per-character TALK/ASK content script missing from build");
+assert.doesNotMatch(index,/data\/(?:relationship-content|topic-conversations|common-topic-asks|solo-talks|character-banter)\.js/,"fragmented per-character content scripts must not load at runtime");
 assert.match(index,/data\/lucifer-talk-13-20\.js/,"Lucifer TALK 13-20 script missing from build");
 
 const soloTalkContext={window:{HV_STORY_PACKS:[]}};
@@ -108,6 +109,26 @@ vm.runInNewContext(soloTalkCode,soloTalkContext);
 const soloTalkPacks=soloTalkContext.window.HV_STORY_PACKS||[];
 assert.equal(soloTalkPacks.length,35,"solo TALK packs must cover all 35 characters");
 assert.equal(soloTalkPacks.reduce((sum,pack)=>sum+(pack.events||[]).length,0),245,"solo TALK must keep seven curated scenes per character");
+
+const unifiedCharacterCode=read("data/unified-character-content.js");
+const unifiedContext={window:{HV_STORY_PACKS:[]}};
+vm.runInNewContext(read("data/topic-pool-500.js"),unifiedContext);
+vm.runInNewContext(read("data/character-topic-talks-52.js"),unifiedContext);
+vm.runInNewContext(read("data/lucifer-talk-13-20.js"),unifiedContext);
+const luciferBeforeUnified=(unifiedContext.window.HV_STORY_PACKS||[]).find(pack=>pack.id==="pooltalk-52-lucifer-morningstar");
+const luciferMainIdsBeforeUnified=Array.from((luciferBeforeUnified?.events||[]).slice(0,60),event=>event.id);
+vm.runInNewContext(unifiedCharacterCode,unifiedContext);
+const unifiedRuntimePacks=unifiedContext.window.HV_STORY_PACKS||[];
+const luciferCanonicalTalk=unifiedRuntimePacks.find(pack=>pack.id==="pooltalk-52-lucifer-morningstar");
+assert.ok(luciferCanonicalTalk,"Lucifer canonical TALK pack missing after consolidation");
+assert.equal(JSON.stringify(Array.from(luciferCanonicalTalk.events.slice(0,60),event=>event.id)),JSON.stringify(luciferMainIdsBeforeUnified),"Lucifer main 60 TALK slots must remain untouched by consolidation");
+assert.equal(luciferCanonicalTalk.events.length,70,"Lucifer canonical TALK must contain 60 main TALK + 10 supplemental TALK");
+assert.ok(luciferCanonicalTalk.events.slice(60).every(event=>String(event.name||"").startsWith("TALK · ")),"supplemental scenes must appear as ordinary TALK");
+const luciferCanonicalAsk=unifiedRuntimePacks.find(pack=>pack.id==="unified-asks-lucifer-morningstar");
+assert.equal(luciferCanonicalAsk?.asks?.length,9,"Lucifer ASK must merge all nine existing personal questions");
+assert.equal(unifiedRuntimePacks.filter(pack=>String(pack.id||"").startsWith("unified-asks-")).length,35,"unified ASK packs must cover all existing personal character sets");
+assert.ok(!unifiedRuntimePacks.some(pack=>/^(?:relationship|topic-conversations|common-topic-asks|solo-talks|character-banter)-/.test(String(pack.id||""))),"fragmented legacy pack ids must not exist in the unified runtime");
+
 const walkEntries=(entries,visit)=>{
   for(const entry of entries||[]){
     visit(entry);
