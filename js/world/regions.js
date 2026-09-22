@@ -293,7 +293,7 @@
       visible:cfg.visible!==false,
       regionIds:Array.isArray(cfg.regionIds)?cfg.regionIds:regions().map(region=>region.id),
       image:String(cfg.image||character.image||"").trim(),
-      scale:Math.max(.6,Math.min(1.55,Number(cfg.scale)||1)),
+      scale:Math.max(.5,Math.min(2,Number(cfg.scale)||1)),
       movement:["still","calm","wander","active"].includes(cfg.movement)?cfg.movement:"wander",
       speed:Math.max(.45,Math.min(1.8,Number(cfg.speed)||1))
     };
