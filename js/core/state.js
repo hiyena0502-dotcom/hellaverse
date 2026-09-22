@@ -1229,19 +1229,21 @@ function installStoryPacks(source){
       for(const event of source.events||[]){
         const id=String(event?.id||"");
         const characterId=String(event?.characterId||"");
-        const managed=managedCharacters.has(characterId)&&id.startsWith("pooltalk-");
-        if(!managed){
-          kept.push(event);
+        const currentManaged=currentIds.has(id)&&managedCharacters.has(characterId);
+        const retiredGenerated=managedCharacters.has(characterId)&&id.startsWith("pooltalk-")&&!currentIds.has(id);
+
+        if(currentManaged){
+          const fresh=normalizedById.get(id);
+          if(JSON.stringify(event)!==JSON.stringify(fresh))poolChanged=true;
+          kept.push(fresh);
+          normalizedById.delete(id);
           continue;
         }
-        if(!currentIds.has(id)){
+        if(retiredGenerated){
           poolChanged=true;
           continue;
         }
-        const fresh=normalizedById.get(id);
-        if(JSON.stringify(event)!==JSON.stringify(fresh))poolChanged=true;
-        kept.push(fresh);
-        normalizedById.delete(id);
+        kept.push(event);
       }
       for(const fresh of normalizedById.values()){
         kept.push(fresh);
