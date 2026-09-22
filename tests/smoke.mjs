@@ -105,11 +105,21 @@ assert.match(index,/data\/unified-character-content\.js/,"unified per-character 
 assert.doesNotMatch(index,/data\/(?:relationship-content|topic-conversations|common-topic-asks|solo-talks|character-banter)\.js/,"fragmented per-character content scripts must not load at runtime");
 assert.match(index,/data\/lucifer-talk-13-30\.js/,"Lucifer TALK 13-30 script missing from build");
 
+const retiredCharacterPattern=/(?:belphegor|leviathan|벨페고르|레비아탄)/i;
+for(const path of [
+  "data/unified-character-content.js","data/relationship-content.js","data/solo-talks.js","data/origin-intros.js",
+  "data/gacha-profiles.js","data/item-presets.js","data/archive-meta-5.js","data/lucifer-talk-13-30.js"
+]){
+  assert.doesNotMatch(read(path),retiredCharacterPattern,path+" must not contain retired Belphegor/Leviathan content");
+}
+assert.match(stateCode,/RETIRED_CHARACTER_IDS/,"retired-character registry missing");
+assert.match(stateCode,/function purgeRetiredCharacterContent\(/,"retired-character saved-state cleanup missing");
+
 const soloTalkContext={window:{HV_STORY_PACKS:[]}};
 vm.runInNewContext(soloTalkCode,soloTalkContext);
 const soloTalkPacks=soloTalkContext.window.HV_STORY_PACKS||[];
-assert.equal(soloTalkPacks.length,35,"solo TALK packs must cover all 35 characters");
-assert.equal(soloTalkPacks.reduce((sum,pack)=>sum+(pack.events||[]).length,0),245,"solo TALK must keep seven curated scenes per character");
+assert.equal(soloTalkPacks.length,33,"solo TALK packs must cover all 33 active characters");
+assert.equal(soloTalkPacks.reduce((sum,pack)=>sum+(pack.events||[]).length,0),231,"solo TALK must keep seven curated scenes per active character");
 
 const unifiedCharacterCode=read("data/unified-character-content.js");
 const unifiedContext={window:{HV_STORY_PACKS:[]}};
@@ -127,7 +137,7 @@ assert.equal(luciferCanonicalTalk.events.length,70,"Lucifer canonical TALK must 
 assert.ok(luciferCanonicalTalk.events.slice(60).every(event=>String(event.name||"").startsWith("TALK · ")),"supplemental scenes must appear as ordinary TALK");
 const luciferCanonicalAsk=unifiedRuntimePacks.find(pack=>pack.id==="unified-asks-lucifer-morningstar");
 assert.equal(luciferCanonicalAsk?.asks?.length,9,"Lucifer ASK must merge all nine existing personal questions");
-assert.equal(unifiedRuntimePacks.filter(pack=>String(pack.id||"").startsWith("unified-asks-")).length,35,"unified ASK packs must cover all existing personal character sets");
+assert.equal(unifiedRuntimePacks.filter(pack=>String(pack.id||"").startsWith("unified-asks-")).length,33,"unified ASK packs must cover all active personal character sets");
 assert.ok(!unifiedRuntimePacks.some(pack=>/^(?:relationship|topic-conversations|common-topic-asks|solo-talks|character-banter)-/.test(String(pack.id||""))),"fragmented legacy pack ids must not exist in the unified runtime");
 
 const walkEntries=(entries,visit)=>{
@@ -315,9 +325,9 @@ assert.ok(!soloTalkCode.includes("천박한 건 좋아하지만 무례한 건 �
 const relationshipContext={window:{}};
 vm.runInNewContext(relationshipCode,relationshipContext);
 const relationshipPacks=relationshipContext.window.HV_STORY_PACKS||[];
-assert.equal(relationshipPacks.length,35,"relationship packs must cover all 35 characters");
-assert.equal(relationshipPacks.reduce((sum,pack)=>sum+(pack.asks||[]).length,0),70,"relationship ASK must add two tiers per character");
-assert.equal(relationshipPacks.reduce((sum,pack)=>sum+(pack.events||[]).length,0),66,"relationship TALK must add three scenes for 22 under-served characters");
+assert.equal(relationshipPacks.length,33,"relationship packs must cover all 33 active characters");
+assert.equal(relationshipPacks.reduce((sum,pack)=>sum+(pack.asks||[]).length,0),66,"relationship ASK must add two tiers per active character");
+assert.equal(relationshipPacks.reduce((sum,pack)=>sum+(pack.events||[]).length,0),60,"relationship TALK must remove retired Belphegor/Leviathan scenes");
 for(const pack of relationshipPacks){
   assert.equal((pack.asks||[]).length,2,pack.id+" must have mid/deep relationship ASK");
   assert.equal(pack.version,6,pack.id+" relationship voice pack must be on branching version 6");
@@ -622,6 +632,57 @@ vm.runInContext(itemPresetCode,context,{filename:"data/item-presets.js"});
 vm.runInContext(dialoguePresetCode,context,{filename:"data/dialogue-presets.js"});
 vm.runInContext(stateCode,context,{filename:"js/core/state.js"});
 
+const retiredCharacterPurgeCheck=vm.runInContext(`
+(()=>{
+  const source=normalizeState({
+    schemaVersion:4,
+    characters:[
+      {id:"lucifer-morningstar",name:"Lucifer Morningstar",origin:"hellborn"},
+      {id:"belphegor",name:"Belphegor",origin:"hellborn"},
+      {id:"leviathan",name:"Leviathan",origin:"hellborn"}
+    ],
+    events:[
+      {id:"keep-event",characterId:"lucifer-morningstar",entries:[{id:"keep-line",type:"dialogue",text:"keep"}]},
+      {id:"belphegor-event",characterId:"belphegor",entries:[{id:"retired-line",type:"dialogue",text:"remove"}]}
+    ],
+    asks:[{id:"leviathan-ask",characterId:"leviathan",label:"remove",entries:[]}],
+    items:[
+      {id:"keep-item",name:"keep",collectionCharacterId:"lucifer-morningstar",reactions:[
+        {id:"keep-reaction",characterId:"lucifer-morningstar"},
+        {id:"belphegor-reaction",characterId:"belphegor"}
+      ]},
+      {id:"belphegor-item",name:"retired",collectionCharacterId:"belphegor"},
+      {id:"gift-item-lucifer-giftx-leviathan-seaglass-duck",name:"linked",collectionCharacterId:"lucifer-morningstar"}
+    ],
+    inventoryCounts:{"keep-item":1,"belphegor-item":2,"gift-item-lucifer-giftx-leviathan-seaglass-duck":1},
+    favoriteCharacterIds:["lucifer-morningstar","belphegor"],
+    seenOriginIntroCharacterIds:["leviathan"],
+    playState:{variables:{belphegor_flag:true,keep:true},affection:{belphegor:50,"lucifer-morningstar":60},emotions:{leviathan:{state:"calm",intensity:10}},log:[],recentTalks:{belphegor:["belphegor-event"],"lucifer-morningstar":["keep-event"]}},
+    collectionSettings:{expandedCharacterIds:["belphegor","lucifer-morningstar"]}
+  });
+  return {
+    characters:source.characters.map(row=>row.id),events:source.events.map(row=>row.id),asks:source.asks.map(row=>row.id),
+    items:source.items.map(row=>row.id),reactions:source.items.find(row=>row.id==="keep-item")?.reactions.map(row=>row.characterId)||[],
+    inventory:Object.keys(source.inventoryCounts),favorites:source.favoriteCharacterIds,origins:source.seenOriginIntroCharacterIds,
+    variables:Object.keys(source.playState.variables),affection:Object.keys(source.playState.affection),emotions:Object.keys(source.playState.emotions),
+    recent:Object.keys(source.playState.recentTalks),expanded:source.collectionSettings.expandedCharacterIds
+  };
+})()
+`,context);
+assert.deepEqual([...retiredCharacterPurgeCheck.characters],["lucifer-morningstar"],"retired characters must be removed from saved state");
+assert.deepEqual([...retiredCharacterPurgeCheck.events],["keep-event"],"retired character events must be removed from saved state");
+assert.equal(retiredCharacterPurgeCheck.asks.length,0,"retired character ASK must be removed from saved state");
+assert.deepEqual([...retiredCharacterPurgeCheck.items],["keep-item"],"retired and linked collection items must be removed from saved state");
+assert.deepEqual([...retiredCharacterPurgeCheck.reactions],["lucifer-morningstar"],"retired gift reactions must be removed");
+assert.deepEqual([...retiredCharacterPurgeCheck.inventory],["keep-item"],"retired inventory counts must be removed");
+assert.deepEqual([...retiredCharacterPurgeCheck.favorites],["lucifer-morningstar"],"retired favorites must be removed");
+assert.equal(retiredCharacterPurgeCheck.origins.length,0,"retired origin intro flags must be removed");
+assert.deepEqual([...retiredCharacterPurgeCheck.variables],["keep"],"retired play variables must be removed");
+assert.deepEqual([...retiredCharacterPurgeCheck.affection],["lucifer-morningstar"],"retired affection state must be removed");
+assert.equal(retiredCharacterPurgeCheck.emotions.length,0,"retired emotion state must be removed");
+assert.deepEqual([...retiredCharacterPurgeCheck.recent],["lucifer-morningstar"],"retired recent TALK state must be removed");
+assert.deepEqual([...retiredCharacterPurgeCheck.expanded],["lucifer-morningstar"],"retired collection expansion state must be removed");
+
 const storyPackInstall=vm.runInContext(`
 (()=>{
   const required=["lucifer-morningstar","charlie-morningstar","vaggie","alastor","angel-dust","husk","niffty","baxter"];
@@ -773,7 +834,7 @@ assert.match(generatedGiftReaction.firstText,/헤드폰/,"generated FIRST gift l
 assert.ok(generatedGiftReaction.repeatText&&generatedGiftReaction.specialText,"generated repeat and special lines must exist");
 const allCharacterGiftCoverage=vm.runInContext(`
 (()=>{
-  const ids=["lucifer-morningstar","charlie-morningstar","sera","lute","adam","vaggie","alastor","vox","niffty","angel-dust","husk","blitzo","paimon","satan","mammon","asmodeus","beelzebub","belphegor","leviathan","sir-pentious","cherri-bomb","velvette","valentino","carmilla-carmine","rosie","abel","emily","baxter","zestial","stolas","loona","moxxie","millie","fizzarolli","octavia"];
+  const ids=["lucifer-morningstar","charlie-morningstar","sera","lute","adam","vaggie","alastor","vox","niffty","angel-dust","husk","blitzo","paimon","satan","mammon","asmodeus","beelzebub","sir-pentious","cherri-bomb","velvette","valentino","carmilla-carmine","rosie","abel","emily","baxter","zestial","stolas","loona","moxxie","millie","fizzarolli","octavia"];
   const item=normalizeItem({id:"coverage-gift",name:"작은 별 장식",rarity:"COMMON",collectionCharacterId:"lucifer-morningstar",giftable:true});
   return ids.map(id=>{
     const reaction=normalizeItemReaction(window.HV_BUILD_ITEM_REACTION(item,{id,name:id}),id);
@@ -781,7 +842,7 @@ const allCharacterGiftCoverage=vm.runInContext(`
   });
 })()
 `,context);
-assert.equal(allCharacterGiftCoverage.length,35,"gift reaction coverage must include all 35 existing characters");
+assert.equal(allCharacterGiftCoverage.length,33,"gift reaction coverage must include all 33 active characters");
 assert.ok(allCharacterGiftCoverage.every(([,first,repeat,special])=>first&&repeat&&special),"every character needs FIRST, REPEAT, and SPECIAL gift dialogue");
 
 const dialoguePresetCheck=vm.runInContext(`

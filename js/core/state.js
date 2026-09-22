@@ -33,6 +33,13 @@ const GIFT_PREFERENCES = [
   ["LOVED",5],["LIKED",3],["NEUTRAL",1],["DISLIKED",-2],["HATED",-4]
 ];
 const RARITY_ORDER = {COMMON:0,UNCOMMON:1,RARE:2,EPIC:3,LEGENDARY:4,MISTIC:5};
+const RETIRED_CHARACTER_IDS = new Set(["belphegor","leviathan"]);
+const RETIRED_CHARACTER_LABELS = ["belphegor","leviathan","벨페고르","레비아탄"];
+const isRetiredCharacterId = value => RETIRED_CHARACTER_IDS.has(String(value||"").toLowerCase());
+const hasRetiredCharacterReference = value => {
+  const text=String(value??"").toLowerCase();
+  return RETIRED_CHARACTER_LABELS.some(label=>text.includes(label.toLowerCase()));
+};
 
 const $ = (q, root=document) => root.querySelector(q);
 const $$ = (q, root=document) => [...root.querySelectorAll(q)];
@@ -1069,6 +1076,86 @@ function migrateStateSchema(raw){
   return {...s,schemaVersion:CURRENT_SCHEMA_VERSION};
 }
 
+function purgeRetiredCharacterContent(source){
+  if(!source||typeof source!=="object")return source;
+
+  const removedEventIds=new Set((source.events||[])
+    .filter(event=>isRetiredCharacterId(event?.characterId)||hasRetiredCharacterReference(event?.id))
+    .map(event=>String(event.id||"")).filter(Boolean));
+  const removedAskIds=new Set((source.asks||[])
+    .filter(ask=>isRetiredCharacterId(ask?.characterId)||hasRetiredCharacterReference(ask?.id))
+    .map(ask=>String(ask.id||"")).filter(Boolean));
+  const removedThoughtIds=new Set((source.thoughts||[])
+    .filter(thought=>isRetiredCharacterId(thought?.characterId)||hasRetiredCharacterReference(thought?.id))
+    .map(thought=>String(thought.id||"")).filter(Boolean));
+  const removedItemIds=new Set((source.items||[])
+    .filter(item=>isRetiredCharacterId(item?.collectionCharacterId)||hasRetiredCharacterReference(item?.id)||hasRetiredCharacterReference(item?.name))
+    .map(item=>String(item.id||"")).filter(Boolean));
+  const removedItemList=[...removedItemIds];
+  const referencesRemovedItem=value=>{
+    const text=String(value||"");
+    return removedItemList.some(id=>text===id||text.startsWith(id+"::")||text.includes(id));
+  };
+  const keepCharacterId=id=>!isRetiredCharacterId(id);
+  const keepRetiredRef=value=>!hasRetiredCharacterReference(value);
+  const cleanRecord=record=>Object.fromEntries(Object.entries(record&&typeof record==="object"?record:{}).filter(([key])=>keepCharacterId(key)&&keepRetiredRef(key)));
+
+  source.characters=(source.characters||[]).filter(character=>keepCharacterId(character?.id));
+  source.events=(source.events||[]).filter(event=>!removedEventIds.has(String(event?.id||""))&&keepCharacterId(event?.characterId));
+  source.asks=(source.asks||[]).filter(ask=>!removedAskIds.has(String(ask?.id||""))&&keepCharacterId(ask?.characterId));
+  source.thoughts=(source.thoughts||[]).filter(thought=>!removedThoughtIds.has(String(thought?.id||""))&&keepCharacterId(thought?.characterId));
+  source.variables=(source.variables||[]).filter(variable=>keepRetiredRef(variable?.id));
+  source.items=(source.items||[])
+    .filter(item=>!removedItemIds.has(String(item?.id||""))&&keepCharacterId(item?.collectionCharacterId))
+    .map(item=>({...item,reactions:(item.reactions||[]).filter(reaction=>keepCharacterId(reaction?.characterId)&&keepRetiredRef(reaction?.id))}));
+
+  source.storyPackVersions=Object.fromEntries(Object.entries(source.storyPackVersions||{}).filter(([id])=>keepRetiredRef(id)));
+  source.favoriteCharacterIds=(source.favoriteCharacterIds||[]).filter(keepCharacterId);
+  source.seenOriginIntroCharacterIds=(source.seenOriginIntroCharacterIds||[]).filter(keepCharacterId);
+  source.discoveredTalkIds=(source.discoveredTalkIds||[]).filter(id=>!removedEventIds.has(String(id))&&keepRetiredRef(id));
+  source.askedAskIds=(source.askedAskIds||[]).filter(id=>!removedAskIds.has(String(id))&&keepRetiredRef(id));
+  source.unlockedAskIds=(source.unlockedAskIds||[]).filter(id=>!removedAskIds.has(String(id))&&keepRetiredRef(id));
+  source.discoveredThoughtIds=(source.discoveredThoughtIds||[]).filter(id=>!removedThoughtIds.has(String(id))&&keepRetiredRef(id));
+
+  source.inventoryCounts=Object.fromEntries(Object.entries(source.inventoryCounts||{}).filter(([id])=>!removedItemIds.has(id)&&keepRetiredRef(id)));
+  source.newItemIds=(source.newItemIds||[]).filter(id=>!removedItemIds.has(String(id))&&keepRetiredRef(id));
+  source.itemHistory=(source.itemHistory||[]).filter(row=>!removedItemIds.has(String(row?.itemId||""))&&!referencesRemovedItem(row?.itemId)&&keepRetiredRef(row?.itemId));
+  source.discoveredGiftReactionKeys=(source.discoveredGiftReactionKeys||[]).filter(key=>!referencesRemovedItem(key)&&keepRetiredRef(key));
+  source.discoveredSpecialGiftKeys=(source.discoveredSpecialGiftKeys||[]).filter(key=>!referencesRemovedItem(key)&&keepRetiredRef(key));
+  source.giftInteractionCounts=Object.fromEntries(Object.entries(source.giftInteractionCounts||{}).filter(([key])=>!referencesRemovedItem(key)&&keepRetiredRef(key)));
+  source.claimedItemEffectIds=(source.claimedItemEffectIds||[]).filter(id=>!referencesRemovedItem(id)&&keepRetiredRef(id));
+  source.interactionHistory=(source.interactionHistory||[]).filter(row=>
+    keepCharacterId(row?.characterId)&&
+    !removedItemIds.has(String(row?.itemId||""))&&
+    !removedAskIds.has(String(row?.askId||""))&&
+    keepRetiredRef(row?.itemId)&&keepRetiredRef(row?.askId)
+  );
+
+  source.collectionSettings ||= {};
+  source.collectionSettings.expandedCharacterIds=(source.collectionSettings.expandedCharacterIds||[]).filter(keepCharacterId);
+
+  source.playState ||= {variables:{},affection:{},emotions:{},log:[],recentTalks:{}};
+  source.playState.variables=Object.fromEntries(Object.entries(source.playState.variables||{}).filter(([id])=>keepRetiredRef(id)));
+  source.playState.affection=cleanRecord(source.playState.affection);
+  source.playState.emotions=cleanRecord(source.playState.emotions);
+  source.playState.recentTalks=Object.fromEntries(Object.entries(source.playState.recentTalks||{})
+    .filter(([characterId])=>keepCharacterId(characterId))
+    .map(([characterId,ids])=>[characterId,(Array.isArray(ids)?ids:[]).filter(id=>!removedEventIds.has(String(id))&&keepRetiredRef(id))]));
+  source.playState.log=(source.playState.log||[]).filter(row=>
+    keepRetiredRef(row?.speaker)&&keepRetiredRef(row?.text)&&keepRetiredRef(row?.eventName)
+  );
+
+  source.gacha ||= {};
+  source.gacha.history=(source.gacha.history||[]).filter(row=>
+    !removedItemIds.has(String(row?.itemId||""))&&
+    !referencesRemovedItem(row?.itemId)&&
+    keepRetiredRef(row?.itemId)&&
+    keepRetiredRef(row?.name)
+  );
+
+  return source;
+}
+
 function normalizeState(raw){
   const d=defaultState();
   const s=migrateStateSchema(raw);
@@ -1083,7 +1170,7 @@ function normalizeState(raw){
     delete item.legacyUnlocked;
   });
   const rawOrigin=s.profile?.origin;
-  return {
+  const normalized={
     schemaVersion:CURRENT_SCHEMA_VERSION,
     storyPackVersions:s.storyPackVersions&&typeof s.storyPackVersions==="object"
       ? Object.fromEntries(Object.entries(s.storyPackVersions).map(([id,version])=>[String(id),Math.max(0,Number(version)||0)]))
@@ -1144,6 +1231,7 @@ function normalizeState(raw){
     },
     discoveredThoughtIds:Array.isArray(s.discoveredThoughtIds)?[...new Set(s.discoveredThoughtIds)]:[]
   };
+  return purgeRetiredCharacterContent(normalized);
 }
 function storyPackCharacterKey(value){
   return String(value||"").trim().toLowerCase().replace(/[^a-z0-9가-힣]+/g,"");
@@ -1216,6 +1304,7 @@ function installStoryPacks(source){
 
     const characterIds=new Set((source.characters||[]).map(character=>character.id));
     const required=Array.isArray(pack.requiredCharacterIds)?pack.requiredCharacterIds:[];
+    if(required.some(isRetiredCharacterId))return;
     if(required.some(id=>!characterIds.has(id)))return;
 
     if(isPoolTalkPack){
