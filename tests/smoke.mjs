@@ -13,6 +13,7 @@ const jsFiles=[
   "data/lucifer-talk-31-60.js",
   "data/lucifer-talk-61-64.js",
   "data/lucifer-talk-65-67.js",
+  "data/lucifer-talk-68-70.js",
   "data/unified-character-content.js",
   "data/solo-talks.js",
   "data/character-banter.js",
@@ -122,11 +123,12 @@ assert.match(index,/data\/lucifer-talk-13-30\.js/,"Lucifer TALK 13-30 script mis
 assert.match(index,/data\/lucifer-talk-31-60\.js/,"Lucifer TALK 31-60 script missing from build");
 assert.match(index,/data\/lucifer-talk-61-64\.js/,"Lucifer TALK 61-64 script missing from build");
 assert.match(index,/data\/lucifer-talk-65-67\.js/,"Lucifer TALK 65-67 script missing from build");
+assert.match(index,/data\/lucifer-talk-68-70\.js/,"Lucifer TALK 68-70 script missing from build");
 
 const retiredCharacterPattern=/(?:belphegor|leviathan|벨페고르|레비아탄)/i;
 for(const path of [
   "data/unified-character-content.js","data/relationship-content.js","data/solo-talks.js","data/origin-intros.js",
-  "data/gacha-profiles.js","data/item-presets.js","data/archive-meta-5.js","data/lucifer-talk-13-30.js","data/lucifer-talk-31-60.js","data/lucifer-talk-61-64.js","data/lucifer-talk-65-67.js"
+  "data/gacha-profiles.js","data/item-presets.js","data/archive-meta-5.js","data/lucifer-talk-13-30.js","data/lucifer-talk-31-60.js","data/lucifer-talk-61-64.js","data/lucifer-talk-65-67.js","data/lucifer-talk-68-70.js"
 ]){
   assert.doesNotMatch(read(path),retiredCharacterPattern,path+" must not contain retired Belphegor/Leviathan content");
 }
@@ -214,6 +216,33 @@ const lucifer6567Text=JSON.stringify(luciferWith6567.events.slice(64,67));
 for(const phrase of ["…이건 좀 못 본 척해주면 안 돼?","전부은 안 돼.","그런 질문 쉽게 하지 마.","나중엔 말할 수도 있고.","이건 입장권은 아니잖아.","그러니까 안 잃어버릴 거야."]){
   assert.ok(lucifer6567Text.includes(phrase),"Lucifer TALK 65-67 must preserve the revised user-authored text: "+phrase);
 }
+const luciferFirst67Ids=Array.from(luciferWith6567.events.slice(0,67),event=>event.id);
+vm.runInNewContext(read("data/lucifer-talk-68-70.js"),unifiedContext);
+const luciferWith6870=(unifiedContext.window.HV_STORY_PACKS||[]).find(pack=>pack.id==="pooltalk-52-lucifer-morningstar");
+assert.equal(luciferWith6870?.version,59,"Lucifer supplemental TALK 68-70 override version missing");
+assert.equal(JSON.stringify(Array.from(luciferWith6870.events.slice(0,67),event=>event.id)),JSON.stringify(luciferFirst67Ids),"Lucifer 68-70 override must not modify TALK 01-67");
+assert.equal(luciferWith6870.events.length,70,"Lucifer TALK must remain exactly 70 after 68-70 override");
+assert.equal(JSON.stringify(Array.from(luciferWith6870.events.slice(67,70),event=>event.id)),JSON.stringify(["topic-talk-lucifer-morningstar-01","topic-talk-lucifer-morningstar-02","banter-lucifer-morningstar-01"]),"Lucifer TALK 68-70 order must be royal work/heaven/Charlie note");
+assert.equal(JSON.stringify(Array.from(luciferWith6870.events.slice(67,70),event=>event.name)),JSON.stringify(["TALK · 왕실 업무 회피","TALK · 천국 이야기","TALK · 찰리의 메모"]),"Lucifer TALK 68-70 titles must match the revised set");
+for(const event of luciferWith6870.events.slice(67,70)){
+  assert.ok(["medium","high"].includes(event.sensitivity),event.id+" sensitivity missing");
+  assert.equal(event.startMode,"EVENT",event.id+" must preserve scene-first TALK flow");
+  walk6164Entries(event.entries,owner=>{
+    const condition=owner?.affectionCondition;
+    if(condition?.characterId==="lucifer-morningstar"){
+      assert.ok(["COLD","DISTANT","NEUTRAL","WARM","CLOSE"].includes(condition.band),event.id+" must use five-band affection conditions");
+      assert.notEqual(Number(condition.value),58,event.id+" must not use the old 58 split");
+    }
+  });
+}
+for(const id of ["luc_t68_tension","luc_t68_push","luc_t68_closed","luc_t69_tension","luc_t69_push","luc_t69_closed","luc_t70_tension","luc_t70_push","luc_t70_closed","luc_t68_one_document_started","luc_t69_player_heaven_trust","luc_t70_note_kept"]){
+  assert.ok((luciferWith6870.variables||[]).some(variable=>variable.id===id),"Lucifer 68-70 system variable missing: "+id);
+}
+const lucifer6870Text=JSON.stringify(luciferWith6870.events.slice(67,70));
+for(const phrase of ["확인 안 했으니까 아직 아니야.","하나라고 했잖아.","좋았던 게 있으니까 더 얘기하기 싫은 것도 있겠지.","…오늘은 이 정도면 많이 한 거야.","전략이 너무 정직한데.","찰리 기다리겠다."]){
+  assert.ok(lucifer6870Text.includes(phrase),"Lucifer TALK 68-70 must preserve the revised user-authored text: "+phrase);
+}
+
 
 
 
