@@ -1,7 +1,7 @@
 "use strict";
 
 (()=>{
-  const VERSION=17;
+  const VERSION=18;
   const key=value=>String(value||"").normalize("NFKC").trim().toLowerCase().replace(/[^a-z0-9가-힣]+/g,"");
   const hash=value=>{
     let h=2166136261;
@@ -37,6 +37,77 @@
     for(const [from,to] of LEGACY_DIALOGUE_TRANSLATIONS)text=text.split(from).join(to);
     text=text.replace(/\bNO\b/g,"안 돼");
     return text;
+  };
+  const LUCIFER_NAME_REWRITES=[
+    [/\bVoxTech\b/gi,"그 TV 놈 회사"],
+    [/\bVoxTek\b/gi,"그 TV 놈 회사"],
+    [/\bV Tower\b/gi,"그 TV 놈네 타워"],
+    [/\bVees\b/g,"그 TV 놈 패거리"],
+    [/\bVox\b/gi,"그 TV 대가리"],
+    [/복스/g,"그 TV 대가리"],
+    [/\bAlastor\b/gi,"그 사슴 대가리"],
+    [/알래스터/g,"그 사슴 대가리"],
+    [/\bVaggie\b/gi,"찰리 여자친구"],
+    [/배기/g,"찰리 여자친구"],
+    [/\bNiffty\b/gi,"그 조그만 애"],
+    [/니프티/g,"그 조그만 애"],
+    [/\bHusk\b/gi,"그 바텐더 고양이"],
+    [/허스크/g,"그 바텐더 고양이"],
+    [/\bAngel Dust\b/gi,"그 긴 거미"],
+    [/엔젤 더스트/g,"그 긴 거미"],
+    [/\bAngel\b/g,"그 긴 거미"],
+    [/엔젤/g,"그 긴 거미"],
+    [/\bEmily\b/gi,"그 신난 천사"],
+    [/에밀리/g,"그 신난 천사"],
+    [/\bLute\b/gi,"아담 옆에 있던 천사"],
+    [/류트/g,"아담 옆에 있던 천사"],
+    [/\bCarmilla Carmine\b/gi,"그 무기상"],
+    [/카밀라 카마인/g,"그 무기상"],
+    [/\bCarmilla\b/gi,"그 무기상"],
+    [/카밀라/g,"그 무기상"],
+    [/\bBaxter\b/gi,"그 물고기 과학자"],
+    [/백스터/g,"그 물고기 과학자"],
+    [/\bSir Pentious\b/gi,"그 뱀"],
+    [/\bPentious\b/gi,"그 뱀"],
+    [/펜셔스/g,"그 뱀"],
+    [/펜티어스/g,"그 뱀"],
+    [/\bValentino\b/gi,"그 나방 놈"],
+    [/발렌티노/g,"그 나방 놈"],
+    [/\bVelvette\b/gi,"그 패션 애"],
+    [/벨벳/g,"그 패션 애"],
+    [/\bRosie\b/gi,"그 식인종 여자"],
+    [/로지/g,"그 식인종 여자"],
+    [/\bCherri Bomb\b/gi,"그 폭탄 던지는 애"],
+    [/체리 밤/g,"그 폭탄 던지는 애"],
+    [/\bAbel\b/gi,"아담 아들"],
+    [/아벨/g,"아담 아들"],
+    [/\bZestial\b/gi,"그 오래된 오버로드"],
+    [/제스티얼/g,"그 오래된 오버로드"],
+    [/\bZeezi\b/gi,"그 공룡 같은 오버로드"],
+    [/지지/g,"그 공룡 같은 오버로드"]
+  ];
+  const rewriteLuciferKnowledge=text=>{
+    let next=String(text??"");
+    for(const [re,to] of LUCIFER_NAME_REWRITES)next=next.replace(re,to);
+    return next;
+  };
+  const normalizeLuciferNameKnowledge=source=>{
+    let changed=false;
+    const apply=entries=>walk(entries,owner=>{
+      if(owner?.type!=="dialogue")return;
+      const isLucifer=owner.speakerCharacterId==="lucifer-morningstar"||/^(?:Lucifer Morningstar|LUCIFER)$/i.test(String(owner.speaker||""));
+      if(!isLucifer||typeof owner.text!=="string")return;
+      const next=rewriteLuciferKnowledge(owner.text);
+      if(next!==owner.text){owner.text=next;changed=true}
+    });
+    for(const event of source.events||[])apply(event.entries);
+    for(const ask of source.asks||[])apply(ask.entries);
+    for(const item of source.items||[]){
+      for(const reaction of item.reactions||[]){
+        for(const field of ["firstEntries","repeatEntries","specialEntries"])apply(reaction[field]);
+      }
+    }
+    return changed;
   };
   const localizeEntryTree=entries=>{
     let changed=false;
@@ -319,6 +390,7 @@
         }
       }
     }
+    if(normalizeLuciferNameKnowledge(source))changed=true;
     const seenTalkSignatures=new Map();
     for(const event of source.events){
       const role=roleOf(event);
