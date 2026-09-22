@@ -112,6 +112,35 @@ const walkEntries=(entries,visit)=>{
     if(entry.type==="choice")for(const option of entry.options||[]){visit(option);walkEntries(option.entries,visit)}
   }
 };
+
+const topicPoolCode=read("data/topic-pool-500.js");
+const characterTopicTalkCode=read("data/character-topic-talks-52.js");
+const topicTalkContext={window:{HV_STORY_PACKS:[]}};
+vm.runInNewContext(topicPoolCode,topicTalkContext);
+vm.runInNewContext(characterTopicTalkCode,topicTalkContext);
+const luciferTopicPack=(topicTalkContext.window.HV_STORY_PACKS||[]).find(pack=>pack.id==="pooltalk-52-lucifer-morningstar");
+assert.ok(luciferTopicPack,"Lucifer topic TALK pack missing");
+assert.equal(luciferTopicPack.version,51,"Lucifer topic TALK must use five-band implementation version 51");
+assert.ok((luciferTopicPack.events||[]).length>=12,"Lucifer topic TALK must keep at least 12 topics");
+const luciferFirstTwelve=luciferTopicPack.events.slice(0,12);
+assert.deepEqual(luciferFirstTwelve.map(event=>event.startMode),["PLAYER_ASK","EVENT","PLAYER_ASK","CHARACTER_OPEN","PLAYER_ASK","EVENT","EVENT","PLAYER_ASK","EVENT","PLAYER_ASK","PLAYER_ASK","PLAYER_ASK"],"Lucifer 01-12 start modes must follow the design document");
+const allowedBands=new Set(["COLD","DISTANT","NEUTRAL","WARM","CLOSE"]);
+let bandedLuciferResponses=0;
+for(const event of luciferFirstTwelve){
+  assert.ok(["light","medium","high"].includes(event.sensitivity),event.id+" sensitivity missing");
+  walkEntries(event.entries,owner=>{
+    const condition=owner?.affectionCondition;
+    if(condition?.characterId==="lucifer-morningstar"){
+      assert.notEqual(Number(condition.value),58,event.id+" must not use the old 58 split");
+      if(condition.band){assert.ok(allowedBands.has(condition.band),event.id+" has invalid affection band");bandedLuciferResponses++}
+    }
+  });
+}
+assert.ok(bandedLuciferResponses>=100,"Lucifer 01-12 must contain substantial five-band response coverage");
+for(const id of ["luc_t01_tension","luc_t01_push","luc_t01_closed","luc_t11_tension","luc_t12_closed","luc_alastor_irritation","luc_work_avoidance"]){
+  assert.ok((luciferTopicPack.variables||[]).some(variable=>variable.id===id),"Lucifer system variable missing: "+id);
+}
+
 const soloEventIds=new Set();
 const allSoloCharacterLines=[];
 const allSoloChoiceLabels=[];
