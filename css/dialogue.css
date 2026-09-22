@@ -111,7 +111,77 @@
   max-height:min(300px,42vh);
   display:grid;
   grid-template-rows:auto minmax(0,auto) auto;
-  row-gap:10px
+  row-gap:10px;
+  transition:width .18s ease,margin .18s ease,border-color .18s ease,background .18s ease
+}
+.dialogue-box.character-dialogue{
+  width:min(94%,1040px);
+  margin-right:auto;
+  border-left:3px solid var(--gold);
+  border-right:1px solid rgba(201,166,107,.12);
+  border-radius:0 12px 12px 0;
+  background:
+    linear-gradient(90deg,rgba(94,22,43,.28),rgba(15,11,14,.93) 44%),
+    rgba(15,11,14,.93);
+  box-shadow:0 24px 70px rgba(0,0,0,.38),inset 18px 0 34px rgba(167,45,72,.05)
+}
+.dialogue-box.character-dialogue .speaker{color:var(--gold)}
+.dialogue-box.character-dialogue .dialogue-text{font-family:Georgia,"Times New Roman",serif}
+.dialogue-box.player-dialogue{
+  width:min(82%,860px);
+  margin-left:auto;
+  border-top-color:rgba(255,255,255,.12);
+  border-left:1px solid rgba(255,255,255,.08);
+  border-right:3px solid rgba(232,224,209,.5);
+  border-radius:12px 0 0 12px;
+  background:
+    linear-gradient(270deg,rgba(58,55,61,.54),rgba(20,17,20,.94) 58%),
+    rgba(20,17,20,.94);
+  box-shadow:0 20px 54px rgba(0,0,0,.3)
+}
+.dialogue-box.player-dialogue .speaker{
+  width:max-content;
+  margin-left:auto;
+  padding:4px 9px;
+  border:1px solid rgba(232,224,209,.2);
+  border-radius:999px;
+  color:rgba(244,239,229,.76);
+  background:rgba(255,255,255,.035);
+  font-size:.62rem;
+  letter-spacing:.18em
+}
+.dialogue-box.player-dialogue .new-talk-badge{left:24px;right:auto}
+.dialogue-box.player-dialogue .dialogue-text{
+  padding-left:8px;
+  padding-right:0;
+  font-family:var(--sans,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif);
+  font-size:clamp(1rem,2.25vw,1.38rem);
+  line-height:1.58
+}
+.dialogue-box.player-dialogue .dialogue-meta{
+  border-top:1px solid rgba(255,255,255,.055);
+  padding-top:7px
+}
+.dialogue-box.narration-dialogue{
+  width:min(90%,980px);
+  margin-inline:auto;
+  min-height:150px;
+  border-top-color:rgba(201,166,107,.16);
+  border-bottom-color:rgba(255,255,255,.06);
+  background:rgba(12,10,12,.82);
+  box-shadow:0 18px 52px rgba(0,0,0,.24)
+}
+.dialogue-box.narration-dialogue .speaker{
+  color:var(--muted);
+  text-align:center;
+  font-size:.6rem
+}
+.dialogue-box.narration-dialogue .dialogue-text{
+  text-align:center;
+  color:rgba(244,239,229,.78);
+  font-family:var(--sans,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif);
+  font-size:clamp(.96rem,2vw,1.2rem);
+  font-style:italic
 }
 .new-talk-badge{
   position:absolute;
@@ -227,6 +297,19 @@
     height:auto;
     max-height:48dvh;
     padding:20px 18px
+  }
+  .dialogue-box.character-dialogue{width:97%}
+  .dialogue-box.player-dialogue{
+    width:88%;
+    min-height:176px;
+    padding:18px 16px
+  }
+  .dialogue-box.player-dialogue .dialogue-text{
+    font-size:clamp(.98rem,4.45vw,1.17rem)
+  }
+  .dialogue-box.narration-dialogue{
+    width:94%;
+    min-height:150px
   }
   .dialogue-text{
     font-size:clamp(1rem,4.8vw,1.25rem)

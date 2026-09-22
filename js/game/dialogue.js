@@ -542,13 +542,16 @@ function renderRoomBeat(){
   const speakerCharacter=updateRoomSpeakerVisual(entry);
   const token=playback.eventId+"|"+playback.frames.map(f=>f.sourceId+":"+f.index).join("|")+"|"+entry.id;
   const speaker=entry.type==="narration"?"":(entry.speaker||speakerCharacter?.name||chName(playback.characterId));
+  const isPlayer=entry.type==="dialogue"&&String(entry.speaker||"").trim().toUpperCase()==="PLAYER";
+  const dialogueSurfaceClass=entry.type==="narration"?" narration-dialogue":isPlayer?" player-dialogue":" character-dialogue";
+  const displaySpeaker=entry.type==="narration"?"NARRATION":isPlayer?"YOU":speaker;
   const series=continuationStatusLabel();
   const length=String(entry.text||"").length;
   const density=length>210?" is-very-compact":length>130?" is-compact":"";
   const newTalk=current?.id===playback.newTalkEventId&&frame.index===0;
   const newBadge=newTalk?"NEW TALK":"";
   const progressLabel=series||("SCENE "+(frame.index+1)+" / "+frameEntries(frame).length);
-  dynamic.innerHTML='<div class="dialogue-box">'+(newBadge?'<span class="new-talk-badge">'+newBadge+'</span>':'')+'<p class="speaker">'+esc(entry.type==="narration"?"NARRATION":speaker)+'</p><p id="dialogueText" class="dialogue-text'+density+'"></p><div class="dialogue-meta"><span>'+esc(progressLabel)+'</span><button type="button" data-action="advance-dialogue">NEXT</button></div></div>';
+  dynamic.innerHTML='<div class="dialogue-box'+dialogueSurfaceClass+'">'+(newBadge?'<span class="new-talk-badge">'+newBadge+'</span>':'')+'<p class="speaker">'+esc(displaySpeaker)+'</p><p id="dialogueText" class="dialogue-text'+density+'"></p><div class="dialogue-meta"><span>'+esc(progressLabel)+'</span><button type="button" data-action="advance-dialogue">NEXT</button></div></div>';
   if(typing.token!==token){
     session.log.push({kind:entry.type,speaker,text:entry.text||"",eventName:currentEvent()?.name||""});
     if(session.log.length>200)session.log.splice(0,session.log.length-200);
