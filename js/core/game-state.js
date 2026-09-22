@@ -18,7 +18,7 @@ function createSession(){
       ? {state:emo.state,intensity:emo.intensity}
       : {state:c.emotionDefault,intensity:c.emotionIntensity};
   });
-  return {variables,affection,emotions,log:saved.log.slice(-200),recentTalks:clone(saved.recentTalks||{})};
+  return {variables,affection,emotions,log:saved.log.slice(-200),recentTalks:clone(saved.recentTalks||{}),selectedOptionIds:[...(saved.selectedOptionIds||[])]};
 }
 function syncSessionDefinitions(){
   state.variables.forEach(v=>{
