@@ -373,8 +373,19 @@ details.advanced summary{cursor:pointer;color:var(--gold);font-size:.72rem}
 .character-image-preview img{
   width:100%;
   height:100%;
-  object-fit:contain
+  object-fit:contain;
+  transform:scale(var(--character-editor-image-scale,1));
+  transform-origin:center bottom
 }
+.character-base-image-scale{
+  display:grid;
+  grid-template-columns:120px minmax(0,1fr);
+  gap:10px;
+  align-items:center
+}
+.character-base-image-scale span{color:var(--muted);font-size:.68rem}
+.character-base-image-scale b{color:var(--text)}
+.character-base-image-scale input{width:100%}
 .character-image-controls{display:grid;gap:9px}
 .character-image-controls .field{margin:0}
 .character-image-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
