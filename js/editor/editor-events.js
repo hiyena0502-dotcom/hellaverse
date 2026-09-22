@@ -801,10 +801,22 @@ function handleEditorField(e){
   const ev=editorDraft?.events.find(x=>x.id===selectedEditorEventId);
   if(t.dataset.bind&&ch){
     const m={
-      "char-name":"name","char-origin":"origin","char-role":"role","char-image":"image","char-quote":"quote",
+      "char-name":"name","char-origin":"origin","char-role":"role","char-image":"image","char-image-scale":"imageScale","char-quote":"quote",
       "char-affection":"affectionStart","char-emotion":"emotionDefault","char-intensity":"emotionIntensity","char-enabled":"enabled"
     };
-    const k=m[t.dataset.bind];if(k){ch[k]=t.type==="checkbox"?t.checked:(["affectionStart","emotionIntensity"].includes(k)?clamp(t.value,0,100,0):t.value);return}
+    const k=m[t.dataset.bind];
+    if(k){
+      ch[k]=t.type==="checkbox"?t.checked:
+        (["affectionStart","emotionIntensity"].includes(k)?clamp(t.value,0,100,0):
+        k==="imageScale"?Math.max(.5,Math.min(2,Number(t.value)||1)):t.value);
+      if(k==="imageScale"){
+        const preview=$(".character-image-preview",editorBody);
+        if(preview)preview.style.setProperty("--character-editor-image-scale",ch.imageScale);
+        const label=$("[data-character-image-scale-label]",editorBody);
+        if(label)label.textContent=Math.round(ch.imageScale*100)+"%";
+      }
+      return
+    }
   }
   if(t.dataset.bind&&ev){
     if(t.dataset.bind==="event-name"){ev.name=t.value;return}
