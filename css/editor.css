@@ -395,6 +395,104 @@ details.advanced summary{cursor:pointer;color:var(--gold);font-size:.72rem}
   font-weight:400
 }
 
+/* character emotion image editor */
+.character-image-settings-layout{margin-top:16px}
+.character-image-settings-head{
+  display:flex;
+  justify-content:space-between;
+  gap:18px;
+  align-items:end;
+  margin-bottom:16px
+}
+.character-image-settings-head h3{
+  margin:4px 0 0;
+  font-family:Georgia,serif;
+  font-size:1.35rem;
+  font-weight:500
+}
+.character-image-settings-head p:last-child{
+  max-width:420px;
+  margin:0;
+  color:var(--muted);
+  font-size:.72rem;
+  line-height:1.55;
+  text-align:right
+}
+.emotion-image-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px
+}
+.emotion-image-card{
+  min-width:0;
+  padding:13px;
+  border:1px solid var(--line);
+  border-radius:8px;
+  background:rgba(255,255,255,.012)
+}
+.emotion-image-card-head{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:start;
+  margin-bottom:9px
+}
+.emotion-image-card-head div{display:grid;gap:2px}
+.emotion-image-card-head span{
+  color:var(--gold);
+  font-size:.57rem;
+  letter-spacing:.12em
+}
+.emotion-image-card-head strong{font-size:.86rem}
+.emotion-image-card-head output{
+  color:var(--muted);
+  font-size:.67rem
+}
+.emotion-image-preview{
+  height:210px;
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+  border:1px solid rgba(201,166,107,.2);
+  border-radius:7px;
+  background:rgba(0,0,0,.22);
+  color:var(--muted);
+  font-size:.6rem;
+  letter-spacing:.12em
+}
+.emotion-image-preview img{
+  max-width:100%;
+  max-height:100%;
+  object-fit:contain;
+  transform:scale(var(--emotion-image-scale,1));
+  transform-origin:center bottom
+}
+.emotion-image-controls{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  margin-top:9px
+}
+.emotion-image-scale{
+  display:grid;
+  grid-template-columns:86px minmax(0,1fr);
+  gap:9px;
+  align-items:center;
+  margin-top:10px
+}
+.emotion-image-scale span{
+  color:var(--muted);
+  font-size:.68rem
+}
+.emotion-image-scale b{color:var(--text)}
+.emotion-image-scale input{width:100%}
+.emotion-image-card>small{
+  display:block;
+  margin-top:8px;
+  color:var(--muted);
+  font-size:.6rem
+}
+
 /* editors: gacha/thought/collection */
 .settings-grid{
   display:grid;
@@ -442,6 +540,10 @@ details.advanced summary{cursor:pointer;color:var(--gold);font-size:.72rem}
 .category-tag button{border:0;background:transparent;color:var(--danger);padding:0}
 
 @media(max-width:640px){
+  .emotion-image-grid{grid-template-columns:1fr}
+  .emotion-image-preview{height:180px}
+  .character-image-settings-head{align-items:start;flex-direction:column}
+  .character-image-settings-head p:last-child{text-align:left}
   .character-image-editor-grid{grid-template-columns:88px minmax(0,1fr);gap:10px}
   .character-image-actions{align-items:stretch}
   .character-image-actions .small-button{flex:1}
