@@ -91,6 +91,69 @@ function jumpToValidationIssue(issue){
   renderEditor();
   requestAnimationFrame(()=>editorBody.scrollTo({top:0,behavior:"smooth"}));
 }
+const CHARACTER_IMAGE_MAX_INPUT_BYTES=12*1024*1024;
+const CHARACTER_IMAGE_MAX_STORED_CHARS=4_000_000;
+function readEditorImageFile(file){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=()=>resolve(String(reader.result||""));
+    reader.onerror=()=>reject(new Error("이미지 파일을 읽지 못했습니다."));
+    reader.readAsDataURL(file);
+  });
+}
+async function optimizeCharacterImageFile(file){
+  if(!file||!String(file.type||"").startsWith("image/"))throw new Error("이미지 파일만 선택할 수 있습니다.");
+  if(file.size>CHARACTER_IMAGE_MAX_INPUT_BYTES)throw new Error("이미지가 너무 큽니다. 12MB 이하 파일을 선택해주세요.");
+  const raw=await readEditorImageFile(file);
+  if(file.type==="image/gif"){
+    if(raw.length>CHARACTER_IMAGE_MAX_STORED_CHARS)throw new Error("GIF가 너무 큽니다. 3MB 안팎의 더 작은 파일을 사용해주세요.");
+    return raw;
+  }
+  const optimized=await new Promise((resolve,reject)=>{
+    const image=new Image();
+    image.onload=()=>{
+      try{
+        const longest=Math.max(image.naturalWidth||1,image.naturalHeight||1);
+        const scale=Math.min(1,1400/longest);
+        const width=Math.max(1,Math.round((image.naturalWidth||1)*scale));
+        const height=Math.max(1,Math.round((image.naturalHeight||1)*scale));
+        const canvas=document.createElement("canvas");
+        canvas.width=width;canvas.height=height;
+        const context=canvas.getContext("2d");
+        if(!context)throw new Error("이미지 변환을 시작할 수 없습니다.");
+        context.drawImage(image,0,0,width,height);
+        resolve(canvas.toDataURL("image/webp",.86));
+      }catch(error){reject(error)}
+    };
+    image.onerror=()=>reject(new Error("이미지를 해석하지 못했습니다."));
+    image.src=raw;
+  });
+  if(!String(optimized).startsWith("data:image/"))throw new Error("이미지 변환에 실패했습니다.");
+  if(String(optimized).length>CHARACTER_IMAGE_MAX_STORED_CHARS)throw new Error("압축 후에도 이미지가 너무 큽니다. 더 작은 이미지를 사용해주세요.");
+  return String(optimized);
+}
+async function handleCharacterImageFile(input){
+  const file=input?.files?.[0];
+  if(!file)return;
+  const character=editorDraft?.characters.find(row=>row.id===selectedEditorCharacterId);
+  if(!character)return;
+  const before=serializeEditorDraft();
+  try{
+    character.image=await optimizeCharacterImageFile(file);
+    if(!editorLargeProject&&before!==serializeEditorDraft()){
+      if(editorUndoStack.at(-1)!==before)editorUndoStack.push(before);
+      if(editorUndoStack.length>12)editorUndoStack.shift();
+      editorRedoStack=[];
+      updateEditorHistoryButtons();
+    }
+    markEditorDirty();
+    renderCharacterManager();
+  }catch(error){
+    input.value="";
+    alert(error?.message||"이미지를 불러오지 못했습니다.");
+  }
+}
+
 /* APP EVENTS */
 originChoice.addEventListener("click",e=>{
   const b=e.target.closest("[data-origin]");if(!b)return;
@@ -326,6 +389,15 @@ editorBody.addEventListener("click",e=>{
     const c=normalizeCharacter({id:uid("char"),name:"새 캐릭터"});editorDraft.characters.push(c);selectedEditorCharacterId=c.id;renderCharacterManager();return;
   }
   if(a==="select-character"){selectedEditorCharacterId=b.dataset.id;renderCharacterManager();return}
+  if(a==="clear-character-image"){
+    const character=editorDraft.characters.find(row=>row.id===selectedEditorCharacterId);
+    if(!character||!character.image)return;
+    checkpointEditor();
+    character.image="";
+    markEditorDirty();
+    renderCharacterManager();
+    return;
+  }
   if(a==="delete-character"){
     const id=selectedEditorCharacterId;editorDraft.characters=editorDraft.characters.filter(c=>c.id!==id);
     editorDraft.favoriteCharacterIds=(editorDraft.favoriteCharacterIds||[]).filter(x=>x!==id);
@@ -569,6 +641,10 @@ editorBody.addEventListener("input",e=>{
   handleEditorField(e);
 });
 editorBody.addEventListener("change",e=>{
+  if(e.target.matches("[data-character-image-file]")){
+    handleCharacterImageFile(e.target);
+    return;
+  }
   if(!editorLargeProject){
     const before=e.target.dataset.undoStart;
     if(before&&before!==serializeEditorDraft()){

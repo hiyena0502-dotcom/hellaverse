@@ -339,6 +339,62 @@ details.advanced{
 }
 details.advanced summary{cursor:pointer;color:var(--gold);font-size:.72rem}
 
+.character-image-editor{
+  padding:14px;
+  border:1px solid var(--line);
+  border-radius:8px;
+  background:rgba(255,255,255,.012)
+}
+.character-image-title{
+  display:block;
+  margin-bottom:10px;
+  color:var(--gold);
+  font-size:.72rem;
+  letter-spacing:.08em
+}
+.character-image-editor-grid{
+  display:grid;
+  grid-template-columns:118px minmax(0,1fr);
+  gap:14px;
+  align-items:start
+}
+.character-image-preview{
+  aspect-ratio:4/5;
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+  border:1px solid rgba(201,166,107,.2);
+  border-radius:7px;
+  background:rgba(0,0,0,.22);
+  color:var(--muted);
+  font-size:.58rem;
+  letter-spacing:.12em
+}
+.character-image-preview img{
+  width:100%;
+  height:100%;
+  object-fit:contain
+}
+.character-image-controls{display:grid;gap:9px}
+.character-image-controls .field{margin:0}
+.character-image-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.character-image-file-button{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer
+}
+.character-image-help{
+  color:var(--muted);
+  font-size:.64rem;
+  line-height:1.5
+}
+.character-image-controls .field span small{
+  color:var(--muted);
+  font-size:.58rem;
+  font-weight:400
+}
+
 /* editors: gacha/thought/collection */
 .settings-grid{
   display:grid;
@@ -384,6 +440,12 @@ details.advanced summary{cursor:pointer;color:var(--gold);font-size:.72rem}
   font-size:.7rem
 }
 .category-tag button{border:0;background:transparent;color:var(--danger);padding:0}
+
+@media(max-width:640px){
+  .character-image-editor-grid{grid-template-columns:88px minmax(0,1fr);gap:10px}
+  .character-image-actions{align-items:stretch}
+  .character-image-actions .small-button{flex:1}
+}
 
 @media(max-width:1050px){
   .game-hud{flex-wrap:wrap;gap:12px;padding:8px 0}

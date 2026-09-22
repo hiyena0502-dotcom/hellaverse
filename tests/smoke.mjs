@@ -87,6 +87,12 @@ assert.match(editorUi,/data-affcond-field="band"/,"affection band editor control
 assert.match(editorUi,/data-bind="event-start-mode"/,"TALK start-mode editor control missing");
 assert.match(editorUi,/data-bind="event-topic-family"/,"TALK topic-family editor control missing");
 assert.match(editorUi,/data-entry-field="narrationRole"/,"narration role editor control missing");
+assert.match(editorUi,/data-character-image-file/,"character image file picker missing");
+assert.match(editorUi,/clear-character-image/,"character image remove control missing");
+assert.match(editorEvents,/function optimizeCharacterImageFile\(/,"character image optimization helper missing");
+assert.match(editorEvents,/function handleCharacterImageFile\(/,"character image upload handler missing");
+assert.match(editorEvents,/canvas\.toDataURL\("image\/webp",\.86\)/,"character image compression missing");
+assert.match(editorEvents,/data-character-image-file/,"character image file change handler missing");
 assert.match(stateCode,/for\(const variable of pack\.variables\|\|\[\]\)/,"pool TALK variable installer missing");
 assert.match(stateCode,/currentManaged=currentIds\.has\(id\)/,"pool TALK installer must absorb merged supplemental event ids without duplication");
 assert.match(stateCode,/source\.variables\.push\(normalizedVariable\)/,"pool TALK variable definitions must be registered in project state");
