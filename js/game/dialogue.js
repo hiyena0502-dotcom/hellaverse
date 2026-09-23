@@ -65,6 +65,7 @@ function startDialogue(characterId,eventId){
     autoVisitedEventIds:entryActive?[]:[ev.id],
     newTalkEventId:wasNew?ev.id:"",
     rootEventRole:eventRoleOf(ev),
+    itemEffectClaimSnapshot:[...(state.claimedItemEffectIds||[])],
     frames:[{sourceType:"event",sourceId:ev.id,index:0,label:entryActive?"ENTRY":"본편",exitMode:"continue",targetEventId:""}],
     ended:false
   }:null;
@@ -388,6 +389,7 @@ function beginRoomExit(targetPage="home"){
     continuationQueue:[],
     continuationTotal:0,
     autoVisitedEventIds:[],
+    itemEffectClaimSnapshot:[...(state.claimedItemEffectIds||[])],
     frames:[{sourceType:"event",sourceId:ev.id,index:0,label:"EXIT",exitMode:"continue",targetEventId:""}],
     ended:false
   };
