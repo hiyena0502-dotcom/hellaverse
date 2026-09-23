@@ -318,7 +318,9 @@
     const normalizeEvent=typeof helpers.normalizeEvent==="function"?helpers.normalizeEvent:value=>value;
 
     changed=applyImportantItemSettings(source)||changed;
-    changed=ensureVariable(source,"luc_acq_letter_boundary","Lucifer · 편지를 읽지 않고 물러남")||changed;
+    if(itemExists(source,I.LETTER_TO_CHARLIE)){
+      changed=ensureVariable(source,"luc_acq_letter_boundary","Lucifer · 편지를 읽지 않고 물러남")||changed;
+    }
 
     const events=[
       simpleDuckEvent(
@@ -970,13 +972,28 @@
       }
     );
 
-    const asks=[
-      firstDuckAsk,charlieDuckAsk,selfDuckAsk,alastorDuckAsk,emilyDuckAsk,
-      hotelDuckAsk,sinsAsk,veesAsk,otherDuckAsk,lilithDuckAsk,secretHaloAsk,secretLetterAsk
-    ].filter(ask=>ask&&(
-      !ask.entries?.length ||
-      ask.entries.some(entry=>entry.type!=="choice"||(entry.options||[]).length)
-    ));
+    const askSpecs=[
+      [itemExists(source,I.FIRST_DUCK),firstDuckAsk],
+      [itemExists(source,I.CHARLIE_DUCK),charlieDuckAsk],
+      [itemExists(source,I.LUCIFER_DUCK),selfDuckAsk],
+      [itemExists(source,I.ALASTOR_DUCK),alastorDuckAsk],
+      [itemExists(source,I.EMILY_DUCK),emilyDuckAsk],
+      [[I.VAGGIE_DUCK,I.ANGEL_DUCK,I.HUSK_DUCK,I.NIFFTY_DUCK,I.PENTIOUS_DUCK,I.CHERRI_DUCK].some(id=>itemExists(source,id)),hotelDuckAsk],
+      [[I.BEE_DUCK,I.OZZIE_DUCK,I.MAMMON_DUCK,I.SATAN_DUCK].some(id=>itemExists(source,id)),sinsAsk],
+      [[I.VOX_DUCK,I.VALENTINO_DUCK,I.VELVETTE_DUCK].some(id=>itemExists(source,id)),veesAsk],
+      [[I.ROSIE_DUCK,I.CARMILLA_DUCK].some(id=>itemExists(source,id)),otherDuckAsk],
+      [itemExists(source,I.LILITH_DUCK),lilithDuckAsk],
+      [itemExists(source,I.BROKEN_HALO),secretHaloAsk],
+      [itemExists(source,I.LETTER_TO_CHARLIE),secretLetterAsk]
+    ];
+
+    const asks=askSpecs
+      .filter(([enabled])=>enabled)
+      .map(([,ask])=>ask)
+      .filter(ask=>ask&&(
+        !ask.entries?.length ||
+        ask.entries.some(entry=>entry.type!=="choice"||(entry.options||[]).length)
+      ));
 
     for(const ask of asks){
       changed=upsertAskById(source.asks,ask,normalizeEntry)||changed;
