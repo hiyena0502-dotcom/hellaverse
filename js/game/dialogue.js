@@ -649,7 +649,7 @@ function renderAskPanel(){
       let detail=status;
       if(!unlocked&&a.unlockHint)detail+=' · '+a.unlockHint;
       else if(unlocked&&!affinityPass)detail+=' · 호감도 '+a.minAffection;
-      else if(asked&&a.repeatable)detail+=' · 다시 묻기 가능';
+      else if(asked&&a.repeatable){const count=askInteractionCount(a.id);detail+=' · '+count+'회 질문 · 다시 묻기 가능';}
       else if(asked&&!a.repeatable)detail+=' · 완료';
       return '<button class="ask-entry '+status.toLowerCase()+'" type="button" data-action="ask-topic" data-id="'+esc(a.id)+'" '+(!available?"disabled":"")+'><span>'+esc(label)+'</span><small>'+esc(detail)+'</small></button>';
     }).join(""):'<div class="editor-note">등록된 질문이 없습니다.</div>')+
@@ -664,8 +664,23 @@ function startAsk(id){
   if(alreadyAsked&&!ask.repeatable){showToast("이미 확인한 질문입니다.");return}
   const affection=Number(session.affection[ch.id]??ch.affectionStart);
   if(!askAffectionRequirementPasses(ask)){showToast("아직 물어볼 수 없습니다.");return}
-  const askPhase=alreadyAsked?"repeat":"first";
-  const askDelta=alreadyAsked?ask.repeatAffectionDelta:ask.affectionDelta;
+  const askCount=askInteractionCount(ask.id);
+  const boundaryBroken=alreadyAsked&&(ask.repeatBoundaryOptionIds||[]).some(optionId=>(session.selectedOptionIds||[]).includes(optionId));
+  let askDelta=Number(ask.affectionDelta)||0;
+  if(alreadyAsked){
+    const repeatBase=Number(ask.repeatAffectionDelta)||0;
+    if(boundaryBroken){
+      askDelta=ask.repeatMode==="rude"?Math.min(-4,repeatBase||0):-2;
+    }else if(askCount===1){
+      askDelta=repeatBase;
+    }else if(ask.repeatMode==="rude"){
+      askDelta=affection>=75?Math.min(-2,repeatBase||0):Math.min(-3,repeatBase||0);
+    }else if(ask.repeatMode==="sensitive"){
+      askDelta=affection>=75?0:affection>=45?-1:-2;
+    }else{
+      askDelta=0;
+    }
+  }
   applyInteractionEffects({
     characterId:ch.id,
     affectionDelta:clamp(askDelta,-100,100,0),
