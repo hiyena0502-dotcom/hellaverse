@@ -21,6 +21,7 @@ const jsFiles=[
   "data/item-presets.js",
   "data/origin-intros.js",
   "data/dialogue-presets.js",
+  "data/lucifer-dialogue-acquisitions.js",
   "js/core/state.js",
   "js/core/game-state.js",
   "js/ui/app-shell.js",
@@ -61,6 +62,7 @@ const banterCode=read("data/character-banter.js");
 const itemPresetCode=read("data/item-presets.js");
 const originIntroCode=read("data/origin-intros.js");
 const dialoguePresetCode=read("data/dialogue-presets.js");
+const luciferAcquisitionCode=read("data/lucifer-dialogue-acquisitions.js");
 const dialogueCss=read("css/dialogue.css");
 const featuresCss=read("css/features.css");
 const luciferAskIntegratedCode=read("data/lucifer-ask-integrated.js");
@@ -111,6 +113,8 @@ assert.match(itemPresetCode,/specialEntries/,"gift SPECIAL preset flow missing")
 assert.match(itemPresetCode,/HV_BUILD_ITEM_REACTION/,"runtime gift reaction builder missing");
 assert.match(itemPresetCode,/RELATION_TASTES/,"relationship-aware gift preferences missing");
 assert.match(dialoguePresetCode,/HV_APPLY_DIALOGUE_PRESETS/,"dialogue detail preset installer missing");
+assert.match(luciferAcquisitionCode,/HV_APPLY_DIALOGUE_PRESETS/,"Lucifer dialogue acquisition installer missing");
+assert.match(index,/data\/lucifer-dialogue-acquisitions\.js/,"Lucifer dialogue acquisition script missing from build");
 assert.match(dialoguePresetCode,/hasItemGrant/,"reward TALK migration missing");
 assert.match(dialoguePresetCode,/seenTalkSignatures/,"duplicate TALK rotation guard missing");
 assert.match(stateCode,/randomEligible:e\.randomEligible!==false/,"random TALK eligibility persistence missing");
@@ -835,7 +839,53 @@ vm.runInContext(storyPackCode,context,{filename:"data/story-packs.js"});
 vm.runInContext(characterEventCode,context,{filename:"data/character-events.js"});
 vm.runInContext(itemPresetCode,context,{filename:"data/item-presets.js"});
 vm.runInContext(dialoguePresetCode,context,{filename:"data/dialogue-presets.js"});
+vm.runInContext(luciferAcquisitionCode,context,{filename:"data/lucifer-dialogue-acquisitions.js"});
 vm.runInContext(stateCode,context,{filename:"js/core/state.js"});
+
+const luciferAcquisitionInstallCheck=vm.runInContext(`
+(()=>{
+  const source=normalizeState({
+    schemaVersion:4,
+    characters:[{id:"lucifer-morningstar",name:"Lucifer Morningstar",origin:"angel"}],
+    items:[
+      {
+        id:"item-1789237782413-b24d1dcc58ec3",
+        name:"백플립 덕",
+        category:"장난감",
+        rarity:"RARE",
+        collectionCharacterId:"lucifer-morningstar",
+        acquisitionMode:"repeatable",
+        enabled:true,
+        gachaEnabled:true
+      }
+    ],
+    events:[],
+    asks:[],
+    variables:[]
+  });
+  const installed=installStoryPacks(source).state;
+  const event=installed.events.find(row=>row.id==="lucifer-acq-talk-backflip-duck");
+  const text=(event?.entries||[]).map(entry=>entry.text||"").filter(Boolean);
+  const grants=(event?.entries||[]).flatMap(entry=>entry.itemEffects||[]);
+  const ownedBranch=(event?.entries||[]).find(entry=>entry.id==="lucifer-acq-talk-backflip-duck-owned-1");
+  return{
+    exists:Boolean(event),
+    role:event?.eventRole||"",
+    effectId:event?.dialogueAcquisitionEffectId||"",
+    text,
+    grants,
+    ownedCondition:ownedBranch?.itemCondition||null,
+    ownedClaim:ownedBranch?.itemEffectClaimCondition||null
+  };
+})()
+`,context);
+assert.equal(luciferAcquisitionInstallCheck.exists,true,"Lucifer independent acquisition TALK must install");
+assert.equal(luciferAcquisitionInstallCheck.role,"talk","Lucifer acquisition scene must remain a TALK event");
+assert.ok(luciferAcquisitionInstallCheck.text.some(line=>/여덟, 아홉, 열/.test(line)),"Lucifer acquisition TALK text must survive event normalization");
+assert.ok(luciferAcquisitionInstallCheck.grants.some(effect=>effect.itemId==="item-1789237782413-b24d1dcc58ec3"),"Lucifer acquisition TALK must preserve itemEffects");
+assert.match(luciferAcquisitionInstallCheck.effectId,/lucifer-dialogue-acquired-item-1789237782413/,"Lucifer acquisition TALK completion marker missing");
+assert.equal(luciferAcquisitionInstallCheck.ownedCondition?.operator,">=","owned-item alternate dialogue branch missing");
+assert.equal(luciferAcquisitionInstallCheck.ownedClaim?.status,"unclaimed","owned-item branch must remain available until dialogue acquisition is claimed");
 
 const retiredCharacterPurgeCheck=vm.runInContext(`
 (()=>{
