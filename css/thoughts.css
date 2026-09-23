@@ -32,3 +32,102 @@
 .thought-card small{color:var(--gold);font-size:.68rem;letter-spacing:.12em}
 .thought-card p{margin:0;line-height:1.7;white-space:pre-wrap}
 .thought-locked{opacity:.45;filter:grayscale(.35)}
+
+
+/* v128 · transient THOUGHT notification */
+.thought-notice{
+  --thought-notice-duration:6000ms;
+  position:fixed;
+  left:50%;
+  top:clamp(86px,12vh,132px);
+  z-index:180;
+  width:min(520px,calc(100vw - 32px));
+  padding:18px 20px 21px;
+  overflow:hidden;
+  border:1px solid rgba(214,178,110,.48);
+  background:
+    radial-gradient(circle at 100% 0%,rgba(164,43,70,.2),transparent 42%),
+    linear-gradient(145deg,rgba(27,13,20,.96),rgba(11,8,12,.94));
+  box-shadow:
+    0 22px 60px rgba(0,0,0,.42),
+    0 0 0 1px rgba(112,28,47,.2) inset;
+  backdrop-filter:blur(16px);
+  transform:translate(-50%,-14px) scale(.985);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .28s ease,transform .32s ease;
+}
+.thought-notice.show{
+  opacity:1;
+  transform:translate(-50%,0) scale(1);
+}
+.thought-notice.hide{
+  opacity:0;
+  transform:translate(-50%,-10px) scale(.99);
+}
+.thought-notice:before{
+  content:"";
+  position:absolute;
+  left:0;
+  right:0;
+  top:0;
+  height:2px;
+  background:linear-gradient(90deg,transparent,var(--gold),rgba(166,44,71,.92),transparent);
+}
+.thought-notice-head{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:12px;
+}
+.thought-notice-head span{
+  color:var(--gold);
+  font-size:.62rem;
+  font-weight:700;
+  letter-spacing:.2em;
+}
+.thought-notice-head small{
+  color:rgba(243,236,232,.52);
+  font-size:.6rem;
+  letter-spacing:.08em;
+}
+.thought-notice-category{
+  margin-bottom:7px;
+  color:rgba(243,236,232,.58);
+  font-size:.58rem;
+  letter-spacing:.12em;
+}
+.thought-notice p{
+  margin:0;
+  color:var(--text);
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:clamp(1rem,2vw,1.2rem);
+  line-height:1.7;
+  white-space:pre-wrap;
+}
+.thought-notice-timer{
+  position:absolute;
+  left:0;
+  bottom:0;
+  height:2px;
+  width:100%;
+  transform-origin:left center;
+  background:linear-gradient(90deg,var(--wine),var(--gold));
+  animation:thought-notice-countdown var(--thought-notice-duration) linear forwards;
+}
+@keyframes thought-notice-countdown{
+  from{transform:scaleX(1);opacity:.9}
+  to{transform:scaleX(0);opacity:.35}
+}
+@media(max-width:620px){
+  .thought-notice{
+    top:84px;
+    width:calc(100vw - 20px);
+    padding:15px 16px 18px;
+  }
+  .thought-notice p{
+    font-size:1rem;
+    line-height:1.65;
+  }
+}
