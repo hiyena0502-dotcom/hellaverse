@@ -534,3 +534,173 @@ input:focus,textarea:focus,select:focus,button:focus-visible{
 @media(prefers-reduced-motion:reduce){
   .collection-card,.gold-button,.nav-button{transition:none!important}
 }
+
+
+/* v133 · gacha animation visibility repair */
+.gacha-stage{
+  overflow:hidden;
+  isolation:isolate;
+}
+.gacha-stage .gacha-aura{
+  z-index:2;
+}
+.gacha-stage .gacha-particle-field{
+  z-index:3;
+  opacity:1;
+}
+.gacha-stage .gacha-core{
+  position:relative;
+  z-index:4;
+}
+.gacha-stage .gacha-particle-burst{
+  z-index:12;
+}
+.gacha-stage .gacha-ambient-particle{
+  opacity:.32;
+  filter:drop-shadow(0 0 7px rgba(216,179,106,.62));
+}
+.gacha-stage .gacha-ambient-particle.is-wine{
+  filter:drop-shadow(0 0 7px rgba(175,37,73,.62));
+}
+.gacha-stage .gacha-ambient-particle.is-star{
+  color:rgba(255,226,166,.92);
+  filter:drop-shadow(0 0 10px rgba(240,207,138,.72));
+}
+.gacha-stage.is-drawing .gacha-ambient-particle{
+  opacity:.78;
+  animation-duration:calc(var(--duration) * .42);
+}
+.gacha-stage .gacha-burst-particle{
+  min-width:4px;
+  min-height:4px;
+  box-shadow:0 0 14px rgba(255,225,160,.92),0 0 28px rgba(216,179,106,.38);
+}
+.gacha-stage .gacha-burst-particle.is-wine{
+  box-shadow:0 0 15px rgba(231,75,117,.88),0 0 30px rgba(143,23,56,.46);
+}
+.gacha-stage .gacha-burst-particle.is-star{
+  color:#ffe4a6;
+  text-shadow:0 0 16px rgba(255,224,154,.98),0 0 30px rgba(216,179,106,.48);
+}
+.gacha-stage .gacha-particle-ring{
+  z-index:13;
+  border-width:2px;
+  border-color:rgba(255,226,163,.92);
+  box-shadow:
+    0 0 28px rgba(240,207,138,.54),
+    0 0 58px rgba(167,45,72,.22),
+    inset 0 0 22px rgba(216,179,106,.2);
+}
+.gacha-stage.is-drawing .gacha-core{
+  animation:gachaCoreBreath .72s ease-in-out infinite alternate;
+}
+.gacha-stage .gacha-summon{
+  animation:gachaSummonRise .48s cubic-bezier(.18,.82,.24,1) both;
+}
+.gacha-stage .gacha-summon .gacha-sigil{
+  border-color:rgba(240,207,138,.82);
+  color:#ffe6ae;
+  box-shadow:0 0 26px rgba(216,179,106,.34);
+  animation:gachaSigilStrong .7s ease-in-out infinite alternate;
+}
+.gacha-stage.is-reveal{
+  animation:gachaRevealFlash .5s ease-out;
+}
+.gacha-stage .gacha-reveal-card{
+  position:relative;
+  opacity:0;
+  transform:translateY(28px) scale(.92);
+  animation:gachaCardRevealStrong .62s cubic-bezier(.16,.82,.22,1) forwards;
+}
+@keyframes gachaCoreBreath{
+  from{transform:scale(.985);filter:brightness(.96)}
+  to{transform:scale(1.018);filter:brightness(1.16)}
+}
+@keyframes gachaSummonRise{
+  0%{opacity:0;transform:translateY(32px) scale(.92)}
+  55%{opacity:1}
+  100%{opacity:1;transform:translateY(0) scale(1)}
+}
+@keyframes gachaSigilStrong{
+  from{transform:scale(.9) rotate(-10deg);box-shadow:0 0 14px rgba(216,179,106,.28)}
+  to{transform:scale(1.12) rotate(10deg);box-shadow:0 0 52px rgba(240,207,138,.58)}
+}
+@keyframes gachaRevealFlash{
+  0%{filter:brightness(1)}
+  30%{filter:brightness(2.5) saturate(1.25)}
+  100%{filter:brightness(1)}
+}
+@keyframes gachaCardRevealStrong{
+  0%{opacity:0;transform:translateY(28px) scale(.92)}
+  62%{opacity:1;transform:translateY(-4px) scale(1.015)}
+  100%{opacity:1;transform:none}
+}
+
+/* Keep effects visible even when the OS requests reduced motion:
+   use shorter, gentler transitions instead of hiding the whole effect. */
+@media(prefers-reduced-motion:reduce){
+  .gacha-stage .gacha-particle-field,
+  .gacha-stage .gacha-particle-burst{
+    display:block!important;
+  }
+  .gacha-stage .gacha-ambient-particle{
+    animation:none!important;
+    opacity:.28!important;
+  }
+  .gacha-stage.is-drawing .gacha-aura{
+    animation:gachaReducedAura .42s ease-out both!important;
+  }
+  .gacha-stage.is-drawing:before,
+  .gacha-stage.is-drawing:after{
+    animation:none!important;
+  }
+  .gacha-stage .gacha-burst-particle{
+    animation:gachaReducedBurst .48s ease-out var(--delay) forwards!important;
+  }
+  .gacha-stage .gacha-particle-ring{
+    animation:gachaReducedRing .42s ease-out forwards!important;
+  }
+  .gacha-stage .gacha-summon{
+    animation:gachaReducedFade .28s ease-out both!important;
+  }
+  .gacha-stage .gacha-summon .gacha-sigil{
+    animation:gachaReducedPulse .5s ease-in-out infinite alternate!important;
+  }
+  .gacha-stage.is-reveal{
+    animation:gachaReducedFlash .28s ease-out!important;
+  }
+  .gacha-stage .gacha-reveal-card{
+    opacity:1;
+    transform:none;
+    animation:gachaReducedFade .28s ease-out both!important;
+  }
+  .gacha-stage .gacha-reveal-card:after{
+    animation:none!important;
+  }
+}
+@keyframes gachaReducedAura{
+  from{opacity:.15;transform:translate(-50%,-50%) scale(.8)}
+  to{opacity:.5;transform:translate(-50%,-50%) scale(1.35)}
+}
+@keyframes gachaReducedBurst{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.5)}
+  35%{opacity:1}
+  100%{opacity:0;transform:translate(calc(-50% + var(--dx) * .18),calc(-50% + var(--dy) * .18)) scale(.8)}
+}
+@keyframes gachaReducedRing{
+  from{opacity:.8;transform:translate(-50%,-50%) scale(.65)}
+  to{opacity:0;transform:translate(-50%,-50%) scale(1.8)}
+}
+@keyframes gachaReducedFade{
+  from{opacity:0}
+  to{opacity:1}
+}
+@keyframes gachaReducedPulse{
+  from{opacity:.7;transform:scale(.96)}
+  to{opacity:1;transform:scale(1.04)}
+}
+@keyframes gachaReducedFlash{
+  0%{filter:brightness(1)}
+  45%{filter:brightness(1.45)}
+  100%{filter:brightness(1)}
+}
