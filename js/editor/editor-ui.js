@@ -930,6 +930,23 @@ function validateDraft(source=editorDraft){
   const askIds=new Set(source.asks.map(x=>x.id));
   const eventIds=new Set(source.events.map(x=>x.id));
 
+  const flagDuplicateIds=(rows,label)=>{
+    const counts=new Map();
+    for(const row of rows||[]){
+      const id=String(row?.id||"").trim();
+      if(!id)continue;
+      counts.set(id,(counts.get(id)||0)+1);
+    }
+    for(const [id,count] of counts){
+      if(count>1)push("error",label+" · "+id,"같은 ID가 "+count+"개 등록되어 있습니다. ID는 콘텐츠 전체에서 각각 고유해야 합니다.");
+    }
+  };
+  flagDuplicateIds(source.characters,"CHARACTER ID");
+  flagDuplicateIds(source.variables,"VARIABLE ID");
+  flagDuplicateIds(source.events,"EVENT ID");
+  flagDuplicateIds(source.asks,"ASK ID");
+  flagDuplicateIds(source.items,"ITEM ID");
+
   if(!source.characters.length)push("error","CHARACTER","등록된 캐릭터가 없습니다.");
   source.events.forEach(ev=>{
     if(!charIds.has(ev.characterId))push("error","EVENT · "+ev.name,"캐릭터가 지정되지 않았습니다.");
@@ -954,19 +971,42 @@ function validateDraft(source=editorDraft){
     else if(a.unlockAskCondition?.askId&&!askIds.has(a.unlockAskCondition.askId))push("error","ASK · "+a.label,"해금 ASK 참조가 삭제되었습니다.");
     if(a.unlockEmotionCondition?.characterId&&!charIds.has(a.unlockEmotionCondition.characterId))push("error","ASK · "+a.label,"해금 감정 대상이 삭제되었습니다.");
   });
+  const itemNameKeys=new Map();
   source.items.forEach(item=>{
-    if(item.collectionCharacterId&&!charIds.has(item.collectionCharacterId))push("error","ITEM · "+item.name,"컬렉션 소속 캐릭터가 삭제되었습니다.");
-    if(!item.collectionCharacterId)push("warning","ITEM · "+item.name,"컬렉션 소속 캐릭터가 지정되지 않았습니다.");
-    if(item.giftable!==false&&!item.reactions.length)push("info","ITEM · "+item.name,"선물 가능한 아이템이지만 캐릭터별 선물 반응이 없습니다.");
-    const seen=new Set();
+    const itemArea="ITEM · "+(item.name||item.id||"이름 없음");
+    if(item.collectionCharacterId&&!charIds.has(item.collectionCharacterId))push("error",itemArea,"컬렉션 소속 캐릭터가 삭제되었습니다.");
+    if(!item.collectionCharacterId)push("warning",itemArea,"컬렉션 소속 캐릭터가 지정되지 않았습니다.");
+    if(item.inventoryEventId&&!eventIds.has(item.inventoryEventId))push("error",itemArea,"연결된 획득 EVENT가 존재하지 않습니다: "+item.inventoryEventId);
+    if(item.gachaEnabled&&!String(item.gachaLine||"").trim())push("info",itemArea,"가챠 포함 아이템이지만 가챠 등장 대사가 비어 있습니다.");
+    if(item.giftable!==false&&!item.reactions.length)push("info",itemArea,"선물 가능으로 설정되어 있지만 캐릭터별 반응이 없어 실제 선물 목록에는 표시되지 않습니다.");
+    if(item.giftable===false&&item.reactions.length)push("warning",itemArea,"선물 불가 아이템인데 선물 반응 데이터가 남아 있습니다.");
+
+    const nameKey=String(item.collectionCharacterId||"")+"::"+String(item.name||"").normalize("NFKC").trim().toLowerCase();
+    if(item.name){
+      const prior=itemNameKeys.get(nameKey);
+      if(prior&&prior!==item.id)push("warning",itemArea,"같은 캐릭터 컬렉션에 같은 이름의 다른 아이템이 있습니다: "+prior);
+      else itemNameKeys.set(nameKey,item.id);
+    }
+
+    const seenCharacters=new Set();
+    const seenReactionIds=new Set();
     item.reactions.forEach(r=>{
-      if(!r.characterId||!charIds.has(r.characterId))push("error","ITEM · "+item.name,"선물 반응 대상 캐릭터가 비어 있거나 삭제되었습니다.");
-      if(r.characterId&&seen.has(r.characterId))push("warning","ITEM · "+item.name,"같은 캐릭터의 선물 반응이 중복 등록되어 있습니다.");
-      if(r.characterId)seen.add(r.characterId);
-      if(!r.firstEntries.length)push("warning","ITEM · "+item.name,"FIRST GIFT FLOW가 비어 있습니다.");
-      if(!r.repeatEntries.length)push("info","ITEM · "+item.name,"REPEAT GIFT FLOW가 비어 있어 FIRST FLOW로 대체됩니다.");
-      if((r.specialMinAffection||r.specialEmotionState)&&!r.specialEntries.length)push("warning","ITEM · "+item.name,"SPECIAL 조건은 있지만 SPECIAL FLOW가 비어 있습니다.");
+      if(!r.id)push("warning",itemArea,"선물 반응 ID가 비어 있습니다.");
+      else if(seenReactionIds.has(r.id))push("error",itemArea,"같은 선물 반응 ID가 중복되어 있습니다: "+r.id);
+      else seenReactionIds.add(r.id);
+
+      if(!r.characterId||!charIds.has(r.characterId))push("error",itemArea,"선물 반응 대상 캐릭터가 비어 있거나 삭제되었습니다.");
+      if(r.characterId&&seenCharacters.has(r.characterId))push("warning",itemArea,"같은 캐릭터의 선물 반응이 중복 등록되어 있습니다. 게임에서는 첫 번째 반응만 사용됩니다.");
+      if(r.characterId)seenCharacters.add(r.characterId);
+      if(!r.firstEntries.length)push("warning",itemArea,"FIRST GIFT FLOW가 비어 있습니다.");
+      if(!r.repeatEntries.length)push("info",itemArea,"REPEAT GIFT FLOW가 비어 있어 FIRST FLOW로 대체됩니다.");
+      if((r.specialMinAffection||r.specialEmotionState)&&!r.specialEntries.length)push("warning",itemArea,"SPECIAL 조건은 있지만 SPECIAL FLOW가 비어 있습니다.");
     });
+
+    if(item.enabled){
+      const sources=itemSourceTypes(item,source);
+      if(sources.length===1&&sources[0]==="BASIC")push("info",itemArea,"가챠나 대화 획득 경로가 연결되지 않아 BASIC 아이템으로만 분류됩니다.");
+    }
   });
   source.thoughts.forEach(t=>{
     if(!charIds.has(t.characterId))push("error","THOUGHT","캐릭터가 지정되지 않았습니다.");
