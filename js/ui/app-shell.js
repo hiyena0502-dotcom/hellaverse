@@ -533,12 +533,12 @@ function renderGacha(){
       '<div class="gacha-stage '+(gachaAnimating?'is-drawing':'')+'">'+
       '<div class="gacha-hotel-frame" aria-hidden="true"></div>'+
       '<div class="gacha-draw-backdrop" aria-hidden="true"><i></i><i></i><i></i></div>'+
-      '<div class="gacha-shooting-star-field" aria-hidden="true">'+Array.from({length:18},(_,index)=>{
-        const x=(index*17+3)%92;
-        const y=(index*11+1)%54;
-        const delay=((index*.09)%1.08).toFixed(2);
-        const duration=(.48+(index%5)*.07).toFixed(2);
-        const length=120+(index%6)*26;
+      '<div class="gacha-shooting-star-field" aria-hidden="true">'+Array.from({length:7},(_,index)=>{
+        const x=(index*23+17)%92;
+        const y=(index*17+4)%48;
+        const delay=(index*.86+(index%2)*.44).toFixed(2);
+        const duration=(5.2+(index%4)*.72).toFixed(2);
+        const length=72+(index%4)*18;
         return '<i class="gacha-shooting-star'+(index%4===0?' wine':'')+'" style="--star-x:'+x+'%;--star-y:'+y+'%;--star-delay:'+delay+'s;--star-duration:'+duration+'s;--star-length:'+length+'px"></i>';
       }).join("")+'</div>'+
       '<div class="gacha-particle-field gacha-particle-field-ambient" aria-hidden="true">'+Array.from({length:48},(_,index)=>{
