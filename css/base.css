@@ -388,6 +388,80 @@ input:focus,textarea:focus,select:focus,button:focus-visible{
   color:var(--muted)
 }
 .origin-line{color:var(--gold)}
+
+
+/* Persistent character status meters */
+.character-status-meters{
+  display:grid;
+  gap:10px;
+}
+.character-status-meters.home{
+  width:min(440px,86vw);
+  margin-top:18px;
+  padding:14px 16px;
+  border:1px solid rgba(201,166,107,.18);
+  background:rgba(15,11,14,.46);
+  backdrop-filter:blur(10px);
+}
+.character-status-meter{min-width:0}
+.character-status-head{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:14px;
+  margin-bottom:6px;
+}
+.character-status-head span{
+  color:var(--muted);
+  font-size:.62rem;
+  letter-spacing:.16em;
+}
+.character-status-head strong{
+  color:var(--text);
+  font-size:.72rem;
+  font-weight:500;
+  letter-spacing:.07em;
+}
+.character-status-head strong b{
+  color:var(--gold);
+  font-weight:500;
+}
+.character-status-head strong em{
+  margin-left:5px;
+  color:var(--muted);
+  font-style:normal;
+  font-size:.66rem;
+}
+.character-status-track{
+  position:relative;
+  height:5px;
+  overflow:hidden;
+  background:rgba(243,236,232,.1);
+}
+.character-status-track:before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:repeating-linear-gradient(
+    90deg,
+    transparent 0,
+    transparent calc(25% - 1px),
+    rgba(243,236,232,.1) calc(25% - 1px),
+    rgba(243,236,232,.1) 25%
+  );
+  pointer-events:none;
+}
+.character-status-track i{
+  display:block;
+  height:100%;
+  width:0;
+  background:linear-gradient(90deg,var(--wine),var(--gold));
+  transition:width .35s ease;
+}
+.character-status-meters.home .emotion-meter .character-status-track i{
+  opacity:.78;
+}
+
 .quote-line{
   max-width:56ch;
   margin:16px 0 0;
@@ -420,7 +494,7 @@ input:focus,textarea:focus,select:focus,button:focus-visible{
 }
 .lobby-dashboard{
   display:grid;
-  grid-template-columns:repeat(4,1fr);
+  grid-template-columns:repeat(2,1fr);
   border-top:1px solid var(--line)
 }
 .lobby-dashboard button{
@@ -566,4 +640,15 @@ input:focus,textarea:focus,select:focus,button:focus-visible{
   .save-status:before{width:7px;height:7px}
   .brand-mark,.nav-button,.text-link{font-size:.65rem}
   .update-banner{top:96px}
+}
+
+
+@media(max-width:620px){
+  .character-status-meters.home{
+    width:min(100%,92vw);
+    margin-top:14px;
+    padding:12px 13px
+  }
+  .lobby-dashboard{grid-template-columns:1fr 1fr}
+  .lobby-dashboard button{min-height:82px;padding:15px 14px}
 }
