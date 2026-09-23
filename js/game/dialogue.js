@@ -971,7 +971,7 @@ function spawnGachaStarRain(stage,mode="draw",amount=32){
     layer.appendChild(particle);
   }
   stage.appendChild(layer);
-  setTimeout(()=>layer.remove(),mode==="reveal"?1800:2200);
+  setTimeout(()=>layer.remove(),mode==="reveal"?3700:4300);
 }
 function playGachaAnimation(results){
   const stage=$(".gacha-stage",pageRoot);
