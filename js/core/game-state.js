@@ -269,7 +269,9 @@ function askAffectionRequirementPasses(ask,source=state){
 function itemEffectClaimConditionPasses(c){
   if(!c?.effectId)return true;
   const effectId=String(c.effectId);
-  const snapshot=activeInteractionEvent?.interactionMeta?.itemEffectClaimSnapshot;
+  const playbackSnapshot=playback?.itemEffectClaimSnapshot;
+  const interactionSnapshot=activeInteractionEvent?.interactionMeta?.itemEffectClaimSnapshot;
+  const snapshot=Array.isArray(playbackSnapshot)?playbackSnapshot:interactionSnapshot;
   const claimed=Array.isArray(snapshot)
     ? snapshot.includes(effectId)
     : (state.claimedItemEffectIds||[]).includes(effectId);
