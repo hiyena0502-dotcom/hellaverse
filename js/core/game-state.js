@@ -252,7 +252,15 @@ function conditionPasses(c){
 }
 function itemConditionPasses(c){
   if(!c?.itemId)return true;
-  const x=itemCount(c.itemId),y=Math.max(0,Number(c.value)||0);
+  const playbackSnapshot=playback?.inventoryCountSnapshot;
+  const interactionSnapshot=activeInteractionEvent?.interactionMeta?.inventoryCountSnapshot;
+  const snapshot=c.snapshot
+    ? (playbackSnapshot&&typeof playbackSnapshot==="object"?playbackSnapshot:interactionSnapshot)
+    : null;
+  const x=snapshot&&typeof snapshot==="object"
+    ? Math.max(0,Number(snapshot[c.itemId])||0)
+    : itemCount(c.itemId);
+  const y=Math.max(0,Number(c.value)||0);
   switch(c.operator){case">":return x>y;case"<":return x<y;case"<=":return x<=y;case"==":return x===y;case"!=":return x!==y;default:return x>=y}
 }
 function isAskUnlocked(ask,source=state){
@@ -472,6 +480,8 @@ function beginInteractionReaction(kind,source,entries,label="",meta={}){
   const ch=getCharacter(source.characterId);if(!ch)return;
   const interactionMeta={
     kind,characterId:ch.id,label:label||"",
+    itemEffectClaimSnapshot:[...(state.claimedItemEffectIds||[])],
+    inventoryCountSnapshot:{...(state.inventoryCounts||{})},
     interactionEffects:{
       characterId:ch.id,
       affectionDelta:clamp(source.affectionDelta,-100,100,0),
@@ -513,6 +523,7 @@ function beginInteractionReaction(kind,source,entries,label="",meta={}){
     roomCharacterId:ch.id,
     eventId:activeInteractionEvent.id,
     itemEffectClaimSnapshot:[...(interactionMeta.itemEffectClaimSnapshot||state.claimedItemEffectIds||[])],
+    inventoryCountSnapshot:{...(interactionMeta.inventoryCountSnapshot||state.inventoryCounts||{})},
     frames:[{sourceType:"event",sourceId:activeInteractionEvent.id,index:0,label:kind.toUpperCase(),exitMode:"continue",targetEventId:""}],
     ended:false
   };
@@ -552,6 +563,7 @@ function startInteractionFollowEvent(eventId){
     characterId:selectedCharacterId,
     eventId:ev.id,
     itemEffectClaimSnapshot:[...(interactionContext?.completionMeta?.itemEffectClaimSnapshot||state.claimedItemEffectIds||[])],
+    inventoryCountSnapshot:{...(interactionContext?.completionMeta?.inventoryCountSnapshot||state.inventoryCounts||{})},
     continuationQueue:[...(ev.continuationEventIds||[])],
     continuationTotal:(ev.continuationEventIds||[]).length,
     frames:[{sourceType:"event",sourceId:ev.id,index:0,label:"상호작용",exitMode:"continue",targetEventId:""}],
