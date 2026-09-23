@@ -408,6 +408,48 @@ function renderPage(){
   else if(currentPage==="collection")renderCollection();
   else if(currentPage==="room")renderRoom();
 }
+function characterStatusMetersMarkup(ch,variant="home"){
+  if(!ch)return"";
+  const affection=Math.round(clamp(session.affection[ch.id]??ch.affectionStart,0,100,0));
+  const emotion=session.emotions[ch.id]||{state:ch.emotionDefault,intensity:ch.emotionIntensity};
+  const intensity=Math.round(clamp(emotion.intensity,0,100,0));
+  const emotionText=emotionLabel(emotion.state);
+  return '<div class="character-status-meters '+esc(variant)+'" data-character-status="'+esc(ch.id)+'">'+
+    '<div class="character-status-meter affection-meter">'+
+      '<div class="character-status-head"><span>AFFECTION</span><strong data-status-value="affection">'+affection+'</strong></div>'+
+      '<div class="character-status-track" role="progressbar" aria-label="Affection" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+affection+'" data-status-track="affection"><i data-status-fill="affection" style="width:'+affection+'%"></i></div>'+
+    '</div>'+
+    '<div class="character-status-meter emotion-meter">'+
+      '<div class="character-status-head"><span>EMOTION</span><strong><b data-status-emotion-label>'+esc(emotionText)+'</b> <em data-status-value="emotion">'+intensity+'</em></strong></div>'+
+      '<div class="character-status-track" role="progressbar" aria-label="Emotion intensity" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+intensity+'" data-status-track="emotion"><i data-status-fill="emotion" style="width:'+intensity+'%"></i></div>'+
+    '</div>'+
+  '</div>';
+}
+function updateCharacterStatusMeters(characterId){
+  const ch=getCharacter(characterId);
+  if(!ch||typeof document==="undefined")return;
+  const affection=Math.round(clamp(session.affection[ch.id]??ch.affectionStart,0,100,0));
+  const emotion=session.emotions[ch.id]||{state:ch.emotionDefault,intensity:ch.emotionIntensity};
+  const intensity=Math.round(clamp(emotion.intensity,0,100,0));
+  document.querySelectorAll(".character-status-meters").forEach(root=>{
+    if(root.dataset.characterStatus!==ch.id)return;
+    const affectionValue=root.querySelector('[data-status-value="affection"]');
+    const affectionFill=root.querySelector('[data-status-fill="affection"]');
+    const affectionTrack=root.querySelector('[data-status-track="affection"]');
+    const emotionValue=root.querySelector('[data-status-value="emotion"]');
+    const emotionLabelNode=root.querySelector("[data-status-emotion-label]");
+    const emotionFill=root.querySelector('[data-status-fill="emotion"]');
+    const emotionTrack=root.querySelector('[data-status-track="emotion"]');
+    if(affectionValue)affectionValue.textContent=String(affection);
+    if(affectionFill)affectionFill.style.width=affection+"%";
+    if(affectionTrack)affectionTrack.setAttribute("aria-valuenow",String(affection));
+    if(emotionValue)emotionValue.textContent=String(intensity);
+    if(emotionLabelNode)emotionLabelNode.textContent=emotionLabel(emotion.state);
+    if(emotionFill)emotionFill.style.width=intensity+"%";
+    if(emotionTrack)emotionTrack.setAttribute("aria-valuenow",String(intensity));
+  });
+}
+
 function renderHome(){
   const chars=enabledCharacters();
   if(!chars.length){
@@ -427,15 +469,14 @@ function renderHome(){
         '<div class="home-character"><div class="character-art" style="--character-image-scale:'+imageScale+'">'+art+'</div></div>'+
         (chars.length>1?'<button class="lobby-arrow left" type="button" data-action="home-prev">‹</button><button class="lobby-arrow right" type="button" data-action="home-next">›</button>':'')+
         '<div class="lobby-copy"><p class="page-kicker">'+esc(originLabel(ch.origin))+'</p><h1>'+esc(ch.name)+'</h1>'+
-          '<p class="role-line">'+esc(ch.role||"ROLE NOT SET")+'</p><p class="origin-line">AFFECTION '+aff+' · '+esc(emotionLabel(emo.state))+' '+emo.intensity+'</p>'+
+          '<p class="role-line">'+esc(ch.role||"ROLE NOT SET")+'</p>'+
+          characterStatusMetersMarkup(ch,"home")+
           '<p class="quote-line">'+esc(ch.quote||"편집기에서 캐릭터 소개 문구를 설정할 수 있습니다.")+'</p></div>'+
         '<div class="character-counter">'+String(homeIndex+1).padStart(2,"0")+' / '+String(chars.length).padStart(2,"0")+'</div>'+
       '</div>'+
       '<div class="lobby-dashboard">'+
         '<button type="button" data-action="talk"><span>01 · ROOM</span><strong>TALK</strong><small>'+eventsForCharacter(ch.id).length+' EVENTS</small></button>'+
         '<button type="button" data-action="random-thought"><span>02 · INNER VOICE</span><strong>THOUGHT</strong><small>'+state.thoughts.filter(t=>t.characterId===ch.id&&t.enabled).length+' LINES</small></button>'+
-        '<button type="button" data-action="show-affection"><span>03 · RELATION</span><strong>AFFECTION</strong><small>'+aff+' / 100</small></button>'+
-        '<button type="button" data-action="show-emotion"><span>04 · STATUS</span><strong>EMOTION</strong><small>'+esc(emotionLabel(emo.state))+'</small></button>'+
       '</div>'+
     '</section>';
 }
