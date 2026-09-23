@@ -627,3 +627,28 @@
     font-size:.54rem;
   }
 }
+
+
+
+/* v126 · ROOM card flush to stage corner; no ALL control */
+.room-stage>.character-status-widget.room{
+  top:0;
+  right:0;
+  gap:0;
+  align-items:flex-start;
+}
+.room-stage>.character-status-widget.room .character-status-meters.room{
+  width:300px;
+}
+.room-stage>.character-status-widget.room .character-status-all{
+  display:none!important;
+}
+@media(max-width:900px){
+  .room-stage>.character-status-widget.room{top:0;right:0}
+}
+@media(max-width:620px){
+  .room-stage>.character-status-widget.room{top:0;right:0}
+  .room-stage>.character-status-widget.room .character-status-meters.room{
+    width:210px;
+  }
+}
