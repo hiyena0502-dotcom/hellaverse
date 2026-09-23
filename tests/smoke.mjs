@@ -274,12 +274,12 @@ assert.equal(new Set(luciferIntegratedAsk.asks.map(ask=>ask.id)).size,68,"Lucife
 assert.equal(luciferIntegratedAsk.asks.reduce((sum,ask)=>sum+(ask.entries.at(-1)?.options?.length||0),0),210,"Lucifer integrated ASK must contain all 210 choices");
 assert.ok(luciferIntegratedAsk.asks.every(ask=>ask.repeatable&&ask.applyAskDeltaOnce),"Lucifer integrated ASK must retain repeat dialogue while protecting first-use question effects");
 assert.ok(luciferIntegratedAsk.asks.every(ask=>Number.isFinite(ask.repeatAffectionDelta)),"Lucifer integrated ASK repeat affinity values missing");
-const luciferRepeatAwareAsks=luciferIntegratedAsk.asks.filter(ask=>ask.entries.some(entry=>entry.askCondition?.status==="repeat"));
+const luciferRepeatAwareAsks=luciferIntegratedAsk.asks.filter(ask=>ask.entries.some(entry=>entry.askCondition?.status==="asked"));
 assert.ok(luciferRepeatAwareAsks.length>=39,"Lucifer integrated ASK must give repeat-specific dialogue to more than half of the questions");
 for(const id of ["lucifer-ask-ducks","lucifer-ask-charlie","lucifer-ask-heaven-past","lucifer-ask-player-impression","lucifer-ask-rude-charlie","lucifer-ask-rude-lilith","lucifer-ask-rude-heaven"]){
   const ask=luciferIntegratedAsk.asks.find(row=>row.id===id);
   assert.ok(ask?.entries.some(entry=>entry.askCondition?.status==="not-asked"),id+" first-use ASK branch missing");
-  assert.ok(ask?.entries.some(entry=>entry.askCondition?.status==="repeat"),id+" repeat ASK branch missing");
+  assert.ok(ask?.entries.some(entry=>entry.askCondition?.status==="asked"),id+" repeat ASK branch missing");
 }
 assert.ok(luciferIntegratedAsk.asks.every(ask=>ask.entries.at(-1)?.type==="choice"),"Every Lucifer ASK must end in a player choice");
 assert.ok(!luciferAskIntegratedCode.includes("추가 나레이션 운용 규칙"),"Lucifer ASK appendix text must not leak into dialogue");
