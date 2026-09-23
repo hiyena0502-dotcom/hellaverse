@@ -667,6 +667,7 @@ function startAsk(id){
   beginInteractionReaction("ask",ask,ask.entries,ask.label,{
     askId:ask.id,
     affectionSnapshot:affection,
+    itemEffectClaimSnapshot:[...(state.claimedItemEffectIds||[])],
     interactionEffects:null
   });
 }
