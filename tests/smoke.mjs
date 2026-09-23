@@ -67,6 +67,7 @@ const luciferAcquisitionCode=read("data/lucifer-dialogue-acquisitions.js");
 const luciferThoughtCode=read("data/lucifer-thoughts.js");
 const dialogueCss=read("css/dialogue.css");
 const featuresCss=read("css/features.css");
+const hotelThemeCss=read("css/hotel-theme.css");
 const luciferAskIntegratedCode=read("data/lucifer-ask-integrated.js");
 
 assert.ok(!editorEvents.includes('$(".nav-button").forEach'),"nav must use querySelectorAll/$$, not single $ helper");
@@ -131,6 +132,11 @@ assert.match(stateCode,/configuredGiftKeys\.has\(String\(key\)\)/,"stale gift pr
 assert.match(dialogueCode,/const specialKeys=new Set\(specialItems\.map/,"SPECIAL progress must be limited to configured gift reactions");
 assert.match(dialoguePresetCode,/HV_APPLY_DIALOGUE_PRESETS/,"dialogue detail preset installer missing");
 assert.match(luciferAcquisitionCode,/HV_APPLY_DIALOGUE_PRESETS/,"Lucifer dialogue acquisition installer missing");
+assert.match(index,/css\/hotel-theme\.css/,"hotel visual theme stylesheet missing from build");
+assert.match(hotelThemeCss,/--hotel-gold:/,"hotel theme gold palette missing");
+assert.match(hotelThemeCss,/\.lobby-character:before/,"hotel lobby gold frame missing");
+assert.match(hotelThemeCss,/\.collection-card/,"hotel collection card treatment missing");
+assert.match(hotelThemeCss,/\.dialogue-box\.character-dialogue/,"hotel dialogue treatment missing");
 assert.match(index,/data\/lucifer-dialogue-acquisitions\.js/,"Lucifer dialogue acquisition script missing from build");
 assert.match(index,/data\/lucifer-thoughts\.js/,"Lucifer THOUGHT preset script missing from build");
 assert.match(luciferThoughtCode,/HV_APPLY_THOUGHT_PRESETS/,"Lucifer THOUGHT preset installer missing");
