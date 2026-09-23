@@ -116,6 +116,7 @@ function openEditor(){
   editorContinuationQuery="";
   editorAskQuery="";
   editorThoughtQuery="";
+  editorCharacterScope="ALL";
   editorEventPage=0;
   editorAskPage=0;
   editorItemPage=0;
@@ -222,6 +223,18 @@ function editorPager(kind,page,total,pageSize,label="항목"){
 function charOptions(selected="",blank="선택 안 함",source=editorDraft){
   return '<option value="">'+esc(blank)+'</option>'+source.characters.map(c=>'<option value="'+esc(c.id)+'" '+(c.id===selected?"selected":"")+'>'+esc(c.name)+'</option>').join("");
 }
+function editorCharacterScopeOptions(){
+  return '<option value="ALL">모든 캐릭터</option>'+editorDraft.characters.map(character=>
+    '<option value="'+esc(character.id)+'" '+(editorCharacterScope===character.id?"selected":"")+'>'+esc(character.name)+'</option>'
+  ).join("");
+}
+function editorCharacterScopeBar(label,total,visible){
+  const selected=editorDraft.characters.find(character=>character.id===editorCharacterScope);
+  return '<div class="editor-character-scope"><div><span>CHARACTER VIEW</span><strong>'+(selected?esc(selected.name):"전체 캐릭터")+'</strong><small>'+esc(label)+' '+visible+' / '+total+'</small></div><label><span>캐릭터별 보기</span><select data-editor-character-scope>'+editorCharacterScopeOptions()+'</select></label></div>';
+}
+function editorCharacterScopeMatches(characterId){
+  return editorCharacterScope==="ALL"||characterId===editorCharacterScope;
+}
 function eventOptions(selected="",blank="이벤트 종료",source=editorDraft,exclude=""){
   return '<option value="">'+esc(blank)+'</option>'+source.events.filter(e=>e.id!==exclude).map(e=>'<option value="'+esc(e.id)+'" '+(e.id===selected?"selected":"")+'>'+esc(e.name)+'</option>').join("");
 }
@@ -307,13 +320,14 @@ function renderEventManager(role=dialogueSubtab){
   role=DIALOGUE_EVENT_ROLES.has(role)?role:"talk";
   const q=editorEventQuery.trim().toLowerCase();
   const grouped=editorDraft.events.filter(x=>editorEventRole(x)===role);
-  const filtered=grouped.filter(x=>{
+  const scoped=grouped.filter(x=>editorCharacterScopeMatches(x.characterId));
+  const filtered=scoped.filter(x=>{
     if(!q)return true;
     const text=[x.name,getCharacterDraft(x.characterId)?.name,x.id].join(" ").toLowerCase();
     return text.includes(q);
   });
-  if(!grouped.some(event=>event.id===selectedEditorEventId)){
-    selectedEditorEventId=filtered[0]?.id||grouped[0]?.id||"";
+  if(!filtered.some(event=>event.id===selectedEditorEventId)){
+    selectedEditorEventId=filtered[0]?.id||"";
     selectedEntryId="";
   }
   const ev=editorDraft.events.find(x=>x.id===selectedEditorEventId&&editorEventRole(x)===role)||null;
@@ -321,7 +335,7 @@ function renderEventManager(role=dialogueSubtab){
   editorEventPage=Math.max(0,Math.min(editorEventPage,pages-1));
   const visible=filtered.slice(editorEventPage*EDITOR_EVENT_PAGE_SIZE,(editorEventPage+1)*EDITOR_EVENT_PAGE_SIZE);
   const roleHint={talk:"일반 이벤트 대사를 한 목록에서 관리합니다. 이전 ACTION 이벤트도 여기에 함께 표시됩니다.",entry:"캐릭터 공간에 들어갈 때 실행되는 대화",exit:"캐릭터 공간을 나갈 때 실행되는 대화",story:"다른 이벤트 뒤에 이어지는 연계·자동 대화"}[role];
-  root.innerHTML='<div class="editor-note dialogue-role-note"><b>'+role.toUpperCase()+'</b> · '+roleHint+'</div><div class="dialogue-editor-layout"><aside class="manager-list"><div class="manager-list-head"><strong>'+role.toUpperCase()+' EVENTS</strong><button class="small-button" data-action="new-event">+ 추가</button></div>'+
+  root.innerHTML=editorCharacterScopeBar(role.toUpperCase()+" EVENTS",grouped.length,scoped.length)+'<div class="editor-note dialogue-role-note"><b>'+role.toUpperCase()+'</b> · '+roleHint+'</div><div class="dialogue-editor-layout"><aside class="manager-list"><div class="manager-list-head"><strong>'+role.toUpperCase()+' EVENTS</strong><button class="small-button" data-action="new-event">+ 추가</button></div>'+
     '<input class="editor-list-search" data-editor-search="event" value="'+esc(editorEventQuery)+'" placeholder="이벤트 / 캐릭터 검색">'+
     '<div class="manager-list-items">'+
     (visible.length?visible.map(x=>'<button class="manager-item '+(x.id===selectedEditorEventId?"active":"")+'" data-action="select-event" data-id="'+esc(x.id)+'"><strong>'+esc(x.name)+'</strong><small><span class="event-role-badge">'+role.toUpperCase()+'</span> '+esc(getCharacterDraft(x.characterId)?.name||"캐릭터 미지정")+' · '+x.entries.length+'개</small></button>').join(""):'<div class="editor-note">이 종류의 이벤트가 없습니다.</div>')+
@@ -597,7 +611,8 @@ function renderAskUnlockEditor(a){
 }
 function renderAskEditor(){
   const q=editorAskQuery.trim().toLowerCase();
-  const filtered=editorDraft.asks.filter(a=>{
+  const scoped=editorDraft.asks.filter(a=>editorCharacterScopeMatches(a.characterId));
+  const filtered=scoped.filter(a=>{
     if(!q)return true;
     return [a.label,getCharacterDraft(a.characterId)?.name,a.id].join(" ").toLowerCase().includes(q);
   });
@@ -609,6 +624,7 @@ function renderAskEditor(){
   const a=editorDraft.asks.find(x=>x.id===selectedAskId)||null;
 
   editorBody.innerHTML=editorHead("ASK","ASK 설정","목록에서 질문 하나를 선택해 해당 FLOW만 편집합니다.",'<button class="small-button" data-action="new-ask">+ 질문</button>')+
+    editorCharacterScopeBar("ASK",editorDraft.asks.length,scoped.length)+
     '<div class="editor-list-toolbar"><input data-editor-search="ask" value="'+esc(editorAskQuery)+'" placeholder="ASK / 캐릭터 검색"><span>'+filtered.length+' / '+editorDraft.asks.length+'</span></div>'+
     '<div class="manager-layout editor-select-layout"><aside class="manager-list"><div class="manager-list-items">'+
       (visible.length?visible.map(x=>'<button class="manager-item '+(x.id===selectedAskId?"active":"")+'" data-action="select-ask" data-id="'+esc(x.id)+'"><strong>'+esc(x.label)+'</strong><small>'+esc(getCharacterDraft(x.characterId)?.name||"캐릭터 미지정")+(x.enabled?"":" · HIDDEN")+'</small></button>').join(""):'<div class="editor-note">검색 결과가 없습니다.</div>')+
@@ -638,7 +654,7 @@ function renderItemEditor(){
   const q=editorItemQuery.trim().toLowerCase();
   const categories=editorDraft.itemCategories?.length?editorDraft.itemCategories:["기타"];
   const filtered=editorDraft.items.filter(i=>{
-    if(editorItemCharacterFilter!=="ALL"&&i.collectionCharacterId!==editorItemCharacterFilter)return false;
+    if(!editorCharacterScopeMatches(i.collectionCharacterId))return false;
     if(editorItemRarityFilter!=="ALL"&&i.rarity!==editorItemRarityFilter)return false;
     if(editorItemCategoryFilter!=="ALL"&&i.category!==editorItemCategoryFilter)return false;
     if(q){
@@ -663,7 +679,7 @@ function renderItemEditor(){
     '</section>'+
     '<div class="item-editor-toolbar">'+
       '<input data-item-editor-filter="query" value="'+esc(editorItemQuery)+'" placeholder="아이템 검색 · 이름 / 설명 / 캐릭터 / 획득처">'+
-      '<select data-item-editor-filter="character"><option value="ALL">모든 캐릭터</option>'+editorDraft.characters.map(ch=>'<option value="'+esc(ch.id)+'" '+(editorItemCharacterFilter===ch.id?"selected":"")+'>'+esc(ch.name)+'</option>').join("")+'</select>'+
+      '<select data-editor-character-scope>'+editorCharacterScopeOptions()+'</select>'+
       '<select data-item-editor-filter="rarity"><option value="ALL">모든 희귀도</option>'+RARITIES.map(r=>'<option value="'+r+'" '+(editorItemRarityFilter===r?"selected":"")+'>'+r+'</option>').join("")+'</select>'+
       '<select data-item-editor-filter="category"><option value="ALL">모든 카테고리</option>'+categories.map(cat=>'<option value="'+esc(cat)+'" '+(editorItemCategoryFilter===cat?"selected":"")+'>'+esc(cat)+'</option>').join("")+'</select>'+
       '<span class="item-filter-count">'+filtered.length+' / '+editorDraft.items.length+'</span>'+
@@ -753,7 +769,8 @@ function renderGachaEditor(){
 }
 function renderThoughtEditor(){
   const q=editorThoughtQuery.trim().toLowerCase();
-  const filtered=editorDraft.thoughts.filter(t=>{
+  const scoped=editorDraft.thoughts.filter(t=>editorCharacterScopeMatches(t.characterId));
+  const filtered=scoped.filter(t=>{
     if(!q)return true;
     return [t.text,t.category,getCharacterDraft(t.characterId)?.name,t.id].join(" ").toLowerCase().includes(q);
   });
@@ -765,6 +782,7 @@ function renderThoughtEditor(){
   const t=editorDraft.thoughts.find(x=>x.id===selectedThoughtId)||null;
 
   editorBody.innerHTML=editorHead("THOUGHT","Thought 설정","목록에서 한 문장만 선택해 편집합니다.",'<button class="small-button" data-action="new-thought">+ Thought</button>')+
+    editorCharacterScopeBar("THOUGHT",editorDraft.thoughts.length,scoped.length)+
     '<section class="settings-card" style="margin-top:16px"><h3>CATEGORIES</h3><div class="category-list">'+editorDraft.thoughtSettings.categories.map(c=>'<span class="category-tag">'+esc(c)+'<button data-action="delete-category" data-id="'+esc(c)+'">×</button></span>').join("")+'</div><div style="display:flex;gap:7px;margin-top:10px"><input id="newCategoryInput" placeholder="새 카테고리"><button class="small-button" data-action="add-category">추가</button></div></section>'+
     '<div class="editor-list-toolbar"><input data-editor-search="thought" value="'+esc(editorThoughtQuery)+'" placeholder="THOUGHT / 캐릭터 / 카테고리 검색"><span>'+filtered.length+' / '+editorDraft.thoughts.length+'</span></div>'+
     '<div class="manager-layout editor-select-layout"><aside class="manager-list"><div class="manager-list-items">'+
@@ -813,10 +831,12 @@ function renderCharacterImageEditor(){
     '</section></div>';
 }
 function renderCollectionEditor(){
-  const chars=editorDraft.characters;
+  const allChars=editorDraft.characters;
+  const chars=allChars.filter(character=>editorCharacterScopeMatches(character.id));
   const overall=collectionOverallProgress(editorDraft);
   const fresh=editorDraft.newItemIds.filter(id=>hasEverAcquired(id,editorDraft)).length;
   editorBody.innerHTML=editorHead("COLLECTION","컬렉션 설정","컬렉션은 현재 인벤토리가 아니라 한 번이라도 발견한 아이템을 기록하는 아카이브입니다.")+
+    editorCharacterScopeBar("COLLECTION",allChars.length,chars.length)+
     '<div class="settings-grid">'+
       '<section class="settings-card"><h3>DISPLAY</h3>'+
         '<label class="checkline"><input type="checkbox" data-collection-setting="showLocked" '+(editorDraft.collectionSettings.showLocked?"checked":"")+'> 미획득 일반 아이템도 LOCKED로 표시</label>'+
