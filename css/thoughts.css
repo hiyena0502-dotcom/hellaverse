@@ -176,3 +176,38 @@
     top:auto;
   }
 }
+
+
+/* v132 · THOUGHT rises upward into view */
+.thought-notice.thought-notice-anchored{
+  opacity:0;
+  transform:translate(-50%,38px) scale(.97);
+  filter:blur(4px);
+  transition:
+    opacity .3s ease,
+    transform .46s cubic-bezier(.18,.82,.24,1),
+    filter .38s ease;
+}
+.thought-notice.thought-notice-anchored.show{
+  opacity:1;
+  transform:translate(-50%,0) scale(1);
+  filter:blur(0);
+}
+.thought-notice.thought-notice-anchored.hide{
+  opacity:0;
+  transform:translate(-50%,-12px) scale(.99);
+  filter:blur(2px);
+  transition:
+    opacity .28s ease,
+    transform .32s ease,
+    filter .28s ease;
+}
+@media(prefers-reduced-motion:reduce){
+  .thought-notice.thought-notice-anchored,
+  .thought-notice.thought-notice-anchored.show,
+  .thought-notice.thought-notice-anchored.hide{
+    transform:translate(-50%,0);
+    filter:none;
+    transition:opacity .18s ease;
+  }
+}
