@@ -703,6 +703,28 @@ editorBody.addEventListener("change",e=>{
 function handleEditorField(e){
   const t=e.target;
 
+  if(t.dataset.gachaProfileField&&t.dataset.gachaProfileCharacter){
+    const characterId=t.dataset.gachaProfileCharacter;
+    const character=editorDraft?.characters.find(row=>row.id===characterId);
+    if(!character)return;
+    editorDraft.gacha ||= {};
+    editorDraft.gacha.profiles ||= {};
+    const current=gachaProfileForCharacter(characterId,editorDraft)||{icon:"🎴",title:character.name+" GACHA",description:""};
+    const profile=editorDraft.gacha.profiles[characterId] ||= {
+      icon:String(current.icon||"🎴"),
+      title:String(current.title||character.name+" GACHA"),
+      description:String(current.description||"")
+    };
+    const field=t.dataset.gachaProfileField;
+    if(field==="icon"||field==="title"||field==="description")profile[field]=t.value;
+    if(field==="icon"){
+      const card=t.closest("[data-gacha-profile-character]");
+      const preview=card?.querySelector(".gacha-profile-icon-preview");
+      if(preview)preview.textContent=t.value||"🎴";
+    }
+    return;
+  }
+
   if(t.dataset.emotionImageScale){
     const character=editorDraft?.characters.find(row=>row.id===selectedEditorCharacterId);
     const emotionId=t.dataset.emotionImageScale;
