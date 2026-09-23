@@ -1551,3 +1551,272 @@ input:focus,textarea:focus,select:focus,button:focus-visible{
   18%{opacity:.7}
   100%{top:112%;opacity:0}
 }
+
+
+/* v139 · refined star direction, wandering twinkle, archive emblem */
+
+/* Permanent archive emblem above the title */
+.gacha-archive-logo{
+  position:relative;
+  display:grid;
+  place-items:center;
+  width:112px;
+  height:86px;
+  margin:2px auto -2px;
+  isolation:isolate;
+  pointer-events:none;
+}
+.gacha-archive-logo-halo{
+  position:absolute;
+  width:58px;
+  height:58px;
+  border:1px solid rgba(216,179,106,.38);
+  transform:rotate(45deg);
+  box-shadow:
+    0 0 24px rgba(216,179,106,.12),
+    inset 0 0 18px rgba(143,23,56,.08);
+  animation:gachaArchiveHaloIdle 8s linear infinite;
+}
+.gacha-archive-logo-halo:before,
+.gacha-archive-logo-halo:after{
+  content:"";
+  position:absolute;
+  inset:7px;
+  border:1px solid rgba(216,179,106,.18);
+}
+.gacha-archive-logo-halo:after{
+  inset:16px;
+  border-color:rgba(167,45,72,.34);
+}
+.gacha-archive-logo-star{
+  position:relative;
+  z-index:2;
+  color:#f5d792;
+  font-size:3.85rem;
+  line-height:1;
+  text-shadow:
+    0 0 10px rgba(255,235,182,.88),
+    0 0 26px rgba(216,179,106,.42),
+    0 0 42px rgba(143,23,56,.16);
+  animation:gachaArchiveStarIdle 3.1s ease-in-out infinite;
+}
+.gacha-archive-logo-spark{
+  position:absolute;
+  z-index:3;
+  color:rgba(255,231,177,.86);
+  text-shadow:0 0 9px rgba(240,207,138,.82);
+}
+.gacha-archive-logo-spark.spark-a{
+  left:16px;
+  top:12px;
+  font-size:1rem;
+  animation:gachaArchiveSparkA 4.4s ease-in-out infinite;
+}
+.gacha-archive-logo-spark.spark-b{
+  right:18px;
+  bottom:14px;
+  font-size:1.5rem;
+  animation:gachaArchiveSparkB 3.7s ease-in-out infinite;
+}
+@keyframes gachaArchiveHaloIdle{
+  to{transform:rotate(405deg)}
+}
+@keyframes gachaArchiveStarIdle{
+  0%,100%{opacity:.76;transform:scale(.86) rotate(-3deg)}
+  22%{opacity:1;transform:scale(1.08) rotate(2deg)}
+  48%{opacity:.84;transform:scale(.94) rotate(-1deg)}
+  72%{opacity:1;transform:scale(1.13) rotate(3deg)}
+}
+@keyframes gachaArchiveSparkA{
+  0%,100%{opacity:.18;transform:translate(0,0) scale(.55) rotate(0)}
+  45%{opacity:1;transform:translate(12px,7px) scale(1.25) rotate(40deg)}
+}
+@keyframes gachaArchiveSparkB{
+  0%,100%{opacity:.22;transform:translate(0,0) scale(.7)}
+  52%{opacity:1;transform:translate(-11px,-9px) scale(1.45)}
+}
+.gacha-stage.is-drawing .gacha-archive-logo-star{
+  animation:gachaArchiveStarDraw .72s ease-in-out infinite alternate;
+}
+.gacha-stage.is-drawing .gacha-archive-logo-halo{
+  border-color:rgba(255,229,166,.7);
+  box-shadow:
+    0 0 34px rgba(240,207,138,.32),
+    inset 0 0 24px rgba(167,45,72,.16);
+  animation-duration:2.2s;
+}
+@keyframes gachaArchiveStarDraw{
+  from{
+    opacity:.9;
+    transform:scale(.94) rotate(-7deg);
+    text-shadow:0 0 14px rgba(255,239,199,.92),0 0 32px rgba(216,179,106,.52);
+  }
+  to{
+    opacity:1;
+    transform:scale(1.16) rotate(7deg);
+    text-shadow:0 0 22px #fff1c6,0 0 48px rgba(216,179,106,.76),0 0 72px rgba(167,45,72,.24);
+  }
+}
+
+/* Idle star glyphs wander around their local area and twinkle instead of drifting in one direction. */
+.gacha-stage:not(.is-drawing) .gacha-ambient-particle.is-star{
+  animation:gachaStarWanderTwinkle calc(var(--duration) * 1.35) ease-in-out var(--delay) infinite;
+  transform-origin:center;
+}
+@keyframes gachaStarWanderTwinkle{
+  0%,100%{
+    opacity:.28;
+    transform:translate3d(0,0,0) scale(.72) rotate(-10deg);
+  }
+  18%{
+    opacity:1;
+    transform:translate3d(var(--orbit-x),calc(0px - var(--orbit-y)),0) scale(var(--twinkle-scale)) rotate(26deg);
+  }
+  38%{
+    opacity:.56;
+    transform:translate3d(calc(0px - var(--orbit-x2)),var(--orbit-y2),0) scale(.82) rotate(68deg);
+  }
+  58%{
+    opacity:1;
+    transform:translate3d(calc(0px - var(--orbit-x)),calc(0px - var(--orbit-y2)),0) scale(1.36) rotate(112deg);
+  }
+  78%{
+    opacity:.46;
+    transform:translate3d(var(--orbit-x2),var(--orbit-y),0) scale(.66) rotate(154deg);
+  }
+}
+.gacha-stage.is-drawing .gacha-ambient-particle.is-star{
+  animation:gachaStarWanderDraw calc(var(--duration) * .34) ease-in-out var(--delay) infinite;
+}
+@keyframes gachaStarWanderDraw{
+  0%,100%{
+    opacity:.4;
+    transform:translate3d(calc(0px - var(--orbit-x2)),var(--orbit-y2),0) scale(.66) rotate(0);
+  }
+  25%{
+    opacity:1;
+    transform:translate3d(var(--orbit-x),calc(0px - var(--orbit-y2)),0) scale(1.5) rotate(90deg);
+  }
+  50%{
+    opacity:.65;
+    transform:translate3d(var(--orbit-x2),var(--orbit-y),0) scale(.82) rotate(180deg);
+  }
+  75%{
+    opacity:1;
+    transform:translate3d(calc(0px - var(--orbit-x)),calc(0px - var(--orbit-y)),0) scale(1.34) rotate(270deg);
+  }
+}
+
+/* Thin diagonal meteors: upper-right to lower-left. */
+.gacha-stage .gacha-shooting-star{
+  height:1px;
+  min-width:105px;
+  max-width:220px;
+  background:linear-gradient(
+    90deg,
+    #fff7df 0%,
+    rgba(255,231,174,.86) 12%,
+    rgba(240,207,138,.26) 48%,
+    transparent 100%
+  );
+  filter:drop-shadow(0 0 5px rgba(240,207,138,.82));
+  transform-origin:left center;
+}
+.gacha-stage .gacha-shooting-star:after{
+  left:-2px;
+  right:auto;
+  width:4px;
+  height:4px;
+  background:#fff8e4;
+  box-shadow:0 0 8px #f4d590,0 0 18px rgba(216,179,106,.68);
+}
+.gacha-stage .gacha-shooting-star.wine{
+  background:linear-gradient(
+    90deg,
+    #ffd5e1 0%,
+    rgba(229,77,118,.82) 12%,
+    rgba(167,45,72,.22) 48%,
+    transparent 100%
+  );
+  filter:drop-shadow(0 0 5px rgba(200,48,90,.75));
+}
+.gacha-stage .gacha-shooting-star.wine:after{
+  left:-2px;
+  right:auto;
+  width:4px;
+  height:4px;
+}
+.gacha-stage.is-drawing .gacha-shooting-star{
+  animation:gachaMeteorDownLeft var(--star-duration) cubic-bezier(.08,.7,.16,1) var(--star-delay) infinite;
+}
+@keyframes gachaMeteorDownLeft{
+  0%{
+    opacity:0;
+    transform:translate3d(330px,-230px,0) rotate(-34deg);
+  }
+  7%{opacity:1}
+  43%{opacity:.96}
+  66%{
+    opacity:0;
+    transform:translate3d(-760px,590px,0) rotate(-34deg);
+  }
+  100%{
+    opacity:0;
+    transform:translate3d(-760px,590px,0) rotate(-34deg);
+  }
+}
+
+/* Draw-time star rain is also thin and falls diagonally from right to left. */
+.gacha-star-rain-particle:not(.is-glyph){
+  width:1px;
+  border-radius:999px;
+  filter:drop-shadow(0 0 5px rgba(244,213,144,.78));
+}
+.gacha-star-rain-particle:not(.is-glyph):after{
+  width:4px;
+  height:4px;
+  bottom:-1px;
+  box-shadow:0 0 8px rgba(255,239,197,.9),0 0 18px rgba(216,179,106,.64);
+}
+.gacha-star-rain-particle.is-wine{
+  filter:drop-shadow(0 0 5px rgba(200,48,90,.72));
+}
+@keyframes gachaStarRainFall{
+  0%{
+    top:-26%;
+    opacity:0;
+    transform:translate3d(calc(0px - var(--rain-drift) * .22),0,0) rotate(var(--rain-rot));
+  }
+  8%{opacity:1}
+  74%{opacity:.92}
+  100%{
+    top:128%;
+    opacity:0;
+    transform:translate3d(var(--rain-drift),0,0) rotate(var(--rain-rot));
+  }
+}
+
+/* Keep the archive title visually tied to the emblem. */
+.gacha-core>h2{
+  margin-top:0;
+  letter-spacing:.045em;
+  text-shadow:0 2px 20px rgba(0,0,0,.34);
+}
+.gacha-core>.gacha-balance{
+  margin-bottom:4px;
+}
+
+@media(max-width:700px){
+  .gacha-archive-logo{
+    width:88px;
+    height:68px;
+  }
+  .gacha-archive-logo-star{font-size:3rem}
+  .gacha-archive-logo-halo{width:46px;height:46px}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .gacha-stage:not(.is-drawing) .gacha-ambient-particle.is-star{
+    animation:gachaArchiveStarIdle 3.4s ease-in-out var(--delay) infinite!important;
+  }
+}
