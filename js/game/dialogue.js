@@ -822,15 +822,28 @@ function showPlaySettings(){
 }
 function randomThought(){
   const ch=getCharacter(selectedCharacterId);if(!ch)return;
-  const candidates=state.thoughts.filter(t=>t.enabled&&t.characterId===ch.id);
-  if(!candidates.length){showToast("등록된 Thought가 없습니다.");return}
+  const affection=Math.round(session.affection[ch.id]??ch.affectionStart);
+  const candidates=state.thoughts.filter(t=>
+    t.enabled&&
+    t.characterId===ch.id&&
+    affection>=Number(t.minAffection||0)&&
+    affection<=Number(t.maxAffection??100)
+  );
+  if(!candidates.length){
+    showToast("현재 호감도에서 떠오를 Thought가 없습니다.");
+    return;
+  }
   const weight={common:8,normal:4,rare:1};
   const total=candidates.reduce((s,t)=>s+(weight[t.frequency]||1),0);
   let roll=Math.random()*total,chosen=candidates[0];
   for(const t of candidates){roll-=weight[t.frequency]||1;if(roll<=0){chosen=t;break}}
   if(!state.discoveredThoughtIds.includes(chosen.id))state.discoveredThoughtIds.push(chosen.id);
   saveProgressState();
-  openModal(ch.name+" · THOUGHT",'<p class="label">'+esc(chosen.category)+' · '+esc(chosen.frequency.toUpperCase())+'</p><p style="white-space:pre-wrap;line-height:1.8;font-family:Georgia,serif;font-size:1.2rem">'+esc(chosen.text)+'</p>');
+  openModal(
+    ch.name+" · THOUGHT",
+    '<p class="label">'+esc(chosen.category)+' · '+esc(thoughtFrequencyLabel(chosen.frequency))+' · AFFECTION '+Number(chosen.minAffection||0)+'–'+Number(chosen.maxAffection??100)+'</p>'+
+    '<p style="white-space:pre-wrap;line-height:1.8;font-family:Georgia,serif;font-size:1.2rem">'+esc(chosen.text)+'</p>'
+  );
 }
 function chooseWeighted(items,getWeight){
   const total=items.reduce((s,x)=>s+Math.max(0,Number(getWeight(x))||0),0);
