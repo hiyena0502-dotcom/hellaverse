@@ -1452,6 +1452,90 @@ const oneTimeReward=vm.runInContext(`
 assert.equal(oneTimeReward.count,1,"one-time dialogue reward must not duplicate on replay");
 assert.deepEqual([...oneTimeReward.claims],["reward-once"],"one-time reward claim must persist");
 
+const luciferDialogueRewardFlow=vm.runInContext(`
+(()=>{
+  const itemId="item-1789237782413-b24d1dcc58ec3";
+  const effectId="lucifer-dialogue-acquired-item-1789237782413-b24d1dcc58ec3";
+
+  const runCase=startCount=>{
+    state=normalizeState({
+      schemaVersion:4,
+      characters:[{id:"lucifer-morningstar",name:"Lucifer Morningstar",origin:"angel"}],
+      items:[{
+        id:itemId,
+        name:"백플립 덕",
+        rarity:"RARE",
+        collectionCharacterId:"lucifer-morningstar",
+        acquisitionMode:"repeatable",
+        enabled:true,
+        gachaEnabled:true
+      }],
+      inventoryCounts:{[itemId]:startCount},
+      claimedItemEffectIds:[]
+    });
+    session=createSession();
+    showItemAcquired=()=>{};
+    saveProgressState=()=>{};
+
+    activeInteractionEvent={
+      interactionMeta:{
+        kind:"ask",
+        itemEffectClaimSnapshot:[]
+      }
+    };
+
+    const beforeOwned=itemConditionPasses({itemId,operator:">=",value:1});
+    const beforeNew=itemConditionPasses({itemId,operator:"<",value:1});
+    const beforeUnclaimed=itemEffectClaimConditionPasses({effectId,status:"unclaimed"});
+    const beforeClaimed=itemEffectClaimConditionPasses({effectId,status:"claimed"});
+
+    applyItemEffects([{id:effectId,itemId,amount:1,once:true}]);
+
+    const countAfter=itemCount(itemId);
+    const liveClaimed=(state.claimedItemEffectIds||[]).includes(effectId);
+    const sameAskUnclaimed=itemEffectClaimConditionPasses({effectId,status:"unclaimed"});
+    const sameAskClaimed=itemEffectClaimConditionPasses({effectId,status:"claimed"});
+
+    activeInteractionEvent={
+      interactionMeta:{
+        kind:"ask",
+        itemEffectClaimSnapshot:[...(state.claimedItemEffectIds||[])]
+      }
+    };
+    const nextAskUnclaimed=itemEffectClaimConditionPasses({effectId,status:"unclaimed"});
+    const nextAskClaimed=itemEffectClaimConditionPasses({effectId,status:"claimed"});
+
+    return{
+      startCount,beforeOwned,beforeNew,beforeUnclaimed,beforeClaimed,
+      countAfter,liveClaimed,sameAskUnclaimed,sameAskClaimed,nextAskUnclaimed,nextAskClaimed
+    };
+  };
+
+  return{
+    fresh:runCase(0),
+    gachaOwned:runCase(1)
+  };
+})()
+`,context);
+
+assert.equal(luciferDialogueRewardFlow.fresh.beforeNew,true,"fresh Lucifer dialogue reward must use the not-owned branch");
+assert.equal(luciferDialogueRewardFlow.fresh.beforeOwned,false,"fresh Lucifer dialogue reward must not use the owned branch");
+assert.equal(luciferDialogueRewardFlow.fresh.countAfter,1,"fresh Lucifer dialogue reward must add one item");
+assert.equal(luciferDialogueRewardFlow.fresh.liveClaimed,true,"fresh Lucifer dialogue reward must record its claim");
+assert.equal(luciferDialogueRewardFlow.fresh.sameAskUnclaimed,true,"first ASK must keep its acquisition branch stable after the grant");
+assert.equal(luciferDialogueRewardFlow.fresh.sameAskClaimed,false,"first ASK must not immediately show repeat-after-claim lines");
+assert.equal(luciferDialogueRewardFlow.fresh.nextAskUnclaimed,false,"next ASK must hide the one-time acquisition branch");
+assert.equal(luciferDialogueRewardFlow.fresh.nextAskClaimed,true,"next ASK must show the already-acquired response");
+
+assert.equal(luciferDialogueRewardFlow.gachaOwned.beforeOwned,true,"gacha-owned Lucifer item must use the already-owned dialogue branch");
+assert.equal(luciferDialogueRewardFlow.gachaOwned.beforeNew,false,"gacha-owned Lucifer item must not use the fresh-item branch");
+assert.equal(luciferDialogueRewardFlow.gachaOwned.countAfter,2,"gacha-owned Lucifer item must gain one extra copy from dialogue");
+assert.equal(luciferDialogueRewardFlow.gachaOwned.liveClaimed,true,"gacha-owned dialogue reward must record its one-time claim");
+assert.equal(luciferDialogueRewardFlow.gachaOwned.sameAskUnclaimed,true,"gacha-owned first ASK must remain on its owned acquisition branch until interaction end");
+assert.equal(luciferDialogueRewardFlow.gachaOwned.sameAskClaimed,false,"gacha-owned first ASK must not append repeat dialogue immediately");
+assert.equal(luciferDialogueRewardFlow.gachaOwned.nextAskUnclaimed,false,"gacha-owned acquisition must not grant again on the next ASK");
+assert.equal(luciferDialogueRewardFlow.gachaOwned.nextAskClaimed,true,"gacha-owned next ASK must switch to the already-given response");
+
 const askUnlockRetention=vm.runInContext(`
 (()=>{
   state=normalizeState({
