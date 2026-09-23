@@ -934,3 +934,33 @@ input:focus,textarea:focus,select:focus,button:focus-visible{
     font-size:.54rem;
   }
 }
+
+
+
+/* v125 · anchor HOME status to the top of the right-side empty area */
+.character-status-widget.home{
+  top:64px;
+  right:clamp(24px,5vw,84px);
+  transform:none;
+}
+@media(max-width:1100px){
+  .character-status-widget.home{
+    top:52px;
+    right:20px;
+    transform:none;
+  }
+}
+@media(max-width:900px){
+  .character-status-widget.home{
+    top:20px;
+    right:14px;
+    transform:none;
+  }
+}
+@media(max-width:620px){
+  .character-status-widget.home{
+    top:10px;
+    right:9px;
+    transform:none;
+  }
+}
