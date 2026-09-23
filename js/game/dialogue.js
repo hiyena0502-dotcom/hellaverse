@@ -732,13 +732,13 @@ function giftNeedsConfirmation(item){
 function useInventoryItem(id){
   const item=itemById(id);if(!item||itemCount(id)<=0)return;
   const ch=getCharacter(selectedCharacterId);if(!ch)return;
-  if(giftNeedsConfirmation(item)&&!confirm(item.name+"을(를) "+ch.name+"에게 선물할까요?\n소모형 아이템이며 현재 "+itemCount(id)+"개 보유 중입니다."))return;
-  const key=giftReactionKey(item.id,ch.id);
   const reaction=giftReactionFor(item,ch);
   if(!reaction){
     showToast(ch.name+"의 이 아이템 반응은 아직 설정되지 않았습니다.");
     return;
   }
+  if(giftNeedsConfirmation(item)&&!confirm(item.name+"을(를) "+ch.name+"에게 선물할까요?\n소모형 아이템이며 현재 "+itemCount(id)+"개 보유 중입니다."))return;
+  const key=giftReactionKey(item.id,ch.id);
 
   const currentCount=giftInteractionCount(item.id,ch.id);
   const emotion=session.emotions[ch.id]||{state:ch.emotionDefault,intensity:ch.emotionIntensity};
