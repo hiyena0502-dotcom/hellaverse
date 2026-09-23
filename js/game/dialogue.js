@@ -814,6 +814,25 @@ function showEmotion(){
     return '<div class="status-card"><div class="status-head"><strong>'+esc(c.name)+'</strong><span>'+esc(emotionLabel(v.state))+'</span></div><div class="status-track"><div class="status-fill" style="width:'+v.intensity+'%"></div></div><small class="muted">강도 '+v.intensity+' / 100</small></div>';
   }).join(""):'<p class="muted">등록된 캐릭터가 없습니다.</p>')+'</div>');
 }
+function showAllStatus(){
+  const chars=enabledCharacters();
+  openModal("ALL CHARACTER STATUS",
+    '<div class="all-status-list">'+
+      (chars.length?chars.map(c=>{
+        const affection=Math.round(clamp(session.affection[c.id]??c.affectionStart,0,100,0));
+        const emotion=session.emotions[c.id]||{state:c.emotionDefault,intensity:c.emotionIntensity};
+        const intensity=Math.round(clamp(emotion.intensity,0,100,0));
+        return '<article class="all-status-card">'+
+          '<div class="all-status-card-head"><strong>'+esc(c.name)+'</strong><small>'+esc(originLabel(c.origin))+'</small></div>'+
+          '<div class="all-status-row"><div class="all-status-row-head"><span>AFFECTION</span><b>'+affection+' / 100</b></div>'+
+            '<div class="status-track"><div class="status-fill" style="width:'+affection+'%"></div></div></div>'+
+          '<div class="all-status-row"><div class="all-status-row-head"><span>EMOTION</span><b>'+esc(emotionLabel(emotion.state))+' · '+intensity+'</b></div>'+
+            '<div class="status-track"><div class="status-fill" style="width:'+intensity+'%"></div></div></div>'+
+        '</article>';
+      }).join(""):'<p class="muted">등록된 캐릭터가 없습니다.</p>')+
+    '</div>'
+  );
+}
 function showLog(){
   openModal("DIALOGUE LOG",'<div class="log-list">'+(session.log.length?session.log.slice().reverse().map(x=>'<article class="log-row"><small>'+esc(x.eventName)+(x.speaker?' · '+esc(x.speaker):'')+'</small><p>'+esc(x.text)+'</p></article>').join(""):'<p class="muted">아직 기록이 없습니다.</p>')+'</div>');
 }
