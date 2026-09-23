@@ -713,7 +713,7 @@ function itemInventoryEventOptions(item){
 }
 function renderSelectedItemEditor(i,categories){
   const configured=new Set(i.reactions.map(r=>r.characterId).filter(id=>editorDraft.characters.some(ch=>ch.id===id))).size;
-  const autoCharacters=i.giftable===false?[]:editorDraft.characters.filter(character=>!i.reactions.some(reaction=>reaction.characterId===character.id));
+  const autoCharacters=i.giftable===false||typeof window.HV_BUILD_ITEM_REACTION!=="function"?[]:editorDraft.characters.filter(character=>!i.reactions.some(reaction=>reaction.characterId===character.id));
   const covered=configured+autoCharacters.length;
   const categoryOptions=[...new Set([...categories,i.category].filter(Boolean))];
   return '<div class="item-row interaction-editor-row editor-single-detail" data-item-id="'+esc(i.id)+'">'+
