@@ -920,7 +920,7 @@ function chooseWeighted(items,getWeight){
   return items.at(-1);
 }
 function spawnGachaParticles(stage,mode="burst",amount=30){
-  if(!stage||window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches)return;
+  if(!stage)return;
   const layer=document.createElement("div");
   layer.className="gacha-particle-burst gacha-particle-burst-"+mode;
   layer.setAttribute("aria-hidden","true");
