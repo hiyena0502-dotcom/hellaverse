@@ -879,29 +879,38 @@ const luciferThoughtInstallCheck=vm.runInContext(`
   });
   const installed=installStoryPacks(source).state;
   const thoughts=installed.thoughts.filter(row=>row.characterId==="lucifer-morningstar"&&String(row.id||"").startsWith("lucifer-thought-"));
-  const cold=thoughts.filter(row=>row.minAffection===0&&row.maxAffection===19);
-  const warm=thoughts.filter(row=>row.minAffection===60&&row.maxAffection===79);
-  const close=thoughts.filter(row=>row.minAffection===80&&row.maxAffection===100);
+  const earlyExclusive=thoughts.filter(row=>row.minAffection===0&&row.maxAffection<100);
+  const earlyPersistent=thoughts.filter(row=>row.minAffection<40&&row.maxAffection===100);
+  const warmPersistent=thoughts.filter(row=>row.minAffection>=45&&row.minAffection<80&&row.maxAffection===100);
+  const close=thoughts.filter(row=>row.minAffection>=80&&row.maxAffection===100);
   const at10=thoughts.filter(row=>10>=row.minAffection&&10<=row.maxAffection);
   const at90=thoughts.filter(row=>90>=row.minAffection&&90<=row.maxAffection);
   return{
     count:thoughts.length,
-    cold:cold.length,
-    warm:warm.length,
+    earlyExclusive:earlyExclusive.length,
+    earlyPersistent:earlyPersistent.length,
+    warmPersistent:warmPersistent.length,
     close:close.length,
     at10HasClose:at10.some(row=>row.minAffection>=80),
-    at90HasCold:at90.some(row=>row.maxAffection<=19),
+    at90HasEarlyPersistent:at90.some(row=>row.minAffection<40&&row.maxAffection===100),
+    at90HasWarmPersistent:at90.some(row=>row.minAffection>=45&&row.minAffection<80&&row.maxAffection===100),
+    at90HasClose:at90.some(row=>row.minAffection>=80),
+    at90HasExpiredEarly:at90.some(row=>row.maxAffection<90),
     hasDialogueReflection:thoughts.some(row=>/별 지도|우울한 오리|사과 씨앗|사슴 대가리/.test(row.text)),
     frequencies:[...new Set(thoughts.map(row=>row.frequency))]
   };
 })()
 `,context);
-assert.ok(luciferThoughtInstallCheck.count>=30,"Lucifer affinity THOUGHT preset must install a substantial pool");
-assert.ok(luciferThoughtInstallCheck.cold>=4,"Lucifer low-affection THOUGHT pool missing");
-assert.ok(luciferThoughtInstallCheck.warm>=8,"Lucifer warm-affection THOUGHT pool missing");
-assert.ok(luciferThoughtInstallCheck.close>=10,"Lucifer close-affection THOUGHT pool missing");
+assert.ok(luciferThoughtInstallCheck.count>=40,"Lucifer affinity THOUGHT preset must install the curated pool");
+assert.ok(luciferThoughtInstallCheck.earlyExclusive>=4,"clearly distant early THOUGHTs must be allowed to expire");
+assert.ok(luciferThoughtInstallCheck.earlyPersistent>=5,"ordinary early THOUGHTs must remain available at high affection");
+assert.ok(luciferThoughtInstallCheck.warmPersistent>=10,"warm THOUGHTs must remain available after they unlock");
+assert.ok(luciferThoughtInstallCheck.close>=5,"very-close THOUGHT pool missing");
 assert.equal(luciferThoughtInstallCheck.at10HasClose,false,"low affection must not include close THOUGHTs");
-assert.equal(luciferThoughtInstallCheck.at90HasCold,false,"high affection must not include cold THOUGHTs");
+assert.equal(luciferThoughtInstallCheck.at90HasEarlyPersistent,true,"high affection must still include ordinary lower-affection THOUGHTs");
+assert.equal(luciferThoughtInstallCheck.at90HasWarmPersistent,true,"high affection must still include warm THOUGHTs");
+assert.equal(luciferThoughtInstallCheck.at90HasClose,true,"high affection must add close THOUGHTs");
+assert.equal(luciferThoughtInstallCheck.at90HasExpiredEarly,false,"explicit early-only THOUGHTs must not survive past their max affection");
 assert.equal(luciferThoughtInstallCheck.hasDialogueReflection,true,"Lucifer THOUGHT should include dialogue/event/question-reflective writing");
 assert.ok(luciferThoughtInstallCheck.frequencies.includes("common")&&luciferThoughtInstallCheck.frequencies.includes("normal")&&luciferThoughtInstallCheck.frequencies.includes("rare"),"Lucifer THOUGHT must use common/normal/rare frequency tiers");
 
