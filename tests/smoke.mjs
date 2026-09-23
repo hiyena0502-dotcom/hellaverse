@@ -169,6 +169,14 @@ assert.match(appShell,/Array\.from\(\{length:18\}/,"gacha meteor field should re
 assert.match(hotelThemeCss,/@keyframes gachaMeteorGrand/,"large dynamic gacha meteor animation missing");
 assert.match(hotelThemeCss,/@keyframes gachaBackdropGrandSweep/,"large dynamic gacha backdrop motion missing");
 assert.match(hotelThemeCss,/@keyframes gachaAmbientGrandDrift/,"large dynamic ambient particle motion missing");
+assert.match(dialogueCode,/function spawnGachaStarRain\(/,"draw-time falling star shower helper missing");
+assert.match(dialogueCode,/spawnGachaStarRain\(stage,"draw"/,"draw-time falling star shower trigger missing");
+assert.match(dialogueCode,/spawnGachaStarRain\(stage,"reveal"/,"reveal falling star shower trigger missing");
+assert.match(hotelThemeCss,/@keyframes gachaAmbientIdleActive/,"idle gacha particles must stay animated");
+assert.match(hotelThemeCss,/@keyframes gachaAmbientIdleStarActive/,"idle gacha stars must stay animated");
+assert.match(hotelThemeCss,/\.gacha-star-rain\{/,"falling star shower layer CSS missing");
+assert.match(hotelThemeCss,/@keyframes gachaStarRainFall/,"falling star shower animation missing");
+
 
 assert.match(hotelThemeCss,/@keyframes gachaBackdropOrbit/,"moving gacha backdrop animation missing");
 assert.match(hotelThemeCss,/@keyframes gachaBackdropSweep/,"visible moving gacha backdrop sweep missing");
