@@ -919,6 +919,70 @@ assert.equal(luciferThoughtInstallCheck.at90HasExpiredEarly,false,"explicit earl
 assert.equal(luciferThoughtInstallCheck.hasDialogueReflection,true,"Lucifer THOUGHT should include dialogue/event/question-reflective writing");
 assert.ok(luciferThoughtInstallCheck.frequencies.includes("common")&&luciferThoughtInstallCheck.frequencies.includes("normal")&&luciferThoughtInstallCheck.frequencies.includes("rare"),"Lucifer THOUGHT must use common/normal/rare frequency tiers");
 
+const luciferExistingThoughtMigrationCheck=vm.runInContext(`
+(()=>{
+  const source=normalizeState({
+    schemaVersion:4,
+    characters:[{id:"lucifer-morningstar",name:"Lucifer Morningstar",origin:"angel"}],
+    thoughts:[
+      {
+        id:"legacy-luci-duck",
+        characterId:"lucifer-morningstar",
+        category:"일상",
+        frequency:"common",
+        minAffection:0,
+        maxAffection:100,
+        text:"작업대 밑에 오리가 또 늘었네."
+      },
+      {
+        id:"legacy-luci-secret",
+        characterId:"lucifer-morningstar",
+        category:"비밀",
+        frequency:"rare",
+        minAffection:0,
+        maxAffection:100,
+        text:"후광 조각을 다시 보면 그때의 내가 같이 떠오른다."
+      },
+      {
+        id:"legacy-luci-guarded",
+        characterId:"lucifer-morningstar",
+        category:"관계",
+        frequency:"common",
+        minAffection:0,
+        maxAffection:100,
+        text:"아직은 굳이 오래 이야기할 필요 없어."
+      },
+      {
+        id:"legacy-luci-manual",
+        characterId:"lucifer-morningstar",
+        category:"관계",
+        frequency:"normal",
+        minAffection:33,
+        maxAffection:88,
+        text:"이미 직접 설정한 Thought."
+      }
+    ]
+  });
+  const installed=installStoryPacks(source).state;
+  const byId=id=>installed.thoughts.find(row=>row.id===id);
+  return{
+    duck:{min:byId("legacy-luci-duck")?.minAffection,max:byId("legacy-luci-duck")?.maxAffection},
+    secret:{min:byId("legacy-luci-secret")?.minAffection,max:byId("legacy-luci-secret")?.maxAffection},
+    guarded:{min:byId("legacy-luci-guarded")?.minAffection,max:byId("legacy-luci-guarded")?.maxAffection},
+    manual:{min:byId("legacy-luci-manual")?.minAffection,max:byId("legacy-luci-manual")?.maxAffection},
+    version:installed.storyPackVersions?.["thought-preset-lucifer-affinity"]||0
+  };
+})()
+`,context);
+assert.ok(luciferExistingThoughtMigrationCheck.duck.min<=25,"ordinary existing Lucifer daily THOUGHT should unlock early");
+assert.equal(luciferExistingThoughtMigrationCheck.duck.max,100,"ordinary existing Lucifer THOUGHT should remain visible at high affection");
+assert.ok(luciferExistingThoughtMigrationCheck.secret.min>=85,"sensitive existing Lucifer THOUGHT should unlock late");
+assert.equal(luciferExistingThoughtMigrationCheck.secret.max,100,"sensitive existing Lucifer THOUGHT should remain visible after unlock");
+assert.ok(luciferExistingThoughtMigrationCheck.guarded.max<100,"clearly guarded early THOUGHT should expire later");
+assert.equal(luciferExistingThoughtMigrationCheck.manual.min,33,"manual THOUGHT minimum affection must be preserved");
+assert.equal(luciferExistingThoughtMigrationCheck.manual.max,88,"manual THOUGHT maximum affection must be preserved");
+assert.equal(luciferExistingThoughtMigrationCheck.version,3,"Lucifer THOUGHT migration version must persist in storyPackVersions");
+
 const thoughtLegacyAffectionCheck=vm.runInContext(`
 (()=>{
   const thought=normalizeThought({
