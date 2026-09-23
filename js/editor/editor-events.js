@@ -990,7 +990,17 @@ function handleEditorField(e){
   const tr=t.closest("[data-thought-id]");
   if(tr&&t.dataset.thoughtBind){
     const th=editorDraft.thoughts.find(x=>x.id===tr.dataset.thoughtId);if(!th)return;
-    th[t.dataset.thoughtBind]=t.type==="checkbox"?t.checked:t.value;return;
+    const key=t.dataset.thoughtBind;
+    if(key==="minAffection"||key==="maxAffection"){
+      th[key]=Math.max(0,Math.min(100,Number(t.value)||0));
+      if(th.minAffection>th.maxAffection){
+        if(key==="minAffection")th.maxAffection=th.minAffection;
+        else th.minAffection=th.maxAffection;
+      }
+    }else{
+      th[key]=t.type==="checkbox"?t.checked:t.value;
+    }
+    return;
   }
   const ir=t.closest("[data-item-id]");
   if(ir&&t.dataset.itemBind){
