@@ -297,6 +297,51 @@
     return changed;
   }
 
+  function purgeLegacyLuciferCustodyTalks(source){
+    const legacyName=/^TALK\s*·\s*.+?\s*·\s*보관을 맡기다\s*$/i;
+    const removedIds=new Set();
+    const removedEffectIds=new Set();
+
+    const collectEffects=entries=>{
+      for(const entry of entries||[]){
+        for(const effect of entry?.itemEffects||[]){
+          if(effect?.id)removedEffectIds.add(String(effect.id));
+        }
+        if(entry?.type==="choice"){
+          for(const opt of entry.options||[]){
+            for(const effect of opt?.itemEffects||[]){
+              if(effect?.id)removedEffectIds.add(String(effect.id));
+            }
+            collectEffects(opt?.entries||[]);
+          }
+        }
+      }
+    };
+
+    const before=(source.events||[]).length;
+    source.events=(source.events||[]).filter(event=>{
+      const isLegacy=event?.characterId===C&&legacyName.test(String(event?.name||""));
+      if(!isLegacy)return true;
+      removedIds.add(String(event.id||""));
+      collectEffects(event.entries||[]);
+      return false;
+    });
+
+    if(!removedIds.size)return false;
+
+    for(const item of source.items||[]){
+      if(removedIds.has(String(item.inventoryEventId||"")))item.inventoryEventId="";
+    }
+    source.discoveredTalkIds=(source.discoveredTalkIds||[]).filter(id=>!removedIds.has(String(id)));
+    source.claimedItemEffectIds=(source.claimedItemEffectIds||[]).filter(id=>!removedEffectIds.has(String(id)));
+    if(source.playState?.recentTalks&&typeof source.playState.recentTalks==="object"){
+      for(const [characterId,ids] of Object.entries(source.playState.recentTalks)){
+        source.playState.recentTalks[characterId]=(Array.isArray(ids)?ids:[]).filter(id=>!removedIds.has(String(id)));
+      }
+    }
+    return source.events.length!==before;
+  }
+
   function simpleDuckEvent(source,itemId,id,title,intro,first,owned){
     if(!itemExists(source,itemId))return null;
     return dedicatedEvent(id,title,itemId,[
@@ -317,6 +362,7 @@
     const normalizeEntry=typeof helpers.normalizeEntry==="function"?helpers.normalizeEntry:value=>value;
     const normalizeEvent=typeof helpers.normalizeEvent==="function"?helpers.normalizeEvent:value=>value;
 
+    changed=purgeLegacyLuciferCustodyTalks(source)||changed;
     changed=applyImportantItemSettings(source)||changed;
     if(itemExists(source,I.LETTER_TO_CHARLIE)){
       changed=ensureVariable(source,"luc_acq_letter_boundary","Lucifer · 편지를 읽지 않고 물러남")||changed;
