@@ -867,6 +867,20 @@ function showThoughtNotice(ch,thought){
     '<i class="thought-notice-timer" aria-hidden="true"></i>';
   document.body.appendChild(notice);
 
+  const anchor=document.querySelector('[data-action="random-thought"]');
+  if(anchor){
+    const rect=anchor.getBoundingClientRect();
+    const noticeWidth=Math.min(notice.offsetWidth||520,Math.max(180,window.innerWidth-20));
+    const half=noticeWidth/2;
+    const preferredCenter=rect.left+rect.width/2;
+    const center=Math.max(10+half,Math.min(window.innerWidth-10-half,preferredCenter));
+    notice.classList.add("thought-notice-anchored");
+    notice.style.left=center+"px";
+    notice.style.right="auto";
+    notice.style.top="auto";
+    notice.style.bottom=Math.max(10,window.innerHeight-rect.top+12)+"px";
+  }
+
   requestAnimationFrame(()=>notice.classList.add("show"));
   const duration=Math.max(4600,Math.min(9000,3600+String(thought.text||"").length*48));
   notice.style.setProperty("--thought-notice-duration",duration+"ms");
