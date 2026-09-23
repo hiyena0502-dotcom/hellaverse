@@ -1477,15 +1477,22 @@ const luciferDialogueRewardFlow=vm.runInContext(`
     showItemAcquired=()=>{};
     saveProgressState=()=>{};
 
+    playback={
+      itemEffectClaimSnapshot:[],
+      inventoryCountSnapshot:{[itemId]:startCount}
+    };
     activeInteractionEvent={
       interactionMeta:{
         kind:"ask",
-        itemEffectClaimSnapshot:[]
+        itemEffectClaimSnapshot:[],
+        inventoryCountSnapshot:{[itemId]:startCount}
       }
     };
 
-    const beforeOwned=itemConditionPasses({itemId,operator:">=",value:1});
-    const beforeNew=itemConditionPasses({itemId,operator:"<",value:1});
+    const ownedCondition={itemId,operator:">=",value:1,snapshot:true};
+    const newCondition={itemId,operator:"<",value:1,snapshot:true};
+    const beforeOwned=itemConditionPasses(ownedCondition);
+    const beforeNew=itemConditionPasses(newCondition);
     const beforeUnclaimed=itemEffectClaimConditionPasses({effectId,status:"unclaimed"});
     const beforeClaimed=itemEffectClaimConditionPasses({effectId,status:"claimed"});
 
@@ -1495,19 +1502,29 @@ const luciferDialogueRewardFlow=vm.runInContext(`
     const liveClaimed=(state.claimedItemEffectIds||[]).includes(effectId);
     const sameAskUnclaimed=itemEffectClaimConditionPasses({effectId,status:"unclaimed"});
     const sameAskClaimed=itemEffectClaimConditionPasses({effectId,status:"claimed"});
+    const sameAskOwned=itemConditionPasses(ownedCondition);
+    const sameAskNew=itemConditionPasses(newCondition);
 
+    playback={
+      itemEffectClaimSnapshot:[...(state.claimedItemEffectIds||[])],
+      inventoryCountSnapshot:{...(state.inventoryCounts||{})}
+    };
     activeInteractionEvent={
       interactionMeta:{
         kind:"ask",
-        itemEffectClaimSnapshot:[...(state.claimedItemEffectIds||[])]
+        itemEffectClaimSnapshot:[...(state.claimedItemEffectIds||[])],
+        inventoryCountSnapshot:{...(state.inventoryCounts||{})}
       }
     };
     const nextAskUnclaimed=itemEffectClaimConditionPasses({effectId,status:"unclaimed"});
     const nextAskClaimed=itemEffectClaimConditionPasses({effectId,status:"claimed"});
+    const nextAskOwned=itemConditionPasses(ownedCondition);
+    const nextAskNew=itemConditionPasses(newCondition);
 
     return{
       startCount,beforeOwned,beforeNew,beforeUnclaimed,beforeClaimed,
-      countAfter,liveClaimed,sameAskUnclaimed,sameAskClaimed,nextAskUnclaimed,nextAskClaimed
+      countAfter,liveClaimed,sameAskUnclaimed,sameAskClaimed,sameAskOwned,sameAskNew,
+      nextAskUnclaimed,nextAskClaimed,nextAskOwned,nextAskNew
     };
   };
 
@@ -1524,6 +1541,8 @@ assert.equal(luciferDialogueRewardFlow.fresh.countAfter,1,"fresh Lucifer dialogu
 assert.equal(luciferDialogueRewardFlow.fresh.liveClaimed,true,"fresh Lucifer dialogue reward must record its claim");
 assert.equal(luciferDialogueRewardFlow.fresh.sameAskUnclaimed,true,"first ASK must keep its acquisition branch stable after the grant");
 assert.equal(luciferDialogueRewardFlow.fresh.sameAskClaimed,false,"first ASK must not immediately show repeat-after-claim lines");
+assert.equal(luciferDialogueRewardFlow.fresh.sameAskNew,true,"fresh acquisition must stay on the not-owned branch after the item is granted");
+assert.equal(luciferDialogueRewardFlow.fresh.sameAskOwned,false,"fresh acquisition must not jump into the pre-owned branch mid-dialogue");
 assert.equal(luciferDialogueRewardFlow.fresh.nextAskUnclaimed,false,"next ASK must hide the one-time acquisition branch");
 assert.equal(luciferDialogueRewardFlow.fresh.nextAskClaimed,true,"next ASK must show the already-acquired response");
 
@@ -1533,6 +1552,8 @@ assert.equal(luciferDialogueRewardFlow.gachaOwned.countAfter,2,"gacha-owned Luci
 assert.equal(luciferDialogueRewardFlow.gachaOwned.liveClaimed,true,"gacha-owned dialogue reward must record its one-time claim");
 assert.equal(luciferDialogueRewardFlow.gachaOwned.sameAskUnclaimed,true,"gacha-owned first ASK must remain on its owned acquisition branch until interaction end");
 assert.equal(luciferDialogueRewardFlow.gachaOwned.sameAskClaimed,false,"gacha-owned first ASK must not append repeat dialogue immediately");
+assert.equal(luciferDialogueRewardFlow.gachaOwned.sameAskOwned,true,"gacha-owned acquisition must stay on the pre-owned branch after gaining the extra copy");
+assert.equal(luciferDialogueRewardFlow.gachaOwned.sameAskNew,false,"gacha-owned acquisition must never switch to the fresh branch");
 assert.equal(luciferDialogueRewardFlow.gachaOwned.nextAskUnclaimed,false,"gacha-owned acquisition must not grant again on the next ASK");
 assert.equal(luciferDialogueRewardFlow.gachaOwned.nextAskClaimed,true,"gacha-owned next ASK must switch to the already-given response");
 
