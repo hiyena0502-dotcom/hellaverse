@@ -41,7 +41,8 @@
 
     if(group.asks.length){
       window.HV_STORY_PACKS.push({
-        id:"unified-asks-"+characterId,\n        version:characterId==="lucifer-morningstar"?3:2,
+        id:"unified-asks-"+characterId,
+        version:characterId==="lucifer-morningstar"?3:2,
         requiredCharacterIds:[characterId],
         mergedContent:true,
         asks:mergeById([],group.asks)
