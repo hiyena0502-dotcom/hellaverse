@@ -1992,10 +1992,6 @@ input:focus,textarea:focus,select:focus,button:focus-visible{
   }
 }
 
-/* Slightly vary apparent tail size so the field feels less repeated. */
-.gacha-shooting-star:nth-child(2n){--star-length-local:84px}
-.gacha-shooting-star:nth-child(3n){opacity:0}
-
 /* Draw-time shower streaks use the same meteor anatomy, but remain lighter and sparser. */
 .gacha-star-rain-particle:not(.is-glyph){
   width:var(--rain-length);
