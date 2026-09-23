@@ -849,6 +849,34 @@ function showInteractionHistory(){
 function showPlaySettings(){
   openModal("PLAY SETTINGS",'<div class="settings-grid"><label class="field"><span>텍스트 속도</span><input id="prefTextSpeed" type="range" min="0" max="80" step="1" value="'+prefs.textSpeed+'"></label><label class="field"><span>AUTO 대기</span><input id="prefAutoDelay" type="range" min="250" max="3000" step="50" value="'+prefs.autoDelay+'"></label><label class="checkline"><input id="prefStageClick" type="checkbox" '+(prefs.stageClick?"checked":"")+'> 대화 영역 클릭으로 진행</label></div>');
 }
+let thoughtNoticeTimer=null;
+let thoughtNoticeRemoveTimer=null;
+function showThoughtNotice(ch,thought){
+  clearTimeout(thoughtNoticeTimer);
+  clearTimeout(thoughtNoticeRemoveTimer);
+  document.querySelector(".thought-notice")?.remove();
+
+  const notice=document.createElement("aside");
+  notice.className="thought-notice";
+  notice.setAttribute("role","status");
+  notice.setAttribute("aria-live","polite");
+  notice.innerHTML=
+    '<div class="thought-notice-head"><span>THOUGHT</span><small>'+esc(ch.name)+'</small></div>'+
+    '<div class="thought-notice-category">'+esc(thought.category)+'</div>'+
+    '<p>'+esc(thought.text)+'</p>'+
+    '<i class="thought-notice-timer" aria-hidden="true"></i>';
+  document.body.appendChild(notice);
+
+  requestAnimationFrame(()=>notice.classList.add("show"));
+  const duration=Math.max(4600,Math.min(9000,3600+String(thought.text||"").length*48));
+  notice.style.setProperty("--thought-notice-duration",duration+"ms");
+
+  thoughtNoticeTimer=setTimeout(()=>{
+    notice.classList.remove("show");
+    notice.classList.add("hide");
+    thoughtNoticeRemoveTimer=setTimeout(()=>notice.remove(),420);
+  },duration);
+}
 function randomThought(){
   const ch=getCharacter(selectedCharacterId);if(!ch)return;
   const affection=Math.round(session.affection[ch.id]??ch.affectionStart);
@@ -868,11 +896,7 @@ function randomThought(){
   for(const t of candidates){roll-=weight[t.frequency]||1;if(roll<=0){chosen=t;break}}
   if(!state.discoveredThoughtIds.includes(chosen.id))state.discoveredThoughtIds.push(chosen.id);
   saveProgressState();
-  openModal(
-    ch.name+" · THOUGHT",
-    '<p class="label">'+esc(chosen.category)+'</p>'+
-    '<p style="white-space:pre-wrap;line-height:1.8;font-family:Georgia,serif;font-size:1.2rem">'+esc(chosen.text)+'</p>'
-  );
+  showThoughtNotice(ch,chosen);
 }
 function chooseWeighted(items,getWeight){
   const total=items.reduce((s,x)=>s+Math.max(0,Number(getWeight(x))||0),0);
