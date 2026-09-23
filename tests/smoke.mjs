@@ -1025,10 +1025,11 @@ assert.equal(luciferAskInstall.integratedRepeat,-1,"integrated repeat affinity m
 assert.equal(luciferAskInstall.legacyRepeat,2,"legacy repeatable ASK must preserve its previous affinity behavior");
 assert.equal(luciferAskInstall.legacyOnce,false,"legacy ASK must not silently gain one-time affinity semantics");
 
-const itemPresetCheck=vm.runInContext(`
+const itemPresetResetCheck=vm.runInContext(`
 (()=>{
   const source=normalizeState({
     schemaVersion:4,
+    itemPresetVersion:0,
     characters:[{id:"lucifer-morningstar",name:"Lucifer Morningstar",origin:"hellborn"}],
     items:[{
       id:"lucifer-mug-test",
@@ -1039,7 +1040,7 @@ const itemPresetCheck=vm.runInContext(`
       gachaEnabled:true,
       weight:1,
       reactions:[{
-        id:"placeholder",
+        id:"manual-lucifer-mug",
         characterId:"lucifer-morningstar",
         preference:"NEUTRAL",
         affectionDelta:1,
@@ -1051,35 +1052,28 @@ const itemPresetCheck=vm.runInContext(`
   });
   const installed=installStoryPacks(source);
   const item=installed.state.items[0];
-  const reaction=item.reactions.find(r=>r.characterId==="lucifer-morningstar");
   return{
     weight:item.weight,
-    preference:reaction.preference,
-    affectionDelta:reaction.affectionDelta,
-    emotionState:reaction.emotionState,
-    first:reaction.firstEntries.map(e=>e.text),
-    repeat:reaction.repeatEntries.map(e=>e.text),
-    special:reaction.specialEntries.map(e=>e.text),
-    specialMinAffection:reaction.specialMinAffection,
-    itemPresetVersion:installed.state.itemPresetVersion
+    reactionCount:item.reactions.length,
+    reactionId:item.reactions[0]?.id||"",
+    first:item.reactions[0]?.firstEntries?.length||0,
+    itemPresetVersion:installed.state.itemPresetVersion,
+    publicBuilder:typeof window.HV_BUILD_ITEM_REACTION
   };
 })()
 `,context);
-assert.equal(itemPresetCheck.weight,.78,"explicit per-item gacha weight must be applied");
-assert.equal(itemPresetCheck.preference,"LOVED","Lucifer mug preference must be populated in CHARACTER REACTIONS");
-assert.equal(itemPresetCheck.affectionDelta,5,"gift preference affection value must be populated");
-assert.equal(itemPresetCheck.emotionState,"embarrassed","gift emotion preset must be populated");
-assert.ok(itemPresetCheck.first.some(line=>/최고의 아빠/.test(line)),"FIRST GIFT dialogue must be item-specific");
-assert.ok(itemPresetCheck.repeat.length>0,"REPEAT GIFT flow must be populated");
-assert.ok(itemPresetCheck.special.length>0,"SPECIAL gift flow must be populated");
-assert.ok(itemPresetCheck.specialMinAffection>0,"SPECIAL affection rule must be populated");
-assert.equal(itemPresetCheck.itemPresetVersion,6,"item preset version marker missing");
+assert.equal(itemPresetResetCheck.weight,1,"AUTO REACTIONS reset must preserve explicit per-item gacha weight");
+assert.equal(itemPresetResetCheck.reactionCount,1,"manual CHARACTER REACTIONS must be preserved");
+assert.equal(itemPresetResetCheck.reactionId,"manual-lucifer-mug","manual reaction identity must remain unchanged");
+assert.equal(itemPresetResetCheck.first,0,"AUTO REACTIONS reset must not repopulate blank manual gift flows");
+assert.equal(itemPresetResetCheck.itemPresetVersion,7,"item preset reset version marker missing");
+assert.equal(itemPresetResetCheck.publicBuilder,"undefined","automatic gift reaction builder must stay disabled");
 
-const itemPresetRepairCheck=vm.runInContext(`
+const itemPresetWeightPreserveCheck=vm.runInContext(`
 (()=>{
   const source=normalizeState({
     schemaVersion:4,
-    itemPresetVersion:3,
+    itemPresetVersion:7,
     characters:[{id:"lucifer-morningstar",name:"Lucifer Morningstar",origin:"hellborn"}],
     items:[{
       id:"lucifer-letter-test",
@@ -1089,68 +1083,18 @@ const itemPresetRepairCheck=vm.runInContext(`
       giftable:true,
       gachaEnabled:true,
       weight:.77,
-      reactions:[{
-        id:"blank-reaction",
-        characterId:"lucifer-morningstar",
-        preference:"LIKED",
-        affectionDelta:3,
-        firstEntries:[],
-        repeatEntries:[],
-        specialEntries:[]
-      }]
+      reactions:[]
     }]
   });
   const installed=installStoryPacks(source);
-  const reaction=installed.state.items[0].reactions[0];
   return{
-    changed:installed.changed,
     weight:installed.state.items[0].weight,
-    first:reaction.firstEntries.length,
-    repeat:reaction.repeatEntries.length,
-    special:reaction.specialEntries.length
+    reactionCount:installed.state.items[0].reactions.length
   };
 })()
 `,context);
-assert.equal(itemPresetRepairCheck.changed,true,"blank CHARACTER REACTIONS must repair even when preset version is current");
-assert.equal(itemPresetRepairCheck.weight,.77,"repair-only pass must preserve a user-edited current-version gacha weight");
-assert.ok(itemPresetRepairCheck.first>0,"blank FIRST GIFT flow must repair");
-assert.ok(itemPresetRepairCheck.repeat>0,"blank REPEAT GIFT flow must repair");
-assert.ok(itemPresetRepairCheck.special>0,"blank SPECIAL flow must repair");
-
-const generatedGiftReaction=vm.runInContext(`
-(()=>{
-  const item=normalizeItem({id:"gift-headphones",name:"검정 헤드폰",rarity:"RARE",collectionCharacterId:"charlie-morningstar",giftable:true});
-  const character=normalizeCharacter({id:"loona",name:"Loona",origin:"hellborn"});
-  const reaction=normalizeItemReaction(window.HV_BUILD_ITEM_REACTION(item,character),character.id);
-  return{
-    characterId:reaction.characterId,
-    preference:reaction.preference,
-    affectionDelta:reaction.affectionDelta,
-    emotionState:reaction.emotionState,
-    firstText:reaction.firstEntries.find(entry=>entry.type==="dialogue")?.text||"",
-    repeatText:reaction.repeatEntries.find(entry=>entry.type==="dialogue")?.text||"",
-    specialText:reaction.specialEntries.find(entry=>entry.type==="dialogue")?.text||""
-  };
-})()
-`,context);
-assert.equal(generatedGiftReaction.characterId,"loona","generated gift reaction must target the selected character");
-assert.equal(generatedGiftReaction.preference,"LOVED","character taste must influence generated preference");
-assert.ok(generatedGiftReaction.affectionDelta>0,"generated gift reaction must include affection");
-assert.ok(generatedGiftReaction.emotionState,"generated gift reaction must include emotion");
-assert.match(generatedGiftReaction.firstText,/헤드폰/,"generated FIRST gift line must name the item");
-assert.ok(generatedGiftReaction.repeatText&&generatedGiftReaction.specialText,"generated repeat and special lines must exist");
-const allCharacterGiftCoverage=vm.runInContext(`
-(()=>{
-  const ids=["lucifer-morningstar","charlie-morningstar","sera","lute","adam","vaggie","alastor","vox","niffty","angel-dust","husk","blitzo","paimon","satan","mammon","asmodeus","beelzebub","sir-pentious","cherri-bomb","velvette","valentino","carmilla-carmine","rosie","abel","emily","baxter","zestial","stolas","loona","moxxie","millie","fizzarolli","octavia"];
-  const item=normalizeItem({id:"coverage-gift",name:"작은 별 장식",rarity:"COMMON",collectionCharacterId:"lucifer-morningstar",giftable:true});
-  return ids.map(id=>{
-    const reaction=normalizeItemReaction(window.HV_BUILD_ITEM_REACTION(item,{id,name:id}),id);
-    return [id,reaction.firstEntries.some(entry=>entry.type==="dialogue"&&entry.text),reaction.repeatEntries.some(entry=>entry.type==="dialogue"&&entry.text),reaction.specialEntries.some(entry=>entry.type==="dialogue"&&entry.text)];
-  });
-})()
-`,context);
-assert.equal(allCharacterGiftCoverage.length,33,"gift reaction coverage must include all 33 active characters");
-assert.ok(allCharacterGiftCoverage.every(([,first,repeat,special])=>first&&repeat&&special),"every character needs FIRST, REPEAT, and SPECIAL gift dialogue");
+assert.equal(itemPresetWeightPreserveCheck.weight,.77,"AUTO REACTIONS reset must preserve user-edited current-version gacha weight");
+assert.equal(itemPresetWeightPreserveCheck.reactionCount,0,"AUTO REACTIONS reset must not generate replacement reactions");
 
 const dialoguePresetCheck=vm.runInContext(`
 (()=>{
