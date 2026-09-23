@@ -1,7 +1,7 @@
 "use strict";
 
 (()=>{
-  const VERSION=2;
+  const VERSION=3;
   const C="lucifer-morningstar";
   const previous=window.HV_APPLY_THOUGHT_PRESETS;
 
@@ -57,6 +57,73 @@
     {id:"lucifer-thought-close-12",category:"관계",frequency:"rare",rarity:"EPIC",minAffection:90,maxAffection:100,text:"내가 먼저 무언가를 보여주고 싶다는 생각이 드는 건 꽤 오랜만이다.\n질문받기 전에, 그냥 내가 먼저."}
   ];
 
+
+  function autoRangeForExistingThought(thought){
+    const text=String(thought?.text||"");
+    const category=String(thought?.category||"일상");
+    const frequency=String(thought?.frequency||"common");
+
+    // Clearly early/guarded inner voice should fade out after the relationship changes.
+    const earlyGuarded=/(아직은|굳이 .*필요|필요한 말만|손대지|자동으로 편해|과거 얘기는 안|누구한테도|왜 이렇게 자주|경계|낯설|믿을 이유|상관없어)/i.test(text);
+    if(earlyGuarded){
+      const min=0;
+      const max=/(과거|누구한테도|경계|믿을 이유)/i.test(text)?45:35;
+      return{minAffection:min,maxAffection:max};
+    }
+
+    let min={
+      "일상":0,
+      "지옥":15,
+      "관계":30,
+      "과거":45,
+      "천국":50,
+      "비밀":70
+    }[category] ?? 15;
+
+    // Content-specific adjustments. These only determine when the thought unlocks;
+    // ordinary unlocked thoughts stay in the pool at higher affection.
+    if(/오리|러버덕|사과|서류|왕관|모자|피아노|악보|호텔|회의|열쇠|장난|작업대|가챠/i.test(text))min=Math.min(min,25);
+    if(/찰리|딸|아빠|가족|가족사진|액자/i.test(text))min=Math.max(min,45);
+    if(/배기|Vaggie|알래스터|사슴|허스크|니프티|엔젤|복스|Vox|마몬|사탄|오지|비\b/i.test(text))min=Math.max(min,25);
+    if(/에밀리|천사|천국|별 지도|별지도|에덴|장식핀/i.test(text))min=Math.max(min,50);
+    if(/과거|예전|기억|후회|미안|사과하|연습/i.test(text))min=Math.max(min,55);
+    if(/외롭|혼자 있고 싶은|기다려|편해|믿|의지|고맙|고마워|보고 싶|곁에/i.test(text))min=Math.max(min,65);
+    if(/편지|손글씨|릴리스|반지|커플링/i.test(text))min=Math.max(min,75);
+    if(/후광|추락|타락|떨어지던|그때의 나/i.test(text))min=Math.max(min,85);
+    if(/사랑|소중|잃고 싶지|먼저 .*보여주|먼저 .*말해/i.test(text))min=Math.max(min,85);
+
+    if(frequency==="rare")min+=5;
+    else if(frequency==="normal")min+=2;
+
+    min=Math.max(0,Math.min(95,min));
+    return{minAffection:min,maxAffection:100};
+  }
+
+  function migrateExistingLuciferThoughtRanges(source,luciferId,normalize){
+    let changed=false;
+    const curatedIds=new Set(THOUGHTS.map(row=>row.id));
+
+    source.thoughts=(source.thoughts||[]).map(thought=>{
+      if(thought?.characterId!==luciferId)return thought;
+      if(curatedIds.has(String(thought.id||"")))return thought;
+
+      const normalized=normalize(thought);
+      const min=Number(normalized.minAffection||0);
+      const max=Number(normalized.maxAffection??100);
+
+      // Respect any range the user has already set manually.
+      if(min!==0||max!==100)return normalized;
+
+      const range=autoRangeForExistingThought(normalized);
+      if(range.minAffection===0&&range.maxAffection===100)return normalized;
+
+      changed=true;
+      return normalize({...normalized,...range});
+    });
+
+    return changed;
+  }
+
   window.HV_APPLY_THOUGHT_PRESETS=(source,helpers={})=>{
     let prior={state:source,changed:false};
     if(typeof previous==="function"){
@@ -71,11 +138,15 @@
     );
     if(!lucifer)return{...prior,state:source,changed};
 
-    source.maintenanceVersions ||= {};
-    const previousVersion=Number(source.maintenanceVersions.luciferThoughtPreset||0);
+    source.storyPackVersions ||= {};
+    const versionKey="thought-preset-lucifer-affinity";
+    const previousVersion=Number(source.storyPackVersions[versionKey]||0);
     if(previousVersion>=VERSION)return{...prior,state:source,changed};
 
     const normalize=typeof helpers.normalizeThought==="function"?helpers.normalizeThought:value=>value;
+
+    if(migrateExistingLuciferThoughtRanges(source,lucifer.id,normalize))changed=true;
+
     for(const raw of THOUGHTS){
       const fresh=normalize({...raw,characterId:lucifer.id,enabled:true});
       const index=source.thoughts.findIndex(row=>row.id===fresh.id);
@@ -84,7 +155,7 @@
       changed=true;
     }
 
-    source.maintenanceVersions.luciferThoughtPreset=VERSION;
+    source.storyPackVersions[versionKey]=VERSION;
     changed=true;
     window.HV_LUCIFER_THOUGHT_PRESET_VERSION=VERSION;
     return{...prior,state:source,changed,luciferThoughtPresetVersion:VERSION};
