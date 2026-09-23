@@ -42,11 +42,15 @@ function getEvent(id, source=state){
   if(activeRoomIntroEvent&&activeRoomIntroEvent.id===id)return activeRoomIntroEvent;
   return source.events.find(e=>e.id===id)||null;
 }
-function eventsForCharacter(charId, source=state){return source.events.filter(e=>e.characterId===charId&&e.menuVisible!==false&&!isExitEvent(e)&&!isEntryEvent(e)&&!isStoryEvent(e))}
-function talkEventsForCharacter(charId, source=state){return source.events.filter(e=>e.characterId===charId&&e.menuVisible!==false&&eventRoleOf(e)==="talk")}
-function actionEventsForCharacter(charId, source=state){return source.events.filter(e=>e.characterId===charId&&e.menuVisible!==false&&isActionEvent(e))}
-function entryEventsForCharacter(charId, source=state){return source.events.filter(e=>e.characterId===charId&&isEntryEvent(e))}
-function exitEventsForCharacter(charId, source=state){return source.events.filter(e=>e.characterId===charId&&isExitEvent(e))}
+function dialogueAcquisitionEventComplete(event,source=state){
+  const effectId=String(event?.dialogueAcquisitionEffectId||"");
+  return Boolean(effectId&&(source.claimedItemEffectIds||[]).includes(effectId));
+}
+function eventsForCharacter(charId, source=state){return source.events.filter(e=>e.characterId===charId&&e.menuVisible!==false&&!dialogueAcquisitionEventComplete(e,source)&&!isExitEvent(e)&&!isEntryEvent(e)&&!isStoryEvent(e))}
+function talkEventsForCharacter(charId, source=state){return source.events.filter(e=>e.characterId===charId&&e.menuVisible!==false&&!dialogueAcquisitionEventComplete(e,source)&&eventRoleOf(e)==="talk")}
+function actionEventsForCharacter(charId, source=state){return source.events.filter(e=>e.characterId===charId&&e.menuVisible!==false&&!dialogueAcquisitionEventComplete(e,source)&&isActionEvent(e))}
+function entryEventsForCharacter(charId, source=state){return source.events.filter(e=>e.characterId===charId&&!dialogueAcquisitionEventComplete(e,source)&&isEntryEvent(e))}
+function exitEventsForCharacter(charId, source=state){return source.events.filter(e=>e.characterId===charId&&!dialogueAcquisitionEventComplete(e,source)&&isExitEvent(e))}
 function originIntroTextForCharacter(characterId,source=state){
   const origin=String(source.profile?.origin||"");
   if(!["sinner","hellborn","angel","winner"].includes(origin))return"";
@@ -262,6 +266,11 @@ function askAffectionRequirementPasses(ask,source=state){
   const affection=Number(session?.affection?.[ch.id]??ch.affectionStart);
   return affection>=Number(ask.minAffection||0);
 }
+function itemEffectClaimConditionPasses(c){
+  if(!c?.effectId)return true;
+  const claimed=(state.claimedItemEffectIds||[]).includes(String(c.effectId));
+  return c.status==="claimed"?claimed:!claimed;
+}
 function askConditionPasses(c){
   if(!c?.askId)return true;
   const ask=state.asks.find(a=>a.id===c.askId);
@@ -367,6 +376,7 @@ function emotionConditionPasses(c){
 function ownerPasses(o){
   return conditionPasses(o?.condition)
     && itemConditionPasses(o?.itemCondition)
+    && itemEffectClaimConditionPasses(o?.itemEffectClaimCondition)
     && askConditionPasses(o?.askCondition)
     && affectionConditionPasses(o?.affectionCondition)
     && emotionConditionPasses(o?.emotionCondition);
@@ -571,13 +581,13 @@ function resetEventEmotion(event){
 }
 
 function makeEntry(type){
-  const common={id:uid("entry"),condition:null,effects:[],itemCondition:null,askCondition:null,itemEffects:[],affectionCondition:null,affectionEffects:[],emotionCondition:null,emotionEffects:[]};
+  const common={id:uid("entry"),condition:null,effects:[],itemCondition:null,itemEffectClaimCondition:null,askCondition:null,itemEffects:[],affectionCondition:null,affectionEffects:[],emotionCondition:null,emotionEffects:[]};
   if(type==="narration")return{...common,type,text:""};
   if(type==="choice")return{...common,type,prompt:"",options:[makeOption("선택지 1"),makeOption("선택지 2")]};
   return{...common,type:"dialogue",speaker:"",speakerCharacterId:"",text:""};
 }
 function makeOption(label){
-  return{id:uid("option"),label,tone:"neutral",entries:[],condition:null,effects:[],itemCondition:null,askCondition:null,itemEffects:[],affectionCondition:null,affectionEffects:[],emotionCondition:null,emotionEffects:[],exitMode:"continue",targetEventId:""};
+  return{id:uid("option"),label,tone:"neutral",entries:[],condition:null,effects:[],itemCondition:null,itemEffectClaimCondition:null,askCondition:null,itemEffects:[],affectionCondition:null,affectionEffects:[],emotionCondition:null,emotionEffects:[],exitMode:"continue",targetEventId:""};
 }
 function regenerateIds(entry){
   entry.id=uid("entry");
