@@ -1587,9 +1587,15 @@ const luciferAskRepeatCountCheck=vm.runInContext(`
   return{one:check(1),two:check(2),four:check(4)};
 })()
 `,context);
-assert.deepEqual(luciferAskRepeatCountCheck.one,{first:true,second:false,later:false},"second ASK must use the first repeat reaction");
-assert.deepEqual(luciferAskRepeatCountCheck.two,{first:false,second:true,later:false},"third ASK must use the second repeat reaction");
-assert.deepEqual(luciferAskRepeatCountCheck.four,{first:false,second:false,later:true},"later ASK repeats must use the long-term reaction");
+assert.equal(luciferAskRepeatCountCheck.one.first,true,"second ASK must use the first repeat reaction");
+assert.equal(luciferAskRepeatCountCheck.one.second,false,"second ASK must not use the third-ASK reaction");
+assert.equal(luciferAskRepeatCountCheck.one.later,false,"second ASK must not use the long-term reaction");
+assert.equal(luciferAskRepeatCountCheck.two.first,false,"third ASK must leave the first repeat reaction");
+assert.equal(luciferAskRepeatCountCheck.two.second,true,"third ASK must use the second repeat reaction");
+assert.equal(luciferAskRepeatCountCheck.two.later,false,"third ASK must not use the long-term reaction");
+assert.equal(luciferAskRepeatCountCheck.four.first,false,"later repeats must not use the first repeat reaction");
+assert.equal(luciferAskRepeatCountCheck.four.second,false,"later repeats must not use the second repeat reaction");
+assert.equal(luciferAskRepeatCountCheck.four.later,true,"later ASK repeats must use the long-term reaction");
 
 const askUnlockRetention=vm.runInContext(`
 (()=>{
