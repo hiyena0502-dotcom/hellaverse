@@ -181,6 +181,10 @@ assert.match(appShell,/--orbit-x:/,"ambient star orbit variables missing");
 assert.match(hotelThemeCss,/@keyframes gachaStarWanderTwinkle/,"idle wandering star animation missing");
 assert.match(hotelThemeCss,/@keyframes gachaStarWanderDraw/,"draw-time wandering star animation missing");
 assert.match(hotelThemeCss,/@keyframes gachaMeteorDownLeft/,"upper-right to lower-left meteor animation missing");
+assert.match(hotelThemeCss,/@keyframes gachaMeteorCurveDownLeft/,"curved upper-right to lower-left meteor path missing");
+assert.match(hotelThemeCss,/offset-path:path\("M 0 0 C -180 95/,"primary curved meteor offset path missing");
+assert.match(hotelThemeCss,/@keyframes gachaStarRainCurveDownLeft/,"curved falling star-rain path missing");
+
 assert.match(hotelThemeCss,/\.gacha-stage \.gacha-shooting-star\{[\s\S]*?height:1px/,"shooting stars should stay thin");
 assert.match(dialogueCode,/--rain-drift",\(-260-Math\.random\(\)\*360\)/,"star rain must drift strongly from right to left");
 
