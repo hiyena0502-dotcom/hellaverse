@@ -456,7 +456,8 @@ editorBody.addEventListener("click",e=>{
   }
   if(a==="new-event"){
     const role=DIALOGUE_EVENT_ROLES.has(dialogueSubtab)?dialogueSubtab:"talk";
-    const ev=normalizeEvent({id:uid("event"),name:"새 "+role.toUpperCase()+" 이벤트",eventRole:role,menuVisible:["talk","action"].includes(role),characterId:selectedEditorCharacterId||editorDraft.characters[0]?.id||""});
+    const defaultCharacterId=editorCharacterScope!=="ALL"?editorCharacterScope:(selectedEditorCharacterId||editorDraft.characters[0]?.id||"");
+    const ev=normalizeEvent({id:uid("event"),name:"새 "+role.toUpperCase()+" 이벤트",eventRole:role,menuVisible:["talk","action"].includes(role),characterId:defaultCharacterId});
     editorDraft.events.push(ev);
     selectedEditorEventId=ev.id;
     selectedEntryId="";
@@ -556,7 +557,7 @@ editorBody.addEventListener("click",e=>{
     refreshOwnerEditor(kind||"entry",b);return;
   }
   if(a==="new-ask"){
-    const ask=normalizeAsk({id:uid("ask"),characterId:editorDraft.characters[0]?.id||""});
+    const ask=normalizeAsk({id:uid("ask"),characterId:editorCharacterScope!=="ALL"?editorCharacterScope:(editorDraft.characters[0]?.id||"")});
     editorDraft.asks.push(ask);
     selectedAskId=ask.id;
     editorAskQuery="";
@@ -591,11 +592,11 @@ editorBody.addEventListener("click",e=>{
     return;
   }
   if(a==="new-item"){
-    const item=normalizeItem({id:uid("item"),collectionCharacterId:editorDraft.characters[0]?.id||""});
+    const item=normalizeItem({id:uid("item"),collectionCharacterId:editorCharacterScope!=="ALL"?editorCharacterScope:(editorDraft.characters[0]?.id||"")});
     editorDraft.items.push(item);
     selectedItemId=item.id;
     editorItemQuery="";
-    editorItemCharacterFilter="ALL";
+    editorItemCharacterFilter=editorCharacterScope;
     editorItemRarityFilter="ALL";
     editorItemCategoryFilter="ALL";
     editorItemPage=Math.max(0,Math.ceil(editorDraft.items.length/EDITOR_ITEM_PAGE_SIZE)-1);
@@ -638,7 +639,7 @@ editorBody.addEventListener("click",e=>{
     renderItemEditor();return;
   }
   if(a==="new-thought"){
-    const t=normalizeThought({id:uid("thought"),category:editorDraft.thoughtSettings.categories[0]||"일상"});
+    const t=normalizeThought({id:uid("thought"),characterId:editorCharacterScope!=="ALL"?editorCharacterScope:(editorDraft.characters[0]?.id||""),category:editorDraft.thoughtSettings.categories[0]||"일상"});
     editorDraft.thoughts.push(t);
     selectedThoughtId=t.id;
     editorThoughtQuery="";
@@ -667,13 +668,14 @@ editorBody.addEventListener("focusin",e=>{
     e.target.matches("input,textarea,select")&&
     !e.target.dataset.itemEditorFilter&&
     !e.target.dataset.editorSearch&&
+    !e.target.hasAttribute("data-editor-character-scope")&&
     !e.target.hasAttribute("data-continuation-search")
   ){
     e.target.dataset.undoStart=serializeEditorDraft();
   }
 });
 editorBody.addEventListener("input",e=>{
-  if(!e.target.dataset.itemEditorFilter&&!e.target.dataset.editorSearch&&!e.target.hasAttribute("data-continuation-search"))markEditorDirty();
+  if(!e.target.dataset.itemEditorFilter&&!e.target.dataset.editorSearch&&!e.target.hasAttribute("data-editor-character-scope")&&!e.target.hasAttribute("data-continuation-search"))markEditorDirty();
   handleEditorField(e);
 });
 editorBody.addEventListener("change",e=>{
@@ -695,7 +697,7 @@ editorBody.addEventListener("change",e=>{
       updateEditorHistoryButtons();
     }
   }
-  if(!e.target.dataset.itemEditorFilter&&!e.target.dataset.editorSearch&&!e.target.hasAttribute("data-continuation-search"))markEditorDirty();
+  if(!e.target.dataset.itemEditorFilter&&!e.target.dataset.editorSearch&&!e.target.hasAttribute("data-editor-character-scope")&&!e.target.hasAttribute("data-continuation-search"))markEditorDirty();
   handleEditorField(e);
 });
 function handleEditorField(e){
@@ -715,6 +717,24 @@ function handleEditorField(e){
     if(output)output.textContent=Math.round(scale*100)+"%";
     const label=card?.querySelector(".emotion-image-scale b");
     if(label)label.textContent=Math.round(scale*100)+"%";
+    return;
+  }
+
+  if(t.hasAttribute("data-editor-character-scope")){
+    editorCharacterScope=t.value||"ALL";
+    editorItemCharacterFilter=editorCharacterScope;
+    editorEventPage=0;
+    editorAskPage=0;
+    editorItemPage=0;
+    editorThoughtPage=0;
+    const pos=editorBody.scrollTop;
+    if(editorTab==="dialogue"&&DIALOGUE_EVENT_ROLES.has(dialogueSubtab))renderEventManager();
+    else if(editorTab==="ask")renderAskEditor();
+    else if(editorTab==="item")renderItemEditor();
+    else if(editorTab==="thought")renderThoughtEditor();
+    else if(editorTab==="collection")renderCollectionEditor();
+    else renderEditor();
+    editorBody.scrollTop=pos;
     return;
   }
 
