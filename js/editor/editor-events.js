@@ -270,6 +270,7 @@ pageRoot.addEventListener("click",e=>{
   else if(a==="random-thought")randomThought();
   else if(a==="show-affection")showAffection();
   else if(a==="show-emotion")showEmotion();
+  else if(a==="show-all-status")showAllStatus();
   else if(a==="show-log")showLog();
   else if(a==="show-history")showInteractionHistory();
   else if(a==="open-play-settings")showPlaySettings();
