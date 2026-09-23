@@ -166,6 +166,11 @@ assert.match(featuresCss,/@keyframes gachaParticleBurst/,"gacha burst particle a
 assert.match(appShell,/gacha-draw-backdrop/,"moving gacha backdrop layer missing");
 assert.match(appShell,/gacha-shooting-star-field/,"gacha shooting-star layer missing");
 assert.match(hotelThemeCss,/@keyframes gachaBackdropOrbit/,"moving gacha backdrop animation missing");
+assert.match(hotelThemeCss,/@keyframes gachaBackdropSweep/,"visible moving gacha backdrop sweep missing");
+assert.match(hotelThemeCss,/@keyframes gachaMeteorLoop/,"continuous gacha meteor loop missing");
+assert.match(hotelThemeCss,/@keyframes gachaCardRiseOnly/,"no-zoom gacha card reveal missing");
+assert.match(hotelThemeCss,/gacha-result-grid\.gacha-ten-draw\{[\s\S]*?grid-template-columns:repeat\(5,minmax\(0,1fr\)\)!important/,"final 10-pull layout must stay 5 columns");
+
 assert.match(hotelThemeCss,/@keyframes gachaMeteorFall/,"gacha meteor animation missing");
 assert.match(dialogueCode,/results\.length===10\?"gacha-ten-draw"/,"10-pull layout class missing");
 assert.match(hotelThemeCss,/\.gacha-result-grid\.gacha-ten-draw\{[\s\S]*?grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/,"10-pull must use five columns on desktop");
