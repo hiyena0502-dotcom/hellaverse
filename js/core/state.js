@@ -2071,6 +2071,7 @@ let editorItemQuery="";
 let editorItemCharacterFilter="ALL";
 let editorItemRarityFilter="ALL";
 let editorItemCategoryFilter="ALL";
+let editorCharacterScope="ALL";
 
 let session=null;
 let playback=null;
