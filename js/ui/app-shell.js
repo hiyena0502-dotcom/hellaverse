@@ -533,14 +533,12 @@ function renderGacha(){
       '<div class="gacha-stage '+(gachaAnimating?'is-drawing':'')+'">'+
       '<div class="gacha-hotel-frame" aria-hidden="true"></div>'+
       '<div class="gacha-draw-backdrop" aria-hidden="true"><i></i><i></i><i></i></div>'+
-      '<div class="gacha-shooting-star-field" aria-hidden="true">'+Array.from({length:7},(_,index)=>{
-        const x=(index*23+17)%92;
-        const y=(index*17+4)%48;
-        const delay=(index*.86+(index%2)*.44).toFixed(2);
-        const duration=(5.2+(index%4)*.72).toFixed(2);
-        const length=72+(index%4)*18;
-        return '<i class="gacha-shooting-star'+(index%4===0?' wine':'')+'" style="--star-x:'+x+'%;--star-y:'+y+'%;--star-delay:'+delay+'s;--star-duration:'+duration+'s;--star-length:'+length+'px"></i>';
-      }).join("")+'</div>'+
+      '<div class="gacha-shooting-star-field" aria-hidden="true">'+[
+        {x:82,y:-12,delay:.08,duration:3.4,length:128,wine:false},
+        {x:116,y:-2,delay:.92,duration:3.8,length:104,wine:true},
+        {x:94,y:14,delay:1.82,duration:3.6,length:146,wine:false},
+        {x:124,y:25,delay:2.72,duration:4.0,length:112,wine:false}
+      ].map((meteor)=>'<i class="gacha-shooting-star'+(meteor.wine?' wine':'')+'" style="--star-x:'+meteor.x+'%;--star-y:'+meteor.y+'%;--star-delay:'+meteor.delay+'s;--star-duration:'+meteor.duration+'s;--star-length:'+meteor.length+'px"></i>').join("")+'</div>'+
       '<div class="gacha-particle-field gacha-particle-field-ambient" aria-hidden="true">'+Array.from({length:48},(_,index)=>{
         const x=(index*37+11)%100;
         const y=(index*53+17)%100;
