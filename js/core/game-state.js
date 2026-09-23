@@ -268,7 +268,11 @@ function askAffectionRequirementPasses(ask,source=state){
 }
 function itemEffectClaimConditionPasses(c){
   if(!c?.effectId)return true;
-  const claimed=(state.claimedItemEffectIds||[]).includes(String(c.effectId));
+  const effectId=String(c.effectId);
+  const snapshot=activeInteractionEvent?.interactionMeta?.itemEffectClaimSnapshot;
+  const claimed=Array.isArray(snapshot)
+    ? snapshot.includes(effectId)
+    : (state.claimedItemEffectIds||[]).includes(effectId);
   return c.status==="claimed"?claimed:!claimed;
 }
 function askConditionPasses(c){
