@@ -514,7 +514,7 @@ function renderCollection(){
   const chars=enabledCharacters();
   const categories=[...new Set(state.items.map(i=>i.category).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"ko"));
   const query=collectionQuery.trim().toLowerCase();
-  const visibleCatalog=state.items.filter(i=>i.enabled&&(!i.secret||hasEverAcquired(i.id)));
+  const visibleCatalog=state.items.filter(i=>i.enabled&&(!i.secret||hasEverAcquired(i.id)||Boolean(i.acquisitionHint)));
   let items=visibleCatalog.filter(i=>{
     const acquired=hasEverAcquired(i.id),isNew=state.newItemIds.includes(i.id),source=itemSourceLabel(i);
     if(!state.collectionSettings.showLocked&&!acquired)return false;
@@ -548,7 +548,7 @@ function renderCollection(){
       '<span class="collection-item-icon">'+(acquired?esc(itemEmoji(i)):"❔")+'</span>'+
       '<strong>'+(acquired?esc(i.name):"LOCKED")+'</strong>'+
       '<div class="collection-card-meta"><span>'+esc(source)+'</span><span>'+esc(i.acquisitionMode.toUpperCase())+'</span>'+(i.secret?'<span>SECRET</span>':'')+'</div>'+
-      '<p>'+(acquired?esc(i.description||"설명 없음"):"아직 획득하지 않은 아이템입니다.")+'</p>'+
+      '<p>'+(acquired?esc(i.description||"설명 없음"):(i.acquisitionHint?'<b class="collection-hint-label">HINT</b> '+esc(i.acquisitionHint):"아직 획득하지 않은 아이템입니다."))+'</p>'+
       (acquired&&itemGachaLine(i)?'<p class="collection-gacha-line"><span>GACHA REVEAL</span>'+esc(itemGachaLine(i))+'</p>':'')+
       (acquired&&state.collectionSettings.showOwnedCount?'<small>ARCHIVED · INVENTORY ×'+count+'</small>':'')+
     '</button>';
@@ -593,7 +593,7 @@ function renderCollection(){
   const overall=collectionOverallProgress();
   const charProgress=chars.map(ch=>({ch,p:collectionProgressForCharacter(ch.id)}));
   pageRoot.innerHTML=
-    '<section><div class="page-head"><div><p class="page-kicker">COLLECTION</p><h1>CHARACTER ARCHIVE</h1></div><p>획득 기록은 아이템을 사용해도 유지됩니다. SECRET은 발견 전까지 아카이브에 나타나지 않습니다.</p></div>'+
+    '<section><div class="page-head"><div><p class="page-kicker">COLLECTION</p><h1>CHARACTER ARCHIVE</h1></div><p>획득 기록은 아이템을 사용해도 유지됩니다. 일부 SECRET은 이름 대신 획득 힌트만 표시됩니다.</p></div>'+
     '<div class="collection-completion"><div class="collection-completion-main"><strong>'+overall.percent+'%</strong><span>'+overall.acquired+' / '+overall.total+' ARCHIVED</span></div><div class="collection-progress-track"><div style="width:'+overall.percent+'%"></div></div><div class="collection-character-progress">'+charProgress.map(x=>'<span>'+esc(x.ch.name)+' · '+x.p.acquired+'/'+x.p.total+' · '+x.p.percent+'%</span>').join("")+'</div></div>'+
     '<div class="collection-viewbar"><div class="collection-view-buttons"><button class="filter-chip '+(state.collectionSettings.view==="grouped"?"active":"")+'" data-action="collection-view" data-view="grouped">캐릭터별</button><button class="filter-chip '+(state.collectionSettings.view==="all"?"active":"")+'" data-action="collection-view" data-view="all">전체</button></div>'+
       '<input data-collection-control="query" value="'+esc(collectionQuery)+'" placeholder="컬렉션 검색">'+
