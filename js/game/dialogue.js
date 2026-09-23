@@ -528,12 +528,13 @@ function renderRoom(){
 
   pageRoot.innerHTML=
     '<section class="room-page"><div class="room-hud"><button class="text-link" type="button" data-action="back-home">← HOME</button><strong id="roomSpeakerName">'+esc(ch.name)+'</strong>'+
-    characterStatusMetersMarkup(ch,"room")+
     '<div class="room-mode-bar"><button class="room-mode-button '+(roomMode==="talk"?"active":"")+'" type="button" data-action="room-mode" data-mode="talk" '+(interactionLocked?"disabled":"")+'>TALK</button>'+
     '<button class="room-mode-button '+(roomMode==="ask"?"active":"")+'" type="button" data-action="room-mode" data-mode="ask" '+(interactionLocked?"disabled":"")+'>ASK</button>'+
     '<button class="room-mode-button '+(roomMode==="inventory"?"active":"")+'" type="button" data-action="room-mode" data-mode="inventory" '+(interactionLocked?"disabled":"")+'>INVENTORY</button></div>'+
     '<button class="room-more-button" type="button" data-action="toggle-room-tools" aria-label="추가 메뉴">•••</button><div class="room-actions '+(roomToolsOpen?"open":"")+'">'+eventPicker+'<button class="text-link" type="button" data-action="show-log">LOG</button><button class="text-link" type="button" data-action="show-history">HISTORY</button><button class="text-link mobile-set" type="button" data-action="open-play-settings">SET</button></div></div>'+
-    '<div class="room-stage"><div id="roomArt" class="room-art" data-character-id="'+esc(ch.id)+'">'+art+'</div><div id="roomDynamic"></div>'+
+    '<div class="room-stage"><div id="roomArt" class="room-art" data-character-id="'+esc(ch.id)+'">'+art+'</div>'+
+    characterStatusMetersMarkup(ch,"room")+
+    '<div id="roomDynamic"></div>'+
     (roomMode==="talk"&&!activeInteractionReaction&&!interactionCompleteMenu?'<div class="room-control-bar"><button type="button" data-action="shuffle-talk">NEW TALK</button><button type="button" data-action="toggle-auto" class="'+(autoMode?"active":"")+'">AUTO</button><button type="button" data-action="open-play-settings">SET</button></div>':'')+
     '</div></section>';
 
