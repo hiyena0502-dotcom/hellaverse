@@ -618,23 +618,34 @@ assert.ok((banterLinesByCharacter.get("vox")||[]).some(line=>/벨벳|발렌티�
 
 const itemPresetContext={window:{}};
 vm.runInNewContext(itemPresetCode,itemPresetContext);
-for(const pack of relationshipPacks){
-  const characterId=pack.requiredCharacterIds?.[0]||"";
-  const reaction=itemPresetContext.window.HV_BUILD_ITEM_REACTION(
-    {id:"smoke-gift",name:"테스트 선물",rarity:"RARE",collectionCharacterId:characterId},
-    {id:characterId,name:characterId}
-  );
-  assert.ok(reaction.firstEntries?.length,characterId+" gift FIRST flow missing");
-  assert.ok(reaction.repeatEntries?.length,characterId+" gift REPEAT flow missing");
-  assert.ok(reaction.specialEntries?.length,characterId+" gift SPECIAL flow missing");
-  if(nonSexualCharacters.includes(characterId)){
-    const reactionText=[
-      ...(reaction.firstEntries||[]),
-      ...(reaction.repeatEntries||[]),
-      ...(reaction.specialEntries||[])
-    ].map(entry=>entry.text||"").join(" ");
-    assert.ok(!sexualPattern.test(reactionText),characterId+" gift reactions must remain non-sexual");
-  }
+assert.equal(
+  itemPresetContext.window.HV_BUILD_ITEM_REACTION,
+  undefined,
+  "automatic gift reaction builder must remain disabled after AUTO REACTIONS reset"
+);
+assert.equal(
+  typeof itemPresetContext.window.HV_APPLY_ITEM_PRESETS,
+  "function",
+  "item preset cleanup hook missing"
+);
+{
+  const manualReaction={
+    id:"item-reaction-manual-smoke",
+    characterId:"lucifer-morningstar",
+    preference:"NEUTRAL",
+    affectionDelta:0,
+    firstEntries:[{type:"dialogue",text:"수동 반응"}],
+    repeatEntries:[],
+    specialEntries:[]
+  };
+  const presetState={
+    itemPresetVersion:0,
+    characters:[{id:"lucifer-morningstar",name:"Lucifer Morningstar"}],
+    items:[{id:"smoke-gift",name:"테스트 선물",rarity:"RARE",collectionCharacterId:"lucifer-morningstar",reactions:[manualReaction]}]
+  };
+  const result=itemPresetContext.window.HV_APPLY_ITEM_PRESETS(presetState,{normalizeItemReaction:value=>value});
+  assert.equal(result.state.items[0].reactions.length,1,"manual item reactions must be preserved");
+  assert.equal(result.state.items[0].reactions[0].id,"item-reaction-manual-smoke","manual reaction id must remain untouched");
 }
 
 const originContext={window:{}};
