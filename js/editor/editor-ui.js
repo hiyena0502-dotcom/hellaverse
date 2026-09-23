@@ -17,6 +17,7 @@ let editorItemPage=0;
 let editorThoughtPage=0;
 let editorProgressBaseline=null;
 let editorReturnFocus=null;
+let editorOpenItemReactionIds=new Set();
 
 function editorProjectWeight(source=editorDraft){
   if(!source)return 0;
@@ -116,6 +117,7 @@ function openEditor(){
   editorContinuationQuery="";
   editorAskQuery="";
   editorThoughtQuery="";
+  editorOpenItemReactionIds=new Set();
   editorCharacterScope="ALL";
   editorEventPage=0;
   editorAskPage=0;
@@ -731,19 +733,29 @@ function renderSelectedItemEditor(i,categories){
       '<label class="field full"><span>가챠 등장 대사 · REVEAL LINE</span><textarea data-item-bind="gachaLine" placeholder="가챠에서 이 아이템이 등장할 때 표시할 대사">'+esc(itemGachaLine(i))+'</textarea></label>'+
       '<section class="item-acquisition-editor"><div><strong>DIALOGUE ACQUISITION</strong><p>선택한 대화의 마지막에 1회성 아이템 지급 지문을 연결합니다.</p></div><label class="field"><span>획득 이벤트</span><select data-item-bind="inventoryEventId">'+itemInventoryEventOptions(i)+'</select></label>'+
         (i.inventoryEventId?'<small>'+esc(editorDraft.events.find(event=>event.id===i.inventoryEventId)?.name||"삭제된 이벤트")+' 완료 시 처음 한 번만 지급됩니다.</small>':'<small>가챠나 직접 지급만 사용합니다.</small>')+'</section>'+
-      '<div class="reaction-manager"><div class="manager-list-head"><div><strong>CHARACTER REACTIONS</strong><p class="muted">현재 아이템의 캐릭터별 선물 반응만 표시합니다.</p></div><button class="small-button" type="button" data-action="new-item-reaction" data-item-id="'+esc(i.id)+'">+ 캐릭터 반응</button></div>'+
-      (i.reactions.length?i.reactions.map(r=>'<article class="item-reaction-card" data-item-id="'+esc(i.id)+'" data-reaction-id="'+esc(r.id)+'"><div class="item-reaction-head">'+
-        '<select data-reaction-bind="characterId">'+charOptions(r.characterId,"선물 대상")+'</select>'+
-        '<label class="field"><span>취향</span><select data-reaction-bind="preference">'+GIFT_PREFERENCES.map(p=>'<option value="'+p[0]+'" '+(r.preference===p[0]?"selected":"")+'> '+p[0]+'</option>').join("")+'</select></label>'+
-        '<label class="field"><span>호감도</span><input type="number" min="-100" max="100" data-reaction-bind="affectionDelta" value="'+r.affectionDelta+'"></label>'+
-        '<label class="field"><span>감정</span><select data-reaction-bind="emotionState"><option value="">변경 없음</option>'+EMOTIONS.map(x=>'<option value="'+x[0]+'" '+(r.emotionState===x[0]?"selected":"")+'> '+x[1]+'</option>').join("")+'</select></label>'+
-        '<label class="field"><span>강도</span><input type="number" min="0" max="100" data-reaction-bind="emotionIntensity" value="'+r.emotionIntensity+'"></label>'+
-        '<button class="danger-button" type="button" data-action="delete-item-reaction">×</button></div>'+
-        '<div class="special-reaction-rule"><label class="field"><span>SPECIAL 최소 호감도</span><input type="number" min="0" max="100" data-reaction-bind="specialMinAffection" value="'+r.specialMinAffection+'"></label><label class="field"><span>SPECIAL 감정</span><select data-reaction-bind="specialEmotionState"><option value="">감정 조건 없음</option>'+EMOTIONS.map(x=>'<option value="'+x[0]+'" '+(r.specialEmotionState===x[0]?"selected":"")+'> '+x[1]+'</option>').join("")+'</select></label><label class="field"><span>SPECIAL 최소 강도</span><input type="number" min="0" max="100" data-reaction-bind="specialEmotionIntensity" value="'+r.specialEmotionIntensity+'"></label></div>'+
-        interactionFlowEditor(r.firstEntries,"item-reaction",r.id,i.id,"firstEntries","FIRST GIFT")+
-        interactionFlowEditor(r.repeatEntries,"item-reaction",r.id,i.id,"repeatEntries","REPEAT GIFT")+
-        interactionFlowEditor(r.specialEntries,"item-reaction",r.id,i.id,"specialEntries","SPECIAL")+
-      '</article>').join(""):'<div class="editor-note">캐릭터별 반응이 없습니다.</div>')+
+      '<div class="reaction-manager"><div class="manager-list-head"><div><strong>CHARACTER REACTIONS</strong><p class="muted">현재 아이템의 캐릭터별 선물 반응만 표시합니다. 캐릭터 카드를 눌러 접거나 펼칠 수 있습니다.</p></div><div class="reaction-manager-actions">'+
+        (i.reactions.length?'<button class="small-button" type="button" data-action="collapse-all-item-reactions" data-item-id="'+esc(i.id)+'">모두 접기</button><button class="small-button" type="button" data-action="expand-all-item-reactions" data-item-id="'+esc(i.id)+'">모두 펼치기</button>':'')+
+        '<button class="small-button" type="button" data-action="new-item-reaction" data-item-id="'+esc(i.id)+'">+ 캐릭터 반응</button></div></div>'+
+      (i.reactions.length?i.reactions.map(r=>{
+        const characterName=getCharacterDraft(r.characterId)?.name||"캐릭터 미지정";
+        const affectionLabel=(r.affectionDelta>=0?"+":"")+r.affectionDelta;
+        const emotionLabel=EMOTIONS.find(x=>x[0]===r.emotionState)?.[1]||"감정 유지";
+        const open=editorOpenItemReactionIds.has(r.id)?" open":"";
+        return '<details class="item-reaction-card collapsible-reaction-card" data-item-id="'+esc(i.id)+'" data-reaction-id="'+esc(r.id)+'"'+open+'>'+
+          '<summary class="item-reaction-summary" data-action="toggle-item-reaction-card" data-reaction-id="'+esc(r.id)+'"><span class="reaction-summary-chevron">›</span><strong>'+esc(characterName)+'</strong><span class="reaction-preference '+esc(String(r.preference||"NEUTRAL").toLowerCase())+'">'+esc(r.preference||"NEUTRAL")+'</span><small>호감도 '+esc(affectionLabel)+' · '+esc(emotionLabel)+(r.emotionState?' '+r.emotionIntensity:'')+'</small></summary>'+
+          '<div class="item-reaction-card-body"><div class="item-reaction-head">'+
+            '<select data-reaction-bind="characterId">'+charOptions(r.characterId,"선물 대상")+'</select>'+
+            '<label class="field"><span>취향</span><select data-reaction-bind="preference">'+GIFT_PREFERENCES.map(p=>'<option value="'+p[0]+'" '+(r.preference===p[0]?"selected":"")+'> '+p[0]+'</option>').join("")+'</select></label>'+
+            '<label class="field"><span>호감도</span><input type="number" min="-100" max="100" data-reaction-bind="affectionDelta" value="'+r.affectionDelta+'"></label>'+
+            '<label class="field"><span>감정</span><select data-reaction-bind="emotionState"><option value="">변경 없음</option>'+EMOTIONS.map(x=>'<option value="'+x[0]+'" '+(r.emotionState===x[0]?"selected":"")+'> '+x[1]+'</option>').join("")+'</select></label>'+
+            '<label class="field"><span>강도</span><input type="number" min="0" max="100" data-reaction-bind="emotionIntensity" value="'+r.emotionIntensity+'"></label>'+
+            '<button class="danger-button" type="button" data-action="delete-item-reaction">×</button></div>'+
+          '<div class="special-reaction-rule"><label class="field"><span>SPECIAL 최소 호감도</span><input type="number" min="0" max="100" data-reaction-bind="specialMinAffection" value="'+r.specialMinAffection+'"></label><label class="field"><span>SPECIAL 감정</span><select data-reaction-bind="specialEmotionState"><option value="">감정 조건 없음</option>'+EMOTIONS.map(x=>'<option value="'+x[0]+'" '+(r.specialEmotionState===x[0]?"selected":"")+'> '+x[1]+'</option>').join("")+'</select></label><label class="field"><span>SPECIAL 최소 강도</span><input type="number" min="0" max="100" data-reaction-bind="specialEmotionIntensity" value="'+r.specialEmotionIntensity+'"></label></div>'+
+          interactionFlowEditor(r.firstEntries,"item-reaction",r.id,i.id,"firstEntries","FIRST GIFT")+
+          interactionFlowEditor(r.repeatEntries,"item-reaction",r.id,i.id,"repeatEntries","REPEAT GIFT")+
+          interactionFlowEditor(r.specialEntries,"item-reaction",r.id,i.id,"specialEntries","SPECIAL")+
+          '</div></details>';
+      }).join(""):'<div class="editor-note">캐릭터별 반응이 없습니다.</div>')+
       '</div>'+
       (autoCharacters.length?'<details class="auto-reaction-browser" open><summary><span>AUTO REACTIONS</span><b>'+autoCharacters.length+'</b><small>자동 생성된 반응을 확인하고 필요한 것만 수동 편집으로 고정하세요.</small></summary><div class="auto-reaction-list">'+autoCharacters.map(character=>{
         const reaction=autoItemReactionForEditor(i,character);
