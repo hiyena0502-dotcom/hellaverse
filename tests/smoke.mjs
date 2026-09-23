@@ -287,7 +287,7 @@ const integratedAskById=id=>luciferIntegratedAsk.asks.find(ask=>ask.id===id);
 const optionDeltas=ask=>ask.entries.at(-1).options.map(option=>option.affectionEffects[0]?.amount||0);
 assert.deepEqual(Array.from(optionDeltas(integratedAskById("lucifer-ask-rude-father"))),[2,-2,1],"rude father choice affinity values changed");
 assert.equal(integratedAskById("lucifer-ask-rude-father").affectionDelta,-3,"rude father question penalty missing");
-assert.equal(integratedAskById("lucifer-ask-rude-father").repeatAffectionDelta,-1,"rude father repeat penalty missing");
+assert.equal(integratedAskById("lucifer-ask-rude-father").repeatAffectionDelta,-2,"rude father repeat penalty missing");
 assert.equal(integratedAskById("lucifer-ask-rude-lilith").affectionDelta,-5,"rude Lilith question penalty missing");
 assert.deepEqual(Array.from(optionDeltas(integratedAskById("topic-ask-lucifer-morningstar-03"))),[3,2,-3],"Heaven fall ASK choice affinity values changed");
 assert.equal(integratedAskById("topic-ask-lucifer-morningstar-03").minAffection,75,"Heaven fall ASK unlock threshold missing");
