@@ -54,6 +54,17 @@
     PRIVATE_BLUEPRINT:"lucifer-keepsake-private-blueprint"
   };
 
+  const repeatableDialogueItems=new Set([
+    I.OVERLORD_INVITE,I.SATAN_NOTICE,I.EMPTY_FRAME,I.STAR_MAP,I.HEAVEN_PIN,I.APPLE_SEED,
+    I.FIRST_DUCK,I.BACKFLIP_DUCK,I.SMILE_DUCK,I.SAD_DUCK,I.APPLE_DUCK,
+    I.BEE_DUCK,I.OZZIE_DUCK,I.MAMMON_DUCK,I.SATAN_DUCK,I.ROSIE_DUCK,I.MOOD_DUCK,
+    I.CARMILLA_DUCK,I.VALENTINO_DUCK,I.VELVETTE_DUCK,I.VOX_DUCK,I.MUSIC_DUCK,
+    I.CHERRI_DUCK,I.PENTIOUS_DUCK,I.NIFFTY_DUCK,I.HUSK_DUCK,I.ALASTOR_DUCK,
+    I.ANGEL_DUCK,I.VAGGIE_DUCK,I.EMILY_DUCK,I.SWAN_DUCK,I.MINI_THRONE,
+    I.CHARLIE_DUCK,I.LUCIFER_DUCK,I.LILITH_DUCK,
+    I.MINI_DUCK,I.GOLD_APPLE_PIN,I.CLOCKWORK_DUCK,I.HANDWRITTEN_CARD,I.PRIVATE_BLUEPRINT
+  ]);
+
   const important={
     [I.BROKEN_HALO]:{
       hint:"어떤 과거는 답을 요구하지 않았을 때 가까워집니다.",
@@ -286,6 +297,12 @@
 
   function applyImportantItemSettings(source){
     let changed=false;
+    for(const item of source.items||[]){
+      if(repeatableDialogueItems.has(item.id)&&item.acquisitionMode!=="repeatable"){
+        item.acquisitionMode="repeatable";
+        changed=true;
+      }
+    }
     for(const [itemId,settings] of Object.entries(important)){
       const item=(source.items||[]).find(row=>row.id===itemId);
       if(!item)continue;
