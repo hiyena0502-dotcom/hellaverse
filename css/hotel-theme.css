@@ -1,0 +1,536 @@
+/* HOTEL THEME · wine / gold / grand lobby
+   Pure CSS visual layer. No gameplay or editor behavior lives here. */
+:root{
+  --bg:#090506;
+  --surface:#14090e;
+  --surface-light:#211017;
+  --surface-soft:rgba(20,9,14,.82);
+  --surface-deep:#0b0608;
+  --line:rgba(226,194,126,.14);
+  --line-strong:rgba(226,194,126,.34);
+  --text:#f6eee8;
+  --muted:#a49291;
+  --wine:#8f1738;
+  --wine-soft:rgba(143,23,56,.14);
+  --gold:#d8b36a;
+  --gold-soft:rgba(216,179,106,.10);
+  --hotel-gold:#d8b36a;
+  --hotel-gold-bright:#f0cf8a;
+  --hotel-gold-dim:rgba(216,179,106,.24);
+  --hotel-wine:#6f1029;
+  --hotel-wine-deep:#27070f;
+  --hotel-ink:#090506;
+  --hotel-shadow:0 22px 60px rgba(0,0,0,.42);
+}
+
+body{
+  background:
+    radial-gradient(ellipse at 50% -10%,rgba(137,18,52,.30),transparent 44rem),
+    radial-gradient(circle at 88% 35%,rgba(104,12,36,.12),transparent 30rem),
+    radial-gradient(circle at 8% 84%,rgba(216,179,106,.045),transparent 26rem),
+    linear-gradient(180deg,#0a0507 0%,#0b0608 34%,#080405 100%);
+}
+body:before{
+  opacity:.045;
+  background-image:
+    linear-gradient(90deg,rgba(240,207,138,.18) 1px,transparent 1px),
+    linear-gradient(0deg,rgba(240,207,138,.12) 1px,transparent 1px);
+  background-size:48px 48px;
+}
+body:after{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:-1;
+  pointer-events:none;
+  background:
+    repeating-linear-gradient(135deg,transparent 0 36px,rgba(255,255,255,.006) 36px 37px),
+    linear-gradient(90deg,rgba(59,4,19,.16),transparent 16%,transparent 84%,rgba(59,4,19,.16));
+}
+
+/* TYPE + CONTROLS */
+.page-head h1,
+.lobby-copy h1,
+.gacha-stage h2,
+.collection-group-title strong,
+.collection-card strong,
+.dialogue-box .speaker,
+.info-card h3,
+.modal-card h2{
+  text-shadow:0 2px 20px rgba(0,0,0,.58);
+}
+.label,.page-kicker,.title-kicker,.field-label{
+  color:var(--hotel-gold-bright);
+}
+input,textarea,select{
+  border-color:rgba(216,179,106,.17);
+  border-radius:4px;
+  background:linear-gradient(180deg,rgba(15,7,10,.96),rgba(8,4,6,.96));
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.012);
+}
+input:focus,textarea:focus,select:focus,button:focus-visible{
+  outline-color:var(--hotel-gold-bright);
+  box-shadow:0 0 0 2px rgba(216,179,106,.08);
+}
+
+.gold-button{
+  position:relative;
+  overflow:hidden;
+  border-color:rgba(240,207,138,.58);
+  border-radius:3px;
+  background:
+    linear-gradient(180deg,rgba(151,27,59,.42),rgba(77,10,28,.48)),
+    #240912;
+  color:#fff3dd;
+  box-shadow:
+    inset 0 0 0 1px rgba(255,234,188,.05),
+    0 8px 24px rgba(0,0,0,.20);
+}
+.gold-button:hover{
+  border-color:var(--hotel-gold-bright);
+  background:
+    linear-gradient(180deg,rgba(177,34,72,.54),rgba(85,11,31,.54)),
+    #270a14;
+}
+.ghost-button,.small-button{
+  border-color:rgba(216,179,106,.18);
+  border-radius:3px;
+  background:rgba(9,5,6,.34);
+}
+.ghost-button:hover,.small-button:hover{
+  border-color:rgba(240,207,138,.42);
+  color:var(--text);
+  background:rgba(111,16,41,.12);
+}
+
+/* GRAND HOTEL HEADER */
+.game-hud{
+  min-height:64px;
+  border-top:1px solid rgba(216,179,106,.34);
+  border-bottom:1px solid rgba(216,179,106,.38);
+  background:
+    linear-gradient(180deg,rgba(23,8,13,.96),rgba(9,5,7,.91));
+  box-shadow:0 12px 32px rgba(0,0,0,.22);
+}
+.game-hud:before{
+  content:"";
+  position:absolute;
+  left:0;
+  right:0;
+  top:4px;
+  height:1px;
+  pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(240,207,138,.24) 10%,rgba(240,207,138,.42) 50%,rgba(240,207,138,.24) 90%,transparent);
+}
+.brand-mark{
+  color:var(--hotel-gold-bright);
+  font-size:1.05rem;
+  letter-spacing:.18em;
+  text-shadow:0 0 18px rgba(216,179,106,.16);
+}
+.main-nav{gap:clamp(12px,2.6vw,30px)}
+.nav-button{
+  padding:10px 3px;
+  transition:color .16s ease,text-shadow .16s ease;
+}
+.nav-button:hover{color:#ead9c7}
+.nav-button.active{
+  color:var(--hotel-gold-bright);
+  text-shadow:0 0 16px rgba(216,179,106,.16);
+}
+.nav-button.active:after{
+  left:-7px;
+  right:-7px;
+  bottom:-8px;
+  height:2px;
+  background:linear-gradient(90deg,transparent,var(--wine) 22%,var(--hotel-gold) 50%,var(--wine) 78%,transparent);
+}
+.player-badge{color:var(--hotel-gold-bright)}
+.world-entry-button{
+  border-color:rgba(240,207,138,.38)!important;
+  background:linear-gradient(135deg,rgba(111,16,41,.24),rgba(216,179,106,.055))!important;
+  box-shadow:inset 0 0 0 1px rgba(255,236,197,.025),0 8px 22px rgba(0,0,0,.14);
+}
+
+/* PAGE TITLES */
+.page-head{
+  position:relative;
+  padding-top:42px;
+  border-bottom-color:rgba(216,179,106,.28);
+}
+.page-head:after{
+  content:"◆";
+  position:absolute;
+  left:50%;
+  bottom:-8px;
+  padding:0 9px;
+  transform:translateX(-50%);
+  color:var(--hotel-gold);
+  background:var(--bg);
+  font-size:.68rem;
+  line-height:16px;
+}
+.page-head h1{color:#fff4e8}
+
+/* START / ENTRY */
+.title-screen{
+  background:
+    radial-gradient(circle at 50% 18%,rgba(143,23,56,.30),transparent 30rem),
+    linear-gradient(180deg,rgba(11,4,7,.86),rgba(7,3,4,.99));
+}
+.title-panel{
+  position:relative;
+  border:1px solid rgba(216,179,106,.54);
+  padding:clamp(34px,5vw,58px);
+  background:
+    linear-gradient(90deg,rgba(216,179,106,.68),rgba(216,179,106,.68)) 10px 10px/26px 1px no-repeat,
+    linear-gradient(rgba(216,179,106,.68),rgba(216,179,106,.68)) 10px 10px/1px 26px no-repeat,
+    linear-gradient(270deg,rgba(216,179,106,.68),rgba(216,179,106,.68)) calc(100% - 10px) 10px/26px 1px no-repeat,
+    linear-gradient(rgba(216,179,106,.68),rgba(216,179,106,.68)) calc(100% - 10px) 10px/1px 26px no-repeat,
+    linear-gradient(90deg,rgba(216,179,106,.68),rgba(216,179,106,.68)) 10px calc(100% - 10px)/26px 1px no-repeat,
+    linear-gradient(rgba(216,179,106,.68),rgba(216,179,106,.68)) 10px calc(100% - 36px)/1px 26px no-repeat,
+    linear-gradient(270deg,rgba(216,179,106,.68),rgba(216,179,106,.68)) calc(100% - 10px) calc(100% - 10px)/26px 1px no-repeat,
+    linear-gradient(rgba(216,179,106,.68),rgba(216,179,106,.68)) calc(100% - 10px) calc(100% - 36px)/1px 26px no-repeat,
+    linear-gradient(180deg,rgba(35,9,17,.96),rgba(11,5,8,.96));
+  box-shadow:inset 0 0 0 4px rgba(216,179,106,.035),var(--hotel-shadow);
+}
+.title-panel:before,.title-panel:after{
+  position:absolute;
+  color:var(--hotel-gold-bright);
+  font-family:Georgia,serif;
+  font-size:1rem;
+}
+.title-panel:before{content:"✦";top:-9px;left:50%;transform:translateX(-50%);background:#0c0508;padding:0 12px}
+.title-panel:after{content:"✦";bottom:-9px;left:50%;transform:translateX(-50%);background:#0c0508;padding:0 12px}
+.title-panel h1{color:#fff1dc;text-shadow:0 0 30px rgba(216,179,106,.12)}
+.origin-group{
+  border-color:rgba(216,179,106,.20);
+  border-radius:4px;
+  background:linear-gradient(180deg,rgba(47,12,23,.42),rgba(14,6,9,.58));
+}
+.origin-choice button{border-radius:3px}
+.origin-choice button.active{
+  border-color:rgba(240,207,138,.54);
+  background:linear-gradient(180deg,rgba(143,23,56,.24),rgba(78,11,29,.20));
+}
+.title-enter{
+  border-top-color:var(--hotel-gold);
+  border-bottom-color:var(--hotel-gold);
+  background:linear-gradient(90deg,transparent,rgba(111,16,41,.26),transparent);
+  color:#fff0d4;
+}
+
+/* HOME · HOTEL LOBBY */
+.home-lobby{gap:18px}
+.lobby-character{
+  margin-top:18px;
+  border:1px solid rgba(216,179,106,.34);
+  background:
+    radial-gradient(ellipse at 50% 42%,rgba(112,13,38,.18),transparent 44%),
+    linear-gradient(180deg,rgba(30,8,15,.28),rgba(6,3,4,.16));
+  box-shadow:inset 0 0 0 5px rgba(216,179,106,.018),0 20px 54px rgba(0,0,0,.20);
+}
+.lobby-character:before{
+  content:"";
+  position:absolute;
+  inset:9px;
+  z-index:1;
+  pointer-events:none;
+  background:
+    linear-gradient(90deg,var(--hotel-gold),var(--hotel-gold)) left top/42px 1px no-repeat,
+    linear-gradient(var(--hotel-gold),var(--hotel-gold)) left top/1px 42px no-repeat,
+    linear-gradient(270deg,var(--hotel-gold),var(--hotel-gold)) right top/42px 1px no-repeat,
+    linear-gradient(var(--hotel-gold),var(--hotel-gold)) right top/1px 42px no-repeat,
+    linear-gradient(90deg,var(--hotel-gold),var(--hotel-gold)) left bottom/42px 1px no-repeat,
+    linear-gradient(var(--hotel-gold),var(--hotel-gold)) left bottom/1px 42px no-repeat,
+    linear-gradient(270deg,var(--hotel-gold),var(--hotel-gold)) right bottom/42px 1px no-repeat,
+    linear-gradient(var(--hotel-gold),var(--hotel-gold)) right bottom/1px 42px no-repeat;
+  opacity:.72;
+}
+.lobby-character:after{
+  content:"✦";
+  position:absolute;
+  z-index:1;
+  top:2px;
+  left:50%;
+  transform:translateX(-50%);
+  color:var(--hotel-gold-bright);
+  font-size:.85rem;
+  background:#12070b;
+  padding:0 12px;
+}
+.lobby-copy{
+  margin:0 0 22px 22px;
+  padding:26px 28px 28px;
+  border-left:2px solid var(--hotel-gold);
+  border-bottom:1px solid rgba(216,179,106,.26);
+  background:linear-gradient(90deg,rgba(23,7,12,.92),rgba(23,7,12,.62) 68%,transparent);
+  box-shadow:-18px 20px 48px rgba(0,0,0,.18);
+}
+.lobby-copy h1{color:#fff2df}
+.character-counter{right:22px;bottom:38px;color:var(--hotel-gold)}
+.character-status-meters.home,
+.character-status-widget.home{
+  border-color:rgba(216,179,106,.30);
+  background:
+    linear-gradient(90deg,rgba(111,16,41,.14),transparent 62%),
+    rgba(12,5,8,.72);
+  box-shadow:inset 0 0 0 1px rgba(255,235,191,.02);
+}
+.lobby-dashboard{
+  border:1px solid rgba(216,179,106,.28);
+  border-top-color:rgba(240,207,138,.46);
+  background:#0d0608;
+  box-shadow:0 18px 44px rgba(0,0,0,.18);
+}
+.lobby-dashboard button{
+  position:relative;
+  border-right-color:rgba(216,179,106,.18);
+  background:linear-gradient(180deg,rgba(43,10,20,.52),rgba(13,6,8,.70));
+}
+.lobby-dashboard button:hover{
+  background:linear-gradient(180deg,rgba(105,15,40,.32),rgba(18,7,11,.78));
+}
+.lobby-dashboard button:before{
+  content:"";
+  position:absolute;
+  inset:7px;
+  pointer-events:none;
+  border-top:1px solid rgba(216,179,106,.12);
+  border-bottom:1px solid rgba(216,179,106,.07);
+}
+.lobby-dashboard strong{color:#fff0dc}
+
+/* SHARED GOLD FRAME LANGUAGE */
+.collection-card,
+.collection-preview-group,
+.collection-gacha-profile,
+.gacha-stage,
+.info-card,
+.ask-panel,
+.inventory-panel,
+.inventory-preview-card,
+.interaction-complete-panel,
+.modal-card,
+.status-card,
+.save-slot,
+.safety-snapshot{
+  border-color:rgba(216,179,106,.26);
+  border-radius:4px;
+}
+.collection-card,
+.gacha-stage,
+.info-card,
+.inventory-preview-card,
+.modal-card{
+  box-shadow:inset 0 0 0 1px rgba(255,236,195,.018),0 14px 34px rgba(0,0,0,.18);
+}
+
+/* COLLECTION · display cabinet */
+.collection-preview-group{
+  border-color:rgba(216,179,106,.25);
+  background:linear-gradient(180deg,rgba(39,10,19,.48),rgba(12,5,8,.68));
+}
+.collection-group-toggle{background:linear-gradient(90deg,rgba(111,16,41,.10),transparent)}
+.collection-group-toggle:hover{background:linear-gradient(90deg,rgba(111,16,41,.22),rgba(216,179,106,.025))}
+.collection-group-profile-icon{
+  border-color:rgba(216,179,106,.30);
+  border-radius:4px;
+  background:#0b0507;
+  box-shadow:inset 0 0 0 2px rgba(216,179,106,.025);
+}
+.collection-group-chevron{border-color:rgba(216,179,106,.34);border-radius:3px}
+.collection-group-body{border-top-color:rgba(216,179,106,.18)}
+.collection-gacha-profile{
+  background:linear-gradient(90deg,rgba(111,16,41,.12),rgba(216,179,106,.035),transparent);
+}
+.collection-card{
+  overflow:hidden;
+  border-color:rgba(216,179,106,.23);
+  border-radius:3px;
+  background:
+    linear-gradient(90deg,rgba(216,179,106,.68),rgba(216,179,106,.68)) 8px 8px/20px 1px no-repeat,
+    linear-gradient(rgba(216,179,106,.68),rgba(216,179,106,.68)) 8px 8px/1px 20px no-repeat,
+    linear-gradient(270deg,rgba(216,179,106,.68),rgba(216,179,106,.68)) calc(100% - 8px) 8px/20px 1px no-repeat,
+    linear-gradient(rgba(216,179,106,.68),rgba(216,179,106,.68)) calc(100% - 8px) 8px/1px 20px no-repeat,
+    linear-gradient(90deg,rgba(216,179,106,.68),rgba(216,179,106,.68)) 8px calc(100% - 8px)/20px 1px no-repeat,
+    linear-gradient(rgba(216,179,106,.68),rgba(216,179,106,.68)) 8px calc(100% - 28px)/1px 20px no-repeat,
+    linear-gradient(270deg,rgba(216,179,106,.68),rgba(216,179,106,.68)) calc(100% - 8px) calc(100% - 8px)/20px 1px no-repeat,
+    linear-gradient(rgba(216,179,106,.68),rgba(216,179,106,.68)) calc(100% - 8px) calc(100% - 28px)/1px 20px no-repeat,
+    linear-gradient(180deg,rgba(42,10,20,.48),rgba(12,5,8,.88));
+  transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease;
+}
+.collection-card:hover{
+  transform:translateY(-2px);
+  border-color:rgba(240,207,138,.50);
+  box-shadow:inset 0 0 0 1px rgba(255,236,195,.03),0 18px 38px rgba(0,0,0,.26);
+}
+.collection-card .rarity,.collection-card em{color:var(--hotel-gold-bright)}
+.collection-gacha-reveal{
+  border-left-color:var(--hotel-gold);
+  background:linear-gradient(90deg,rgba(111,16,41,.16),rgba(216,179,106,.035));
+}
+
+/* GACHA · reception / display hall */
+.gacha-stage{
+  position:relative;
+  border-color:rgba(216,179,106,.40);
+  background:
+    radial-gradient(circle at 50% 28%,rgba(143,23,56,.28),transparent 24rem),
+    linear-gradient(180deg,rgba(35,8,17,.72),rgba(10,4,7,.88));
+}
+.gacha-stage:before{
+  content:"";
+  position:absolute;
+  inset:9px;
+  pointer-events:none;
+  background:
+    linear-gradient(90deg,var(--hotel-gold),var(--hotel-gold)) left top/34px 1px no-repeat,
+    linear-gradient(var(--hotel-gold),var(--hotel-gold)) left top/1px 34px no-repeat,
+    linear-gradient(270deg,var(--hotel-gold),var(--hotel-gold)) right top/34px 1px no-repeat,
+    linear-gradient(var(--hotel-gold),var(--hotel-gold)) right top/1px 34px no-repeat,
+    linear-gradient(90deg,var(--hotel-gold),var(--hotel-gold)) left bottom/34px 1px no-repeat,
+    linear-gradient(var(--hotel-gold),var(--hotel-gold)) left bottom/1px 34px no-repeat,
+    linear-gradient(270deg,var(--hotel-gold),var(--hotel-gold)) right bottom/34px 1px no-repeat,
+    linear-gradient(var(--hotel-gold),var(--hotel-gold)) right bottom/1px 34px no-repeat;
+  opacity:.74;
+}
+.info-card{
+  background:linear-gradient(180deg,rgba(42,10,20,.46),rgba(11,5,7,.76));
+}
+.rate-row,.history-row{border-top-color:rgba(216,179,106,.13)}
+.gacha-result-card{
+  border-color:rgba(216,179,106,.24);
+  border-radius:3px;
+  background:linear-gradient(180deg,rgba(51,11,23,.34),rgba(8,4,5,.84));
+}
+
+/* DIALOGUE · private hotel salon */
+.room-hud{border-bottom-color:rgba(216,179,106,.24)}
+.dialogue-box,.choice-box,.room-empty{
+  border-top-color:rgba(240,207,138,.42);
+  border-bottom-color:rgba(216,179,106,.22);
+  background:rgba(12,5,8,.93);
+}
+.dialogue-box.character-dialogue{
+  border-left:3px solid var(--hotel-gold);
+  border-top:1px solid rgba(216,179,106,.36);
+  border-right:1px solid rgba(216,179,106,.18);
+  border-bottom:1px solid rgba(216,179,106,.22);
+  border-radius:2px;
+  background:
+    linear-gradient(90deg,rgba(111,16,41,.34),rgba(15,6,9,.95) 52%),
+    rgba(15,6,9,.95);
+  box-shadow:0 26px 68px rgba(0,0,0,.42),inset 0 0 0 1px rgba(255,236,195,.018);
+}
+.dialogue-box.character-dialogue:before{
+  content:"";
+  position:absolute;
+  inset:8px;
+  pointer-events:none;
+  background:
+    linear-gradient(90deg,rgba(216,179,106,.52),rgba(216,179,106,.52)) left top/24px 1px no-repeat,
+    linear-gradient(rgba(216,179,106,.52),rgba(216,179,106,.52)) left top/1px 24px no-repeat,
+    linear-gradient(270deg,rgba(216,179,106,.52),rgba(216,179,106,.52)) right bottom/24px 1px no-repeat,
+    linear-gradient(rgba(216,179,106,.52),rgba(216,179,106,.52)) right bottom/1px 24px no-repeat;
+}
+.dialogue-box.player-dialogue{
+  border-radius:2px;
+  border-color:rgba(216,179,106,.14);
+  border-right:3px solid rgba(216,179,106,.42);
+  background:linear-gradient(270deg,rgba(75,21,35,.42),rgba(14,7,9,.95) 56%);
+}
+.dialogue-box.narration-dialogue{
+  border-radius:2px;
+  border-top-color:rgba(216,179,106,.22);
+  background:rgba(10,5,7,.88);
+}
+.choice-box{
+  border-left:1px solid rgba(216,179,106,.22);
+  border-right:1px solid rgba(216,179,106,.22);
+}
+.ask-panel,.inventory-panel{
+  border:1px solid rgba(216,179,106,.30);
+  background:
+    linear-gradient(90deg,rgba(111,16,41,.13),transparent 36%),
+    rgba(10,5,7,.95);
+  box-shadow:var(--hotel-shadow),inset 0 0 0 1px rgba(255,236,195,.018);
+}
+.ask-entry,.inventory-entry{
+  border-color:rgba(216,179,106,.16);
+  border-radius:3px;
+  background:linear-gradient(90deg,rgba(54,12,24,.34),rgba(12,5,8,.72));
+}
+.ask-entry:hover,.inventory-entry:hover{
+  border-color:rgba(240,207,138,.42);
+  background:linear-gradient(90deg,rgba(111,16,41,.26),rgba(17,7,11,.76));
+}
+.inventory-entry.selected{
+  border-color:rgba(240,207,138,.55);
+  background:linear-gradient(90deg,rgba(126,17,46,.32),rgba(24,8,14,.82));
+}
+.relationship-progress span,.inventory-preview-meta span,.interaction-discovery span{
+  border-radius:3px;
+  border-color:rgba(216,179,106,.24);
+}
+.inventory-preview-card{
+  background:linear-gradient(90deg,rgba(111,16,41,.14),rgba(216,179,106,.028),rgba(10,5,7,.80));
+}
+.interaction-complete-panel{
+  border-left:1px solid rgba(216,179,106,.22);
+  border-right:1px solid rgba(216,179,106,.22);
+  background:rgba(10,5,7,.96);
+}
+
+/* MODALS + DATA CARDS */
+.modal-backdrop{background:rgba(5,2,3,.82)}
+.modal-card{
+  border:1px solid rgba(216,179,106,.40);
+  background:
+    linear-gradient(90deg,rgba(216,179,106,.62),rgba(216,179,106,.62)) 9px 9px/24px 1px no-repeat,
+    linear-gradient(rgba(216,179,106,.62),rgba(216,179,106,.62)) 9px 9px/1px 24px no-repeat,
+    linear-gradient(270deg,rgba(216,179,106,.62),rgba(216,179,106,.62)) calc(100% - 9px) 9px/24px 1px no-repeat,
+    linear-gradient(rgba(216,179,106,.62),rgba(216,179,106,.62)) calc(100% - 9px) 9px/1px 24px no-repeat,
+    linear-gradient(180deg,rgba(41,9,19,.98),rgba(10,5,7,.99));
+}
+.status-card,.save-slot,.safety-snapshot{
+  background:linear-gradient(180deg,rgba(47,11,22,.34),rgba(10,5,7,.58));
+}
+
+/* SCROLLBARS · brass rail */
+*{
+  scrollbar-color:rgba(216,179,106,.34) rgba(8,4,5,.34);
+}
+*::-webkit-scrollbar{width:10px;height:10px}
+*::-webkit-scrollbar-track{background:rgba(8,4,5,.32)}
+*::-webkit-scrollbar-thumb{
+  border:3px solid rgba(8,4,5,.88);
+  border-radius:10px;
+  background:linear-gradient(180deg,#a87838,#d8b36a);
+}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .lobby-character{margin-top:10px}
+  .lobby-copy{
+    width:min(620px,calc(100vw - 52px));
+    margin:0 0 18px 14px;
+    padding:20px 18px 22px;
+  }
+  .game-hud{gap:14px}
+}
+@media(max-width:700px){
+  .game-hud{border-top:0}
+  .lobby-character:before{inset:6px}
+  .lobby-copy{
+    width:calc(100vw - 42px);
+    margin-left:10px;
+    padding:17px 15px 20px;
+  }
+  .collection-card{min-height:205px}
+  .gacha-stage{padding:26px 18px}
+  .ask-panel,.inventory-panel{padding:20px 16px}
+}
+@media(prefers-reduced-motion:reduce){
+  .collection-card,.gold-button,.nav-button{transition:none!important}
+}
