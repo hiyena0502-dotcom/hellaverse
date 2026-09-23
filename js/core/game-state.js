@@ -285,12 +285,21 @@ function itemEffectClaimConditionPasses(c){
     : (state.claimedItemEffectIds||[]).includes(effectId);
   return c.status==="claimed"?claimed:!claimed;
 }
+function askInteractionCount(askId){
+  if(!askId)return 0;
+  const historyCount=(state.interactionHistory||[]).filter(row=>row?.kind==="ask"&&row?.askId===askId).length;
+  if(historyCount>0)return historyCount;
+  return (state.askedAskIds||[]).includes(askId)?1:0;
+}
 function askConditionPasses(c){
   if(!c?.askId)return true;
   const ask=state.asks.find(a=>a.id===c.askId);
   if(!ask)return true;
   const asked=(state.askedAskIds||[]).includes(ask.id);
   const unlocked=isAskUnlocked(ask);
+  const count=askInteractionCount(ask.id);
+  if(Number.isFinite(Number(c.minCount))&&count<Number(c.minCount))return false;
+  if(Number.isFinite(Number(c.maxCount))&&count>Number(c.maxCount))return false;
   if(c.status==="not-asked")return !asked;
   if(c.status==="unlocked")return unlocked;
   if(c.status==="locked")return !unlocked;
