@@ -178,7 +178,14 @@ function normalizeItemEffectClaimCondition(c){
 }
 function normalizeAskCondition(c){
   if(!c || typeof c!=="object")return null;
-  return {askId:c.askId||"",status:["asked","not-asked","unlocked","locked"].includes(c.status)?c.status:"asked"};
+  const minCount=Number.isFinite(Number(c.minCount))?Math.max(0,Number(c.minCount)):null;
+  const maxCount=Number.isFinite(Number(c.maxCount))?Math.max(0,Number(c.maxCount)):null;
+  return {
+    askId:c.askId||"",
+    status:["asked","not-asked","unlocked","locked"].includes(c.status)?c.status:"asked",
+    ...(minCount!==null?{minCount}:{}),
+    ...(maxCount!==null?{maxCount}:{}),
+  };
 }
 const AFFECTION_BANDS=["COLD","DISTANT","NEUTRAL","WARM","CLOSE"];
 function normalizeAffectionCondition(c){
