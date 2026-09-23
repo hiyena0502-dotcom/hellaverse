@@ -83,11 +83,13 @@ function itemGachaLine(item){
 }
 function gachaProfileForCharacter(characterId,source=state){
   const character=getCharacter(characterId,source);
-  const profile=window.HV_GACHA_PROFILES?.[characterId];
+  const saved=source?.gacha?.profiles?.[characterId];
+  const fallback=window.HV_GACHA_PROFILES?.[characterId];
+  const profile=saved||fallback;
   if(profile)return{
-    icon:String(profile.icon||"🎴"),
-    title:String(profile.title||(character?.name||"CHARACTER")+" GACHA"),
-    description:String(profile.description||"")
+    icon:String(profile.icon||fallback?.icon||"🎴"),
+    title:String(profile.title||fallback?.title||(character?.name||"CHARACTER")+" GACHA"),
+    description:String(profile.description||fallback?.description||"")
   };
   return character?{icon:"🎴",title:character.name+" GACHA",description:character.name+"의 컬렉션 아카이브."}:null;
 }
