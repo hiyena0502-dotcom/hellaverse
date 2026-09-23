@@ -74,6 +74,9 @@ assert.match(appShell,/function showImportPreview\(/,"import preview missing");
 assert.match(appShell,/function recoverUiFromError\(/,"UI recovery boundary missing");
 assert.match(appShell,/function checkForAppUpdate\(/,"update detection missing");
 assert.match(editorUi,/function renderSelectedItemEditor\(/,"single-detail ITEM editor missing");
+assert.match(editorUi,/data-editor-character-scope/,"shared character scope selector missing from editor");
+assert.match(editorUi,/function editorCharacterScopeBar\(/,"shared character scope toolbar helper missing");
+assert.match(editorEvents,/data-editor-character-scope/,"shared character scope event handler missing");
 assert.match(editorUi,/data-action="select-ask"/,"single-detail ASK selection missing");
 assert.match(editorUi,/data-action="select-thought"/,"single-detail THOUGHT selection missing");
 assert.match(editorUi,/CONTINUATION/,"continuation editor missing");
@@ -157,7 +160,9 @@ assert.equal(JSON.stringify(Array.from(luciferCanonicalTalk.events.slice(0,60),e
 assert.equal(luciferCanonicalTalk.events.length,70,"Lucifer canonical TALK must contain 60 main TALK + 10 supplemental TALK");
 assert.ok(luciferCanonicalTalk.events.slice(60).every(event=>String(event.name||"").startsWith("TALK · ")),"supplemental scenes must appear as ordinary TALK");
 const luciferCanonicalAsk=unifiedRuntimePacks.find(pack=>pack.id==="unified-asks-lucifer-morningstar");
-assert.equal(luciferCanonicalAsk?.asks?.length,9,"Lucifer ASK must merge all nine existing personal questions");
+assert.equal(luciferCanonicalAsk?.asks?.length,129,"Lucifer ASK must preserve the restored 120 legacy questions plus nine unified questions");
+assert.ok(luciferCanonicalAsk.asks.some(ask=>ask.label==="호텔 생활은 어때요?"),"restored Lucifer hotel-life ASK missing");
+assert.ok(luciferCanonicalAsk.asks.some(ask=>ask.label==="릴리스가 떠난 것도 결국 당신 탓 아닌가요?"),"restored Lucifer Lilith blame ASK missing");
 assert.equal(unifiedRuntimePacks.filter(pack=>String(pack.id||"").startsWith("unified-asks-")).length,33,"unified ASK packs must cover all active personal character sets");
 assert.ok(!unifiedRuntimePacks.some(pack=>/^(?:relationship|topic-conversations|common-topic-asks|solo-talks|character-banter)-/.test(String(pack.id||""))),"fragmented legacy pack ids must not exist in the unified runtime");
 
