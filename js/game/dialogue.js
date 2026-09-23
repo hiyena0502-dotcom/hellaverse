@@ -954,7 +954,7 @@ function spawnGachaStarRain(stage,mode="draw",amount=32){
   const layer=document.createElement("div");
   layer.className="gacha-star-rain gacha-star-rain-"+mode;
   layer.setAttribute("aria-hidden","true");
-  const total=Math.max(12,Math.min(72,Number(amount)||32));
+  const total=Math.max(6,Math.min(30,Number(amount)||18));
   for(let index=0;index<total;index++){
     const particle=document.createElement("span");
     const glyph=index%6===0;
@@ -965,8 +965,8 @@ function spawnGachaStarRain(stage,mode="draw",amount=32){
     particle.style.setProperty("--rain-drift",(-260-Math.random()*360).toFixed(1)+"px");
     particle.style.setProperty("--rain-size",(glyph?11+Math.random()*11:1.2+Math.random()*1.8).toFixed(1)+"px");
     particle.style.setProperty("--rain-length",(42+Math.random()*76).toFixed(1)+"px");
-    particle.style.setProperty("--rain-delay",(Math.random()*(mode==="reveal"?.38:.55)).toFixed(3)+"s");
-    particle.style.setProperty("--rain-duration",((mode==="reveal"?.58:.74)+Math.random()*(mode==="reveal"?.46:.66)).toFixed(3)+"s");
+    particle.style.setProperty("--rain-delay",(Math.random()*(mode==="reveal"?1.25:1.7)).toFixed(3)+"s");
+    particle.style.setProperty("--rain-duration",((mode==="reveal"?.72:.84)+Math.random()*(mode==="reveal"?.42:.5)).toFixed(3)+"s");
     particle.style.setProperty("--rain-rot",(-18-Math.random()*15).toFixed(1)+"deg");
     layer.appendChild(particle);
   }
@@ -979,13 +979,13 @@ function playGachaAnimation(results){
   if(!stage||!box){gachaAnimating=false;return}
   stage.classList.add("is-drawing");
   spawnGachaParticles(stage,"burst",58);
-  spawnGachaStarRain(stage,"draw",results.length===10?46:30);
+  spawnGachaStarRain(stage,"draw",results.length===10?18:10);
   box.className="gacha-result-grid gacha-result-grid-summon";
   box.innerHTML='<div class="gacha-summon"><span class="gacha-sigil">✦</span><b>SUMMONING</b><small>ARCHIVE LINK</small></div>';
   setTimeout(()=>{
     stage.classList.add("is-reveal");
     spawnGachaParticles(stage,"reveal",Math.min(68,30+results.length*4));
-    spawnGachaStarRain(stage,"reveal",results.length===10?60:38);
+    spawnGachaStarRain(stage,"reveal",results.length===10?24:14);
     box.className="gacha-result-grid gacha-result-grid-reveal "+(results.length===10?"gacha-ten-draw":results.length===1?"gacha-single-draw":"gacha-multi-draw");
     box.innerHTML=results.map((result,index)=>{
       const i=result.item;
