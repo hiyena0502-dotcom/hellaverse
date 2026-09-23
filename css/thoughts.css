@@ -131,3 +131,28 @@
     line-height:1.65;
   }
 }
+
+
+/* v129 · THOUGHT notification bottom-right placement */
+.thought-notice{
+  left:auto;
+  top:auto;
+  right:clamp(18px,3vw,42px);
+  bottom:clamp(18px,3vh,34px);
+  transform:translateY(14px) scale(.985);
+}
+.thought-notice.show{
+  transform:translateY(0) scale(1);
+}
+.thought-notice.hide{
+  transform:translateY(10px) scale(.99);
+}
+@media(max-width:620px){
+  .thought-notice{
+    left:auto;
+    top:auto;
+    right:10px;
+    bottom:10px;
+    width:calc(100vw - 20px);
+  }
+}
