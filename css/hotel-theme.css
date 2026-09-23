@@ -2232,3 +2232,60 @@ input:focus,textarea:focus,select:focus,button:focus-visible{
     animation:gachaStarRainCurveDownLeft 2.4s ease-out var(--rain-delay) forwards!important;
   }
 }
+
+
+/* v143 · gacha HUD + archive emblem placement */
+.gacha-stage>.gacha-balance{
+  position:absolute;
+  top:30px;
+  left:38px;
+  z-index:6;
+  margin:0;
+  max-width:none;
+  color:rgba(240,207,138,.88);
+  font-size:.82rem;
+  letter-spacing:.18em;
+  line-height:1;
+  text-align:left;
+}
+
+/* Pull the emblem away from the title and give it more visual weight. */
+.gacha-stage .gacha-archive-logo{
+  width:132px;
+  height:96px;
+  margin:0 auto -6px;
+  transform:translateY(-30px) scale(1.12);
+}
+.gacha-stage .gacha-archive-logo-star{
+  font-size:4.65rem;
+}
+.gacha-stage .gacha-archive-logo-halo{
+  width:70px;
+  height:70px;
+}
+.gacha-stage .gacha-archive-logo-spark.spark-a{
+  left:12px;
+  top:5px;
+  font-size:1.12rem;
+}
+.gacha-stage .gacha-archive-logo-spark.spark-b{
+  right:12px;
+  bottom:8px;
+  font-size:1.65rem;
+}
+
+@media(max-width:700px){
+  .gacha-stage>.gacha-balance{
+    top:22px;
+    left:26px;
+    font-size:.74rem;
+  }
+  .gacha-stage .gacha-archive-logo{
+    width:108px;
+    height:82px;
+    margin-bottom:-4px;
+    transform:translateY(-22px) scale(1.08);
+  }
+  .gacha-stage .gacha-archive-logo-star{font-size:3.85rem}
+  .gacha-stage .gacha-archive-logo-halo{width:58px;height:58px}
+}
