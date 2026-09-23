@@ -159,12 +159,17 @@ assert.match(dialogueCode,/ev\.randomEligible!==false/,"random TALK eligibility 
 assert.match(dialogueCode,/player-dialogue/,"PLAYER dialogue must use its own visual surface class");
 assert.match(appShell,/gacha-particle-field-ambient/,"ambient gacha particle field missing");
 assert.match(dialogueCode,/function spawnGachaParticles\(/,"gacha burst particle helper missing");
-assert.match(dialogueCode,/spawnGachaParticles\(stage,"burst",40\)/,"gacha summon burst particles missing");
+assert.match(dialogueCode,/spawnGachaParticles\(stage,"burst",58\)/,"gacha summon burst particles missing");
 assert.match(dialogueCode,/spawnGachaParticles\(stage,"reveal"/,"gacha reveal burst particles missing");
 assert.match(featuresCss,/@keyframes gachaAmbientParticle/,"ambient gacha particle animation missing");
 assert.match(featuresCss,/@keyframes gachaParticleBurst/,"gacha burst particle animation missing");
 assert.match(appShell,/gacha-draw-backdrop/,"moving gacha backdrop layer missing");
 assert.match(appShell,/gacha-shooting-star-field/,"gacha shooting-star layer missing");
+assert.match(appShell,/Array\.from\(\{length:18\}/,"gacha meteor field should render 18 shooting stars");
+assert.match(hotelThemeCss,/@keyframes gachaMeteorGrand/,"large dynamic gacha meteor animation missing");
+assert.match(hotelThemeCss,/@keyframes gachaBackdropGrandSweep/,"large dynamic gacha backdrop motion missing");
+assert.match(hotelThemeCss,/@keyframes gachaAmbientGrandDrift/,"large dynamic ambient particle motion missing");
+
 assert.match(hotelThemeCss,/@keyframes gachaBackdropOrbit/,"moving gacha backdrop animation missing");
 assert.match(hotelThemeCss,/@keyframes gachaBackdropSweep/,"visible moving gacha backdrop sweep missing");
 assert.match(hotelThemeCss,/@keyframes gachaMeteorLoop/,"continuous gacha meteor loop missing");
