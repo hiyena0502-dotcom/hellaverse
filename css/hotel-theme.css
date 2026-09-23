@@ -704,3 +704,64 @@ input:focus,textarea:focus,select:focus,button:focus-visible{
   45%{filter:brightness(1.45)}
   100%{filter:brightness(1)}
 }
+
+
+/* v134 · visible ambient gacha particle drift */
+.gacha-stage .gacha-ambient-particle{
+  animation-name:gachaAmbientDriftVisible;
+  animation-timing-function:ease-in-out;
+  animation-iteration-count:infinite;
+  will-change:transform,opacity;
+}
+.gacha-stage .gacha-ambient-particle.is-star{
+  animation-name:gachaAmbientStarDrift;
+}
+.gacha-stage.is-drawing .gacha-ambient-particle{
+  animation-duration:calc(var(--duration) * .48);
+}
+@keyframes gachaAmbientDriftVisible{
+  0%{
+    opacity:.18;
+    transform:translate3d(0,20px,0) scale(.72);
+  }
+  28%{
+    opacity:.5;
+    transform:translate3d(calc(var(--drift) * .45),5px,0) scale(1);
+  }
+  58%{
+    opacity:.74;
+    transform:translate3d(var(--drift),-22px,0) scale(1.18);
+  }
+  82%{
+    opacity:.38;
+    transform:translate3d(calc(var(--drift) * -.42),-38px,0) scale(.92);
+  }
+  100%{
+    opacity:.14;
+    transform:translate3d(0,-52px,0) scale(.7);
+  }
+}
+@keyframes gachaAmbientStarDrift{
+  0%{
+    opacity:.2;
+    transform:translate3d(0,18px,0) scale(.82) rotate(0deg);
+  }
+  35%{
+    opacity:.72;
+    transform:translate3d(calc(var(--drift) * .6),-4px,0) scale(1.12) rotate(28deg);
+  }
+  70%{
+    opacity:.88;
+    transform:translate3d(var(--drift),-30px,0) scale(1.28) rotate(56deg);
+  }
+  100%{
+    opacity:.16;
+    transform:translate3d(calc(var(--drift) * -.35),-58px,0) scale(.78) rotate(86deg);
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .gacha-stage .gacha-ambient-particle,
+  .gacha-stage .gacha-ambient-particle.is-star{
+    animation:none!important;
+  }
+}
