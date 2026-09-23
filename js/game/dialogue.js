@@ -849,7 +849,7 @@ function randomThought(){
   saveProgressState();
   openModal(
     ch.name+" · THOUGHT",
-    '<p class="label">'+esc(chosen.category)+' · '+esc(thoughtFrequencyLabel(chosen.frequency))+' · AFFECTION '+Number(chosen.minAffection||0)+'–'+Number(chosen.maxAffection??100)+'</p>'+
+    '<p class="label">'+esc(chosen.category)+'</p>'+
     '<p style="white-space:pre-wrap;line-height:1.8;font-family:Georgia,serif;font-size:1.2rem">'+esc(chosen.text)+'</p>'
   );
 }
