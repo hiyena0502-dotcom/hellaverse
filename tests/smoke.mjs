@@ -1389,6 +1389,31 @@ const oneTimeReward=vm.runInContext(`
 assert.equal(oneTimeReward.count,1,"one-time dialogue reward must not duplicate on replay");
 assert.deepEqual([...oneTimeReward.claims],["reward-once"],"one-time reward claim must persist");
 
+const askUnlockRetention=vm.runInContext(`
+(()=>{
+  state=normalizeState({
+    schemaVersion:4,
+    characters:[{id:"ask-char",name:"Ask",origin:"hellborn",affectionStart:44}],
+    asks:[
+      {id:"permanent-ask",characterId:"ask-char",label:"Permanent",startLocked:true,minAffection:45,unlockMinAffection:45,entries:[]},
+      {id:"still-locked",characterId:"ask-char",label:"Locked",startLocked:true,minAffection:45,unlockMinAffection:45,entries:[]},
+      {id:"live-threshold",characterId:"ask-char",label:"Threshold",startLocked:false,minAffection:45,entries:[]}
+    ],
+    unlockedAskIds:["permanent-ask"],
+    playState:{affection:{"ask-char":44}}
+  });
+  session=createSession();
+  return{
+    permanent:askAffectionRequirementPasses(state.asks.find(ask=>ask.id==="permanent-ask")),
+    locked:askAffectionRequirementPasses(state.asks.find(ask=>ask.id==="still-locked")),
+    liveThreshold:askAffectionRequirementPasses(state.asks.find(ask=>ask.id==="live-threshold"))
+  };
+})()
+`,context);
+assert.equal(askUnlockRetention.permanent,true,"an unlocked ASK must remain available after affection drops below its unlock threshold");
+assert.equal(askUnlockRetention.locked,false,"an ASK that was never unlocked must stay locked below its threshold");
+assert.equal(askUnlockRetention.liveThreshold,false,"a non-locking ASK may still use its live minimum-affection requirement");
+
 const aliasPackInstall=vm.runInContext(`
 (()=>{
   const source=normalizeState({

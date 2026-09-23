@@ -253,6 +253,13 @@ function isAskUnlocked(ask,source=state){
   if(!ask)return false;
   return !ask.startLocked || (source.unlockedAskIds||[]).includes(ask.id);
 }
+function askAffectionRequirementPasses(ask,source=state){
+  if(!ask)return false;
+  if(ask.startLocked)return isAskUnlocked(ask,source);
+  const ch=getCharacter(ask.characterId,source);if(!ch)return false;
+  const affection=Number(session?.affection?.[ch.id]??ch.affectionStart);
+  return affection>=Number(ask.minAffection||0);
+}
 function askConditionPasses(c){
   if(!c?.askId)return true;
   const ask=state.asks.find(a=>a.id===c.askId);

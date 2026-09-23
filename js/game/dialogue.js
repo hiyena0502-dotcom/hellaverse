@@ -626,14 +626,13 @@ function renderAskPanel(){
   const dynamic=$("#roomDynamic");if(!dynamic)return;
   const ch=getCharacter(selectedCharacterId);if(!ch)return;
   syncAskUnlocks(ch.id);
-  const affection=Number(session.affection[ch.id]??ch.affectionStart);
   const asks=asksForCharacter(ch.id);
   dynamic.innerHTML='<section class="ask-panel"><div class="inventory-character-head"><div><p class="page-kicker">ASK</p><h2>무엇을 물어볼까?</h2></div><p>잠긴 질문은 조건을 만족하면 열립니다.</p></div>'+
     relationshipProgressMarkup(ch.id)+'<div class="ask-list">'+
     (asks.length?asks.map(a=>{
       const unlocked=isAskUnlocked(a);
       const asked=(state.askedAskIds||[]).includes(a.id);
-      const affinityPass=affection>=a.minAffection;
+      const affinityPass=askAffectionRequirementPasses(a);
       const available=unlocked&&affinityPass&&(!asked||a.repeatable);
       const status=!unlocked?"LOCKED":asked?"ASKED":"NEW";
       const label=unlocked?a.label:"???";
@@ -654,7 +653,7 @@ function startAsk(id){
   const alreadyAsked=(state.askedAskIds||[]).includes(ask.id);
   if(alreadyAsked&&!ask.repeatable){showToast("이미 확인한 질문입니다.");return}
   const affection=Number(session.affection[ch.id]??ch.affectionStart);
-  if(affection<ask.minAffection){showToast("아직 물어볼 수 없습니다.");return}
+  if(!askAffectionRequirementPasses(ask)){showToast("아직 물어볼 수 없습니다.");return}
   const askPhase=alreadyAsked?"repeat":"first";
   const askDelta=alreadyAsked?ask.repeatAffectionDelta:ask.affectionDelta;
   applyInteractionEffects({
