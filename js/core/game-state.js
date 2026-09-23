@@ -333,8 +333,17 @@ function affectionBandForValue(value){
 function affectionConditionPasses(c){
   if(!c?.characterId)return true;
   const ch=getCharacter(c.characterId);if(!ch)return true;
-  const cur=Number(session.affection[ch.id]??ch.affectionStart);
+  const interactionMeta=activeInteractionEvent?.interactionMeta;
+  const snapshot=interactionMeta?.kind==="ask"&&interactionMeta.characterId===ch.id
+    ? Number(interactionMeta.affectionSnapshot)
+    : NaN;
+  const cur=Number.isFinite(snapshot)?snapshot:Number(session.affection[ch.id]??ch.affectionStart);
   if(c.band)return affectionBandForValue(cur)===c.band;
+  if(Number.isFinite(Number(c.minValue))||Number.isFinite(Number(c.maxValue))){
+    const min=Number.isFinite(Number(c.minValue))?Number(c.minValue):0;
+    const max=Number.isFinite(Number(c.maxValue))?Number(c.maxValue):100;
+    return cur>=min&&cur<=max;
+  }
   const exp=Number(c.value)||0;
   switch(c.operator){case">":return cur>exp;case"<":return cur<exp;case"<=":return cur<=exp;case"==":return cur===exp;case"!=":return cur!==exp;default:return cur>=exp}
 }
@@ -374,10 +383,13 @@ function applyAffectionEffects(arr){
   const messages=[];
   normalizeAffectionEffects(arr).forEach(f=>{
     const ch=getCharacter(f.characterId);if(!ch||!f.amount)return;
+    state.claimedInteractionEffectIds ||= [];
+    if(f.once&&state.claimedInteractionEffectIds.includes(f.id))return;
     const cur=Number(session.affection[ch.id]??ch.affectionStart);
     const next=clamp(cur+Number(f.amount),0,100,cur);
     const delta=next-cur;session.affection[ch.id]=next;
     if(delta&&!f.silent)messages.push(ch.name+" 호감도 "+(delta>0?"+":"")+delta);
+    if(f.once)state.claimedInteractionEffectIds.push(f.id);
   });
   if(messages.length)showToast(messages.join(" · "));
 }
@@ -410,6 +422,9 @@ function applyOwnerEffects(o){
 }
 function applyInteractionEffects(source){
   const ch=getCharacter(source.characterId);if(!ch)return;
+  const claimId=String(source.claimId||"");
+  state.claimedInteractionEffectIds ||= [];
+  if(source.once&&claimId&&state.claimedInteractionEffectIds.includes(claimId))return;
   const messages=[];
   const delta=clamp(source.affectionDelta,-100,100,0);
   if(delta){
@@ -424,6 +439,7 @@ function applyInteractionEffects(source){
     session.emotions[ch.id]={state:source.emotionState,intensity};
     messages.push(ch.name+" 감정 → "+emotionLabel(source.emotionState)+" "+intensity);
   }
+  if(source.once&&claimId)state.claimedInteractionEffectIds.push(claimId);
   if(messages.length)showToast(messages.join(" · "));
   saveProgressState();
 }
@@ -435,7 +451,9 @@ function beginInteractionReaction(kind,source,entries,label="",meta={}){
       characterId:ch.id,
       affectionDelta:clamp(source.affectionDelta,-100,100,0),
       emotionState:source.emotionState||"",
-      emotionIntensity:clamp(source.emotionIntensity,0,100,0)
+      emotionIntensity:clamp(source.emotionIntensity,0,100,0),
+      once:false,
+      claimId:""
     },
     ...meta
   };

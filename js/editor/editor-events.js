@@ -901,7 +901,10 @@ function handleEditorField(e){
     if(t.dataset.affcondField){
       if(t.dataset.affcondField==="characterId"&&!t.value){owner.affectionCondition=null;return}
       owner.affectionCondition ||= {characterId:"",operator:">=",value:0};
-      owner.affectionCondition[t.dataset.affcondField]=t.dataset.affcondField==="value"?clamp(t.value,0,100,0):t.value;return;
+      const field=t.dataset.affcondField;
+      if((field==="minValue"||field==="maxValue")&&t.value==="")delete owner.affectionCondition[field];
+      else owner.affectionCondition[field]=["value","minValue","maxValue"].includes(field)?clamp(t.value,0,100,0):t.value;
+      return;
     }
     if(t.dataset.emocondField){
       if(t.dataset.emocondField==="characterId"&&!t.value){owner.emotionCondition=null;return}
@@ -957,7 +960,7 @@ function handleEditorField(e){
       const k=t.dataset.askBind;
       if(t.type==="checkbox")ask[k]=t.checked;
       else if(k==="minAffection"||k==="unlockMinAffection"||k==="emotionIntensity")ask[k]=clamp(t.value,0,100,0);
-      else if(k==="affectionDelta")ask[k]=clamp(t.value,-100,100,0);
+      else if(k==="affectionDelta"||k==="repeatAffectionDelta")ask[k]=clamp(t.value,-100,100,0);
       else ask[k]=t.value;
       return;
     }

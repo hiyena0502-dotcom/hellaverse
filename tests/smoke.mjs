@@ -15,6 +15,7 @@ const jsFiles=[
   "data/lucifer-talk-65-67.js",
   "data/lucifer-talk-68-70.js",
   "data/unified-character-content.js",
+  "data/lucifer-ask-integrated.js",
   "data/solo-talks.js",
   "data/character-banter.js",
   "data/item-presets.js",
@@ -62,6 +63,7 @@ const originIntroCode=read("data/origin-intros.js");
 const dialoguePresetCode=read("data/dialogue-presets.js");
 const dialogueCss=read("css/dialogue.css");
 const featuresCss=read("css/features.css");
+const luciferAskIntegratedCode=read("data/lucifer-ask-integrated.js");
 
 assert.ok(!editorEvents.includes('$(".nav-button").forEach'),"nav must use querySelectorAll/$$, not single $ helper");
 assert.match(editorEvents,/document\.querySelectorAll\("\.nav-button"\)\.forEach/,"nav click delegation missing");
@@ -121,6 +123,8 @@ assert.match(dialogueCss,/\.dialogue-box\.character-dialogue/,"character dialogu
 assert.match(dialogueCss,/\.dialogue-box\.narration-dialogue/,"narration dialogue styling missing");
 assert.match(editorUi,/event-random-eligible/,"random TALK eligibility editor control missing");
 assert.match(index,/data\/unified-character-content\.js/,"unified per-character TALK/ASK content script missing from build");
+assert.match(index,/data\/lucifer-ask-integrated\.js/,"Lucifer integrated ASK script missing from build");
+assert.ok(index.indexOf("data/unified-character-content.js")<index.indexOf("data/lucifer-ask-integrated.js"),"Lucifer integrated ASK must load after the unified base pack");
 assert.doesNotMatch(index,/data\/(?:relationship-content|topic-conversations|common-topic-asks|solo-talks|character-banter)\.js/,"fragmented per-character content scripts must not load at runtime");
 assert.match(index,/data\/lucifer-talk-13-30\.js/,"Lucifer TALK 13-30 script missing from build");
 assert.match(index,/data\/lucifer-talk-31-60\.js/,"Lucifer TALK 31-60 script missing from build");
@@ -257,6 +261,44 @@ const walkEntries=(entries,visit)=>{
     if(entry.type==="choice")for(const option of entry.options||[]){visit(option);walkEntries(option.entries,visit)}
   }
 };
+
+vm.runInNewContext(luciferAskIntegratedCode,unifiedContext);
+const luciferIntegratedAsk=unifiedContext.window.HV_STORY_PACKS.find(pack=>pack.id==="unified-asks-lucifer-morningstar");
+assert.equal(luciferIntegratedAsk.version,4,"Lucifer integrated ASK pack version missing");
+assert.equal(luciferIntegratedAsk.asks.length,68,"Lucifer integrated ASK must contain all 68 questions");
+assert.equal(new Set(luciferIntegratedAsk.asks.map(ask=>ask.id)).size,68,"Lucifer integrated ASK ids must be unique");
+assert.equal(luciferIntegratedAsk.asks.reduce((sum,ask)=>sum+(ask.entries.at(-1)?.options?.length||0),0),210,"Lucifer integrated ASK must contain all 210 choices");
+assert.ok(luciferIntegratedAsk.asks.every(ask=>ask.repeatable&&ask.applyAskDeltaOnce),"Lucifer integrated ASK must retain repeat dialogue while protecting first-use question effects");
+assert.ok(luciferIntegratedAsk.asks.every(ask=>Number.isFinite(ask.repeatAffectionDelta)),"Lucifer integrated ASK repeat affinity values missing");
+assert.ok(luciferIntegratedAsk.asks.every(ask=>ask.entries.at(-1)?.type==="choice"),"Every Lucifer ASK must end in a player choice");
+assert.ok(!luciferAskIntegratedCode.includes("추가 나레이션 운용 규칙"),"Lucifer ASK appendix text must not leak into dialogue");
+const integratedAskById=id=>luciferIntegratedAsk.asks.find(ask=>ask.id===id);
+const optionDeltas=ask=>ask.entries.at(-1).options.map(option=>option.affectionEffects[0]?.amount||0);
+assert.deepEqual(Array.from(optionDeltas(integratedAskById("lucifer-ask-rude-father"))),[2,-2,1],"rude father choice affinity values changed");
+assert.equal(integratedAskById("lucifer-ask-rude-father").affectionDelta,-3,"rude father question penalty missing");
+assert.equal(integratedAskById("lucifer-ask-rude-father").repeatAffectionDelta,-1,"rude father repeat penalty missing");
+assert.equal(integratedAskById("lucifer-ask-rude-lilith").affectionDelta,-5,"rude Lilith question penalty missing");
+assert.deepEqual(Array.from(optionDeltas(integratedAskById("topic-ask-lucifer-morningstar-03"))),[3,2,-3],"Heaven fall ASK choice affinity values changed");
+assert.equal(integratedAskById("topic-ask-lucifer-morningstar-03").minAffection,75,"Heaven fall ASK unlock threshold missing");
+assert.equal(integratedAskById("common-topic-trust-lucifer-morningstar").affectionDelta,1,"trust ASK first-use affinity missing");
+assert.equal(integratedAskById("common-topic-trust-lucifer-morningstar").repeatAffectionDelta,0,"trust ASK repeat affinity changed");
+assert.equal(luciferIntegratedAsk.askAliases["banter-ask-lucifer-morningstar-01"],"lucifer-ask-charlie-similar","legacy Lucifer ASK alias migration missing");
+let exactRangeConditions=0,oneTimeChoiceEffects=0,narrations=0;
+for(const ask of luciferIntegratedAsk.asks)walkEntries(ask.entries,owner=>{
+  if(owner.affectionCondition?.characterId==="lucifer-morningstar"&&Number.isFinite(owner.affectionCondition.minValue)&&Number.isFinite(owner.affectionCondition.maxValue))exactRangeConditions++;
+  oneTimeChoiceEffects+=(owner.affectionEffects||[]).filter(effect=>effect.once).length;
+  if(owner.type==="narration")narrations++;
+});
+assert.ok(exactRangeConditions>=300,"Lucifer ASK exact affinity range coverage is incomplete");
+assert.ok(oneTimeChoiceEffects>=100,"Lucifer ASK one-time choice affinity protection is incomplete");
+assert.ok(narrations>0,"Lucifer ASK narration entries missing");
+assert.match(stateCode,/claimedInteractionEffectIds/,"one-time ASK effect persistence missing");
+assert.match(gameStateCode,/c\.minValue/,"exact ASK affinity minimum check missing");
+assert.match(gameStateCode,/c\.maxValue/,"exact ASK affinity maximum check missing");
+assert.match(dialogueCode,/repeatAffectionDelta/,"repeat ASK affinity application missing");
+assert.match(editorUi,/data-ask-bind="repeatAffectionDelta"/,"repeat ASK affinity editor missing");
+assert.match(editorUi,/data-affcond-field="minValue"/,"exact ASK minimum affinity editor missing");
+assert.match(editorUi,/data-affcond-field="maxValue"/,"exact ASK maximum affinity editor missing");
 
 const topicPoolCode=read("data/topic-pool-500.js");
 const characterTopicTalkCode=read("data/character-topic-talks-52.js");
@@ -869,6 +911,45 @@ assert.equal(storyPackInstall.openingVisible,true,"opening event must be visible
 assert.equal(storyPackInstall.hiddenVisible,false,"continuation event must be hidden");
 assert.equal(storyPackInstall.speakerCharacterId,"lucifer-morningstar","speaker image id must survive compaction");
 assert.equal(storyPackInstall.secondChanged,false,"story pack must install only once");
+
+const storyPackCountBeforeLuciferAsk=context.window.HV_STORY_PACKS.length;
+context.window.HV_STORY_PACKS.push(structuredClone(luciferIntegratedAsk));
+const luciferAskInstall=vm.runInContext(`
+(()=>{
+  const source=normalizeState({
+    schemaVersion:4,
+    characters:[{id:"lucifer-morningstar",name:"Lucifer Morningstar",origin:"hellborn"}],
+    storyPackVersions:{"unified-asks-lucifer-morningstar":3},
+    asks:[{id:"banter-ask-lucifer-morningstar-01",characterId:"lucifer-morningstar",label:"legacy",entries:[]}],
+    askedAskIds:["banter-ask-lucifer-morningstar-01"],
+    unlockedAskIds:["banter-ask-lucifer-morningstar-01"],
+    interactionHistory:[{id:"legacy-history",kind:"ask",characterId:"lucifer-morningstar",askId:"banter-ask-lucifer-morningstar-01"}]
+  });
+  const installed=installStoryPacks(source).state;
+  const legacyDefault=normalizeAsk({id:"legacy-repeat",characterId:"lucifer-morningstar",repeatable:true,affectionDelta:2,entries:[]});
+  return{
+    version:installed.storyPackVersions["unified-asks-lucifer-morningstar"],
+    askCount:installed.asks.filter(ask=>ask.characterId==="lucifer-morningstar").length,
+    hasLegacy:installed.asks.some(ask=>ask.id==="banter-ask-lucifer-morningstar-01"),
+    asked:installed.askedAskIds,
+    unlocked:installed.unlockedAskIds,
+    historyAskId:installed.interactionHistory[0]?.askId,
+    integratedRepeat:installed.asks.find(ask=>ask.id==="lucifer-ask-rude-father")?.repeatAffectionDelta,
+    legacyRepeat:legacyDefault.repeatAffectionDelta,
+    legacyOnce:legacyDefault.applyAskDeltaOnce
+  };
+})()
+`,context);
+context.window.HV_STORY_PACKS.length=storyPackCountBeforeLuciferAsk;
+assert.equal(luciferAskInstall.version,4,"Lucifer integrated ASK installer version missing");
+assert.equal(luciferAskInstall.askCount,68,"Lucifer integrated ASK installer must replace legacy questions without duplicates");
+assert.equal(luciferAskInstall.hasLegacy,false,"retired Lucifer ASK must be removed during upgrade");
+assert.deepEqual([...luciferAskInstall.asked],["lucifer-ask-charlie-similar"],"legacy asked ASK progress must migrate to the integrated id");
+assert.deepEqual([...luciferAskInstall.unlocked],["lucifer-ask-charlie-similar"],"legacy unlocked ASK progress must migrate to the integrated id");
+assert.equal(luciferAskInstall.historyAskId,"lucifer-ask-charlie-similar","legacy ASK history must migrate to the integrated id");
+assert.equal(luciferAskInstall.integratedRepeat,-1,"integrated repeat affinity must survive installation");
+assert.equal(luciferAskInstall.legacyRepeat,2,"legacy repeatable ASK must preserve its previous affinity behavior");
+assert.equal(luciferAskInstall.legacyOnce,false,"legacy ASK must not silently gain one-time affinity semantics");
 
 const itemPresetCheck=vm.runInContext(`
 (()=>{

@@ -655,7 +655,21 @@ function startAsk(id){
   if(alreadyAsked&&!ask.repeatable){showToast("이미 확인한 질문입니다.");return}
   const affection=Number(session.affection[ch.id]??ch.affectionStart);
   if(affection<ask.minAffection){showToast("아직 물어볼 수 없습니다.");return}
-  beginInteractionReaction("ask",ask,ask.entries,ask.label,{askId:ask.id});
+  const askPhase=alreadyAsked?"repeat":"first";
+  const askDelta=alreadyAsked?ask.repeatAffectionDelta:ask.affectionDelta;
+  applyInteractionEffects({
+    characterId:ch.id,
+    affectionDelta:clamp(askDelta,-100,100,0),
+    emotionState:ask.emotionState||"",
+    emotionIntensity:clamp(ask.emotionIntensity,0,100,0),
+    once:!alreadyAsked&&ask.applyAskDeltaOnce===true,
+    claimId:!alreadyAsked?ask.id+":ask:first":""
+  });
+  beginInteractionReaction("ask",ask,ask.entries,ask.label,{
+    askId:ask.id,
+    affectionSnapshot:affection,
+    interactionEffects:null
+  });
 }
 function renderInventoryPanel(){
   if(!typing.done){
