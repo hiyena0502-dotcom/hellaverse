@@ -99,7 +99,7 @@
 
   const safe=value=>String(value||"").replace(/[^a-zA-Z0-9_-]+/g,"-");
   const claimId=itemId=>"lucifer-dialogue-acquired-"+safe(itemId);
-  const itemGate=(itemId,operator,value)=>({itemId,operator,value});
+  const itemGate=(itemId,operator,value)=>({itemId,operator,value,snapshot:true});
   const claimGate=(itemId,status)=>({effectId:claimId(itemId),status});
   const affectionGate=value=>({characterId:C,operator:">=",value});
 
