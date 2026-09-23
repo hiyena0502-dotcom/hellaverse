@@ -652,3 +652,133 @@ input:focus,textarea:focus,select:focus,button:focus-visible{
   .lobby-dashboard{grid-template-columns:1fr 1fr}
   .lobby-dashboard button{min-height:82px;padding:15px 14px}
 }
+
+
+
+/* v123 · right-side mini character status */
+.character-status-widget{
+  display:flex;
+  align-items:flex-start;
+  gap:7px;
+  z-index:8;
+}
+.character-status-widget.home{
+  position:absolute;
+  right:clamp(18px,4vw,64px);
+  top:48%;
+  transform:translateY(-50%);
+}
+.character-status-widget.home .character-status-meters.home{
+  width:220px;
+  margin:0;
+  padding:10px 12px;
+  gap:8px;
+  border:1px solid rgba(201,166,107,.16);
+  background:rgba(12,9,12,.56);
+  backdrop-filter:blur(10px);
+  box-shadow:0 14px 36px rgba(0,0,0,.18);
+}
+.character-status-all{
+  min-width:38px;
+  height:30px;
+  padding:0 8px;
+  border:1px solid rgba(201,166,107,.24);
+  background:rgba(12,9,12,.62);
+  color:var(--gold);
+  font-size:.52rem;
+  letter-spacing:.12em;
+  cursor:pointer;
+  backdrop-filter:blur(10px);
+}
+.character-status-all:hover{
+  border-color:rgba(201,166,107,.56);
+  background:rgba(167,45,72,.13);
+}
+.character-status-widget .character-status-head{
+  margin-bottom:4px;
+}
+.character-status-widget .character-status-head span{
+  font-size:.5rem;
+  letter-spacing:.14em;
+}
+.character-status-widget .character-status-head strong{
+  font-size:.58rem;
+}
+.character-status-widget .character-status-head strong em{
+  font-size:.52rem;
+}
+.character-status-widget .character-status-track{
+  height:3px;
+}
+
+/* Combined character status modal */
+.all-status-list{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+}
+.all-status-card{
+  padding:16px;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.018);
+}
+.all-status-card-head{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:14px;
+}
+.all-status-card-head strong{
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:1rem;
+  font-weight:500;
+}
+.all-status-card-head small{
+  color:var(--muted);
+  font-size:.58rem;
+  letter-spacing:.12em;
+}
+.all-status-row+.all-status-row{margin-top:12px}
+.all-status-row-head{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:6px;
+}
+.all-status-row-head span{
+  color:var(--muted);
+  font-size:.58rem;
+  letter-spacing:.13em;
+}
+.all-status-row-head b{
+  color:var(--gold);
+  font-size:.66rem;
+  font-weight:500;
+}
+@media(max-width:900px){
+  .character-status-widget.home{
+    right:14px;
+    top:18px;
+    transform:none;
+  }
+  .character-status-widget.home .character-status-meters.home{
+    width:190px;
+  }
+}
+@media(max-width:620px){
+  .character-status-widget.home{
+    right:10px;
+    top:12px;
+  }
+  .character-status-widget.home .character-status-meters.home{
+    width:168px;
+    padding:8px 9px;
+  }
+  .character-status-all{
+    min-width:34px;
+    width:34px;
+    padding:0;
+  }
+  .all-status-list{grid-template-columns:1fr}
+}
