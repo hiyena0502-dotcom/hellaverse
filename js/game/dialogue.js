@@ -905,7 +905,6 @@ function drawGacha(count){
 function collectionDetail(id){
   const i=itemById(id);if(!i)return;
   const count=itemCount(i.id),unlocked=hasEverAcquired(i.id);
-  if(i.secret&&!unlocked)return;
   const wasNew=state.newItemIds.includes(i.id);
   if(wasNew){
     markItemSeen(i.id,state);
@@ -929,5 +928,5 @@ function collectionDetail(id){
     '<div class="collection-detail-meta"><span>COLLECTION · '+esc(getCharacter(i.collectionCharacterId)?.name||"미지정")+'</span><span>'+esc(sources)+'</span><span>'+esc(i.acquisitionMode.toUpperCase())+'</span><span>'+esc(i.giftUseMode.toUpperCase())+'</span>'+(state.collectionSettings.showOwnedCount?'<span>INVENTORY ×'+count+'</span>':'')+'</div>'+
     '<section class="gift-archive"><h3>GIFT REACTIONS</h3>'+giftArchive+'</section>'+
     (recent.length?'<div class="collection-history-mini">'+recent.map(h=>'<div><span>'+esc(h.source)+'</span><b>+'+h.amount+'</b></div>').join("")+'</div>':'')
-    :'<p class="muted">아직 획득하지 않은 아이템입니다.</p>');
+    :'<p class="muted">아직 획득하지 않은 아이템입니다.</p>'+(i.acquisitionHint?'<section class="collection-gacha-reveal"><small>HINT</small><p>'+esc(i.acquisitionHint)+'</p></section>':''));
 }
