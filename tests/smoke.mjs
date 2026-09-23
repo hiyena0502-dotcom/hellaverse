@@ -22,6 +22,7 @@ const jsFiles=[
   "data/origin-intros.js",
   "data/dialogue-presets.js",
   "data/lucifer-dialogue-acquisitions.js",
+  "data/lucifer-thoughts.js",
   "js/core/state.js",
   "js/core/game-state.js",
   "js/ui/app-shell.js",
@@ -63,6 +64,7 @@ const itemPresetCode=read("data/item-presets.js");
 const originIntroCode=read("data/origin-intros.js");
 const dialoguePresetCode=read("data/dialogue-presets.js");
 const luciferAcquisitionCode=read("data/lucifer-dialogue-acquisitions.js");
+const luciferThoughtCode=read("data/lucifer-thoughts.js");
 const dialogueCss=read("css/dialogue.css");
 const featuresCss=read("css/features.css");
 const luciferAskIntegratedCode=read("data/lucifer-ask-integrated.js");
@@ -115,6 +117,14 @@ assert.match(itemPresetCode,/RELATION_TASTES/,"relationship-aware gift preferenc
 assert.match(dialoguePresetCode,/HV_APPLY_DIALOGUE_PRESETS/,"dialogue detail preset installer missing");
 assert.match(luciferAcquisitionCode,/HV_APPLY_DIALOGUE_PRESETS/,"Lucifer dialogue acquisition installer missing");
 assert.match(index,/data\/lucifer-dialogue-acquisitions\.js/,"Lucifer dialogue acquisition script missing from build");
+assert.match(index,/data\/lucifer-thoughts\.js/,"Lucifer THOUGHT preset script missing from build");
+assert.match(luciferThoughtCode,/HV_APPLY_THOUGHT_PRESETS/,"Lucifer THOUGHT preset installer missing");
+assert.match(stateCode,/HV_APPLY_THOUGHT_PRESETS/,"THOUGHT preset hook missing");
+assert.match(stateCode,/minAffection/,"THOUGHT affection normalization missing");
+assert.match(editorUi,/data-thought-bind="minAffection"/,"THOUGHT minimum affection editor missing");
+assert.match(editorUi,/data-thought-bind="maxAffection"/,"THOUGHT maximum affection editor missing");
+assert.match(dialogueCode,/affection>=Number\(t\.minAffection/,"THOUGHT runtime minimum-affection filter missing");
+assert.match(dialogueCode,/affection<=Number\(t\.maxAffection/,"THOUGHT runtime maximum-affection filter missing");
 assert.match(dialoguePresetCode,/hasItemGrant/,"reward TALK migration missing");
 assert.match(dialoguePresetCode,/seenTalkSignatures/,"duplicate TALK rotation guard missing");
 assert.match(stateCode,/randomEligible:e\.randomEligible!==false/,"random TALK eligibility persistence missing");
@@ -847,7 +857,59 @@ vm.runInContext(characterEventCode,context,{filename:"data/character-events.js"}
 vm.runInContext(itemPresetCode,context,{filename:"data/item-presets.js"});
 vm.runInContext(dialoguePresetCode,context,{filename:"data/dialogue-presets.js"});
 vm.runInContext(luciferAcquisitionCode,context,{filename:"data/lucifer-dialogue-acquisitions.js"});
+vm.runInContext(luciferThoughtCode,context,{filename:"data/lucifer-thoughts.js"});
 vm.runInContext(stateCode,context,{filename:"js/core/state.js"});
+
+const luciferThoughtInstallCheck=vm.runInContext(`
+(()=>{
+  const source=normalizeState({
+    schemaVersion:4,
+    characters:[{id:"lucifer-morningstar",name:"Lucifer Morningstar",origin:"angel"}],
+    thoughts:[]
+  });
+  const installed=installStoryPacks(source).state;
+  const thoughts=installed.thoughts.filter(row=>row.characterId==="lucifer-morningstar"&&String(row.id||"").startsWith("lucifer-thought-"));
+  const cold=thoughts.filter(row=>row.minAffection===0&&row.maxAffection===19);
+  const warm=thoughts.filter(row=>row.minAffection===60&&row.maxAffection===79);
+  const close=thoughts.filter(row=>row.minAffection===80&&row.maxAffection===100);
+  const at10=thoughts.filter(row=>10>=row.minAffection&&10<=row.maxAffection);
+  const at90=thoughts.filter(row=>90>=row.minAffection&&90<=row.maxAffection);
+  return{
+    count:thoughts.length,
+    cold:cold.length,
+    warm:warm.length,
+    close:close.length,
+    at10HasClose:at10.some(row=>row.minAffection>=80),
+    at90HasCold:at90.some(row=>row.maxAffection<=19),
+    hasDialogueReflection:thoughts.some(row=>/별 지도|우울한 오리|사과 씨앗|사슴 대가리/.test(row.text)),
+    frequencies:[...new Set(thoughts.map(row=>row.frequency))]
+  };
+})()
+`,context);
+assert.ok(luciferThoughtInstallCheck.count>=30,"Lucifer affinity THOUGHT preset must install a substantial pool");
+assert.ok(luciferThoughtInstallCheck.cold>=4,"Lucifer low-affection THOUGHT pool missing");
+assert.ok(luciferThoughtInstallCheck.warm>=8,"Lucifer warm-affection THOUGHT pool missing");
+assert.ok(luciferThoughtInstallCheck.close>=10,"Lucifer close-affection THOUGHT pool missing");
+assert.equal(luciferThoughtInstallCheck.at10HasClose,false,"low affection must not include close THOUGHTs");
+assert.equal(luciferThoughtInstallCheck.at90HasCold,false,"high affection must not include cold THOUGHTs");
+assert.equal(luciferThoughtInstallCheck.hasDialogueReflection,true,"Lucifer THOUGHT should include dialogue/event/question-reflective writing");
+assert.ok(luciferThoughtInstallCheck.frequencies.includes("common")&&luciferThoughtInstallCheck.frequencies.includes("normal")&&luciferThoughtInstallCheck.frequencies.includes("rare"),"Lucifer THOUGHT must use common/normal/rare frequency tiers");
+
+const thoughtLegacyAffectionCheck=vm.runInContext(`
+(()=>{
+  const thought=normalizeThought({
+    id:"legacy-thought",
+    characterId:"lucifer-morningstar",
+    requiredAffection:35,
+    affectionMax:64,
+    frequency:"normal",
+    text:"legacy"
+  });
+  return{min:thought.minAffection,max:thought.maxAffection};
+})()
+`,context);
+assert.equal(thoughtLegacyAffectionCheck.min,35,"legacy THOUGHT requiredAffection must migrate to minAffection");
+assert.equal(thoughtLegacyAffectionCheck.max,64,"legacy THOUGHT affectionMax must migrate to maxAffection");
 
 const luciferAcquisitionInstallCheck=vm.runInContext(`
 (()=>{
