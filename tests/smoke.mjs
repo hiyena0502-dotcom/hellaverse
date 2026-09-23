@@ -144,6 +144,12 @@ assert.match(stateCode,/HV_APPLY_THOUGHT_PRESETS/,"THOUGHT preset hook missing")
 assert.match(stateCode,/minAffection/,"THOUGHT affection normalization missing");
 assert.match(editorUi,/data-thought-bind="minAffection"/,"THOUGHT minimum affection editor missing");
 assert.match(editorUi,/data-thought-bind="maxAffection"/,"THOUGHT maximum affection editor missing");
+assert.match(dialogueCode,/spawnGachaParticles\(stage,"burst"/,"Gacha burst particle spawn missing");
+assert.match(dialogueCode,/spawnGachaParticles\(stage,"reveal"/,"Gacha reveal particle spawn missing");
+assert.match(featuresCss,/\.gacha-particle-burst/,"Gacha particle base CSS missing");
+assert.match(hotelThemeCss,/gacha animation visibility repair/,"Gacha final visibility repair CSS missing");
+assert.match(hotelThemeCss,/\.gacha-stage \.gacha-particle-burst\{[\s\S]*?z-index:12/,"Gacha burst layer must render above core content");
+assert.match(hotelThemeCss,/@media\(prefers-reduced-motion:reduce\)[\s\S]*?\.gacha-stage \.gacha-particle-field,[\s\S]*?display:block!important/,"Reduced-motion fallback must keep gacha particles visible");
 assert.match(dialogueCode,/affection>=Number\(t\.minAffection/,"THOUGHT runtime minimum-affection filter missing");
 assert.match(dialogueCode,/affection<=Number\(t\.maxAffection/,"THOUGHT runtime maximum-affection filter missing");
 assert.match(dialoguePresetCode,/hasItemGrant/,"reward TALK migration missing");
