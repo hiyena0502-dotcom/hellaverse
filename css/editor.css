@@ -1080,3 +1080,23 @@ details.advanced summary{cursor:pointer;color:var(--gold);font-size:.72rem}
 .gacha-profile-fields input,.gacha-profile-fields textarea{width:100%;box-sizing:border-box}
 .gacha-profile-fields textarea{min-height:70px;resize:vertical}
 @media(max-width:720px){.gacha-profile-fields{grid-template-columns:1fr}.gacha-profile-fields .field.full,.gacha-profile-card-head{grid-column:1}}
+
+
+/* Collapsible character gift reactions */
+.reaction-manager-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;align-items:center}
+.collapsible-reaction-card{overflow:hidden}
+.collapsible-reaction-card>summary{list-style:none}
+.collapsible-reaction-card>summary::-webkit-details-marker{display:none}
+.item-reaction-summary{display:flex;align-items:center;gap:10px;min-height:44px;padding:10px 12px;cursor:pointer;user-select:none}
+.item-reaction-summary:hover{background:rgba(255,255,255,.035)}
+.item-reaction-summary strong{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item-reaction-summary small{margin-left:auto;opacity:.72;white-space:nowrap}
+.reaction-summary-chevron{display:inline-grid;place-items:center;width:18px;height:18px;font-size:1.2rem;line-height:1;transform:rotate(0deg);transition:transform .16s ease}
+.collapsible-reaction-card[open] .reaction-summary-chevron{transform:rotate(90deg)}
+.item-reaction-card-body{padding:0 12px 12px}
+.collapsible-reaction-card:not([open]) .item-reaction-summary{border-bottom:0}
+@media(max-width:760px){
+  .reaction-manager-actions{justify-content:flex-start}
+  .item-reaction-summary{flex-wrap:wrap}
+  .item-reaction-summary small{width:100%;margin-left:28px;white-space:normal}
+}
