@@ -423,6 +423,10 @@ function applyAffectionEffects(arr){
     if(f.once)state.claimedInteractionEffectIds.push(f.id);
   });
   if(messages.length)showToast(messages.join(" · "));
+  if(typeof updateCharacterStatusMeters==="function"){
+    const ids=[...new Set(normalizeAffectionEffects(arr).map(f=>f.characterId).filter(Boolean))];
+    ids.forEach(id=>updateCharacterStatusMeters(id));
+  }
 }
 function applyEmotionEffects(arr){
   const messages=[];
@@ -432,6 +436,10 @@ function applyEmotionEffects(arr){
     messages.push(ch.name+" 감정 → "+emotionLabel(f.state)+" "+f.intensity);
   });
   if(messages.length)showToast(messages.join(" · "));
+  if(typeof updateCharacterStatusMeters==="function"){
+    const ids=[...new Set(normalizeEmotionEffects(arr).map(f=>f.characterId).filter(Boolean))];
+    ids.forEach(id=>updateCharacterStatusMeters(id));
+  }
 }
 function applyItemEffects(arr){
   normalizeItemEffects(arr).forEach(f=>{
@@ -472,6 +480,7 @@ function applyInteractionEffects(source){
   }
   if(source.once&&claimId)state.claimedInteractionEffectIds.push(claimId);
   if(messages.length)showToast(messages.join(" · "));
+  if(typeof updateCharacterStatusMeters==="function")updateCharacterStatusMeters(ch.id);
   saveProgressState();
 }
 function beginInteractionReaction(kind,source,entries,label="",meta={}){
