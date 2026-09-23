@@ -165,7 +165,7 @@ assert.match(featuresCss,/@keyframes gachaAmbientParticle/,"ambient gacha partic
 assert.match(featuresCss,/@keyframes gachaParticleBurst/,"gacha burst particle animation missing");
 assert.match(appShell,/gacha-draw-backdrop/,"moving gacha backdrop layer missing");
 assert.match(appShell,/gacha-shooting-star-field/,"gacha shooting-star layer missing");
-assert.match(appShell,/Array\.from\(\{length:18\}/,"gacha meteor field should render 18 shooting stars");
+assert.match(appShell,/Array\.from\(\{length:7\}/,"gacha meteor field should render 7 sparse shooting stars");
 assert.match(hotelThemeCss,/@keyframes gachaMeteorGrand/,"large dynamic gacha meteor animation missing");
 assert.match(hotelThemeCss,/@keyframes gachaBackdropGrandSweep/,"large dynamic gacha backdrop motion missing");
 assert.match(hotelThemeCss,/@keyframes gachaAmbientGrandDrift/,"large dynamic ambient particle motion missing");
@@ -184,6 +184,13 @@ assert.match(hotelThemeCss,/@keyframes gachaMeteorDownLeft/,"upper-right to lowe
 assert.match(hotelThemeCss,/@keyframes gachaMeteorCurveDownLeft/,"curved upper-right to lower-left meteor path missing");
 assert.match(hotelThemeCss,/offset-path:path\("M 0 0 C -180 95/,"primary curved meteor offset path missing");
 assert.match(hotelThemeCss,/@keyframes gachaStarRainCurveDownLeft/,"curved falling star-rain path missing");
+assert.match(hotelThemeCss,/@keyframes gachaMeteorSparseCurve/,"sparse meteor timing animation missing");
+assert.match(hotelThemeCss,/\.gacha-stage \.gacha-shooting-star:before\{[\s\S]*?height:1px/,"meteor tail should be a thin tapered line");
+assert.match(hotelThemeCss,/\.gacha-stage \.gacha-shooting-star:after\{[\s\S]*?width:5px/,"meteor head glow missing");
+assert.match(dialogueCode,/results\.length===10\?18:10/,"draw shower density should stay reduced");
+assert.match(dialogueCode,/results\.length===10\?24:14/,"reveal shower density should stay reduced");
+assert.match(dialogueCode,/mode==="reveal"\?3700:4300/,"staggered star shower lifetime must allow delayed particles to finish");
+
 
 assert.match(hotelThemeCss,/\.gacha-stage \.gacha-shooting-star\{[\s\S]*?height:1px/,"shooting stars should stay thin");
 assert.match(dialogueCode,/--rain-drift",\(-260-Math\.random\(\)\*360\)/,"star rain must drift strongly from right to left");
