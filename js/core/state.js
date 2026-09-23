@@ -1904,6 +1904,13 @@ function sanitizeProgressReferences(source){
   const itemIds=new Set(result.items.map(item=>item.id));
   const askIds=new Set(result.asks.map(item=>item.id));
   const thoughtIds=new Set(result.thoughts.map(item=>item.id));
+  const configuredGiftKeys=new Set();
+  for(const item of result.items||[]){
+    if(item.giftable===false)continue;
+    for(const reaction of item.reactions||[]){
+      if(reaction.characterId)configuredGiftKeys.add(String(item.id)+"::"+String(reaction.characterId));
+    }
+  }
   const itemEffectIds=new Set();
   const interactionEffectIds=new Set();
   const rememberItemEffects=entries=>walkStateEntries(entries,owner=>{
@@ -1933,20 +1940,17 @@ function sanitizeProgressReferences(source){
   result.inventoryCounts=Object.fromEntries(Object.entries(result.inventoryCounts||{}).filter(([id])=>itemIds.has(id)));
   result.newItemIds=result.newItemIds.filter(id=>itemIds.has(id));
   result.itemHistory=result.itemHistory.filter(row=>!row?.itemId||itemIds.has(row.itemId));
-  result.discoveredGiftReactionKeys=result.discoveredGiftReactionKeys.filter(key=>{
-    const [itemId,characterId]=String(key).split("::");
-    return itemIds.has(itemId)&&characterIds.has(characterId);
-  });
-  result.discoveredSpecialGiftKeys=result.discoveredSpecialGiftKeys.filter(key=>{
-    const [itemId,characterId]=String(key).split("::");
-    return itemIds.has(itemId)&&characterIds.has(characterId);
-  });
+  result.discoveredGiftReactionKeys=result.discoveredGiftReactionKeys.filter(key=>
+    configuredGiftKeys.has(String(key))
+  );
+  result.discoveredSpecialGiftKeys=result.discoveredSpecialGiftKeys.filter(key=>
+    configuredGiftKeys.has(String(key))
+  );
   result.discoveredTalkIds=result.discoveredTalkIds.filter(id=>eventIds.has(id));
   result.seenOriginIntroCharacterIds=(result.seenOriginIntroCharacterIds||[]).filter(id=>characterIds.has(id));
-  result.giftInteractionCounts=Object.fromEntries(Object.entries(result.giftInteractionCounts||{}).filter(([key])=>{
-    const [itemId,characterId]=String(key).split("::");
-    return itemIds.has(itemId)&&characterIds.has(characterId);
-  }));
+  result.giftInteractionCounts=Object.fromEntries(Object.entries(result.giftInteractionCounts||{}).filter(([key])=>
+    configuredGiftKeys.has(String(key))
+  ));
   result.askedAskIds=result.askedAskIds.filter(id=>askIds.has(id));
   result.unlockedAskIds=result.unlockedAskIds.filter(id=>askIds.has(id));
   result.discoveredThoughtIds=result.discoveredThoughtIds.filter(id=>thoughtIds.has(id));
