@@ -277,9 +277,11 @@ function relationshipProgress(characterId){
   const asks=asksForCharacter(characterId);
   const askSeen=asks.filter(ask=>(state.askedAskIds||[]).includes(ask.id)).length;
   const character=getCharacter(characterId);
-  const giftItems=state.items.filter(item=>item.enabled&&item.giftable!==false);
+  const giftItems=character
+    ? state.items.filter(item=>item.enabled&&item.giftable!==false&&Boolean(giftReactionFor(item,character)))
+    : [];
   const giftSeen=giftItems.filter(item=>isGiftPreferenceDiscovered(item.id,characterId)).length;
-  const specialTotal=character?giftItems.filter(item=>giftReactionFor(item,character)?.specialEntries?.length).length:0;
+  const specialTotal=giftItems.filter(item=>giftReactionFor(item,character)?.specialEntries?.length).length;
   const specialSeen=(state.discoveredSpecialGiftKeys||[]).filter(key=>String(key).endsWith("::"+characterId)).length;
   return{talkSeen,talkTotal:talkIds.length,askSeen,askTotal:asks.length,giftSeen,giftTotal:giftItems.length,specialSeen,specialTotal};
 }
@@ -684,7 +686,7 @@ function renderInventoryPanel(){
   clearAuto();
   const dynamic=$("#roomDynamic");if(!dynamic)return;
   const ch=getCharacter(selectedCharacterId);if(!ch)return;
-  const owned=state.items.filter(i=>i.enabled&&i.giftable!==false&&itemCount(i.id)>0);
+  const owned=state.items.filter(i=>i.enabled&&i.giftable!==false&&itemCount(i.id)>0&&Boolean(giftReactionFor(i,ch)));
   if(selectedInventoryItemId&&!owned.some(item=>item.id===selectedInventoryItemId))selectedInventoryItemId="";
   const filtered=owned.filter(item=>{
     const reaction=giftReactionFor(item,ch);
@@ -733,6 +735,10 @@ function useInventoryItem(id){
   if(giftNeedsConfirmation(item)&&!confirm(item.name+"을(를) "+ch.name+"에게 선물할까요?\n소모형 아이템이며 현재 "+itemCount(id)+"개 보유 중입니다."))return;
   const key=giftReactionKey(item.id,ch.id);
   const reaction=giftReactionFor(item,ch);
+  if(!reaction){
+    showToast(ch.name+"의 이 아이템 반응은 아직 설정되지 않았습니다.");
+    return;
+  }
 
   const currentCount=giftInteractionCount(item.id,ch.id);
   const emotion=session.emotions[ch.id]||{state:ch.emotionDefault,intensity:ch.emotionIntensity};
