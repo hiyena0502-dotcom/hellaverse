@@ -159,10 +159,20 @@ assert.match(dialogueCode,/ev\.randomEligible!==false/,"random TALK eligibility 
 assert.match(dialogueCode,/player-dialogue/,"PLAYER dialogue must use its own visual surface class");
 assert.match(appShell,/gacha-particle-field-ambient/,"ambient gacha particle field missing");
 assert.match(dialogueCode,/function spawnGachaParticles\(/,"gacha burst particle helper missing");
-assert.match(dialogueCode,/spawnGachaParticles\(stage,"burst",34\)/,"gacha summon burst particles missing");
+assert.match(dialogueCode,/spawnGachaParticles\(stage,"burst",40\)/,"gacha summon burst particles missing");
 assert.match(dialogueCode,/spawnGachaParticles\(stage,"reveal"/,"gacha reveal burst particles missing");
 assert.match(featuresCss,/@keyframes gachaAmbientParticle/,"ambient gacha particle animation missing");
 assert.match(featuresCss,/@keyframes gachaParticleBurst/,"gacha burst particle animation missing");
+assert.match(appShell,/gacha-draw-backdrop/,"moving gacha backdrop layer missing");
+assert.match(appShell,/gacha-shooting-star-field/,"gacha shooting-star layer missing");
+assert.match(hotelThemeCss,/@keyframes gachaBackdropOrbit/,"moving gacha backdrop animation missing");
+assert.match(hotelThemeCss,/@keyframes gachaMeteorFall/,"gacha meteor animation missing");
+assert.match(dialogueCode,/results\.length===10\?"gacha-ten-draw"/,"10-pull layout class missing");
+assert.match(hotelThemeCss,/\.gacha-result-grid\.gacha-ten-draw\{[\s\S]*?grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/,"10-pull must use five columns on desktop");
+assert.match(hotelThemeCss,/@keyframes gachaCardLiftReveal\{[\s\S]*?translateY\(24px\)[\s\S]*?translateY\(0\)/,"gacha card lift reveal missing");
+assert.doesNotMatch(hotelThemeCss,/@keyframes gachaCardLiftReveal\{[^}]*scale\(/,"gacha card reveal must not scale cards");
+assert.match(hotelThemeCss,/\.gacha-stage\.is-reveal \.gacha-core\{[\s\S]*?animation:none!important/,"gacha core zoom must stop during reveal");
+
 assert.match(featuresCss,/prefers-reduced-motion:reduce/,"gacha particle reduced-motion fallback missing");
 assert.match(dialogueCode,/character-dialogue/,"character dialogue must use its own visual surface class");
 assert.match(dialogueCode,/isPlayer\?"YOU":speaker/,"PLAYER dialogue must render a distinct YOU label");
