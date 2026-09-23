@@ -121,6 +121,9 @@ assert.match(dialogueCode,/이 아이템 반응은 아직 설정되지 않았습
 assert.match(editorUi,/같은 ID가 .*개 등록되어 있습니다/,"duplicate content id validation missing");
 assert.match(editorUi,/연결된 획득 EVENT가 존재하지 않습니다/,"broken acquisition-event validation missing");
 assert.match(editorUi,/실제 선물 목록에는 표시되지 않습니다/,"unconfigured gift validation message missing");
+assert.match(stateCode,/const configuredGiftKeys=new Set\(\)/,"configured gift progress cleanup missing");
+assert.match(stateCode,/configuredGiftKeys\.has\(String\(key\)\)/,"stale gift progress keys must be filtered");
+assert.match(dialogueCode,/const specialKeys=new Set\(specialItems\.map/,"SPECIAL progress must be limited to configured gift reactions");
 assert.match(dialoguePresetCode,/HV_APPLY_DIALOGUE_PRESETS/,"dialogue detail preset installer missing");
 assert.match(luciferAcquisitionCode,/HV_APPLY_DIALOGUE_PRESETS/,"Lucifer dialogue acquisition installer missing");
 assert.match(index,/data\/lucifer-dialogue-acquisitions\.js/,"Lucifer dialogue acquisition script missing from build");
