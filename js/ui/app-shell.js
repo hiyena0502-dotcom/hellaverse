@@ -470,8 +470,8 @@ function renderHome(){
         (chars.length>1?'<button class="lobby-arrow left" type="button" data-action="home-prev">‹</button><button class="lobby-arrow right" type="button" data-action="home-next">›</button>':'')+
         '<div class="lobby-copy"><p class="page-kicker">'+esc(originLabel(ch.origin))+'</p><h1>'+esc(ch.name)+'</h1>'+
           '<p class="role-line">'+esc(ch.role||"ROLE NOT SET")+'</p>'+
-          characterStatusMetersMarkup(ch,"home")+
           '<p class="quote-line">'+esc(ch.quote||"편집기에서 캐릭터 소개 문구를 설정할 수 있습니다.")+'</p></div>'+
+        characterStatusMetersMarkup(ch,"home")+
         '<div class="character-counter">'+String(homeIndex+1).padStart(2,"0")+' / '+String(chars.length).padStart(2,"0")+'</div>'+
       '</div>'+
       '<div class="lobby-dashboard">'+
