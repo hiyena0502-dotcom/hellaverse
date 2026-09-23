@@ -464,12 +464,6 @@
       ["narration","손바닥보다 작은 미니 오리가 네 손에 놓인다."]
     ])||changed;
 
-    source.dialogueAcquisitionVersion ||= {};
-    if(Number(source.dialogueAcquisitionVersion.lucifer)!==VERSION){
-      source.dialogueAcquisitionVersion.lucifer=VERSION;
-      changed=true;
-    }
-
     return{...priorResult,state:source,changed,luciferDialogueAcquisitionVersion:VERSION};
   };
 
