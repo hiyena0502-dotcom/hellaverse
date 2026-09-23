@@ -837,6 +837,7 @@ const retiredCharacterPurgeCheck=vm.runInContext(`
     ],
     events:[
       {id:"keep-event",characterId:"lucifer-morningstar",entries:[{id:"keep-line",type:"dialogue",text:"keep"}]},
+      {id:"lucifer-giftx-belphegor-delivery",characterId:"lucifer-morningstar",entries:[{id:"gift-line",type:"dialogue",text:"keep related gift event"}]},
       {id:"belphegor-event",characterId:"belphegor",entries:[{id:"retired-line",type:"dialogue",text:"remove"}]}
     ],
     asks:[{id:"leviathan-ask",characterId:"leviathan",label:"remove",entries:[]}],
@@ -846,35 +847,97 @@ const retiredCharacterPurgeCheck=vm.runInContext(`
         {id:"belphegor-reaction",characterId:"belphegor"}
       ]},
       {id:"belphegor-item",name:"retired",collectionCharacterId:"belphegor"},
-      {id:"gift-item-lucifer-giftx-leviathan-seaglass-duck",name:"linked",collectionCharacterId:"lucifer-morningstar"}
+      {id:"gift-item-lucifer-giftx-leviathan-seaglass-duck",name:"레비아탄이 준 선물",collectionCharacterId:"lucifer-morningstar",reactions:[
+        {id:"preset-reaction-gift-item-lucifer-giftx-leviathan-seaglass-duck-lucifer-morningstar",characterId:"lucifer-morningstar"}
+      ]},
+      {id:"gift-item-lucifer-giftx-belphegor-sleep-mask",name:"벨페고르가 준 선물",collectionCharacterId:"lucifer-morningstar"},
+      {id:"item-1789235633790-c5e0065c154d4",name:"에즈라엘 덕",collectionCharacterId:"lucifer-morningstar"},
+      {id:"item-1789235310866-d72ed2ef92e908",name:"가브리엘 덕",collectionCharacterId:"lucifer-morningstar"},
+      {id:"item-1789235202505-8e39df8e8c9a8",name:"미카엘 덕",collectionCharacterId:"lucifer-morningstar"}
     ],
-    inventoryCounts:{"keep-item":1,"belphegor-item":2,"gift-item-lucifer-giftx-leviathan-seaglass-duck":1},
+    inventoryCounts:{
+      "keep-item":1,
+      "belphegor-item":2,
+      "gift-item-lucifer-giftx-leviathan-seaglass-duck":1,
+      "gift-item-lucifer-giftx-belphegor-sleep-mask":1,
+      "item-1789235633790-c5e0065c154d4":1,
+      "item-1789235310866-d72ed2ef92e908":1,
+      "item-1789235202505-8e39df8e8c9a8":1
+    },
+    itemHistory:[
+      {itemId:"gift-item-lucifer-giftx-leviathan-seaglass-duck",source:"DIALOGUE",amount:1,at:1},
+      {itemId:"gift-item-lucifer-giftx-belphegor-sleep-mask",source:"DIALOGUE",amount:1,at:2},
+      {itemId:"item-1789235633790-c5e0065c154d4",source:"GACHA",amount:1,at:3}
+    ],
+    discoveredGiftReactionKeys:[
+      "gift-item-lucifer-giftx-leviathan-seaglass-duck::lucifer-morningstar",
+      "gift-item-lucifer-giftx-belphegor-sleep-mask::lucifer-morningstar"
+    ],
     favoriteCharacterIds:["lucifer-morningstar","belphegor"],
     seenOriginIntroCharacterIds:["leviathan"],
-    playState:{variables:{belphegor_flag:true,keep:true},affection:{belphegor:50,"lucifer-morningstar":60},emotions:{leviathan:{state:"calm",intensity:10}},log:[],recentTalks:{belphegor:["belphegor-event"],"lucifer-morningstar":["keep-event"]}},
-    collectionSettings:{expandedCharacterIds:["belphegor","lucifer-morningstar"]}
+    playState:{
+      variables:{belphegor_flag:true,"lucifer.gift.belphegor_delivery":true,keep:true},
+      affection:{belphegor:50,"lucifer-morningstar":60},
+      emotions:{leviathan:{state:"calm",intensity:10}},
+      log:[],
+      recentTalks:{belphegor:["belphegor-event"],"lucifer-morningstar":["keep-event","lucifer-giftx-belphegor-delivery"]}
+    },
+    collectionSettings:{expandedCharacterIds:["belphegor","lucifer-morningstar"]},
+    gacha:{history:[
+      {itemId:"gift-item-lucifer-giftx-leviathan-seaglass-duck",name:"레비아탄이 준 선물"},
+      {itemId:"item-1789235310866-d72ed2ef92e908",name:"가브리엘 덕"}
+    ]}
   });
   return {
-    characters:source.characters.map(row=>row.id),events:source.events.map(row=>row.id),asks:source.asks.map(row=>row.id),
-    items:source.items.map(row=>row.id),reactions:source.items.find(row=>row.id==="keep-item")?.reactions.map(row=>row.characterId)||[],
-    inventory:Object.keys(source.inventoryCounts),favorites:source.favoriteCharacterIds,origins:source.seenOriginIntroCharacterIds,
-    variables:Object.keys(source.playState.variables),affection:Object.keys(source.playState.affection),emotions:Object.keys(source.playState.emotions),
-    recent:Object.keys(source.playState.recentTalks),expanded:source.collectionSettings.expandedCharacterIds
+    characters:source.characters.map(row=>row.id),
+    events:source.events.map(row=>row.id),
+    asks:source.asks.map(row=>row.id),
+    items:source.items.map(row=>row.id),
+    keepReactions:source.items.find(row=>row.id==="keep-item")?.reactions.map(row=>row.characterId)||[],
+    leviathanReactions:source.items.find(row=>row.id==="gift-item-lucifer-giftx-leviathan-seaglass-duck")?.reactions.map(row=>row.characterId)||[],
+    inventory:Object.keys(source.inventoryCounts),
+    itemHistory:source.itemHistory.map(row=>row.itemId),
+    giftKeys:source.discoveredGiftReactionKeys,
+    gachaItems:(source.gacha?.history||[]).map(row=>row.itemId),
+    favorites:source.favoriteCharacterIds,
+    origins:source.seenOriginIntroCharacterIds,
+    variables:Object.keys(source.playState.variables),
+    affection:Object.keys(source.playState.affection),
+    emotions:Object.keys(source.playState.emotions),
+    recent:Object.keys(source.playState.recentTalks),
+    recentLucifer:source.playState.recentTalks["lucifer-morningstar"]||[],
+    expanded:source.collectionSettings.expandedCharacterIds
   };
 })()
 `,context);
 assert.deepEqual([...retiredCharacterPurgeCheck.characters],["lucifer-morningstar"],"retired characters must be removed from saved state");
-assert.deepEqual([...retiredCharacterPurgeCheck.events],["keep-event"],"retired character events must be removed from saved state");
+assert.deepEqual([...retiredCharacterPurgeCheck.events],["keep-event","lucifer-giftx-belphegor-delivery"],"active-character events that merely mention a retired Sin must remain");
 assert.equal(retiredCharacterPurgeCheck.asks.length,0,"retired character ASK must be removed from saved state");
-assert.deepEqual([...retiredCharacterPurgeCheck.items],["keep-item"],"retired and linked collection items must be removed from saved state");
-assert.deepEqual([...retiredCharacterPurgeCheck.reactions],["lucifer-morningstar"],"retired gift reactions must be removed");
-assert.deepEqual([...retiredCharacterPurgeCheck.inventory],["keep-item"],"retired inventory counts must be removed");
+assert.deepEqual([...retiredCharacterPurgeCheck.items],[
+  "keep-item",
+  "gift-item-lucifer-giftx-leviathan-seaglass-duck",
+  "gift-item-lucifer-giftx-belphegor-sleep-mask"
+],"Lucifer-owned Leviathan/Belphegor gifts must remain while the three removed ducks are purged");
+assert.deepEqual([...retiredCharacterPurgeCheck.keepReactions],["lucifer-morningstar"],"retired-character gift reactions must be removed from unrelated items");
+assert.deepEqual([...retiredCharacterPurgeCheck.leviathanReactions],["lucifer-morningstar"],"Lucifer reaction to a Leviathan gift must remain");
+assert.deepEqual([...retiredCharacterPurgeCheck.inventory],[
+  "keep-item",
+  "gift-item-lucifer-giftx-leviathan-seaglass-duck",
+  "gift-item-lucifer-giftx-belphegor-sleep-mask"
+],"inventory must preserve active-character Sin gifts and remove deleted ducks");
+assert.deepEqual([...retiredCharacterPurgeCheck.itemHistory],[
+  "gift-item-lucifer-giftx-leviathan-seaglass-duck",
+  "gift-item-lucifer-giftx-belphegor-sleep-mask"
+],"item history must preserve Leviathan/Belphegor gifts");
+assert.equal(retiredCharacterPurgeCheck.giftKeys.length,2,"gift discovery keys for Leviathan/Belphegor gifts must remain");
+assert.deepEqual([...retiredCharacterPurgeCheck.gachaItems],["gift-item-lucifer-giftx-leviathan-seaglass-duck"],"gacha history must preserve Sin gifts and remove deleted ducks");
 assert.deepEqual([...retiredCharacterPurgeCheck.favorites],["lucifer-morningstar"],"retired favorites must be removed");
 assert.equal(retiredCharacterPurgeCheck.origins.length,0,"retired origin intro flags must be removed");
-assert.deepEqual([...retiredCharacterPurgeCheck.variables],["keep"],"retired play variables must be removed");
+assert.deepEqual([...retiredCharacterPurgeCheck.variables],["lucifer.gift.belphegor_delivery","keep"],"Lucifer gift flags may mention Belphegor and must remain");
 assert.deepEqual([...retiredCharacterPurgeCheck.affection],["lucifer-morningstar"],"retired affection state must be removed");
 assert.equal(retiredCharacterPurgeCheck.emotions.length,0,"retired emotion state must be removed");
 assert.deepEqual([...retiredCharacterPurgeCheck.recent],["lucifer-morningstar"],"retired recent TALK state must be removed");
+assert.deepEqual([...retiredCharacterPurgeCheck.recentLucifer],["keep-event","lucifer-giftx-belphegor-delivery"],"Lucifer gift-related recent TALK must remain");
 assert.deepEqual([...retiredCharacterPurgeCheck.expanded],["lucifer-morningstar"],"retired collection expansion state must be removed");
 
 const storyPackInstall=vm.runInContext(`
