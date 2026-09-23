@@ -409,6 +409,8 @@ function normalizeAsk(a={}){
     repeatable:Boolean(a.repeatable),
     affectionDelta:clamp(a.affectionDelta ?? a.reactionAffectionDelta,-100,100,0),
     repeatAffectionDelta:clamp(a.repeatAffectionDelta ?? a.affectionDelta ?? a.reactionAffectionDelta,-100,100,0),
+    repeatMode:["light","sensitive","rude"].includes(a.repeatMode)?a.repeatMode:"light",
+    repeatBoundaryOptionIds:Array.isArray(a.repeatBoundaryOptionIds)?[...new Set(a.repeatBoundaryOptionIds.map(String).filter(Boolean))]:[],
     applyAskDeltaOnce:Boolean(a.applyAskDeltaOnce),
     emotionState:EMOTIONS.some(x=>x[0]===a.emotionState) ? a.emotionState : "",
     emotionIntensity:clamp(a.emotionIntensity ?? a.reactionEmotionIntensity,0,100,0),
@@ -1667,6 +1669,8 @@ function compactAskForStorage(ask={}){
   if(ask.repeatable)out.repeatable=true;
   if(ask.affectionDelta)out.affectionDelta=ask.affectionDelta;
   if(ask.repeatAffectionDelta)out.repeatAffectionDelta=ask.repeatAffectionDelta;
+  if(ask.repeatMode&&ask.repeatMode!=="light")out.repeatMode=ask.repeatMode;
+  if(Array.isArray(ask.repeatBoundaryOptionIds)&&ask.repeatBoundaryOptionIds.length)out.repeatBoundaryOptionIds=[...ask.repeatBoundaryOptionIds];
   if(ask.applyAskDeltaOnce)out.applyAskDeltaOnce=true;
   if(ask.emotionState)out.emotionState=ask.emotionState;
   if(ask.emotionIntensity)out.emotionIntensity=ask.emotionIntensity;
