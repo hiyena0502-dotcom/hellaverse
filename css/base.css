@@ -964,3 +964,58 @@ input:focus,textarea:focus,select:focus,button:focus-visible{
     transform:none;
   }
 }
+
+
+
+/* v126 · flush status card to corner; ALL below meters */
+.character-status-widget.home{
+  top:0;
+  right:0;
+  transform:none;
+  display:block;
+  gap:0;
+}
+.character-status-widget.home .character-status-meters.home{
+  width:300px;
+  border-top-right-radius:0;
+  border-bottom-right-radius:0;
+}
+.character-status-widget.home .character-status-all{
+  display:block;
+  width:100%;
+  min-width:0;
+  height:36px;
+  margin-top:4px;
+  padding:0 12px;
+  border:1px solid rgba(214,178,110,.36);
+  background:
+    linear-gradient(180deg,rgba(74,21,36,.82),rgba(18,11,15,.94));
+  color:#f4dcae;
+  font-size:.58rem;
+  font-weight:700;
+  letter-spacing:.14em;
+  text-align:center;
+  box-shadow:none;
+}
+.character-status-widget.home .character-status-all:hover{
+  border-color:var(--gold);
+  background:
+    linear-gradient(180deg,rgba(118,32,52,.92),rgba(29,13,20,.96));
+}
+@media(max-width:1100px){
+  .character-status-widget.home{top:0;right:0}
+}
+@media(max-width:900px){
+  .character-status-widget.home{top:0;right:0}
+}
+@media(max-width:620px){
+  .character-status-widget.home{top:0;right:0}
+  .character-status-widget.home .character-status-meters.home{
+    width:210px;
+  }
+  .character-status-widget.home .character-status-all{
+    width:100%;
+    height:32px;
+    font-size:.5rem;
+  }
+}
