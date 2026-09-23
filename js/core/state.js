@@ -109,6 +109,7 @@ function defaultState(){
       singleCost:10,
       tenCost:90,
       rarityWeights:{COMMON:50,UNCOMMON:28,RARE:14,EPIC:7,LEGENDARY:3,MISTIC:1},
+      profiles:{},
       history:[]
     },
     discoveredThoughtIds:[]
@@ -1219,6 +1220,10 @@ function purgeRetiredCharacterContent(source){
     ]));
 
   source.gacha ||= {};
+  source.gacha.profiles=Object.fromEntries(
+    Object.entries(source.gacha.profiles&&typeof source.gacha.profiles==="object"?source.gacha.profiles:{})
+      .filter(([characterId])=>keepCharacterId(characterId))
+  );
   source.gacha.history=(source.gacha.history||[]).filter(row=>
     !removedItemIds.has(String(row?.itemId||""))&&
     !referencesRemovedItem(row?.itemId)
@@ -1299,6 +1304,14 @@ function normalizeState(raw){
       singleCost:Math.max(0,Number(s.gacha?.singleCost ?? d.gacha.singleCost) || 0),
       tenCost:Math.max(0,Number(s.gacha?.tenCost ?? d.gacha.tenCost) || 0),
       rarityWeights:Object.fromEntries(RARITIES.map(r=>[r,Math.max(0,Number(s.gacha?.rarityWeights?.[r] ?? d.gacha.rarityWeights[r]) || 0)])),
+      profiles:Object.fromEntries(Object.entries(s.gacha?.profiles&&typeof s.gacha.profiles==="object"?s.gacha.profiles:{}).map(([characterId,profile])=>[
+        String(characterId),
+        {
+          icon:String(profile?.icon||""),
+          title:String(profile?.title||""),
+          description:String(profile?.description||"")
+        }
+      ])),
       history:Array.isArray(s.gacha?.history)?s.gacha.history.slice(-50):[]
     },
     discoveredThoughtIds:Array.isArray(s.discoveredThoughtIds)?[...new Set(s.discoveredThoughtIds)]:[]
