@@ -512,6 +512,7 @@ function beginInteractionReaction(kind,source,entries,label="",meta={}){
     characterId:ch.id,
     roomCharacterId:ch.id,
     eventId:activeInteractionEvent.id,
+    itemEffectClaimSnapshot:[...(interactionMeta.itemEffectClaimSnapshot||state.claimedItemEffectIds||[])],
     frames:[{sourceType:"event",sourceId:activeInteractionEvent.id,index:0,label:kind.toUpperCase(),exitMode:"continue",targetEventId:""}],
     ended:false
   };
@@ -550,6 +551,7 @@ function startInteractionFollowEvent(eventId){
   playback={
     characterId:selectedCharacterId,
     eventId:ev.id,
+    itemEffectClaimSnapshot:[...(interactionContext?.completionMeta?.itemEffectClaimSnapshot||state.claimedItemEffectIds||[])],
     continuationQueue:[...(ev.continuationEventIds||[])],
     continuationTotal:(ev.continuationEventIds||[]).length,
     frames:[{sourceType:"event",sourceId:ev.id,index:0,label:"상호작용",exitMode:"continue",targetEventId:""}],
