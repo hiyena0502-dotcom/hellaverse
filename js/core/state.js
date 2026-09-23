@@ -164,6 +164,13 @@ function normalizeItemCondition(c){
   if(!c || typeof c!=="object")return null;
   return {itemId:c.itemId||"",operator:c.operator||">=",value:Math.max(0,Number(c.value)||0)};
 }
+function normalizeItemEffectClaimCondition(c){
+  if(!c || typeof c!=="object")return null;
+  return {
+    effectId:String(c.effectId||""),
+    status:c.status==="claimed"?"claimed":"unclaimed"
+  };
+}
 function normalizeAskCondition(c){
   if(!c || typeof c!=="object")return null;
   return {askId:c.askId||"",status:["asked","not-asked","unlocked","locked"].includes(c.status)?c.status:"asked"};
@@ -212,6 +219,7 @@ function normalizeEntry(entry={}){
     effects:normalizeEffects(entry.effects),
     itemEffects:normalizeItemEffects(entry.itemEffects),
     itemCondition:normalizeItemCondition(entry.itemCondition),
+    itemEffectClaimCondition:normalizeItemEffectClaimCondition(entry.itemEffectClaimCondition),
     askCondition:normalizeAskCondition(entry.askCondition),
     affectionCondition:normalizeAffectionCondition(entry.affectionCondition),
     affectionEffects:normalizeAffectionEffects(entry.affectionEffects),
@@ -234,6 +242,7 @@ function normalizeEntry(entry={}){
         effects:normalizeEffects(o.effects),
         itemEffects:normalizeItemEffects(o.itemEffects),
         itemCondition:normalizeItemCondition(o.itemCondition),
+        itemEffectClaimCondition:normalizeItemEffectClaimCondition(o.itemEffectClaimCondition),
         askCondition:normalizeAskCondition(o.askCondition),
         affectionCondition:normalizeAffectionCondition(o.affectionCondition),
         affectionEffects:normalizeAffectionEffects(o.affectionEffects),
@@ -332,6 +341,7 @@ function normalizeEvent(e={}){
     startMode:["PLAYER_ASK","CHARACTER_OPEN","EVENT"].includes(e.startMode)?e.startMode:"",
     sensitivity:["light","medium","high"].includes(e.sensitivity)?e.sensitivity:"",
     topicFamily:String(e.topicFamily||"").trim().slice(0,80),
+    dialogueAcquisitionEffectId:String(e.dialogueAcquisitionEffectId||""),
     playerOrigins:Array.isArray(e.playerOrigins)
       ? [...new Set(e.playerOrigins.map(normalizeOrigin).filter(origin=>["sinner","hellborn","angel","winner"].includes(origin)))]
       : [],
@@ -440,6 +450,7 @@ function normalizeItem(i={}){
     symbol:String(i.symbol||i.icon||archiveMeta.symbol||"🎁"),
     gachaLine:String(i.gachaLine||i.revealLine||archiveMeta.gachaLine||""),
     inventoryEventId:String(i.inventoryEventId||""),
+    acquisitionHint:String(i.acquisitionHint||""),
     acquisitionMode:i.acquisitionMode==="unique"?"unique":"repeatable",
     giftUseMode:i.giftUseMode==="consume"?"consume":"keep",
     giftable:i.giftable!==false,
