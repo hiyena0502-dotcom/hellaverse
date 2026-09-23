@@ -530,7 +530,18 @@ function renderGacha(){
   pageRoot.innerHTML=
     '<section><div class="page-head"><div><p class="page-kicker">GACHA</p><h1>ARCHIVE DRAW</h1></div><p>아이템 설정에서 가챠 포함으로 지정한 아이템을 추첨합니다. REVEAL LINE은 뽑힌 아이템의 가챠 등장 대사를 그대로 사용합니다.</p></div>'+
     '<div class="gacha-layout">'+
-      '<div class="gacha-stage '+(gachaAnimating?'is-drawing':'')+'"><div class="gacha-core"><p class="gacha-balance">'+esc(state.gacha.currencyName)+' · '+state.gacha.balance+'</p><h2>DRAW THE ARCHIVE</h2>'+
+      '<div class="gacha-stage '+(gachaAnimating?'is-drawing':'')+'">'+
+      '<div class="gacha-particle-field gacha-particle-field-ambient" aria-hidden="true">'+Array.from({length:20},(_,index)=>{
+        const x=(index*37+11)%100;
+        const y=(index*53+17)%100;
+        const size=2+(index%4);
+        const delay=((index*.43)%5).toFixed(2);
+        const duration=(4.8+(index%6)*.7).toFixed(2);
+        const drift=-18+(index%7)*6;
+        const type=index%5===0?" is-star":index%3===0?" is-wine":"";
+        return '<span class="gacha-ambient-particle'+type+'" style="--x:'+x+'%;--y:'+y+'%;--size:'+size+'px;--delay:'+delay+'s;--duration:'+duration+'s;--drift:'+drift+'px">'+(index%5===0?'✦':'')+'</span>';
+      }).join("")+'</div>'+
+      '<div class="gacha-core"><p class="gacha-balance">'+esc(state.gacha.currencyName)+' · '+state.gacha.balance+'</p><h2>DRAW THE ARCHIVE</h2>'+
       '<p>'+availablePool.length+'개의 현재 획득 가능한 아이템이 있습니다.</p><div id="gachaResult" class="gacha-result-grid"></div>'+
       '<div class="draw-actions"><button class="gold-button" type="button" data-action="draw-gacha" data-count="1" '+(drawDisabled?"disabled":"")+'>1 DRAW · '+state.gacha.singleCost+'</button>'+
       '<button class="gold-button" type="button" data-action="draw-gacha" data-count="10" '+(drawDisabled||!canTen?"disabled":"")+'>10 DRAW · '+state.gacha.tenCost+'</button></div>'+
