@@ -281,8 +281,10 @@ function relationshipProgress(characterId){
     ? state.items.filter(item=>item.enabled&&item.giftable!==false&&Boolean(giftReactionFor(item,character)))
     : [];
   const giftSeen=giftItems.filter(item=>isGiftPreferenceDiscovered(item.id,characterId)).length;
-  const specialTotal=giftItems.filter(item=>giftReactionFor(item,character)?.specialEntries?.length).length;
-  const specialSeen=(state.discoveredSpecialGiftKeys||[]).filter(key=>String(key).endsWith("::"+characterId)).length;
+  const specialItems=giftItems.filter(item=>giftReactionFor(item,character)?.specialEntries?.length);
+  const specialTotal=specialItems.length;
+  const specialKeys=new Set(specialItems.map(item=>giftReactionKey(item.id,characterId)));
+  const specialSeen=(state.discoveredSpecialGiftKeys||[]).filter(key=>specialKeys.has(String(key))).length;
   return{talkSeen,talkTotal:talkIds.length,askSeen,askTotal:asks.length,giftSeen,giftTotal:giftItems.length,specialSeen,specialTotal};
 }
 function relationshipProgressMarkup(characterId){
