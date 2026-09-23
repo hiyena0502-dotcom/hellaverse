@@ -796,6 +796,8 @@ function renderThoughtEditor(){
           '<select data-thought-bind="category">'+editorDraft.thoughtSettings.categories.map(cat=>'<option '+(t.category===cat?"selected":"")+'>'+esc(cat)+'</option>').join("")+'</select>'+
           '<select data-thought-bind="frequency">'+FREQUENCIES.map(f=>'<option value="'+f[0]+'" '+(t.frequency===f[0]?"selected":"")+'> '+f[1]+'</option>').join("")+'</select>'+
           '<select data-thought-bind="rarity">'+RARITIES.map(r=>'<option '+(t.rarity===r?"selected":"")+'>'+r+'</option>').join("")+'</select>'+
+          '<label class="field"><span>호감도 최소</span><input type="number" min="0" max="100" step="1" data-thought-bind="minAffection" value="'+Number(t.minAffection||0)+'"></label>'+
+          '<label class="field"><span>호감도 최대</span><input type="number" min="0" max="100" step="1" data-thought-bind="maxAffection" value="'+Number(t.maxAffection??100)+'"></label>'+
           '<textarea data-thought-bind="text">'+esc(t.text)+'</textarea>'+
           '<span><label class="checkline"><input type="checkbox" data-thought-bind="enabled" '+(t.enabled?"checked":"")+'> 사용</label><button class="danger-button" data-action="delete-thought">현재 THOUGHT 삭제</button></span>'+
         '</div>'
