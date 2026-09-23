@@ -268,12 +268,19 @@ const walkEntries=(entries,visit)=>{
 
 vm.runInNewContext(luciferAskIntegratedCode,unifiedContext);
 const luciferIntegratedAsk=unifiedContext.window.HV_STORY_PACKS.find(pack=>pack.id==="unified-asks-lucifer-morningstar");
-assert.equal(luciferIntegratedAsk.version,4,"Lucifer integrated ASK pack version missing");
+assert.equal(luciferIntegratedAsk.version,5,"Lucifer integrated ASK pack version missing");
 assert.equal(luciferIntegratedAsk.asks.length,68,"Lucifer integrated ASK must contain all 68 questions");
 assert.equal(new Set(luciferIntegratedAsk.asks.map(ask=>ask.id)).size,68,"Lucifer integrated ASK ids must be unique");
 assert.equal(luciferIntegratedAsk.asks.reduce((sum,ask)=>sum+(ask.entries.at(-1)?.options?.length||0),0),210,"Lucifer integrated ASK must contain all 210 choices");
 assert.ok(luciferIntegratedAsk.asks.every(ask=>ask.repeatable&&ask.applyAskDeltaOnce),"Lucifer integrated ASK must retain repeat dialogue while protecting first-use question effects");
 assert.ok(luciferIntegratedAsk.asks.every(ask=>Number.isFinite(ask.repeatAffectionDelta)),"Lucifer integrated ASK repeat affinity values missing");
+const luciferRepeatAwareAsks=luciferIntegratedAsk.asks.filter(ask=>ask.entries.some(entry=>entry.askCondition?.status==="repeat"));
+assert.ok(luciferRepeatAwareAsks.length>=39,"Lucifer integrated ASK must give repeat-specific dialogue to more than half of the questions");
+for(const id of ["lucifer-ask-ducks","lucifer-ask-charlie","lucifer-ask-heaven-past","lucifer-ask-player-impression","lucifer-ask-rude-charlie","lucifer-ask-rude-lilith","lucifer-ask-rude-heaven"]){
+  const ask=luciferIntegratedAsk.asks.find(row=>row.id===id);
+  assert.ok(ask?.entries.some(entry=>entry.askCondition?.status==="not-asked"),id+" first-use ASK branch missing");
+  assert.ok(ask?.entries.some(entry=>entry.askCondition?.status==="repeat"),id+" repeat ASK branch missing");
+}
 assert.ok(luciferIntegratedAsk.asks.every(ask=>ask.entries.at(-1)?.type==="choice"),"Every Lucifer ASK must end in a player choice");
 assert.ok(!luciferAskIntegratedCode.includes("추가 나레이션 운용 규칙"),"Lucifer ASK appendix text must not leak into dialogue");
 const integratedAskById=id=>luciferIntegratedAsk.asks.find(ask=>ask.id===id);
@@ -1116,13 +1123,13 @@ const luciferAskInstall=vm.runInContext(`
 })()
 `,context);
 context.window.HV_STORY_PACKS.length=storyPackCountBeforeLuciferAsk;
-assert.equal(luciferAskInstall.version,4,"Lucifer integrated ASK installer version missing");
+assert.equal(luciferAskInstall.version,5,"Lucifer integrated ASK installer version missing");
 assert.equal(luciferAskInstall.askCount,68,"Lucifer integrated ASK installer must replace legacy questions without duplicates");
 assert.equal(luciferAskInstall.hasLegacy,false,"retired Lucifer ASK must be removed during upgrade");
 assert.deepEqual([...luciferAskInstall.asked],["lucifer-ask-charlie-similar"],"legacy asked ASK progress must migrate to the integrated id");
 assert.deepEqual([...luciferAskInstall.unlocked],["lucifer-ask-charlie-similar"],"legacy unlocked ASK progress must migrate to the integrated id");
 assert.equal(luciferAskInstall.historyAskId,"lucifer-ask-charlie-similar","legacy ASK history must migrate to the integrated id");
-assert.equal(luciferAskInstall.integratedRepeat,-1,"integrated repeat affinity must survive installation");
+assert.equal(luciferAskInstall.integratedRepeat,-2,"integrated repeat affinity must survive installation");
 assert.equal(luciferAskInstall.legacyRepeat,2,"legacy repeatable ASK must preserve its previous affinity behavior");
 assert.equal(luciferAskInstall.legacyOnce,false,"legacy ASK must not silently gain one-time affinity semantics");
 
