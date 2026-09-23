@@ -1785,7 +1785,7 @@ input:focus,textarea:focus,select:focus,button:focus-visible{
   0%{
     top:-26%;
     opacity:0;
-    transform:translate3d(calc(0px - var(--rain-drift) * .22),0,0) rotate(var(--rain-rot));
+    transform:translate3d(calc(0px - var(--rain-drift)),0,0) rotate(var(--rain-rot));
   }
   8%{opacity:1}
   74%{opacity:.92}
