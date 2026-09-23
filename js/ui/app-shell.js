@@ -548,10 +548,17 @@ function renderGacha(){
         const delay=((index*.23)%3.1).toFixed(2);
         const duration=(2.9+(index%6)*.34).toFixed(2);
         const drift=-60+(index%9)*15;
+        const orbitX=28+(index%7)*11;
+        const orbitY=18+(index%5)*10;
+        const orbitX2=20+(index%6)*13;
+        const orbitY2=24+(index%4)*14;
+        const twinkle=(1.18+(index%5)*.11).toFixed(2);
         const type=index%5===0?" is-star":index%3===0?" is-wine":"";
-        return '<span class="gacha-ambient-particle'+type+'" style="--x:'+x+'%;--y:'+y+'%;--size:'+size+'px;--delay:'+delay+'s;--duration:'+duration+'s;--drift:'+drift+'px">'+(index%5===0?'✦':'')+'</span>';
+        return '<span class="gacha-ambient-particle'+type+'" style="--x:'+x+'%;--y:'+y+'%;--size:'+size+'px;--delay:'+delay+'s;--duration:'+duration+'s;--drift:'+drift+'px;--orbit-x:'+orbitX+'px;--orbit-y:'+orbitY+'px;--orbit-x2:'+orbitX2+'px;--orbit-y2:'+orbitY2+'px;--twinkle-scale:'+twinkle+'">'+(index%5===0?'✦':'')+'</span>';
       }).join("")+'</div>'+
-      '<div class="gacha-core"><p class="gacha-balance">'+esc(state.gacha.currencyName)+' · '+state.gacha.balance+'</p><h2>DRAW THE ARCHIVE</h2>'+
+      '<div class="gacha-core"><p class="gacha-balance">'+esc(state.gacha.currencyName)+' · '+state.gacha.balance+'</p>'+
+      '<div class="gacha-archive-logo" aria-hidden="true"><span class="gacha-archive-logo-halo"></span><span class="gacha-archive-logo-star">✦</span><span class="gacha-archive-logo-spark spark-a">✧</span><span class="gacha-archive-logo-spark spark-b">·</span></div>'+
+      '<h2>DRAW THE ARCHIVE</h2>'+
       '<p>'+availablePool.length+'개의 현재 획득 가능한 아이템이 있습니다.</p><div id="gachaResult" class="gacha-result-grid"></div>'+
       '<div class="draw-actions"><button class="gold-button" type="button" data-action="draw-gacha" data-count="1" '+(drawDisabled?"disabled":"")+'>1 DRAW · '+state.gacha.singleCost+'</button>'+
       '<button class="gold-button" type="button" data-action="draw-gacha" data-count="10" '+(drawDisabled||!canTen?"disabled":"")+'>10 DRAW · '+state.gacha.tenCost+'</button></div>'+
