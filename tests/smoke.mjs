@@ -151,6 +151,13 @@ assert.match(dialoguePresetCode,/seenTalkSignatures/,"duplicate TALK rotation gu
 assert.match(stateCode,/randomEligible:e\.randomEligible!==false/,"random TALK eligibility persistence missing");
 assert.match(dialogueCode,/ev\.randomEligible!==false/,"random TALK eligibility filter missing");
 assert.match(dialogueCode,/player-dialogue/,"PLAYER dialogue must use its own visual surface class");
+assert.match(appShell,/gacha-particle-field-ambient/,"ambient gacha particle field missing");
+assert.match(dialogueCode,/function spawnGachaParticles\(/,"gacha burst particle helper missing");
+assert.match(dialogueCode,/spawnGachaParticles\(stage,"burst",34\)/,"gacha summon burst particles missing");
+assert.match(dialogueCode,/spawnGachaParticles\(stage,"reveal"/,"gacha reveal burst particles missing");
+assert.match(featuresCss,/@keyframes gachaAmbientParticle/,"ambient gacha particle animation missing");
+assert.match(featuresCss,/@keyframes gachaParticleBurst/,"gacha burst particle animation missing");
+assert.match(featuresCss,/prefers-reduced-motion:reduce/,"gacha particle reduced-motion fallback missing");
 assert.match(dialogueCode,/character-dialogue/,"character dialogue must use its own visual surface class");
 assert.match(dialogueCode,/isPlayer\?"YOU":speaker/,"PLAYER dialogue must render a distinct YOU label");
 assert.match(dialogueCss,/\.dialogue-box\.player-dialogue/,"PLAYER dialogue styling missing");
