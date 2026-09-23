@@ -533,21 +533,21 @@ function renderGacha(){
       '<div class="gacha-stage '+(gachaAnimating?'is-drawing':'')+'">'+
       '<div class="gacha-hotel-frame" aria-hidden="true"></div>'+
       '<div class="gacha-draw-backdrop" aria-hidden="true"><i></i><i></i><i></i></div>'+
-      '<div class="gacha-shooting-star-field" aria-hidden="true">'+Array.from({length:12},(_,index)=>{
-        const x=(index*19+7)%88;
-        const y=(index*13+2)%46;
-        const delay=((index*.13)%1.15).toFixed(2);
-        const duration=(.72+(index%4)*.11).toFixed(2);
-        const length=70+(index%5)*18;
+      '<div class="gacha-shooting-star-field" aria-hidden="true">'+Array.from({length:18},(_,index)=>{
+        const x=(index*17+3)%92;
+        const y=(index*11+1)%54;
+        const delay=((index*.09)%1.08).toFixed(2);
+        const duration=(.48+(index%5)*.07).toFixed(2);
+        const length=120+(index%6)*26;
         return '<i class="gacha-shooting-star'+(index%4===0?' wine':'')+'" style="--star-x:'+x+'%;--star-y:'+y+'%;--star-delay:'+delay+'s;--star-duration:'+duration+'s;--star-length:'+length+'px"></i>';
       }).join("")+'</div>'+
-      '<div class="gacha-particle-field gacha-particle-field-ambient" aria-hidden="true">'+Array.from({length:36},(_,index)=>{
+      '<div class="gacha-particle-field gacha-particle-field-ambient" aria-hidden="true">'+Array.from({length:48},(_,index)=>{
         const x=(index*37+11)%100;
         const y=(index*53+17)%100;
-        const size=4+(index%5)*1.4;
-        const delay=((index*.31)%4.2).toFixed(2);
-        const duration=(4.2+(index%6)*.55).toFixed(2);
-        const drift=-18+(index%7)*6;
+        const size=5+(index%6)*1.8;
+        const delay=((index*.23)%3.1).toFixed(2);
+        const duration=(2.9+(index%6)*.34).toFixed(2);
+        const drift=-60+(index%9)*15;
         const type=index%5===0?" is-star":index%3===0?" is-wine":"";
         return '<span class="gacha-ambient-particle'+type+'" style="--x:'+x+'%;--y:'+y+'%;--size:'+size+'px;--delay:'+delay+'s;--duration:'+duration+'s;--drift:'+drift+'px">'+(index%5===0?'✦':'')+'</span>';
       }).join("")+'</div>'+
