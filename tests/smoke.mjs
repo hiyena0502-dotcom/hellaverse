@@ -176,6 +176,14 @@ assert.match(hotelThemeCss,/@keyframes gachaAmbientIdleActive/,"idle gacha parti
 assert.match(hotelThemeCss,/@keyframes gachaAmbientIdleStarActive/,"idle gacha stars must stay animated");
 assert.match(hotelThemeCss,/\.gacha-star-rain\{/,"falling star shower layer CSS missing");
 assert.match(hotelThemeCss,/@keyframes gachaStarRainFall/,"falling star shower animation missing");
+assert.match(appShell,/gacha-archive-logo/,"gacha archive star emblem missing");
+assert.match(appShell,/--orbit-x:/,"ambient star orbit variables missing");
+assert.match(hotelThemeCss,/@keyframes gachaStarWanderTwinkle/,"idle wandering star animation missing");
+assert.match(hotelThemeCss,/@keyframes gachaStarWanderDraw/,"draw-time wandering star animation missing");
+assert.match(hotelThemeCss,/@keyframes gachaMeteorDownLeft/,"upper-right to lower-left meteor animation missing");
+assert.match(hotelThemeCss,/\.gacha-stage \.gacha-shooting-star\{[\s\S]*?height:1px/,"shooting stars should stay thin");
+assert.match(dialogueCode,/--rain-drift",\(-260-Math\.random\(\)\*360\)/,"star rain must drift strongly from right to left");
+
 
 
 assert.match(hotelThemeCss,/@keyframes gachaBackdropOrbit/,"moving gacha backdrop animation missing");
