@@ -26,7 +26,10 @@ const EMOTIONS = [
   ["calm","평온"],["joy","기쁨"],["embarrassed","당황"],["sad","슬픔"],
   ["angry","화남"],["anxious","불안"],["curious","호기심"],["guarded","경계"]
 ];
-const FREQUENCIES = [["common","Common"],["normal","Normal"],["rare","Rare"]];
+const FREQUENCIES = [["common","자주"],["normal","가끔"],["rare","드물게"]];
+function thoughtFrequencyLabel(value){
+  return value==="rare"?"드물게":value==="normal"?"가끔":"자주";
+}
 const DEFAULT_CATEGORIES = ["일상","관계","과거","천국","지옥","비밀"];
 const DEFAULT_ITEM_CATEGORIES = ["개인 소지품","음식","장신구","편지·문서","장난감","수제품","기념품","열쇠·도구","기타"];
 const GIFT_PREFERENCES = [
@@ -476,12 +479,22 @@ function normalizeItem(i={}){
   };
 }
 function normalizeThought(t={}){
+  const minAffection=clamp(
+    t.minAffection ?? t.requiredAffection ?? t.affectionMin ?? 0,
+    0,100,0
+  );
+  const maxAffection=clamp(
+    t.maxAffection ?? t.affectionMax ?? 100,
+    0,100,100
+  );
   return {
     id:t.id||uid("thought"),
     characterId:t.characterId||"",
     category:t.category||"일상",
     rarity:RARITIES.includes(t.rarity)?t.rarity:"COMMON",
     frequency:["common","normal","rare"].includes(t.frequency)?t.frequency:"common",
+    minAffection:Math.min(minAffection,maxAffection),
+    maxAffection:Math.max(minAffection,maxAffection),
     text:t.text||"",
     enabled:t.enabled!==false
   };
@@ -794,6 +807,8 @@ function migrateLegacyBackup(raw){
       category:categoryMap.get(String(t.category||""))||String(t.category||"일상"),
       rarity:RARITIES.includes(t.rarity)?t.rarity:"COMMON",
       frequency:["common","normal","rare"].includes(t.frequency)?t.frequency:"common",
+      minAffection:clamp(t.minAffection ?? t.requiredAffection ?? t.affectionMin ?? 0,0,100,0),
+      maxAffection:clamp(t.maxAffection ?? t.affectionMax ?? 100,0,100,100),
       text:String(t.text||""),
       enabled:t.enabled!==false
     }));
@@ -1572,6 +1587,11 @@ function installStoryPacks(source){
     const presetResult=window.HV_APPLY_DIALOGUE_PRESETS(source,{
       normalizeEntry,normalizeEvent,normalizeVariable,normalizeItemEffects
     });
+    if(presetResult?.state)source=presetResult.state;
+    if(presetResult?.changed)changed=true;
+  }
+  if(typeof window.HV_APPLY_THOUGHT_PRESETS==="function"){
+    const presetResult=window.HV_APPLY_THOUGHT_PRESETS(source,{normalizeThought});
     if(presetResult?.state)source=presetResult.state;
     if(presetResult?.changed)changed=true;
   }
