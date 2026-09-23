@@ -1566,7 +1566,7 @@ function installStoryPacks(source){
   return{state:source,changed,installed};
 }
 function compactOwnerForStorage(source,target){
-  for(const key of ["condition","itemCondition","askCondition","affectionCondition","emotionCondition"]){
+  for(const key of ["condition","itemCondition","itemEffectClaimCondition","askCondition","affectionCondition","emotionCondition"]){
     if(source?.[key])target[key]=source[key];
   }
   for(const key of ["effects","itemEffects","affectionEffects","emotionEffects"]){
@@ -1613,6 +1613,7 @@ function compactEventForStorage(event={}){
   if(event.startMode)out.startMode=event.startMode;
   if(event.sensitivity)out.sensitivity=event.sensitivity;
   if(event.topicFamily)out.topicFamily=event.topicFamily;
+  if(event.dialogueAcquisitionEffectId)out.dialogueAcquisitionEffectId=event.dialogueAcquisitionEffectId;
   if(event.emotionExitMode==="reset")out.emotionExitMode="reset";
   return out;
 }
