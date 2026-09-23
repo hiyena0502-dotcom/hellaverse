@@ -887,6 +887,57 @@ assert.match(luciferAcquisitionInstallCheck.effectId,/lucifer-dialogue-acquired-
 assert.equal(luciferAcquisitionInstallCheck.ownedCondition?.operator,">=","owned-item alternate dialogue branch missing");
 assert.equal(luciferAcquisitionInstallCheck.ownedClaim?.status,"unclaimed","owned-item branch must remain available until dialogue acquisition is claimed");
 
+const luciferLegacyCustodyCleanupCheck=vm.runInContext(`
+(()=>{
+  const source=normalizeState({
+    schemaVersion:4,
+    characters:[{id:"lucifer-morningstar",name:"Lucifer Morningstar",origin:"angel"}],
+    items:[{
+      id:"item-1789238615638-c2e89857e40d18",
+      name:"오래된 별 지도",
+      category:"기념품",
+      rarity:"EPIC",
+      collectionCharacterId:"lucifer-morningstar",
+      inventoryEventId:"legacy-custody-star-map",
+      acquisitionMode:"repeatable",
+      enabled:true,
+      gachaEnabled:true
+    }],
+    events:[{
+      id:"legacy-custody-star-map",
+      name:"TALK · 오래된 별 지도 · 보관을 맡기다",
+      characterId:"lucifer-morningstar",
+      eventRole:"talk",
+      entries:[{
+        id:"legacy-custody-line",
+        type:"narration",
+        text:"legacy",
+        itemEffects:[{
+          id:"legacy-custody-grant",
+          itemId:"item-1789238615638-c2e89857e40d18",
+          amount:1,
+          once:true
+        }]
+      }]
+    }],
+    claimedItemEffectIds:["legacy-custody-grant"],
+    discoveredTalkIds:["legacy-custody-star-map"]
+  });
+  const installed=installStoryPacks(source).state;
+  const item=installed.items.find(row=>row.id==="item-1789238615638-c2e89857e40d18");
+  return{
+    legacyExists:installed.events.some(row=>row.id==="legacy-custody-star-map"),
+    inventoryEventId:item?.inventoryEventId||"",
+    claimed:[...(installed.claimedItemEffectIds||[])],
+    discovered:[...(installed.discoveredTalkIds||[])]
+  };
+})()
+`,context);
+assert.equal(luciferLegacyCustodyCleanupCheck.legacyExists,false,"legacy Lucifer custody TALK must be removed");
+assert.equal(luciferLegacyCustodyCleanupCheck.inventoryEventId,"","legacy Lucifer custody inventoryEventId must be cleared");
+assert.ok(!luciferLegacyCustodyCleanupCheck.claimed.includes("legacy-custody-grant"),"legacy Lucifer custody claim id must be cleared");
+assert.ok(!luciferLegacyCustodyCleanupCheck.discovered.includes("legacy-custody-star-map"),"legacy Lucifer custody discovery id must be cleared");
+
 const retiredCharacterPurgeCheck=vm.runInContext(`
 (()=>{
   const source=normalizeState({
