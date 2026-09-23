@@ -156,3 +156,23 @@
     width:calc(100vw - 20px);
   }
 }
+
+
+/* v131 · anchor THOUGHT notice above the HOME THOUGHT button */
+.thought-notice.thought-notice-anchored{
+  right:auto;
+  top:auto;
+  transform:translate(-50%,14px) scale(.985);
+}
+.thought-notice.thought-notice-anchored.show{
+  transform:translate(-50%,0) scale(1);
+}
+.thought-notice.thought-notice-anchored.hide{
+  transform:translate(-50%,10px) scale(.99);
+}
+@media(max-width:620px){
+  .thought-notice.thought-notice-anchored{
+    right:auto;
+    top:auto;
+  }
+}
