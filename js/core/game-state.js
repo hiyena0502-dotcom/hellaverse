@@ -177,19 +177,8 @@ function itemsForCharacter(charId,source=state){
   return source.items.filter(i=>i.enabled&&(i.collectionCharacterId===charId||i.reactions.some(r=>r.characterId===charId)));
 }
 function giftReactionFor(item,character){
-  if(!item||!character)return null;
-  const explicit=(item.reactions||[]).find(reaction=>reaction.characterId===character.id);
-  if(explicit)return explicit;
-  if(typeof window.HV_BUILD_ITEM_REACTION==="function"){
-    return normalizeItemReaction(window.HV_BUILD_ITEM_REACTION(item,character),character.id);
-  }
-  return normalizeItemReaction({
-    characterId:character.id,
-    preference:"NEUTRAL",
-    affectionDelta:0,
-    firstEntries:[{type:"narration",text:character.name+"가 선물을 받아 든다."},{type:"dialogue",speakerCharacterId:character.id,speaker:character.name,text:"고마워. 잘 받아둘게."}],
-    repeatEntries:[{type:"dialogue",speakerCharacterId:character.id,speaker:character.name,text:"또 챙겨왔네. 고마워."}]
-  },character.id);
+  if(!item||!character||item.giftable===false)return null;
+  return (item.reactions||[]).find(reaction=>reaction.characterId===character.id)||null;
 }
 function flowHasItemGrant(entries,itemId){
   for(const entry of entries||[]){
