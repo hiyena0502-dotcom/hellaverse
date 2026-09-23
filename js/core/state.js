@@ -162,7 +162,12 @@ function normalizeItemEffects(arr){
 }
 function normalizeItemCondition(c){
   if(!c || typeof c!=="object")return null;
-  return {itemId:c.itemId||"",operator:c.operator||">=",value:Math.max(0,Number(c.value)||0)};
+  return {
+    itemId:c.itemId||"",
+    operator:c.operator||">=",
+    value:Math.max(0,Number(c.value)||0),
+    snapshot:Boolean(c.snapshot)
+  };
 }
 function normalizeItemEffectClaimCondition(c){
   if(!c || typeof c!=="object")return null;
