@@ -1896,3 +1896,171 @@ input:focus,textarea:focus,select:focus,button:focus-visible{
     animation:gachaStarRainCurveDownLeft 1.05s ease-out var(--rain-delay) forwards!important;
   }
 }
+
+
+/* v141 · anime-style sparse meteors with tapered tails */
+.gacha-stage .gacha-shooting-star{
+  width:var(--star-length);
+  min-width:0;
+  max-width:none;
+  height:5px;
+  background:none;
+  filter:none;
+  border-radius:0;
+  opacity:0;
+  transform:none;
+  transform-origin:center;
+}
+
+/* Thin fading tail */
+.gacha-stage .gacha-shooting-star:before{
+  content:"";
+  position:absolute;
+  left:0;
+  right:4px;
+  top:50%;
+  height:1px;
+  transform:translateY(-50%);
+  background:linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(240,207,138,.04) 18%,
+    rgba(240,207,138,.18) 50%,
+    rgba(255,230,171,.58) 82%,
+    rgba(255,244,213,.92) 100%
+  );
+  filter:drop-shadow(0 0 2px rgba(240,207,138,.52));
+}
+
+/* Bright compact meteor head */
+.gacha-stage .gacha-shooting-star:after{
+  content:"";
+  position:absolute;
+  left:auto;
+  right:0;
+  top:50%;
+  width:5px;
+  height:4px;
+  border-radius:55% 48% 48% 55%;
+  transform:translateY(-50%);
+  background:#fff8df;
+  box-shadow:
+    0 0 4px rgba(255,250,229,.98),
+    0 0 9px rgba(244,213,144,.9),
+    0 0 16px rgba(216,179,106,.46);
+}
+
+.gacha-stage .gacha-shooting-star.wine:before{
+  background:linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(167,45,72,.03) 18%,
+    rgba(190,50,89,.16) 50%,
+    rgba(226,80,120,.52) 82%,
+    rgba(255,210,223,.9) 100%
+  );
+  filter:drop-shadow(0 0 2px rgba(200,48,90,.46));
+}
+.gacha-stage .gacha-shooting-star.wine:after{
+  background:#ffdce5;
+  box-shadow:
+    0 0 4px rgba(255,224,233,.98),
+    0 0 9px rgba(229,77,118,.82),
+    0 0 16px rgba(167,45,72,.42);
+}
+
+/* Each meteor only crosses during the opening slice of a long cycle.
+   The rest of its cycle is invisible, creating natural time gaps. */
+.gacha-stage.is-drawing .gacha-shooting-star{
+  animation:gachaMeteorSparseCurve var(--star-duration) linear var(--star-delay) infinite;
+}
+@keyframes gachaMeteorSparseCurve{
+  0%{
+    opacity:0;
+    offset-distance:0%;
+  }
+  2%{opacity:0}
+  4%{opacity:1}
+  13%{opacity:.96}
+  18%{
+    opacity:0;
+    offset-distance:100%;
+  }
+  100%{
+    opacity:0;
+    offset-distance:100%;
+  }
+}
+
+/* Slightly vary apparent tail size so the field feels less repeated. */
+.gacha-shooting-star:nth-child(2n){--star-length-local:84px}
+.gacha-shooting-star:nth-child(3n){opacity:0}
+
+/* Draw-time shower streaks use the same meteor anatomy, but remain lighter and sparser. */
+.gacha-star-rain-particle:not(.is-glyph){
+  width:var(--rain-length);
+  height:5px;
+  min-width:0;
+  background:none;
+  filter:none;
+  border-radius:0;
+}
+.gacha-star-rain-particle:not(.is-glyph):before{
+  content:"";
+  position:absolute;
+  left:0;
+  right:4px;
+  top:50%;
+  height:1px;
+  transform:translateY(-50%);
+  background:linear-gradient(
+    90deg,
+    transparent,
+    rgba(240,207,138,.08) 34%,
+    rgba(255,229,165,.48) 78%,
+    rgba(255,246,219,.9)
+  );
+}
+.gacha-star-rain-particle:not(.is-glyph):after{
+  content:"";
+  position:absolute;
+  left:auto;
+  right:0;
+  top:50%;
+  bottom:auto;
+  width:4px;
+  height:3px;
+  border-radius:50%;
+  transform:translateY(-50%);
+  background:#fff7dc;
+  box-shadow:
+    0 0 4px rgba(255,245,217,.98),
+    0 0 9px rgba(216,179,106,.72);
+}
+.gacha-star-rain-particle.is-wine:before{
+  background:linear-gradient(
+    90deg,
+    transparent,
+    rgba(167,45,72,.06) 34%,
+    rgba(224,73,113,.44) 78%,
+    rgba(255,213,225,.88)
+  );
+}
+.gacha-star-rain-particle.is-wine:after{
+  background:#ffdce5;
+  box-shadow:
+    0 0 4px rgba(255,224,233,.96),
+    0 0 9px rgba(190,50,89,.68);
+}
+
+/* Make shower particles enter in separated waves rather than one dense curtain. */
+.gacha-star-rain-particle:nth-child(4n+1){animation-delay:calc(var(--rain-delay) + .18s)}
+.gacha-star-rain-particle:nth-child(4n+2){animation-delay:calc(var(--rain-delay) + .52s)}
+.gacha-star-rain-particle:nth-child(4n+3){animation-delay:calc(var(--rain-delay) + .86s)}
+.gacha-star-rain-particle:nth-child(4n){animation-delay:calc(var(--rain-delay) + 1.12s)}
+
+@media(prefers-reduced-motion:reduce){
+  .gacha-stage.is-drawing .gacha-shooting-star{
+    animation:gachaMeteorSparseCurve 6.2s linear var(--star-delay) infinite!important;
+  }
+}
