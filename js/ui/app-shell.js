@@ -532,6 +532,15 @@ function renderGacha(){
     '<div class="gacha-layout">'+
       '<div class="gacha-stage '+(gachaAnimating?'is-drawing':'')+'">'+
       '<div class="gacha-hotel-frame" aria-hidden="true"></div>'+
+      '<div class="gacha-draw-backdrop" aria-hidden="true"><i></i><i></i><i></i></div>'+
+      '<div class="gacha-shooting-star-field" aria-hidden="true">'+Array.from({length:12},(_,index)=>{
+        const x=(index*19+7)%88;
+        const y=(index*13+2)%46;
+        const delay=((index*.13)%1.15).toFixed(2);
+        const duration=(.72+(index%4)*.11).toFixed(2);
+        const length=70+(index%5)*18;
+        return '<i class="gacha-shooting-star'+(index%4===0?' wine':'')+'" style="--star-x:'+x+'%;--star-y:'+y+'%;--star-delay:'+delay+'s;--star-duration:'+duration+'s;--star-length:'+length+'px"></i>';
+      }).join("")+'</div>'+
       '<div class="gacha-particle-field gacha-particle-field-ambient" aria-hidden="true">'+Array.from({length:36},(_,index)=>{
         const x=(index*37+11)%100;
         const y=(index*53+17)%100;
