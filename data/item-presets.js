@@ -1,7 +1,7 @@
 "use strict";
 
 (()=>{
-  const VERSION=6;
+  const VERSION=7;
   const PREF_DELTA={LOVED:5,LIKED:3,NEUTRAL:1,DISLIKED:-2,HATED:-4};
   const EMOTION_BY_PREF={
     LOVED:["joy",60],LIKED:["joy",38],NEUTRAL:["curious",24],
@@ -447,75 +447,18 @@
 
   window.HV_APPLY_ITEM_PRESETS=(source,helpers={})=>{
     if(!source||!Array.isArray(source.items))return{state:source,changed:false};
-    const normalizeReaction=typeof helpers.normalizeItemReaction==="function"
-      ?helpers.normalizeItemReaction
-      :value=>value;
     let changed=false;
-    let eligibleItems=0;
-    let populatedReactions=0;
-    const currentVersion=Math.max(0,Number(source.itemPresetVersion)||0);
-    const characters=Array.isArray(source.characters)?source.characters:[];
-    const byId=new Map(characters.map(character=>[character.id,character]));
-    const ownerFor=item=>byId.get(item.collectionCharacterId)||
-      characters.find(character=>
-        charKey(character)===key(item.collectionCharacterId).replace(/[^a-z0-9가-힣]+/g,"")
-      );
-    const needsReactionRepair=source.items.some(item=>{
-      const owner=ownerFor(item);
-      if(!owner||item.giftable===false)return false;
-      const reaction=(item.reactions||[]).find(entry=>entry.characterId===owner.id);
-      if(!reaction||placeholderReaction(reaction))return true;
-      return !reaction.firstEntries?.length||!reaction.repeatEntries?.length||!reaction.specialEntries?.length;
-    });
-    if(currentVersion>=VERSION&&!needsReactionRepair)return{state:source,changed:false};
-
-    const applyWeights=currentVersion<3;
+    let removedReactions=0;
     for(const item of source.items){
-      if(applyWeights){
-        const nextWeight=individualWeight(item);
-        if(Number(item.weight)!==nextWeight){item.weight=nextWeight;changed=true}
-      }
-
-      const owner=ownerFor(item);
-      if(!owner||item.giftable===false)continue;
-      eligibleItems+=1;
-      item.reactions=Array.isArray(item.reactions)?item.reactions:[];
-      const index=item.reactions.findIndex(reaction=>reaction.characterId===owner.id);
-      const preset=normalizeReaction(buildReaction(item,owner),owner.id);
-      if(index>=0&&currentVersion<6&&String(item.reactions[index]?.id||"").startsWith("preset-reaction-")){
-        item.reactions[index]=preset;
-        populatedReactions+=1;
-        changed=true;
-        continue;
-      }
-      if(index<0){
-        item.reactions.push(preset);
-        populatedReactions+=1;
-        changed=true;
-      }else if(placeholderReaction(item.reactions[index])){
-        item.reactions[index]=preset;
-        populatedReactions+=1;
-        changed=true;
-      }else{
-        const old=item.reactions[index];
-        let patched=false;
-        if(!old.firstEntries?.length){old.firstEntries=preset.firstEntries;patched=true}
-        if(!old.repeatEntries?.length){old.repeatEntries=preset.repeatEntries;patched=true}
-        if(!old.specialEntries?.length){old.specialEntries=preset.specialEntries;patched=true}
-        if(!old.specialMinAffection){old.specialMinAffection=preset.specialMinAffection;patched=true}
-        if(!old.emotionState){old.emotionState=preset.emotionState;old.emotionIntensity=preset.emotionIntensity;patched=true}
-        if(patched){
-          populatedReactions+=1;
-          changed=true;
-        }
-      }
+      const before=Array.isArray(item.reactions)?item.reactions.length:0;
+      if(!before)continue;
+      item.reactions=item.reactions.filter(reaction=>!String(reaction?.id||"").startsWith("preset-reaction-"));
+      const removed=before-item.reactions.length;
+      if(removed){removedReactions+=removed;changed=true}
     }
-    if(eligibleItems>0&&currentVersion<VERSION){
-      source.itemPresetVersion=VERSION;
-      changed=true;
-    }
-    return{state:source,changed,eligibleItems,populatedReactions};
+    if(Number(source.itemPresetVersion)!==VERSION){source.itemPresetVersion=VERSION;changed=true}
+    return{state:source,changed,eligibleItems:0,populatedReactions:0,removedReactions};
   };
-  window.HV_BUILD_ITEM_REACTION=(item,character)=>buildReaction(item,character);
+  try{delete window.HV_BUILD_ITEM_REACTION}catch{window.HV_BUILD_ITEM_REACTION=undefined}
   window.HV_ITEM_PRESET_VERSION=VERSION;
 })();
