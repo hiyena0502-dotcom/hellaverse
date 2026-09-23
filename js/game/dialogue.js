@@ -954,15 +954,18 @@ function playGachaAnimation(results){
   const box=$("#gachaResult");
   if(!stage||!box){gachaAnimating=false;return}
   stage.classList.add("is-drawing");
-  spawnGachaParticles(stage,"burst",34);
+  spawnGachaParticles(stage,"burst",40);
+  box.className="gacha-result-grid gacha-result-grid-summon";
   box.innerHTML='<div class="gacha-summon"><span class="gacha-sigil">✦</span><b>SUMMONING</b><small>ARCHIVE LINK</small></div>';
   setTimeout(()=>{
     stage.classList.add("is-reveal");
-    spawnGachaParticles(stage,"reveal",Math.min(44,18+results.length*3));
+    spawnGachaParticles(stage,"reveal",Math.min(52,22+results.length*3));
+    box.className="gacha-result-grid gacha-result-grid-reveal "+(results.length===10?"gacha-ten-draw":results.length===1?"gacha-single-draw":"gacha-multi-draw");
     box.innerHTML=results.map((result,index)=>{
       const i=result.item;
       const line=itemGachaLine(i);
-      return '<div class="gacha-result-card gacha-reveal-card rarity-'+esc(i.rarity)+' '+(result.isNew?"is-new":"")+'" style="animation-delay:'+(index*80)+'ms">'+
+      const delay=results.length===10?index*58:index*76;
+      return '<div class="gacha-result-card gacha-reveal-card rarity-'+esc(i.rarity)+' '+(result.isNew?"is-new":"")+'" style="animation-delay:'+delay+'ms">'+
         (result.isNew?'<span class="gacha-new-badge">NEW</span>':'')+
         '<div class="gacha-result-icon">'+esc(itemEmoji(i))+'</div>'+
         '<span>'+esc(i.rarity)+'</span><strong>'+esc(i.name)+'</strong>'+
