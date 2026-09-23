@@ -961,13 +961,13 @@ function spawnGachaStarRain(stage,mode="draw",amount=32){
     const wine=!glyph&&index%5===0;
     particle.className="gacha-star-rain-particle"+(glyph?" is-glyph":wine?" is-wine":"");
     particle.textContent=glyph?"✦":"";
-    particle.style.setProperty("--rain-x",(2+Math.random()*96).toFixed(2)+"%");
-    particle.style.setProperty("--rain-drift",(Math.random()*180-90).toFixed(1)+"px");
-    particle.style.setProperty("--rain-size",(glyph?12+Math.random()*14:2+Math.random()*4).toFixed(1)+"px");
-    particle.style.setProperty("--rain-length",(28+Math.random()*72).toFixed(1)+"px");
+    particle.style.setProperty("--rain-x",(58+Math.random()*50).toFixed(2)+"%");
+    particle.style.setProperty("--rain-drift",(-260-Math.random()*360).toFixed(1)+"px");
+    particle.style.setProperty("--rain-size",(glyph?11+Math.random()*11:1.2+Math.random()*1.8).toFixed(1)+"px");
+    particle.style.setProperty("--rain-length",(42+Math.random()*76).toFixed(1)+"px");
     particle.style.setProperty("--rain-delay",(Math.random()*(mode==="reveal"?.38:.55)).toFixed(3)+"s");
-    particle.style.setProperty("--rain-duration",((mode==="reveal"?.52:.68)+Math.random()*(mode==="reveal"?.5:.72)).toFixed(3)+"s");
-    particle.style.setProperty("--rain-rot",(Math.random()*22-11).toFixed(1)+"deg");
+    particle.style.setProperty("--rain-duration",((mode==="reveal"?.58:.74)+Math.random()*(mode==="reveal"?.46:.66)).toFixed(3)+"s");
+    particle.style.setProperty("--rain-rot",(-18-Math.random()*15).toFixed(1)+"deg");
     layer.appendChild(particle);
   }
   stage.appendChild(layer);
