@@ -208,8 +208,18 @@
     };
   }
 
-  function upsertById(list,item,normalize){
-    const fresh=normalize?{...item,entries:(item.entries||[]).map(normalize)}:item;
+  function upsertEventById(list,event,normalizeEvent){
+    const fresh=typeof normalizeEvent==="function"?normalizeEvent(event):event;
+    const index=(list||[]).findIndex(row=>row.id===fresh.id);
+    if(index<0){list.push(fresh);return true}
+    if(JSON.stringify(list[index])!==JSON.stringify(fresh)){list[index]=fresh;return true}
+    return false;
+  }
+
+  function upsertAskById(list,ask,normalizeEntry){
+    const fresh=typeof normalizeEntry==="function"
+      ? {...ask,entries:(ask.entries||[]).map(normalizeEntry)}
+      : ask;
     const index=(list||[]).findIndex(row=>row.id===fresh.id);
     if(index<0){list.push(fresh);return true}
     if(JSON.stringify(list[index])!==JSON.stringify(fresh)){list[index]=fresh;return true}
@@ -427,7 +437,7 @@
     ].filter(Boolean);
 
     for(const raw of events){
-      changed=upsertById(source.events,raw,normalizeEvent)||changed;
+      changed=upsertEventById(source.events,raw,normalizeEvent)||changed;
     }
 
     const firstDuckAsk=makeAsk(
@@ -969,7 +979,7 @@
     ));
 
     for(const ask of asks){
-      changed=upsertById(source.asks,ask,normalizeEntry)||changed;
+      changed=upsertAskById(source.asks,ask,normalizeEntry)||changed;
     }
 
     // 61 · 설계도: 원본 대신 개인용 복사본.
