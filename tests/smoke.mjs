@@ -1557,6 +1557,40 @@ assert.equal(luciferDialogueRewardFlow.gachaOwned.sameAskNew,false,"gacha-owned 
 assert.equal(luciferDialogueRewardFlow.gachaOwned.nextAskUnclaimed,false,"gacha-owned acquisition must not grant again on the next ASK");
 assert.equal(luciferDialogueRewardFlow.gachaOwned.nextAskClaimed,true,"gacha-owned next ASK must switch to the already-given response");
 
+const luciferAskRepeatCountCheck=vm.runInContext(`
+(()=>{
+  const askId="lucifer-acq-ask-charlie-duck";
+  state=normalizeState({
+    schemaVersion:4,
+    characters:[{id:"lucifer-morningstar",name:"Lucifer Morningstar",origin:"angel"}],
+    asks:[{id:askId,characterId:"lucifer-morningstar",label:"찰리를 닮은 오리도 만들었어요?",repeatable:true,entries:[]}],
+    askedAskIds:[askId],
+    interactionHistory:[]
+  });
+  session=createSession();
+
+  const check=count=>{
+    state.interactionHistory=Array.from({length:count},(_,index)=>({
+      id:"ask-history-"+index,
+      kind:"ask",
+      characterId:"lucifer-morningstar",
+      askId,
+      label:"찰리를 닮은 오리도 만들었어요?"
+    }));
+    return{
+      first:askConditionPasses({askId,status:"asked",minCount:1,maxCount:1}),
+      second:askConditionPasses({askId,status:"asked",minCount:2,maxCount:2}),
+      later:askConditionPasses({askId,status:"asked",minCount:3})
+    };
+  };
+
+  return{one:check(1),two:check(2),four:check(4)};
+})()
+`,context);
+assert.deepEqual(luciferAskRepeatCountCheck.one,{first:true,second:false,later:false},"second ASK must use the first repeat reaction");
+assert.deepEqual(luciferAskRepeatCountCheck.two,{first:false,second:true,later:false},"third ASK must use the second repeat reaction");
+assert.deepEqual(luciferAskRepeatCountCheck.four,{first:false,second:false,later:true},"later ASK repeats must use the long-term reaction");
+
 const askUnlockRetention=vm.runInContext(`
 (()=>{
   state=normalizeState({
