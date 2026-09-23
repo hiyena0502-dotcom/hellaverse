@@ -1045,3 +1045,157 @@ input:focus,textarea:focus,select:focus,button:focus-visible{
   transform:none!important;
   filter:none!important;
 }
+
+
+/* v136 · force visible gacha motion and stable reveal layout */
+.gacha-stage,
+.gacha-stage .gacha-core,
+.gacha-stage #gachaResult{
+  min-width:0;
+  max-width:100%;
+}
+.gacha-stage .gacha-core{
+  width:100%;
+}
+.gacha-stage #gachaResult{
+  width:100%;
+}
+
+/* Make draw-time background movement obvious rather than barely drifting. */
+.gacha-stage.is-drawing .gacha-draw-backdrop{
+  opacity:1;
+  background-size:145% 145%,155% 155%,180% 180%;
+  animation:gachaBackdropSweep 2.2s ease-in-out infinite alternate;
+}
+@keyframes gachaBackdropSweep{
+  0%{
+    background-position:0% 12%,100% 74%,20% 30%;
+    transform:translate3d(-5%,-3%,0) rotate(-4deg) scale(1.04);
+    filter:blur(2px) saturate(1.05) brightness(.95);
+  }
+  50%{
+    background-position:46% 28%,58% 48%,62% 58%;
+    transform:translate3d(4%,-1%,0) rotate(2deg) scale(1.09);
+    filter:blur(1px) saturate(1.2) brightness(1.12);
+  }
+  100%{
+    background-position:100% 54%,12% 24%,88% 72%;
+    transform:translate3d(-1%,5%,0) rotate(5deg) scale(1.05);
+    filter:blur(2px) saturate(1.1) brightness(1.02);
+  }
+}
+
+/* Meteors keep crossing the stage for the whole draw, so they cannot be missed. */
+.gacha-stage.is-drawing .gacha-shooting-star{
+  opacity:0;
+  animation:gachaMeteorLoop var(--star-duration) linear var(--star-delay) infinite;
+}
+.gacha-stage.is-drawing .gacha-shooting-star:nth-child(2n){animation-delay:calc(var(--star-delay) + .18s)}
+.gacha-stage.is-drawing .gacha-shooting-star:nth-child(3n){animation-delay:calc(var(--star-delay) + .34s)}
+@keyframes gachaMeteorLoop{
+  0%{
+    opacity:0;
+    transform:translate3d(-150px,-120px,0) rotate(34deg);
+  }
+  8%{opacity:1}
+  44%{opacity:.95}
+  68%{
+    opacity:0;
+    transform:translate3d(390px,310px,0) rotate(34deg);
+  }
+  100%{
+    opacity:0;
+    transform:translate3d(390px,310px,0) rotate(34deg);
+  }
+}
+
+/* During reveal add a stronger star flash without changing card scale. */
+.gacha-stage.is-reveal .gacha-shooting-star-field{
+  opacity:1;
+  filter:brightness(1.35) saturate(1.2);
+}
+.gacha-stage.is-reveal .gacha-particle-ring{
+  border-width:2px;
+  box-shadow:
+    0 0 34px rgba(255,229,169,.72),
+    0 0 74px rgba(182,48,84,.34),
+    inset 0 0 26px rgba(240,207,138,.24);
+}
+
+/* Result cards never scale: only rise and fade. */
+.gacha-stage .gacha-reveal-card,
+.gacha-stage.is-reveal .gacha-reveal-card{
+  transform:translateY(24px);
+  animation-name:gachaCardRiseOnly!important;
+  animation-duration:.5s!important;
+  animation-timing-function:cubic-bezier(.18,.78,.24,1)!important;
+  animation-fill-mode:forwards!important;
+}
+@keyframes gachaCardRiseOnly{
+  from{opacity:0;transform:translateY(24px)}
+  to{opacity:1;transform:translateY(0)}
+}
+.gacha-stage.is-reveal .gacha-core{
+  animation:none!important;
+  transform:none!important;
+}
+
+/* Desktop 10-pull is locked to 5 x 2 inside the frame. */
+.gacha-result-grid.gacha-ten-draw{
+  display:grid!important;
+  grid-template-columns:repeat(5,minmax(0,1fr))!important;
+  grid-auto-flow:row!important;
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  overflow:hidden;
+  box-sizing:border-box;
+}
+.gacha-result-grid.gacha-ten-draw>.gacha-result-card{
+  width:auto!important;
+  max-width:100%!important;
+  min-width:0!important;
+  box-sizing:border-box;
+  overflow:hidden;
+}
+
+/* Explicit user-facing draw effects stay visible even when reduced-motion is enabled.
+   Keep them gentler, but do not remove them. */
+@media(prefers-reduced-motion:reduce){
+  .gacha-stage.is-drawing .gacha-draw-backdrop{
+    opacity:.7!important;
+    animation:gachaBackdropReducedVisible 2.8s ease-in-out infinite alternate!important;
+  }
+  .gacha-stage.is-drawing .gacha-shooting-star{
+    opacity:0;
+    animation:gachaMeteorReducedVisible 1.5s linear var(--star-delay) infinite!important;
+  }
+  .gacha-stage .gacha-particle-field{
+    display:block!important;
+  }
+  .gacha-stage.is-drawing .gacha-ambient-particle{
+    animation:gachaAmbientReducedVisible 2.4s ease-in-out var(--delay) infinite!important;
+  }
+  .gacha-stage .gacha-reveal-card{
+    animation:gachaCardReducedRise .28s ease-out forwards!important;
+    transform:translateY(10px)!important;
+  }
+}
+@keyframes gachaBackdropReducedVisible{
+  from{transform:translate3d(-1.5%,0,0);filter:brightness(.98)}
+  to{transform:translate3d(1.5%,-1%,0);filter:brightness(1.08)}
+}
+@keyframes gachaMeteorReducedVisible{
+  0%{opacity:0;transform:translate3d(-80px,-55px,0) rotate(34deg)}
+  16%{opacity:.75}
+  54%{opacity:0;transform:translate3d(145px,110px,0) rotate(34deg)}
+  100%{opacity:0}
+}
+@keyframes gachaAmbientReducedVisible{
+  0%,100%{opacity:.2;transform:translateY(5px)}
+  50%{opacity:.48;transform:translateY(-10px)}
+}
+@keyframes gachaCardReducedRise{
+  from{opacity:0;transform:translateY(10px)}
+  to{opacity:1;transform:translateY(0)}
+}
