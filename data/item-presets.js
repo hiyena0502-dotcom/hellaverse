@@ -447,17 +447,36 @@
 
   window.HV_APPLY_ITEM_PRESETS=(source,helpers={})=>{
     if(!source||!Array.isArray(source.items))return{state:source,changed:false};
+    const normalizeReaction=typeof helpers.normalizeItemReaction==="function"?helpers.normalizeItemReaction:value=>value;
+    const characters=Array.isArray(source.characters)?source.characters:[];
+    const byId=new Map(characters.map(character=>[character.id,character]));
+    const signature=reaction=>JSON.stringify({
+      characterId:reaction?.characterId||"",preference:reaction?.preference||"",affectionDelta:Number(reaction?.affectionDelta||0),
+      emotionState:reaction?.emotionState||"",emotionIntensity:Number(reaction?.emotionIntensity||0),
+      specialMinAffection:Number(reaction?.specialMinAffection||0),specialEmotionState:reaction?.specialEmotionState||"",
+      specialEmotionIntensity:Number(reaction?.specialEmotionIntensity||0),firstEntries:reaction?.firstEntries||[],
+      repeatEntries:reaction?.repeatEntries||[],specialEntries:reaction?.specialEntries||[]
+    });
     let changed=false;
     let removedReactions=0;
+    let preservedManualReactions=0;
     for(const item of source.items){
-      const before=Array.isArray(item.reactions)?item.reactions.length:0;
-      if(!before)continue;
-      item.reactions=item.reactions.filter(reaction=>!String(reaction?.id||"").startsWith("preset-reaction-"));
-      const removed=before-item.reactions.length;
-      if(removed){removedReactions+=removed;changed=true}
+      if(!Array.isArray(item.reactions)||!item.reactions.length)continue;
+      const next=[];
+      for(const reaction of item.reactions){
+        if(!String(reaction?.id||"").startsWith("preset-reaction-")){next.push(reaction);continue}
+        const character=byId.get(reaction.characterId);
+        const generated=character?normalizeReaction(buildReaction(item,character),character.id):null;
+        if(generated&&signature(reaction)===signature(generated)){
+          removedReactions+=1;changed=true;continue;
+        }
+        reaction.id="item-reaction-manual-"+String(item.id||"item").replace(/[^a-zA-Z0-9_-]+/g,"-")+"-"+String(reaction.characterId||"character").replace(/[^a-zA-Z0-9_-]+/g,"-");
+        preservedManualReactions+=1;changed=true;next.push(reaction);
+      }
+      item.reactions=next;
     }
     if(Number(source.itemPresetVersion)!==VERSION){source.itemPresetVersion=VERSION;changed=true}
-    return{state:source,changed,eligibleItems:0,populatedReactions:0,removedReactions};
+    return{state:source,changed,eligibleItems:0,populatedReactions:0,removedReactions,preservedManualReactions};
   };
   try{delete window.HV_BUILD_ITEM_REACTION}catch{window.HV_BUILD_ITEM_REACTION=undefined}
   window.HV_ITEM_PRESET_VERSION=VERSION;
