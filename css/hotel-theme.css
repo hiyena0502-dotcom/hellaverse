@@ -1820,3 +1820,79 @@ input:focus,textarea:focus,select:focus,button:focus-visible{
     animation:gachaArchiveStarIdle 3.4s ease-in-out var(--delay) infinite!important;
   }
 }
+
+
+/* v140 · curved meteor trajectories from upper-right to lower-left */
+.gacha-stage .gacha-shooting-star{
+  left:100%;
+  right:auto;
+  top:-14%;
+  offset-path:path("M 0 0 C -180 95 -390 190 -560 325 C -760 485 -980 650 -1260 900");
+  offset-distance:0%;
+  offset-rotate:auto;
+  transform:none;
+}
+.gacha-stage .gacha-shooting-star:nth-child(3n+2){
+  top:-6%;
+  offset-path:path("M 0 0 C -120 70 -300 155 -485 285 C -710 445 -930 620 -1210 875");
+}
+.gacha-stage .gacha-shooting-star:nth-child(3n){
+  top:2%;
+  offset-path:path("M 0 0 C -220 120 -430 215 -610 350 C -790 485 -1020 660 -1320 920");
+}
+.gacha-stage.is-drawing .gacha-shooting-star{
+  animation:gachaMeteorCurveDownLeft var(--star-duration) cubic-bezier(.12,.62,.18,1) var(--star-delay) infinite;
+}
+@keyframes gachaMeteorCurveDownLeft{
+  0%{
+    opacity:0;
+    offset-distance:0%;
+  }
+  7%{opacity:1}
+  48%{opacity:.96}
+  76%{opacity:.6}
+  100%{
+    opacity:0;
+    offset-distance:100%;
+  }
+}
+
+/* Fresh DRAW star-rain particles follow curved right-to-left falling paths too. */
+.gacha-star-rain-particle{
+  top:-20%;
+  offset-distance:0%;
+  offset-rotate:auto;
+  transform:none;
+  animation-name:gachaStarRainCurveDownLeft;
+}
+.gacha-star-rain-particle:nth-child(3n+1){
+  offset-path:path("M 0 0 C -120 105 -245 230 -360 385 C -500 575 -680 760 -930 1010");
+}
+.gacha-star-rain-particle:nth-child(3n+2){
+  offset-path:path("M 0 0 C -165 90 -310 205 -430 355 C -575 535 -760 730 -1010 990");
+}
+.gacha-star-rain-particle:nth-child(3n){
+  offset-path:path("M 0 0 C -95 125 -225 255 -350 420 C -485 595 -650 785 -900 1040");
+}
+@keyframes gachaStarRainCurveDownLeft{
+  0%{
+    opacity:0;
+    offset-distance:0%;
+  }
+  8%{opacity:1}
+  68%{opacity:.92}
+  100%{
+    opacity:0;
+    offset-distance:100%;
+  }
+}
+
+/* Preserve the curved path under reduced-motion instead of reverting to a straight fall. */
+@media(prefers-reduced-motion:reduce){
+  .gacha-stage.is-drawing .gacha-shooting-star{
+    animation:gachaMeteorCurveDownLeft 1.6s ease-out var(--star-delay) infinite!important;
+  }
+  .gacha-star-rain-particle{
+    animation:gachaStarRainCurveDownLeft 1.05s ease-out var(--rain-delay) forwards!important;
+  }
+}
