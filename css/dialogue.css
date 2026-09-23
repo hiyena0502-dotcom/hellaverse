@@ -435,3 +435,53 @@
 /* v38 · inventory reveal */
 .inventory-gacha-line{margin-top:12px!important;padding-top:10px;border-top:1px dashed var(--line);color:var(--text)!important;font-size:.72rem!important;line-height:1.55!important}
 .inventory-gacha-line b{display:block;margin-bottom:5px;color:var(--gold);font-size:.58rem;letter-spacing:.12em}
+
+
+
+/* v123 · room-side mini status */
+.room-stage>.character-status-widget.room{
+  position:absolute;
+  top:20px;
+  right:24px;
+  z-index:24;
+  display:flex;
+  align-items:flex-start;
+  gap:7px;
+}
+.room-stage>.character-status-widget.room .character-status-meters.room{
+  width:220px;
+  display:grid;
+  grid-template-columns:1fr;
+  gap:8px;
+  margin:0;
+  padding:10px 12px;
+  border:1px solid rgba(201,166,107,.16);
+  background:rgba(12,9,12,.54);
+  backdrop-filter:blur(10px);
+  box-shadow:0 14px 36px rgba(0,0,0,.18);
+}
+.room-stage>.character-status-widget.room .character-status-head{
+  margin-bottom:4px;
+}
+.room-stage>.character-status-widget.room .character-status-head span{
+  font-size:.5rem;
+}
+.room-stage>.character-status-widget.room .character-status-head strong{
+  font-size:.58rem;
+}
+.room-stage>.character-status-widget.room .character-status-head strong em{
+  font-size:.52rem;
+}
+.room-stage>.character-status-widget.room .character-status-track{
+  height:3px;
+}
+@media(max-width:760px){
+  .room-stage>.character-status-widget.room{
+    top:10px;
+    right:10px;
+  }
+  .room-stage>.character-status-widget.room .character-status-meters.room{
+    width:170px;
+    padding:8px 9px;
+  }
+}
