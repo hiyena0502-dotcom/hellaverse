@@ -1034,3 +1034,14 @@ input:focus,textarea:focus,select:focus,button:focus-visible{
     transform:none!important;
   }
 }
+
+
+/* v135 · stop parent zoom once cards are revealed */
+.gacha-stage.is-drawing:not(.is-reveal) .gacha-core{
+  animation:gachaCoreBreath .72s ease-in-out infinite alternate;
+}
+.gacha-stage.is-reveal .gacha-core{
+  animation:none!important;
+  transform:none!important;
+  filter:none!important;
+}
