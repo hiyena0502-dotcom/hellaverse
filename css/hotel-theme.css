@@ -765,3 +765,272 @@ input:focus,textarea:focus,select:focus,button:focus-visible{
     animation:none!important;
   }
 }
+
+
+/* v135 · cinematic gacha draw redesign */
+.gacha-stage .gacha-draw-backdrop{
+  position:absolute;
+  inset:-22%;
+  z-index:1;
+  pointer-events:none;
+  opacity:0;
+  background:
+    radial-gradient(circle at 24% 30%,rgba(240,207,138,.17),transparent 22%),
+    radial-gradient(circle at 72% 66%,rgba(167,45,72,.26),transparent 27%),
+    conic-gradient(from 30deg at 50% 50%,transparent 0 12%,rgba(216,179,106,.08) 18%,transparent 26% 48%,rgba(143,23,56,.12) 58%,transparent 68% 100%);
+  filter:blur(2px) saturate(1.08);
+  transform:translate3d(0,0,0) rotate(0deg);
+  transition:opacity .24s ease;
+}
+.gacha-stage .gacha-draw-backdrop i{
+  position:absolute;
+  width:38%;
+  aspect-ratio:1;
+  border-radius:50%;
+  opacity:0;
+  filter:blur(22px);
+  background:radial-gradient(circle,rgba(255,224,159,.18),rgba(216,179,106,.055) 42%,transparent 70%);
+}
+.gacha-stage .gacha-draw-backdrop i:nth-child(1){left:4%;top:8%}
+.gacha-stage .gacha-draw-backdrop i:nth-child(2){
+  right:5%;
+  top:18%;
+  background:radial-gradient(circle,rgba(208,52,91,.2),rgba(143,23,56,.07) 44%,transparent 70%);
+}
+.gacha-stage .gacha-draw-backdrop i:nth-child(3){left:34%;bottom:1%;width:44%}
+.gacha-stage.is-drawing .gacha-draw-backdrop{
+  opacity:1;
+  animation:gachaBackdropOrbit 3.2s linear infinite;
+}
+.gacha-stage.is-drawing .gacha-draw-backdrop i:nth-child(1){
+  opacity:1;
+  animation:gachaBackdropGlowA 1.9s ease-in-out infinite alternate;
+}
+.gacha-stage.is-drawing .gacha-draw-backdrop i:nth-child(2){
+  opacity:1;
+  animation:gachaBackdropGlowB 2.25s ease-in-out infinite alternate;
+}
+.gacha-stage.is-drawing .gacha-draw-backdrop i:nth-child(3){
+  opacity:.82;
+  animation:gachaBackdropGlowC 2.6s ease-in-out infinite alternate;
+}
+@keyframes gachaBackdropOrbit{
+  0%{transform:translate3d(-1.5%,-1%,0) rotate(-3deg)}
+  35%{transform:translate3d(2.5%,-2.2%,0) rotate(2deg)}
+  70%{transform:translate3d(1%,2.4%,0) rotate(5deg)}
+  100%{transform:translate3d(-1.5%,-1%,0) rotate(-3deg)}
+}
+@keyframes gachaBackdropGlowA{
+  from{transform:translate3d(-8%,4%,0) scale(.88);opacity:.38}
+  to{transform:translate3d(14%,-10%,0) scale(1.18);opacity:.95}
+}
+@keyframes gachaBackdropGlowB{
+  from{transform:translate3d(8%,-6%,0) scale(.9);opacity:.32}
+  to{transform:translate3d(-16%,13%,0) scale(1.22);opacity:.88}
+}
+@keyframes gachaBackdropGlowC{
+  from{transform:translate3d(-5%,10%,0) scale(.9);opacity:.25}
+  to{transform:translate3d(10%,-12%,0) scale(1.16);opacity:.74}
+}
+
+/* Shooting stars live on their own layer so they never fight with the hotel frame. */
+.gacha-stage .gacha-shooting-star-field{
+  position:absolute;
+  inset:0;
+  z-index:3;
+  overflow:hidden;
+  pointer-events:none;
+  opacity:0;
+  transition:opacity .18s ease;
+}
+.gacha-stage.is-drawing .gacha-shooting-star-field{opacity:1}
+.gacha-shooting-star{
+  position:absolute;
+  left:var(--star-x);
+  top:var(--star-y);
+  width:var(--star-length);
+  height:2px;
+  border-radius:999px;
+  opacity:0;
+  transform-origin:right center;
+  background:linear-gradient(90deg,transparent 0%,rgba(240,207,138,.18) 34%,rgba(255,226,165,.88) 82%,#fff4d7 100%);
+  filter:drop-shadow(0 0 7px rgba(240,207,138,.85));
+}
+.gacha-shooting-star:after{
+  content:"";
+  position:absolute;
+  right:-2px;
+  top:50%;
+  width:5px;
+  height:5px;
+  border-radius:50%;
+  background:#fff4d7;
+  box-shadow:0 0 10px #f4d590,0 0 22px rgba(216,179,106,.8);
+  transform:translateY(-50%);
+}
+.gacha-shooting-star.wine{
+  background:linear-gradient(90deg,transparent 0%,rgba(167,45,72,.18) 34%,rgba(231,77,119,.82) 82%,#ffc4d3 100%);
+  filter:drop-shadow(0 0 7px rgba(200,48,90,.8));
+}
+.gacha-shooting-star.wine:after{
+  background:#ffd0dc;
+  box-shadow:0 0 10px #e7507b,0 0 22px rgba(143,23,56,.78);
+}
+.gacha-stage.is-drawing:not(.is-reveal) .gacha-shooting-star{
+  animation:gachaMeteorFall var(--star-duration) cubic-bezier(.18,.72,.22,1) var(--star-delay) both;
+}
+.gacha-stage.is-reveal .gacha-shooting-star{
+  animation:gachaMeteorReveal .62s ease-out both;
+}
+.gacha-stage.is-reveal .gacha-shooting-star:nth-child(2n){animation-delay:.05s}
+.gacha-stage.is-reveal .gacha-shooting-star:nth-child(3n){animation-delay:.1s}
+.gacha-stage.is-reveal .gacha-shooting-star:nth-child(5n){animation-delay:.16s}
+@keyframes gachaMeteorFall{
+  0%{opacity:0;transform:translate3d(-120px,-100px,0) rotate(34deg) scaleX(.55)}
+  12%{opacity:1}
+  68%{opacity:.92}
+  100%{opacity:0;transform:translate3d(300px,245px,0) rotate(34deg) scaleX(1)}
+}
+@keyframes gachaMeteorReveal{
+  0%{opacity:0;transform:translate3d(-85px,-70px,0) rotate(34deg) scaleX(.55)}
+  16%{opacity:1}
+  100%{opacity:0;transform:translate3d(220px,180px,0) rotate(34deg) scaleX(1)}
+}
+
+/* Stronger particle field while the backdrop is moving. */
+.gacha-stage.is-drawing .gacha-particle-field{
+  filter:saturate(1.18) brightness(1.12);
+}
+.gacha-stage.is-reveal .gacha-particle-field{
+  filter:saturate(1.28) brightness(1.22);
+}
+
+/* Result cards: lift + fade only. No zoom in/out. */
+.gacha-stage .gacha-reveal-card{
+  opacity:0;
+  transform:translateY(24px);
+  animation:gachaCardLiftReveal .52s cubic-bezier(.16,.78,.24,1) forwards;
+}
+@keyframes gachaCardLiftReveal{
+  0%{opacity:0;transform:translateY(24px)}
+  72%{opacity:1;transform:translateY(0)}
+  100%{opacity:1;transform:translateY(0)}
+}
+
+/* Keep the summon icon dramatic without scaling the result cards. */
+.gacha-stage .gacha-summon{
+  animation:gachaSummonRiseNoZoom .44s cubic-bezier(.18,.82,.24,1) both;
+}
+@keyframes gachaSummonRiseNoZoom{
+  from{opacity:0;transform:translateY(26px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+/* 10-pull: exactly five cards per row on desktop. */
+.gacha-result-grid.gacha-ten-draw{
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:9px;
+  align-items:stretch;
+  width:100%;
+  max-width:100%;
+}
+.gacha-ten-draw .gacha-result-card{
+  min-width:0;
+  min-height:0;
+  height:194px;
+  padding:11px;
+  align-content:end;
+}
+.gacha-ten-draw .gacha-result-icon{
+  margin-bottom:5px;
+  font-size:1.55rem;
+}
+.gacha-ten-draw .gacha-result-card>span{
+  font-size:.56rem;
+}
+.gacha-ten-draw .gacha-result-card>strong{
+  display:-webkit-box;
+  overflow:hidden;
+  margin-top:3px;
+  font-size:.78rem;
+  line-height:1.22;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:2;
+}
+.gacha-ten-draw .gacha-result-card>small{
+  overflow:hidden;
+  margin-top:3px;
+  font-size:.58rem;
+  line-height:1.25;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.gacha-ten-draw .gacha-reveal-line{
+  display:-webkit-box;
+  overflow:hidden;
+  margin-top:7px!important;
+  padding-top:6px!important;
+  font-size:.56rem!important;
+  line-height:1.28!important;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:3;
+}
+.gacha-ten-draw .gacha-reveal-line b{
+  margin-bottom:2px;
+  font-size:.48rem;
+}
+
+/* One pull gets a centered card rather than stretching across the whole grid. */
+.gacha-result-grid.gacha-single-draw{
+  grid-template-columns:minmax(220px,340px);
+  justify-content:center;
+}
+.gacha-single-draw .gacha-result-card{
+  width:100%;
+}
+
+/* Give the gacha stage full width sooner so 5 × 2 stays inside the frame. */
+@media(max-width:1180px){
+  .gacha-layout{
+    grid-template-columns:1fr;
+  }
+  .gacha-side{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+@media(max-width:820px){
+  .gacha-result-grid.gacha-ten-draw{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .gacha-ten-draw .gacha-result-card{
+    height:auto;
+    min-height:155px;
+  }
+  .gacha-side{grid-template-columns:1fr}
+}
+@media(max-width:520px){
+  .gacha-result-grid.gacha-ten-draw{
+    grid-template-columns:1fr;
+  }
+}
+
+/* Reduced-motion keeps the composition but avoids long travel. */
+@media(prefers-reduced-motion:reduce){
+  .gacha-stage .gacha-draw-backdrop{
+    animation:none!important;
+    opacity:.5;
+    transform:none;
+  }
+  .gacha-stage .gacha-draw-backdrop i{
+    animation:none!important;
+    opacity:.28!important;
+  }
+  .gacha-stage .gacha-shooting-star{
+    animation:none!important;
+    opacity:0!important;
+  }
+  .gacha-stage .gacha-reveal-card{
+    animation:gachaReducedFade .24s ease-out both!important;
+    transform:none!important;
+  }
+}
