@@ -1066,3 +1066,17 @@ details.advanced summary{cursor:pointer;color:var(--gold);font-size:.72rem}
     max-width:none;
   }
 }
+
+
+/* Editable character gacha profiles */
+.gacha-profile-editor-card{align-items:start}
+.gacha-profile-icon-preview{font-size:1.65rem;text-align:center;line-height:1.2;padding-top:5px}
+.gacha-profile-fields{display:grid;grid-template-columns:minmax(90px,.36fr) minmax(0,1fr);gap:8px;min-width:0}
+.gacha-profile-card-head{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.gacha-profile-card-head strong{font-size:.78rem}
+.gacha-profile-card-head small{margin:0;color:var(--gold);font-size:.58rem;letter-spacing:.06em}
+.gacha-profile-fields .field{min-width:0}
+.gacha-profile-fields .field.full{grid-column:1/-1}
+.gacha-profile-fields input,.gacha-profile-fields textarea{width:100%;box-sizing:border-box}
+.gacha-profile-fields textarea{min-height:70px;resize:vertical}
+@media(max-width:720px){.gacha-profile-fields{grid-template-columns:1fr}.gacha-profile-fields .field.full,.gacha-profile-card-head{grid-column:1}}
