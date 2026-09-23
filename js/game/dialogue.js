@@ -905,14 +905,46 @@ function chooseWeighted(items,getWeight){
   for(const item of items){roll-=Math.max(0,Number(getWeight(item))||0);if(roll<=0)return item}
   return items.at(-1);
 }
+function spawnGachaParticles(stage,mode="burst",amount=30){
+  if(!stage||window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches)return;
+  const layer=document.createElement("div");
+  layer.className="gacha-particle-burst gacha-particle-burst-"+mode;
+  layer.setAttribute("aria-hidden","true");
+  const total=Math.max(8,Math.min(56,Number(amount)||30));
+  for(let index=0;index<total;index++){
+    const particle=document.createElement("span");
+    const angle=Math.random()*Math.PI*2;
+    const distance=(mode==="reveal"?70:105)+Math.random()*(mode==="reveal"?150:245);
+    const dx=Math.cos(angle)*distance;
+    const dy=Math.sin(angle)*distance;
+    const star=index%5===0;
+    const wine=!star&&index%4===0;
+    particle.className="gacha-burst-particle"+(star?" is-star":wine?" is-wine":"");
+    particle.textContent=star?"✦":"";
+    particle.style.setProperty("--dx",dx.toFixed(1)+"px");
+    particle.style.setProperty("--dy",dy.toFixed(1)+"px");
+    particle.style.setProperty("--rot",(Math.random()*220-110).toFixed(1)+"deg");
+    particle.style.setProperty("--size",(star?10+Math.random()*8:3+Math.random()*5).toFixed(1)+"px");
+    particle.style.setProperty("--delay",(Math.random()*(mode==="reveal"?.16:.10)).toFixed(3)+"s");
+    particle.style.setProperty("--duration",(mode==="reveal"?.75:1.05+Math.random()*.35).toFixed(3)+"s");
+    layer.appendChild(particle);
+  }
+  const ring=document.createElement("span");
+  ring.className="gacha-particle-ring";
+  layer.appendChild(ring);
+  stage.appendChild(layer);
+  setTimeout(()=>layer.remove(),mode==="reveal"?1200:1700);
+}
 function playGachaAnimation(results){
   const stage=$(".gacha-stage",pageRoot);
   const box=$("#gachaResult");
   if(!stage||!box){gachaAnimating=false;return}
   stage.classList.add("is-drawing");
+  spawnGachaParticles(stage,"burst",34);
   box.innerHTML='<div class="gacha-summon"><span class="gacha-sigil">✦</span><b>SUMMONING</b><small>ARCHIVE LINK</small></div>';
   setTimeout(()=>{
     stage.classList.add("is-reveal");
+    spawnGachaParticles(stage,"reveal",Math.min(44,18+results.length*3));
     box.innerHTML=results.map((result,index)=>{
       const i=result.item;
       const line=itemGachaLine(i);
