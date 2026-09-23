@@ -369,6 +369,25 @@ pageRoot.addEventListener("click",e=>{
 editorBody.addEventListener("click",e=>{
   const b=e.target.closest("[data-action]");if(!b)return;
   const a=b.dataset.action;
+  if(a==="toggle-item-reaction-card"){
+    const id=String(b.dataset.reactionId||"");
+    const details=b.closest("details[data-reaction-id]");
+    if(id){
+      if(details?.open)editorOpenItemReactionIds.delete(id);
+      else editorOpenItemReactionIds.add(id);
+    }
+    return;
+  }
+  if(a==="collapse-all-item-reactions"){
+    const item=editorDraft.items.find(row=>row.id===b.dataset.itemId);
+    for(const reaction of item?.reactions||[])editorOpenItemReactionIds.delete(reaction.id);
+    renderItemEditor();return;
+  }
+  if(a==="expand-all-item-reactions"){
+    const item=editorDraft.items.find(row=>row.id===b.dataset.itemId);
+    for(const reaction of item?.reactions||[])editorOpenItemReactionIds.add(reaction.id);
+    renderItemEditor();return;
+  }
   if(a==="run-validation"){renderValidationReport();return}
   if(a==="validation-jump"){jumpToValidationIssue(lastValidationIssues[Number(b.dataset.index)]);return}
   if(a==="editor-page"){
@@ -607,7 +626,9 @@ editorBody.addEventListener("click",e=>{
     const item=editorDraft.items.find(i=>i.id===b.dataset.itemId);if(!item)return;
     const character=editorDraft.characters.find(ch=>!item.reactions.some(reaction=>reaction.characterId===ch.id))||editorDraft.characters[0];
     const generated=character&&autoItemReactionForEditor(item,character);
-    item.reactions.push(generated||normalizeItemReaction({id:uid("item-reaction"),characterId:character?.id||"",preference:"NEUTRAL",affectionDelta:1,entries:[]}));
+    const reaction=generated||normalizeItemReaction({id:uid("item-reaction"),characterId:character?.id||"",preference:"NEUTRAL",affectionDelta:1,entries:[]});
+    item.reactions.push(reaction);
+    editorOpenItemReactionIds.add(reaction.id);
     renderItemEditor();return;
   }
   if(a==="materialize-item-reaction"){
@@ -615,12 +636,16 @@ editorBody.addEventListener("click",e=>{
     const character=editorDraft.characters.find(candidate=>candidate.id===b.dataset.characterId);
     if(!item||!character||item.reactions.some(reaction=>reaction.characterId===character.id))return;
     const generated=autoItemReactionForEditor(item,character);
-    if(generated)item.reactions.push(generated);
+    if(generated){
+      item.reactions.push(generated);
+      editorOpenItemReactionIds.add(generated.id);
+    }
     renderItemEditor();return;
   }
   if(a==="delete-item-reaction"){
     const card=b.closest("[data-reaction-id]");
     const item=editorDraft.items.find(i=>i.id===card?.dataset.itemId);if(!item)return;
+    editorOpenItemReactionIds.delete(card.dataset.reactionId);
     item.reactions=item.reactions.filter(r=>r.id!==card.dataset.reactionId);
     renderItemEditor();return;
   }
