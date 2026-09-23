@@ -924,11 +924,11 @@ function spawnGachaParticles(stage,mode="burst",amount=30){
   const layer=document.createElement("div");
   layer.className="gacha-particle-burst gacha-particle-burst-"+mode;
   layer.setAttribute("aria-hidden","true");
-  const total=Math.max(8,Math.min(56,Number(amount)||30));
+  const total=Math.max(8,Math.min(72,Number(amount)||30));
   for(let index=0;index<total;index++){
     const particle=document.createElement("span");
     const angle=Math.random()*Math.PI*2;
-    const distance=(mode==="reveal"?70:105)+Math.random()*(mode==="reveal"?150:245);
+    const distance=(mode==="reveal"?120:170)+Math.random()*(mode==="reveal"?240:360);
     const dx=Math.cos(angle)*distance;
     const dy=Math.sin(angle)*distance;
     const star=index%5===0;
@@ -938,7 +938,7 @@ function spawnGachaParticles(stage,mode="burst",amount=30){
     particle.style.setProperty("--dx",dx.toFixed(1)+"px");
     particle.style.setProperty("--dy",dy.toFixed(1)+"px");
     particle.style.setProperty("--rot",(Math.random()*220-110).toFixed(1)+"deg");
-    particle.style.setProperty("--size",(star?10+Math.random()*8:3+Math.random()*5).toFixed(1)+"px");
+    particle.style.setProperty("--size",(star?14+Math.random()*12:5+Math.random()*8).toFixed(1)+"px");
     particle.style.setProperty("--delay",(Math.random()*(mode==="reveal"?.16:.10)).toFixed(3)+"s");
     particle.style.setProperty("--duration",(mode==="reveal"?.75:1.05+Math.random()*.35).toFixed(3)+"s");
     layer.appendChild(particle);
@@ -954,12 +954,12 @@ function playGachaAnimation(results){
   const box=$("#gachaResult");
   if(!stage||!box){gachaAnimating=false;return}
   stage.classList.add("is-drawing");
-  spawnGachaParticles(stage,"burst",40);
+  spawnGachaParticles(stage,"burst",58);
   box.className="gacha-result-grid gacha-result-grid-summon";
   box.innerHTML='<div class="gacha-summon"><span class="gacha-sigil">✦</span><b>SUMMONING</b><small>ARCHIVE LINK</small></div>';
   setTimeout(()=>{
     stage.classList.add("is-reveal");
-    spawnGachaParticles(stage,"reveal",Math.min(52,22+results.length*3));
+    spawnGachaParticles(stage,"reveal",Math.min(68,30+results.length*4));
     box.className="gacha-result-grid gacha-result-grid-reveal "+(results.length===10?"gacha-ten-draw":results.length===1?"gacha-single-draw":"gacha-multi-draw");
     box.innerHTML=results.map((result,index)=>{
       const i=result.item;
