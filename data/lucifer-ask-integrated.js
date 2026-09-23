@@ -112,7 +112,7 @@
     };
   });
 
-  pack.version=6;
+  pack.version=7;
   pack.asks=asks;
   pack.askAliases=ALIASES;
   pack.retiredAskIds=Object.keys(ALIASES).filter(id=>!asks.some(ask=>ask.id===id));
