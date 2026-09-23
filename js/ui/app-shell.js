@@ -414,16 +414,19 @@ function characterStatusMetersMarkup(ch,variant="home"){
   const emotion=session.emotions[ch.id]||{state:ch.emotionDefault,intensity:ch.emotionIntensity};
   const intensity=Math.round(clamp(emotion.intensity,0,100,0));
   const emotionText=emotionLabel(emotion.state);
-  return '<div class="character-status-meters '+esc(variant)+'" data-character-status="'+esc(ch.id)+'">'+
-    '<div class="character-status-meter affection-meter">'+
-      '<div class="character-status-head"><span>AFFECTION</span><strong data-status-value="affection">'+affection+'</strong></div>'+
-      '<div class="character-status-track" role="progressbar" aria-label="Affection" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+affection+'" data-status-track="affection"><i data-status-fill="affection" style="width:'+affection+'%"></i></div>'+
+  return '<aside class="character-status-widget '+esc(variant)+'">'+
+    '<div class="character-status-meters '+esc(variant)+'" data-character-status="'+esc(ch.id)+'">'+
+      '<div class="character-status-meter affection-meter">'+
+        '<div class="character-status-head"><span>AFFECTION</span><strong data-status-value="affection">'+affection+'</strong></div>'+
+        '<div class="character-status-track" role="progressbar" aria-label="Affection" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+affection+'" data-status-track="affection"><i data-status-fill="affection" style="width:'+affection+'%"></i></div>'+
+      '</div>'+
+      '<div class="character-status-meter emotion-meter">'+
+        '<div class="character-status-head"><span>EMOTION</span><strong><b data-status-emotion-label>'+esc(emotionText)+'</b> <em data-status-value="emotion">'+intensity+'</em></strong></div>'+
+        '<div class="character-status-track" role="progressbar" aria-label="Emotion intensity" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+intensity+'" data-status-track="emotion"><i data-status-fill="emotion" style="width:'+intensity+'%"></i></div>'+
+      '</div>'+
     '</div>'+
-    '<div class="character-status-meter emotion-meter">'+
-      '<div class="character-status-head"><span>EMOTION</span><strong><b data-status-emotion-label>'+esc(emotionText)+'</b> <em data-status-value="emotion">'+intensity+'</em></strong></div>'+
-      '<div class="character-status-track" role="progressbar" aria-label="Emotion intensity" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+intensity+'" data-status-track="emotion"><i data-status-fill="emotion" style="width:'+intensity+'%"></i></div>'+
-    '</div>'+
-  '</div>';
+    '<button class="character-status-all" type="button" data-action="show-all-status" aria-label="전체 캐릭터 상태 보기" title="전체 캐릭터 상태 보기">ALL</button>'+
+  '</aside>';
 }
 function updateCharacterStatusMeters(characterId){
   const ch=getCharacter(characterId);
