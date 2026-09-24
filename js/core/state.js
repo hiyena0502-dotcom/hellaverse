@@ -1419,8 +1419,16 @@ function installStoryPacks(source){
         (event?.entries||[]).some(entry=>entry?.type==="dialogue"&&entry?.speaker==="PLAYER");
     });
 
-    if(previousVersion>=version&&!poolTalkNeedsRepair&&!isPoolTalkPack)return;
-    const isUpgrade=previousVersion>0||poolTalkNeedsRepair;
+    const managedContentMissing=(()=>{
+      const hasId=(list,id)=>Array.isArray(list)&&list.some(row=>String(row?.id||"")===String(id||""));
+      return (rawPack.variables||[]).some(item=>item?.id&&!hasId(source.variables,item.id))
+        || (rawPack.events||[]).some(item=>item?.id&&!hasId(source.events,item.id))
+        || (rawPack.asks||[]).some(item=>item?.id&&!hasId(source.asks,item.id));
+    })();
+
+    if(previousVersion>=version&&!poolTalkNeedsRepair&&!isPoolTalkPack&&!managedContentMissing)return;
+    const isVersionUpgrade=previousVersion>0&&previousVersion<version;
+    const isUpgrade=isVersionUpgrade||poolTalkNeedsRepair;
 
     const refs=resolveStoryPackCharacterRefs(rawPack,source);
     const requiredRefs=Array.isArray(rawPack.requiredCharacterRefs)?rawPack.requiredCharacterRefs:[];
