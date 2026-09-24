@@ -319,9 +319,15 @@ async function resetPlayProgress(){
   state.interactionHistory=[];
   state.discoveredThoughtIds=[];
   state.gacha.history=[];
+
+  // RESET PLAY PROGRESS must never delete built-in dialogue/ASK/TALK content.
+  // Rehydrate any code-managed content that is missing, while preserving
+  // editor-created/custom content already present in the project state.
+  state=installStoryPacks(normalizeState(state)).state;
+
   session=createSession();
   playback=null;
-  if(!saveProgressState()||!await flushStorageWrites()){
+  if(!saveState()||!await flushStorageWrites()){
     state=previousState;
     session=createSession();
     showToast("진행도 초기화 저장에 실패했습니다.");
