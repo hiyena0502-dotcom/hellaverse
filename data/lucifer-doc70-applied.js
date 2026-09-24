@@ -62,5 +62,232 @@
   };
   const asks=TOPICS.filter(t=>t.k==="A").map(makeAsk);
   const events=TOPICS.filter(t=>t.k==="T").map(makeTalk);
-  window.HV_STORY_PACKS.push({id:"lucifer-doc70-applied",version:1,requiredCharacterIds:[C],asks,events});
+
+  // Hand-authored replacements for ASK 01 / 09 / 18.
+  // These keep the document's existing COLD/DISTANT first reactions when the
+  // revised script did not replace them, while using the user's expanded
+  // NEUTRAL/WARM/CLOSE dialogue and choice flows verbatim.
+  const FIRST=id=>({askId:id,status:"not-asked"});
+  const REP=(id,min,max)=>({askId:id,status:"asked",minCount:min,...(max===undefined?{}:{maxCount:max})});
+  const flowEntry=(base,b,index,row,delta=0,askCondition=null)=>{
+    const extra={};
+    if(askCondition)extra.askCondition=askCondition;
+    if(index===0&&delta)extra.affectionEffects=[AF(base+"-aff-"+b.toLowerCase(),delta)];
+    return row[0]==="N"
+      ? N(base+"-"+b.toLowerCase()+"-"+(index+1),row[1],b,extra)
+      : D(base+"-"+b.toLowerCase()+"-"+(index+1),row[1],b,extra);
+  };
+  const flowOption=(base,label,deltas,flows,tone="neutral")=>{
+    const entries=[P(base+"-player",label)];
+    B.forEach((b,bi)=>{
+      const rows=flows[b]||flows.ALL||[];
+      rows.forEach((row,index)=>entries.push(flowEntry(base,b,index,row,Number(deltas?.[bi])||0)));
+    });
+    return {id:base,label,tone,entries,condition:null,effects:[],itemEffects:[],itemCondition:null,askCondition:null,affectionCondition:null,affectionEffects:[],emotionCondition:null,emotionEffects:[],exitMode:"continue",targetEventId:""};
+  };
+  const replaceAsk=(id,next)=>{
+    const i=asks.findIndex(a=>a.id===id);
+    if(i>=0)asks[i]=next;
+  };
+
+  {
+    const id="lucifer-doc70-ask-01-hb081";
+    const old=asks.find(a=>a.id===id);
+    const repeatEntries=(old?.entries||[]).filter(e=>e.askCondition?.status==="asked");
+    const choices=[
+      flowOption(id+"-opt-1","자랑스러운 것도 죄예요?",[0,0,0,0,0],{
+        ALL:[
+          ["D","아니면 난 진작 몇 번은 더 추락했겠지. 그것도 아주 화려하게."],
+          ["N","루시퍼는 아무렇지 않게 웃고는 손을 내젓는다."],
+          ["D","적당히 자랑스러워해. 자기가 잘한 걸 잘했다고 생각하는 것까지 죄라고 하면 너무 피곤하잖아. 세상 끝날 일 아니니까."]
+        ]
+      }),
+      flowOption(id+"-opt-2","그럼 겸손하게 굴면 직무유기네요?",[1,1,1,1,1],{
+        ALL:[["D","그럼 난 수천 년째 무급휴직 중이겠네. 세상에, 체불 임금부터 계산하면 지옥 재정이 먼저 무너지겠는데?"]]
+      },"supportive"),
+      flowOption(id+"-opt-3","대표면 모범도 보여야죠.",[-1,0,0,0,0],{
+        ALL:[
+          ["N","훈계하듯 들린 말에 루시퍼의 표정이 잠시 굳는다."],
+          ["D","모범이라. 꽤 위험한 단어를 아무렇지도 않게 쓰네."],
+          ["N","입가에는 여전히 웃음이 남아 있지만, 방금 전보다 조금 얇아져 있다."]
+        ]
+      },"confrontational")
+    ];
+    replaceAsk(id,{
+      ...old,repeatMode:"light",repeatBoundaryOptionIds:[],
+      entries:[
+        P(id+"-q","당신이 Pride를 대표한다는 게 정확히 무슨 뜻이에요?"),
+        D(id+"-first-cold","명함에 ‘오만 담당’이라고 적는다는 뜻은 아니야.","COLD",{askCondition:FIRST(id)}),
+        D(id+"-first-distant","명함에 ‘오만 담당’이라고 적는다는 뜻은 아니야.","DISTANT",{askCondition:FIRST(id)}),
+        D(id+"-first-neutral","이름은 상징이고, 자리는 권력이야. 그렇다고 하루 종일 거울 보면서 ‘내가 최고야’ 하고 있는 건 아니고. 뭐, 가끔은 보지만.","NEUTRAL",{askCondition:FIRST(id)}),
+        D(id+"-first-warm-1","Pride가 내 일부인 건 맞지. 아주 품위 있고 반짝이는 일부. 왕관이랑도 잘 어울리고, 옷도 잘 받고. 이 정도면 꽤 성공적인 브랜딩 아닌가?","WARM",{askCondition:FIRST(id)}),
+        N(id+"-first-warm-2","루시퍼는 웃으며 자기 옷깃을 한 번 정리한다. 더 설명할 생각은 없어 보인다.","WARM",{askCondition:FIRST(id)}),
+        D(id+"-first-close-1","Pride가 내 일부인 건 맞아. 그것까지 부정하면 좀 우습겠지.","CLOSE",{askCondition:FIRST(id)}),
+        N(id+"-first-close-2","잠시 말을 멈춘 루시퍼가 가볍게 어깨를 으쓱한다.","CLOSE",{askCondition:FIRST(id)}),
+        D(id+"-first-close-3","뭐, 너무 잘 맞는 이름도 가끔은 골치 아픈 법이야. 그렇다고 지금 와서 간판을 바꿀 수도 없고.","CLOSE",{askCondition:FIRST(id)}),
+        ...repeatEntries,
+        {id:id+"-choices",type:"choice",prompt:"어떻게 이어서 말할까?",options:choices}
+      ]
+    });
+  }
+
+  {
+    const id="lucifer-doc70-ask-09-mix050";
+    const old=asks.find(a=>a.id===id);
+    const repeatEntries=(old?.entries||[]).filter(e=>e.askCondition?.status==="asked");
+    const lowFlow=[
+      ["D","나? 이미 충분히 조용하게 살아봤는데."],
+      ["N","루시퍼가 아무렇지도 않다는 듯 웃는다."],
+      ["D","별로 추천할 만한 관광 코스는 아니야."]
+    ];
+    const warmFlow=[
+      ["N","루시퍼는 잠깐 입을 다문다."],
+      ["D","평범하게 살고 싶은지는 모르겠어."],
+      ["N","그가 손끝으로 지팡이를 한 번 돌린다."],
+      ["D","아무도 내가 뭘 해야 하는지 정해놓지 않은 하루라면… 가끔은 괜찮겠지."],
+      ["N","잠시 후 루시퍼가 웃으며 덧붙인다."],
+      ["D","딱 하루. 그 이상은 경험상 별로야."]
+    ];
+    const choices=[
+      flowOption(id+"-opt-1","당신도 그런 날 원해요?",[0,0,0,1,1],{
+        COLD:lowFlow,DISTANT:lowFlow,NEUTRAL:lowFlow,WARM:warmFlow,CLOSE:warmFlow
+      },"supportive"),
+      flowOption(id+"-opt-2","왕이 평범하게 살면 무책임한 거 아닌가요?",[-1,-1,-1,-1,-1],{
+        ALL:[
+          ["N","루시퍼의 눈썹이 살짝 올라간다."],
+          ["D","쉬는 거랑 사라지는 걸 같은 취급하면 곤란하지."],
+          ["D","왕이라고 하루 스물네 시간 왕좌에 붙어 있어야 하는 건 아니야. 그랬다간 내가 먼저 미치거나 왕좌가 먼저 도망가겠지."],
+          ["N","농담처럼 끝냈지만, 처음보다 웃음이 조금 옅어져 있다."]
+        ]
+      },"confrontational")
+    ];
+    replaceAsk(id,{
+      ...old,repeatMode:"light",repeatBoundaryOptionIds:[],
+      entries:[
+        P(id+"-q","다들 알아보는 사람이 갑자기 평범하게 살고 싶다고 하면 가능할까요?"),
+        D(id+"-first-cold","평범하다는 게 뭔데. 왕관 벗고 장 보러 가면 끝?","COLD",{askCondition:FIRST(id)}),
+        D(id+"-first-distant","평범하다는 게 뭔데. 왕관 벗고 장 보러 가면 끝?","DISTANT",{askCondition:FIRST(id)}),
+        D(id+"-first-neutral-1","가능이야 하겠지. 문 닫고, 연락 끊고, 아무도 안 만나고.","NEUTRAL",{askCondition:FIRST(id)}),
+        N(id+"-first-neutral-2","루시퍼가 손가락을 하나씩 접다가 피식 웃는다.","NEUTRAL",{askCondition:FIRST(id)}),
+        D(id+"-first-neutral-3","물론 그건 평범하게 사는 게 아니라 그냥 아주 효율적으로 사라지는 방법이지만.","NEUTRAL",{askCondition:FIRST(id)}),
+        D(id+"-first-neutral-4","유명하든 왕이든 사람들이 기억하는 건 마음대로 못 해. 그래도 언제 얼굴을 보여줄지는 어느 정도 고를 수 있지.","NEUTRAL",{askCondition:FIRST(id)}),
+        D(id+"-first-warm-1","평범하게 산다는 말이 좀 애매하지 않아? 아무도 안 찾아오면 평범한 건가? 왕관을 벗으면? 일정이 없으면?","WARM",{askCondition:FIRST(id)}),
+        N(id+"-first-warm-2","루시퍼는 잠시 생각하다가 어깨를 으쓱한다.","WARM",{askCondition:FIRST(id)}),
+        D(id+"-first-warm-3","조용한 거랑 평범한 건 생각보다 다른 얘기더라고.","WARM",{askCondition:FIRST(id)}),
+        D(id+"-first-close-1","몇 년쯤 세상하고 거리를 둔다고 평범해지는 건 아니야.","CLOSE",{askCondition:FIRST(id)}),
+        N(id+"-first-close-2","대수롭지 않게 나온 말치고는 묘하게 구체적이다. 루시퍼는 곧 입꼬리를 올린다.","CLOSE",{askCondition:FIRST(id)}),
+        D(id+"-first-close-3","그냥 사람들이 널 못 보게 되는 거지. 아주 큰 차이야.","CLOSE",{askCondition:FIRST(id)}),
+        ...repeatEntries,
+        {id:id+"-choices",type:"choice",prompt:"어떻게 이어서 말할까?",options:choices}
+      ]
+    });
+  }
+
+  {
+    const id="lucifer-doc70-ask-18-hb063";
+    const old=asks.find(a=>a.id===id);
+    const choices=[
+      flowOption(id+"-opt-1","당사자 둘이 동의하면요?",[0,0,0,0,0],{
+        ALL:[
+          ["D","그럼 정략결혼이라는 이름이 붙어 있다고 해서 내가 뭐라고 할 이유는 없지."],
+          ["D","처음 만난 이유가 정치였든, 돈이었든, 가문 때문이었든 그건 배경이고. 둘 다 그 조건을 알고도 직접 ‘그래’라고 했다면 적어도 선택은 한 거잖아."],
+          ["N","루시퍼가 한쪽 눈썹을 올린다."],
+          ["D","물론 부모가 양옆에서 검 들고 서 있는 걸 동의라고 부르진 않고."]
+        ]
+      }),
+      flowOption(id+"-opt-2","왕실 유지엔 희생이 필요하잖아요.",[-2,-2,-2,-2,-2],{
+        ALL:[
+          ["N","방금까지 가볍게 웃던 루시퍼의 표정이 눈에 띄게 식는다."],
+          ["D","그래. 왕실도 나라를 유지하려면 희생이 필요할 때가 있겠지."],
+          ["N","잠깐의 정적 뒤에 그가 말을 잇는다."],
+          ["D","그러니까 희생할 사람이 필요하면, 결정한 사람이 먼저 자기 인생부터 내놓으면 되겠네."],
+          ["N","목소리는 크지 않지만 농담하는 기색은 없다."],
+          ["D","남의 인생을 대신 내놓고 ‘필요한 희생’이라고 부르는 건 굉장히 쉬운 일이거든."]
+        ]
+      },"confrontational"),
+      flowOption(id+"-opt-3","이 얘기는 여기까지만 할게요.",[2,2,2,2,2],{
+        ALL:[
+          ["N","루시퍼는 잠시 플레이어를 바라본다. 굳이 이유를 묻지는 않는다."],
+          ["D","그래? 의외로 눈치가 빠르네."],
+          ["N","그는 가볍게 웃으며 화제를 넘기듯 지팡이를 한 번 돌린다."],
+          ["D","좋아. 그럼 오늘의 왕실 혼인 상담소는 여기까지."],
+          ["N","평소와 다를 것 없는 농담조지만, 더 캐묻지 않은 선택 자체는 기억해 둔 듯하다."]
+        ]
+      },"supportive"),
+      flowOption(id+"-opt-4","그럼 파이몬이 자기 아들한테 정략결혼을 시킨 건요?",[0,0,0,0,0],{
+        ALL:[
+          ["N","파이몬이라는 이름이 나오자 루시퍼의 표정이 아주 미묘하게 변한다."],
+          ["D","파이몬?"],
+          ["N","되묻기는 했지만, 누구인지 확인하려는 말투는 아니다."],
+          ["D","아. 그 자식."],
+          ["N","그가 이마를 손끝으로 한 번 문지른다."],
+          ["D","애가 많다는 건 알고 있었는데, 설마 그중 누구를 누구랑 결혼시켰는지까지 내가 챙기고 있을 거라고 생각한 건 아니지?"],
+          ["D","Goetia 일은 걔가 알아서 하겠지 뭐."],
+          ["N","파이몬 자체는 아주 잘 아는 눈치지만, 그의 자식들이 누구와 결혼했는지까지 관심을 두고 있었던 것 같지는 않다."]
+        ]
+      })
+    ];
+    replaceAsk(id,{
+      ...old,repeatMode:"sensitive",repeatAffectionDelta:-1,
+      repeatBoundaryOptionIds:[id+"-opt-3"],
+      entries:[
+        P(id+"-q","정략결혼 같은 건 귀족사회에 어쩔 수 없이 필요한 거예요?"),
+        D(id+"-first-cold","필요하다는 말로 개인 인생을 너무 쉽게 묶지 마.","COLD",{askCondition:FIRST(id)}),
+        D(id+"-first-distant","필요하다는 말로 개인 인생을 너무 쉽게 묶지 마.","DISTANT",{askCondition:FIRST(id)}),
+        D(id+"-first-neutral-1","‘어쩔 수 없이’라는 말은 참 편리하지.","NEUTRAL",{askCondition:FIRST(id)}),
+        N(id+"-first-neutral-2","루시퍼가 손가락으로 지팡이 끝을 가볍게 두드린다.","NEUTRAL",{askCondition:FIRST(id)}),
+        D(id+"-first-neutral-3","동맹 하나 맺자고 사람 둘을 결혼시켜야만 굴러가는 사회라면, 결혼보다 정치 쪽이 먼저 문제 아닐까?","NEUTRAL",{askCondition:FIRST(id)}),
+        D(id+"-first-neutral-4","조약이라는 아주 혁신적인 발명품도 있고 말이야.","NEUTRAL",{askCondition:FIRST(id)}),
+        D(id+"-first-warm-1","정치적인 이유가 붙는다고 갑자기 낭만적인 일이 되는 건 아니지.","WARM",{askCondition:FIRST(id)}),
+        N(id+"-first-warm-2","루시퍼는 대수롭지 않게 어깨를 으쓱한다.","WARM",{askCondition:FIRST(id)}),
+        D(id+"-first-warm-3","가문이 어떻고, 왕실이 어떻고, 미래가 어떻고. 말을 거창하게 붙여도 당사자가 싫다면 싫은 거야.","WARM",{askCondition:FIRST(id)}),
+        D(id+"-first-close-1","결혼 자체가 정치적인 건 상관없어. 둘 다 알고 선택했다면 그건 그 사람들 일이니까.","CLOSE",{askCondition:FIRST(id)}),
+        N(id+"-first-close-2","잠시 말을 멈춘 루시퍼가 시선을 돌린다.","CLOSE",{askCondition:FIRST(id)}),
+        D(id+"-first-close-3","선택할 수 없게 만들어놓고 나중에 ‘필요했다’고 설명하는 건 다른 얘기고.","CLOSE",{askCondition:FIRST(id)}),
+        N(id+"-first-close-4","마지막 문장은 처음보다 조금 낮게 떨어진다.","CLOSE",{askCondition:FIRST(id)}),
+
+        D(id+"-repeat1-cold","이 얘기 아까 끝난 줄 알았는데.","COLD",{askCondition:REP(id,1,1)}),
+        N(id+"-repeat1-cold-n","아직 웃고는 있지만 대답이 전보다 짧아진다.","COLD",{askCondition:REP(id,1,1)}),
+        D(id+"-repeat1-distant","이 얘기 아까 끝난 줄 알았는데.","DISTANT",{askCondition:REP(id,1,1)}),
+        N(id+"-repeat1-distant-n","아직 웃고는 있지만 대답이 전보다 짧아진다.","DISTANT",{askCondition:REP(id,1,1)}),
+        D(id+"-repeat1-neutral","이 얘기 아까 끝난 줄 알았는데.","NEUTRAL",{askCondition:REP(id,1,1)}),
+        N(id+"-repeat1-neutral-n","아직 웃고는 있지만 대답이 전보다 짧아진다.","NEUTRAL",{askCondition:REP(id,1,1)}),
+        D(id+"-repeat1-warm","이 얘기 아까 끝난 줄 알았는데.","WARM",{askCondition:REP(id,1,1)}),
+        N(id+"-repeat1-warm-n","아직 웃고는 있지만 대답이 전보다 짧아진다.","WARM",{askCondition:REP(id,1,1)}),
+        D(id+"-repeat1-close","이 얘기 아까 끝난 줄 알았는데.","CLOSE",{askCondition:REP(id,1,1)}),
+        N(id+"-repeat1-close-n","아직 웃고는 있지만 대답이 전보다 짧아진다.","CLOSE",{askCondition:REP(id,1,1)}),
+
+        D(id+"-repeat2-cold","정략결혼에 갑자기 굉장한 관심이 생겼나 봐?","COLD",{askCondition:REP(id,2,2)}),
+        N(id+"-repeat2-cold-n","말투는 가볍지만, 질문에 제대로 답해줄 생각은 없어 보인다.","COLD",{askCondition:REP(id,2,2)}),
+        D(id+"-repeat2-distant","정략결혼에 갑자기 굉장한 관심이 생겼나 봐?","DISTANT",{askCondition:REP(id,2,2)}),
+        N(id+"-repeat2-distant-n","말투는 가볍지만, 질문에 제대로 답해줄 생각은 없어 보인다.","DISTANT",{askCondition:REP(id,2,2)}),
+        D(id+"-repeat2-neutral","정략결혼에 갑자기 굉장한 관심이 생겼나 봐?","NEUTRAL",{askCondition:REP(id,2,2)}),
+        N(id+"-repeat2-neutral-n","말투는 가볍지만, 질문에 제대로 답해줄 생각은 없어 보인다.","NEUTRAL",{askCondition:REP(id,2,2)}),
+        D(id+"-repeat2-warm","정략결혼에 갑자기 굉장한 관심이 생겼나 봐?","WARM",{askCondition:REP(id,2,2)}),
+        N(id+"-repeat2-warm-n","말투는 가볍지만, 질문에 제대로 답해줄 생각은 없어 보인다.","WARM",{askCondition:REP(id,2,2)}),
+        D(id+"-repeat2-close","정략결혼에 갑자기 굉장한 관심이 생겼나 봐?","CLOSE",{askCondition:REP(id,2,2)}),
+        N(id+"-repeat2-close-n","말투는 가볍지만, 질문에 제대로 답해줄 생각은 없어 보인다.","CLOSE",{askCondition:REP(id,2,2)}),
+
+        N(id+"-repeat3-cold-n1","루시퍼가 이번에는 웃지 않는다.","COLD",{askCondition:REP(id,3)}),
+        D(id+"-repeat3-cold","그만 이야기할까? 왜 자꾸 똑같은 질문을 물어보는 거야?","COLD",{askCondition:REP(id,3)}),
+        N(id+"-repeat3-cold-n2","그는 그 뒤로 더 이상의 설명을 붙이지 않는다.","COLD",{askCondition:REP(id,3)}),
+        N(id+"-repeat3-distant-n1","루시퍼가 이번에는 웃지 않는다.","DISTANT",{askCondition:REP(id,3)}),
+        D(id+"-repeat3-distant","그만 이야기할까? 왜 자꾸 똑같은 질문을 물어보는 거야?","DISTANT",{askCondition:REP(id,3)}),
+        N(id+"-repeat3-distant-n2","그는 그 뒤로 더 이상의 설명을 붙이지 않는다.","DISTANT",{askCondition:REP(id,3)}),
+        N(id+"-repeat3-neutral-n1","루시퍼가 이번에는 웃지 않는다.","NEUTRAL",{askCondition:REP(id,3)}),
+        D(id+"-repeat3-neutral","그만 이야기할까? 왜 자꾸 똑같은 질문을 물어보는 거야?","NEUTRAL",{askCondition:REP(id,3)}),
+        N(id+"-repeat3-neutral-n2","그는 그 뒤로 더 이상의 설명을 붙이지 않는다.","NEUTRAL",{askCondition:REP(id,3)}),
+        N(id+"-repeat3-warm-n1","루시퍼가 이번에는 웃지 않는다.","WARM",{askCondition:REP(id,3)}),
+        D(id+"-repeat3-warm","그만 이야기할까? 왜 자꾸 똑같은 질문을 물어보는 거야?","WARM",{askCondition:REP(id,3)}),
+        N(id+"-repeat3-warm-n2","그는 그 뒤로 더 이상의 설명을 붙이지 않는다.","WARM",{askCondition:REP(id,3)}),
+        N(id+"-repeat3-close-n1","루시퍼가 이번에는 웃지 않는다.","CLOSE",{askCondition:REP(id,3)}),
+        D(id+"-repeat3-close","그만 이야기할까? 왜 자꾸 똑같은 질문을 물어보는 거야?","CLOSE",{askCondition:REP(id,3)}),
+        N(id+"-repeat3-close-n2","그는 그 뒤로 더 이상의 설명을 붙이지 않는다.","CLOSE",{askCondition:REP(id,3)}),
+
+        {id:id+"-choices",type:"choice",prompt:"어떻게 이어서 말할까?",options:choices}
+      ]
+    });
+  }
+
+  window.HV_STORY_PACKS.push({id:"lucifer-doc70-applied",version:2,requiredCharacterIds:[C],asks,events});
 })();
