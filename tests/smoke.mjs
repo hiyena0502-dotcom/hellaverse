@@ -359,7 +359,7 @@ const walkEntries=(entries,visit)=>{
 
 vm.runInNewContext(luciferAskIntegratedCode,unifiedContext);
 const luciferIntegratedAsk=unifiedContext.window.HV_STORY_PACKS.find(pack=>pack.id==="unified-asks-lucifer-morningstar");
-assert.equal(luciferIntegratedAsk.version,5,"Lucifer integrated ASK pack version missing");
+assert.equal(luciferIntegratedAsk.version,7,"Lucifer integrated ASK pack version missing");
 assert.equal(luciferIntegratedAsk.asks.length,68,"Lucifer integrated ASK must contain all 68 questions");
 assert.equal(new Set(luciferIntegratedAsk.asks.map(ask=>ask.id)).size,68,"Lucifer integrated ASK ids must be unique");
 assert.equal(luciferIntegratedAsk.asks.reduce((sum,ask)=>sum+(ask.entries.at(-1)?.options?.length||0),0),210,"Lucifer integrated ASK must contain all 210 choices");
