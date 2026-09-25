@@ -1339,7 +1339,7 @@ const luciferAskInstall=vm.runInContext(`
 })()
 `,context);
 context.window.HV_STORY_PACKS.length=storyPackCountBeforeLuciferAsk;
-assert.equal(luciferAskInstall.version,5,"Lucifer integrated ASK installer version missing");
+assert.equal(luciferAskInstall.version,7,"Lucifer integrated ASK installer version missing");
 assert.equal(luciferAskInstall.askCount,68,"Lucifer integrated ASK installer must replace legacy questions without duplicates");
 assert.equal(luciferAskInstall.hasLegacy,false,"retired Lucifer ASK must be removed during upgrade");
 assert.deepEqual([...luciferAskInstall.asked],["lucifer-ask-charlie-similar"],"legacy asked ASK progress must migrate to the integrated id");
