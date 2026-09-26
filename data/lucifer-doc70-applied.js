@@ -60,8 +60,10 @@
     es.push({id:id+"-choices",type:"choice",prompt:"어떻게 반응할까?",options:t.c.map((c,i)=>opt(t,id,c,i))});
     return {id,name:`TALK · Lucifer Morningstar · ${t.t}`,characterId:C,eventRole:"talk",menuVisible:true,randomEligible:true,startMode:t.a,sensitivity:t.y,topicFamily:`doc70_${t.s.toLowerCase()}`,emotionExitMode:"keep",entries:es};
   };
-  const asks=TOPICS.filter(t=>t.k==="A").map(makeAsk);
-  const events=TOPICS.filter(t=>t.k==="T").map(makeTalk);
+  const REMOVED_TOPIC_NUMBERS=new Set([11,12,13,23,24,26,30,37,45,58,60,62,63,64,65]);
+  const ACTIVE_TOPICS=TOPICS.filter(t=>!REMOVED_TOPIC_NUMBERS.has(t.n));
+  const asks=ACTIVE_TOPICS.filter(t=>t.k==="A").map(makeAsk);
+  const events=ACTIVE_TOPICS.filter(t=>t.k==="T").map(makeTalk);
 
   // Hand-authored replacements for ASK 01 / 09 / 18 / 27.
   const FIRST=id=>({askId:id,status:"not-asked"});
@@ -1511,5 +1513,30 @@
     }
   }
 
-  window.HV_STORY_PACKS.push({id:"lucifer-doc70-applied",version:5,requiredCharacterIds:[C],asks,events});
+  window.HV_STORY_PACKS.push({
+    id:"lucifer-doc70-applied",
+    version:6,
+    requiredCharacterIds:[C],
+    retiredAskIds:[
+      "lucifer-doc70-ask-11-hb096",
+      "lucifer-doc70-ask-12-hb098",
+      "lucifer-doc70-ask-13-hb099",
+      "lucifer-doc70-ask-23-hb070",
+      "lucifer-doc70-ask-26-hb073",
+      "lucifer-doc70-ask-30-mix049",
+      "lucifer-doc70-ask-45-mix020",
+      "lucifer-doc70-ask-58-mix043",
+      "lucifer-doc70-ask-60-mix045",
+      "lucifer-doc70-ask-62-mix051",
+      "lucifer-doc70-ask-63-mix052",
+      "lucifer-doc70-ask-64-mix056"
+    ],
+    retiredEventIds:[
+      "lucifer-doc70-talk-24-hb071",
+      "lucifer-doc70-talk-37-hb109",
+      "lucifer-doc70-talk-65-mix060"
+    ],
+    asks,
+    events
+  });
 })();
