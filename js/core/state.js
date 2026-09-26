@@ -1527,11 +1527,29 @@ function installStoryPacks(source){
       if(retiredAskIds.size){
         const before=(source.asks||[]).length;
         source.asks=(source.asks||[]).filter(ask=>!retiredAskIds.has(String(ask?.id||"")));
+        source.askedAskIds=(source.askedAskIds||[]).filter(id=>!retiredAskIds.has(String(id)));
+        source.unlockedAskIds=(source.unlockedAskIds||[]).filter(id=>!retiredAskIds.has(String(id)));
+        source.interactionHistory=(source.interactionHistory||[]).filter(row=>!row?.askId||!retiredAskIds.has(String(row.askId)));
         if(source.asks.length!==before)changed=true;
       }
     }
 
-
+    const retiredEventIds=new Set((pack.retiredEventIds||[]).map(String));
+    if(retiredEventIds.size){
+      const before=(source.events||[]).length;
+      source.events=(source.events||[]).filter(event=>!retiredEventIds.has(String(event?.id||"")));
+      source.discoveredTalkIds=(source.discoveredTalkIds||[]).filter(id=>!retiredEventIds.has(String(id)));
+      source.interactionHistory=(source.interactionHistory||[]).filter(row=>!row?.eventId||!retiredEventIds.has(String(row.eventId)));
+      if(source.playState?.recentTalks&&typeof source.playState.recentTalks==="object"){
+        source.playState.recentTalks=Object.fromEntries(
+          Object.entries(source.playState.recentTalks).map(([characterId,ids])=>[
+            characterId,
+            (Array.isArray(ids)?ids:[]).filter(id=>!retiredEventIds.has(String(id)))
+          ])
+        );
+      }
+      if(source.events.length!==before)changed=true;
+    }
 
     (pack.variables||[]).forEach(variable=>upsertById(source.variables,variable,normalizeVariable));
     (pack.events||[]).forEach(event=>upsertById(source.events,event,normalizeEvent));
