@@ -60,7 +60,7 @@
     es.push({id:id+"-choices",type:"choice",prompt:"어떻게 반응할까?",options:t.c.map((c,i)=>opt(t,id,c,i))});
     return {id,name:`TALK · Lucifer Morningstar · ${t.t}`,characterId:C,eventRole:"talk",menuVisible:true,randomEligible:true,startMode:t.a,sensitivity:t.y,topicFamily:`doc70_${t.s.toLowerCase()}`,emotionExitMode:"keep",entries:es};
   };
-  const REMOVED_TOPIC_NUMBERS=new Set([11,12,13,16,17,20,22,23,24,25,26,30,31,32,37,44,45,56,57,58,60,61,62,63,64,65,66]);
+  const REMOVED_TOPIC_NUMBERS=new Set([7,10,11,12,13,16,17,20,21,22,23,24,25,26,28,30,31,32,33,34,35,36,37,42,43,44,45,49,56,57,58,59,60,61,62,63,64,65,66]);
   const ACTIVE_TOPICS=TOPICS.filter(t=>!REMOVED_TOPIC_NUMBERS.has(t.n));
   const asks=ACTIVE_TOPICS.filter(t=>t.k==="A").map(makeAsk);
   const events=ACTIVE_TOPICS.filter(t=>t.k==="T").map(makeTalk);
@@ -1515,7 +1515,7 @@
 
   window.HV_STORY_PACKS.push({
     id:"lucifer-doc70-applied",
-    version:7,
+    version:8,
     requiredCharacterIds:[C],
     retiredAskIds:[
       "lucifer-doc70-ask-11-hb096",
@@ -1544,8 +1544,20 @@
       "lucifer-doc70-ask-66-mix092"
     ],
     retiredEventIds:[
+      "lucifer-doc70-talk-07-hb092",
+      "lucifer-doc70-talk-10-hb095",
+      "lucifer-doc70-talk-21-hb068",
       "lucifer-doc70-talk-24-hb071",
+      "lucifer-doc70-talk-28-hb078",
+      "lucifer-doc70-talk-33-hb103",
+      "lucifer-doc70-talk-34-hb104",
+      "lucifer-doc70-talk-35-hb105",
+      "lucifer-doc70-talk-36-hb108",
       "lucifer-doc70-talk-37-hb109",
+      "lucifer-doc70-talk-42-mix015",
+      "lucifer-doc70-talk-43-mix016",
+      "lucifer-doc70-talk-49-hb026",
+      "lucifer-doc70-talk-59-mix044",
       "lucifer-doc70-talk-65-mix060"
     ],
     asks,
