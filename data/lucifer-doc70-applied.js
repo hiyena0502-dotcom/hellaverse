@@ -60,7 +60,7 @@
     es.push({id:id+"-choices",type:"choice",prompt:"어떻게 반응할까?",options:t.c.map((c,i)=>opt(t,id,c,i))});
     return {id,name:`TALK · Lucifer Morningstar · ${t.t}`,characterId:C,eventRole:"talk",menuVisible:true,randomEligible:true,startMode:t.a,sensitivity:t.y,topicFamily:`doc70_${t.s.toLowerCase()}`,emotionExitMode:"keep",entries:es};
   };
-  const REMOVED_TOPIC_NUMBERS=new Set([11,12,13,23,24,26,30,37,45,58,60,62,63,64,65]);
+  const REMOVED_TOPIC_NUMBERS=new Set([11,12,13,16,17,20,22,23,24,25,26,30,31,32,37,44,45,56,57,58,60,61,62,63,64,65,66]);
   const ACTIVE_TOPICS=TOPICS.filter(t=>!REMOVED_TOPIC_NUMBERS.has(t.n));
   const asks=ACTIVE_TOPICS.filter(t=>t.k==="A").map(makeAsk);
   const events=ACTIVE_TOPICS.filter(t=>t.k==="T").map(makeTalk);
@@ -1515,21 +1515,33 @@
 
   window.HV_STORY_PACKS.push({
     id:"lucifer-doc70-applied",
-    version:6,
+    version:7,
     requiredCharacterIds:[C],
     retiredAskIds:[
       "lucifer-doc70-ask-11-hb096",
       "lucifer-doc70-ask-12-hb098",
       "lucifer-doc70-ask-13-hb099",
+      "lucifer-doc70-ask-16-hb062",
+      "lucifer-doc70-ask-17-hb064",
+      "lucifer-doc70-ask-20-hb067",
+      "lucifer-doc70-ask-22-hb069",
       "lucifer-doc70-ask-23-hb070",
+      "lucifer-doc70-ask-25-hb072",
       "lucifer-doc70-ask-26-hb073",
       "lucifer-doc70-ask-30-mix049",
+      "lucifer-doc70-ask-31-hb102",
+      "lucifer-doc70-ask-32-hb103",
+      "lucifer-doc70-ask-44-hb115",
       "lucifer-doc70-ask-45-mix020",
+      "lucifer-doc70-ask-56-mix041",
+      "lucifer-doc70-ask-57-mix042",
       "lucifer-doc70-ask-58-mix043",
       "lucifer-doc70-ask-60-mix045",
+      "lucifer-doc70-ask-61-mix046",
       "lucifer-doc70-ask-62-mix051",
       "lucifer-doc70-ask-63-mix052",
-      "lucifer-doc70-ask-64-mix056"
+      "lucifer-doc70-ask-64-mix056",
+      "lucifer-doc70-ask-66-mix064"
     ],
     retiredEventIds:[
       "lucifer-doc70-talk-24-hb071",
