@@ -1857,7 +1857,7 @@
 
   window.HV_STORY_PACKS.push({
     id:"lucifer-doc70-applied",
-    version:8,
+    version:9,
     requiredCharacterIds:[C],
     retiredAskIds:[
       "lucifer-doc70-ask-11-hb096",
